@@ -40,6 +40,12 @@ func _init() -> void:
 		md.pop_est.append(float(c.pop_est))
 		md.gdp_md.append(float(c.gdp_md))
 		neighbour_codes.append(c.neighbours)
+		if c.has("capital"):
+			md.capital_pos.append(Vector2(c.capital.pos[0], c.capital.pos[1]))
+			md.capital_name.append(str(c.capital.name))
+		else:
+			md.capital_pos.append(Vector2(NAN, NAN))
+			md.capital_name.append("")
 
 		var rings: Array[PackedVector2Array] = []
 		var areas: Array[float] = []

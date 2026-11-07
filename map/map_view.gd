@@ -37,6 +37,8 @@ var selected := -1
 var player := -1
 ## Extra screen-space padding (top/bottom) for UI chrome, used when framing countries.
 var frame_insets := Vector4(0, 0, 0, 0)  # left, top, right, bottom
+## Screen rects (map-local) covered by UI chrome: labels are not drawn there.
+var label_blockers: Array[Rect2] = []
 
 var _world: Node2D
 var _fill: MeshInstance2D

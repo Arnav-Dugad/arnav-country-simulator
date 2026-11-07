@@ -22,6 +22,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 CACHE = os.path.join(HERE, ".cache")
 SRC = os.path.join(CACHE, "ne_50m_admin_0_countries.geojson")
 OUT = os.path.join(CACHE, "map_projected.json")
+PLACES_URL = ("https://raw.githubusercontent.com/nvkelso/natural-earth-vector/"
+              f"{NE_TAG}/geojson/ne_50m_populated_places_simple.geojson")
+PLACES_SRC = os.path.join(CACHE, "ne_50m_populated_places_simple.geojson")
 
 # Projected units per radian. World spans roughly x ±2706, y ±1317.
 SCALE = 1000.0
@@ -100,9 +103,38 @@ def main():
             "label": [round(lx, 2), round(ly, 2)],
             "label_rank": int(p.get("LABELRANK") or 9),
             "pop_est": float(p.get("POP_EST") or 0),
+            "adm0": p.get("ADM0_A3"),
             "gdp_md": float(p.get("GDP_MD") or 0),
             "rings": rings,
         })
+
+    # Capitals (Natural Earth populated places, "Admin-0 capital").
+    if not os.path.exists(PLACES_SRC):
+        print("Downloading", PLACES_URL)
+        req = urllib.request.Request(PLACES_URL, headers={"User-Agent": "acs-build-tools"})
+        with urllib.request.urlopen(req) as r, open(PLACES_SRC, "wb") as f:
+            f.write(r.read())
+    with open(PLACES_SRC, encoding="utf-8") as f:
+        places = json.load(f)["features"]
+    by_a3 = {}
+    for p in places:
+        pr = p["properties"]
+        if pr.get("featurecla") != "Admin-0 capital":
+            continue
+        by_a3.setdefault(pr.get("adm0_a3"), []).append(pr)
+    # Countries with several capitals: use the seat of government.
+    preferred = {"ZAF": "Pretoria", "BOL": "La Paz", "NLD": "Amsterdam", "CIV": "Yamoussoukro"}
+    for c in countries:
+        cands = by_a3.get(c["iso3"]) or by_a3.get(c.get("adm0", ""), [])
+        want = preferred.get(c["iso3"])
+        if want:
+            named = [p["properties"] for p in places
+                     if p["properties"].get("adm0_a3") == c["iso3"] and p["properties"].get("name") == want]
+            cands = named or cands
+        if cands:
+            best = max(cands, key=lambda pr: pr.get("pop_max") or 0)
+            x, y = equal_earth(best["longitude"], best["latitude"])
+            c["capital"] = {"name": best["name"], "pos": [round(x, 2), round(y, 2)]}
 
     neighbours = [set() for _ in countries]
     for owners in vertex_owner.values():

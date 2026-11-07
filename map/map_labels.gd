@@ -30,7 +30,10 @@ func _draw() -> void:
 	var md := map.data
 	var zf := map.zoom / map.min_zoom          # 1 = whole world
 	var max_rank := clampi(int(1.5 + log(zf) / log(2.0) * 1.6), 1, 8)
-	var placed: Array[Rect2] = []
+	var placed: Array[Rect2] = map.label_blockers.duplicate()
+	var outline_c := get_theme_color(&"font_outline_color", &"MapLabel")
+	_draw_capital_dots(zf, outline_c)
+	_draw_capital_name(Game.player, placed, zf, outline_c)  # your capital claims space first
 	var view := Rect2(Vector2.ZERO, size).grow(-4)
 	var outline := get_theme_color(&"font_outline_color", &"MapLabel")
 	var base_color := get_theme_color(&"font_color", &"MapLabel")
@@ -65,3 +68,60 @@ func _draw() -> void:
 		var pos := p + Vector2(-tw * 0.5, fs * 0.35)
 		draw_string_outline(_font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, 4, Color(outline, outline.a * a))
 		draw_string(_font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(base_color, base_color.a * a))
+	for i in map.data.count():
+		if i != Game.player:
+			_draw_capital_name(i, placed, zf, outline)
+
+
+## Capital dots from ~3.5x zoom, drawn beneath country labels.
+func _draw_capital_dots(zf: float, outline: Color) -> void:
+	var md := map.data
+	if md.capital_pos.is_empty() or zf < 3.5:
+		return
+	var a := clampf((zf - 3.5) / 1.5, 0.0, 1.0)
+	var view := Rect2(Vector2.ZERO, size).grow(-4)
+	for i in md.count():
+		var cp := md.capital_pos[i]
+		if is_nan(cp.x):
+			continue
+		var p := map.world_to_screen(cp)
+		if not view.has_point(p):
+			continue
+		var mine := i == Game.player
+		var col := DS.GOLD if mine else Color(1, 1, 1, 0.85)
+		draw_circle(p, 4.2, Color(outline, 0.55 * a), true, -1.0, true)
+		draw_circle(p, 2.4 if not mine else 3.0, Color(col, a), true, -1.0, true)
+
+
+## Capital names from ~5x zoom, only where they don't collide with other labels.
+func _draw_capital_name(i: int, placed: Array[Rect2], zf: float, outline: Color) -> void:
+	var md := map.data
+	if i < 0 or md.capital_pos.is_empty() or zf < 5.0:
+		return
+	var cp := md.capital_pos[i]
+	if is_nan(cp.x):
+		return
+	var p := map.world_to_screen(cp)
+	if not Rect2(Vector2.ZERO, size).grow(-4).has_point(p):
+		return
+	var mine := i == Game.player
+	var col := DS.GOLD if mine else Color(1, 1, 1, 0.85)
+	var fs := 10
+	var name := md.capital_name[i]
+	var key := 100000 + i
+	if not _width_cache.has(key):
+		_width_cache[key] = _font.get_string_size(name, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+	var tw: float = _width_cache[key]
+	var r := Rect2(p + Vector2(6, -fs * 0.6), Vector2(tw, fs * 1.2)).grow(2)
+	var hit := false
+	for q in placed:
+		if q.intersects(r):
+			hit = true
+			break
+	if hit:
+		return
+	placed.append(r)
+	var la := clampf((zf - 5.0) / 1.5, 0.0, 1.0) * (1.0 if mine else 0.8)
+	var pos := p + Vector2(6, fs * 0.35)
+	draw_string_outline(_font, pos, name, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, 3, Color(outline, outline.a * la))
+	draw_string(_font, pos, name, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(col, la))

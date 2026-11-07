@@ -183,6 +183,13 @@ func _update_insets() -> void:
 	var top := modes.position.y + 44.0 + DS.S2
 	var bottom := size.y - (sheet.top_for(sheet.state) if sheet.is_open() else float(dock.get_meta(&"home_y", size.y))) + DS.S3
 	map.frame_insets = Vector4(DS.S4, top, DS.S4, bottom)
+	var blockers: Array[Rect2] = [top_bar.get_rect().grow(4), modes.get_rect().grow(4)]
+	if sheet.is_open():
+		blockers.append(Rect2(0, sheet.top_for(sheet.state) - 6, size.x, size.y))
+	else:
+		blockers.append(Rect2(dock.position.x, float(dock.get_meta(&"home_y", dock.position.y)) - 6, dock.size.x, size.y))
+	map.label_blockers = blockers
+	map.queue_redraw()
 
 
 # ------------------------------------------------------------------ pages ----

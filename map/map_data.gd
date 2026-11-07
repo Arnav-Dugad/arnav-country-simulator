@@ -23,6 +23,9 @@ extends Resource
 @export var pop_est: PackedFloat64Array
 @export var gdp_md: PackedFloat64Array
 @export var neighbours: Array[PackedInt32Array] = []
+## Capital city per country (position NAN if unknown).
+@export var capital_pos: PackedVector2Array
+@export var capital_name: PackedStringArray
 
 # Geometry: simplified outer rings and their triangulations
 @export var ring_points: Array[PackedVector2Array] = []
