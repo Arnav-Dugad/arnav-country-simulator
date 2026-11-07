@@ -56,6 +56,11 @@ var _low_stability_months := 0
 var rng := RandomNumberGenerator.new()
 
 var _acc := 0.0
+# AI countries are simulated a few per frame during the month (they are
+# independent of each other), so the month boundary itself stays cheap.
+var _ai_queue := PackedInt32Array()
+var _ai_cursor := 0
+var _ai_ready := false
 
 
 func _ready() -> void:
@@ -77,6 +82,7 @@ func new_game(country_index: int, seed_value: int = -1) -> void:
 	months_to_election = 12 * Economy.ELECTION_YEARS
 	speed = 1
 	_acc = 0.0
+	_ai_ready = false
 	history.clear()
 	for k in HISTORY_KEYS:
 		history[k] = PackedFloat32Array()
@@ -150,6 +156,39 @@ func _process(delta: float) -> void:
 	if _acc >= per:
 		_acc -= per
 		advance_month()
+	else:
+		_work_ai(delta)
+
+
+func _work_ai(delta: float) -> void:
+	if not _ai_ready:
+		_fill_ai_queue()
+	var remaining := _ai_queue.size() - _ai_cursor
+	if remaining <= 0:
+		return
+	# Finish with ~30 % of the month to spare.
+	var frames_left := maxf(1.0, (Economy.SECONDS_PER_MONTH * 0.7 - _acc) / maxf(delta * speed, 0.0001))
+	var batch := maxi(4, int(ceil(remaining / frames_left)))
+	for _k in mini(batch, remaining):
+		_tick_ai(_ai_queue[_ai_cursor])
+		_ai_cursor += 1
+
+
+func _fill_ai_queue() -> void:
+	_ai_queue.clear()
+	for i in countries.size():
+		if countries[i] != null and i != player:
+			_ai_queue.append(i)
+	_ai_cursor = 0
+	_ai_ready = true
+
+
+func _tick_ai(i: int) -> void:
+	var c: CountryState = countries[i]
+	if Simulation.tick(c, rng, false):
+		debt_crisis.emit(i)
+	if month % 3 == 0:
+		AI.quarterly(c, rng)
 
 
 ## Fraction of the current month elapsed (for smooth UI progress).
@@ -158,18 +197,16 @@ func month_progress() -> float:
 
 
 func advance_month() -> void:
-	var quarter := month % 3 == 0
-	var my_crisis := false
-	for i in countries.size():
-		var c: CountryState = countries[i]
-		if c == null:
-			continue
-		var crisis := Simulation.tick(c, rng, i == player)
-		if i != player and quarter:
-			AI.quarterly(c, rng)
-		if crisis:
-			debt_crisis.emit(i)
-			my_crisis = my_crisis or i == player
+	# Finish any AI countries not yet simulated this month, then the player.
+	if not _ai_ready:
+		_fill_ai_queue()
+	while _ai_cursor < _ai_queue.size():
+		_tick_ai(_ai_queue[_ai_cursor])
+		_ai_cursor += 1
+	var my_crisis := Simulation.tick(me(), rng, true)
+	if my_crisis:
+		debt_crisis.emit(player)
+	_ai_ready = false
 	_drift_relations()
 	months_played += 1
 	months_to_election -= 1
@@ -400,6 +437,7 @@ func load_dict(d: Dictionary) -> bool:
 	_low_stability_months = 0
 	speed = 1
 	_acc = 0.0
+	_ai_ready = false
 	me().refresh_explainer()
 	running = true
 	started.emit()

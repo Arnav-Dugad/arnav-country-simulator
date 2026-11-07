@@ -14,6 +14,7 @@ var active_slot := 1
 
 func _ready() -> void:
 	DirAccess.make_dir_recursive_absolute(DIR)
+	_index.load(INDEX_PATH)
 	Game.month_passed.connect(_on_month)
 	Game.started.connect(func() -> void: save_slot(active_slot))
 
@@ -27,23 +28,61 @@ func path(slot: int) -> String:
 	return DIR + "slot_%d.json" % slot
 
 
-func save_slot(slot: int) -> bool:
+## Saves the running game. The state is deep-copied on the main thread (~2 ms);
+## JSON encoding and the file write (~20 ms) run on a worker thread so autosaves
+## never cause a hitch. `saved` is emitted on the main thread when done.
+func save_slot(slot: int, background: bool = true) -> bool:
 	if not Game.has_game():
 		return false
-	var data := Game.to_dict()
+	var data: Dictionary = Game.to_dict().duplicate(true)
 	data["saved_at"] = int(Time.get_unix_time_from_system())
 	data["summary"] = summary_of(data)
+	_set_summary(slot, data["summary"])
+	active_slot = slot
+	Settings.set_value("last_slot", slot)
+	if not background:
+		var ok := _write(slot, data)
+		_finished(slot, ok)
+		return ok
+	if _busy.has(slot):
+		_again[slot] = data          # newest wins; written right after the current one
+		return true
+	_busy[slot] = true
+	WorkerThreadPool.add_task(func() -> void:
+		var ok := _write(slot, data)
+		_finished.call_deferred(slot, ok))
+	return true
+
+
+var _busy := {}
+var _again := {}
+var _index := ConfigFile.new()   # slot -> summary (so menus never parse full saves)
+const INDEX_PATH := DIR + "index.cfg"
+
+
+func _write(slot: int, data: Dictionary) -> bool:
 	var f := FileAccess.open(path(slot), FileAccess.WRITE)
 	if f == null:
-		push_error("SaveManager: cannot write %s" % path(slot))
 		return false
 	f.store_string(JSON.stringify(data))
 	f.close()
-	active_slot = slot
-	Settings.set_value("last_slot", slot)
+	return true
+
+
+func _finished(slot: int, ok: bool) -> void:
+	_busy.erase(slot)
+	if not ok:
+		push_error("SaveManager: cannot write %s" % path(slot))
+		return
 	saved.emit(slot)
 	slots_changed.emit()
-	return true
+	if _again.has(slot):
+		var data: Dictionary = _again[slot]
+		_again.erase(slot)
+		_busy[slot] = true
+		WorkerThreadPool.add_task(func() -> void:
+			var ok2 := _write(slot, data)
+			_finished.call_deferred(slot, ok2))
 
 
 func read_slot(slot: int) -> Dictionary:
@@ -64,6 +103,8 @@ func load_slot(slot: int) -> bool:
 
 ## Writes raw save data (e.g. pulled from the cloud) into a slot.
 func write_raw(slot: int, data: Dictionary) -> void:
+	if data.has("summary"):
+		_set_summary(slot, data["summary"])
 	var f := FileAccess.open(path(slot), FileAccess.WRITE)
 	if f:
 		f.store_string(JSON.stringify(data))
@@ -72,6 +113,9 @@ func write_raw(slot: int, data: Dictionary) -> void:
 
 
 func delete_slot(slot: int) -> void:
+	if _index.has_section_key("slots", str(slot)):
+		_index.erase_section_key("slots", str(slot))
+		_index.save(INDEX_PATH)
 	if FileAccess.file_exists(path(slot)):
 		DirAccess.remove_absolute(path(slot))
 		slots_changed.emit()
@@ -85,8 +129,21 @@ func has_any() -> bool:
 
 
 func summary(slot: int) -> Dictionary:
-	var d := read_slot(slot)
-	return d.get("summary", {}) if not d.is_empty() else {}
+	if not FileAccess.file_exists(path(slot)):
+		return {}
+	var cached: Variant = _index.get_value("slots", str(slot), null)
+	if cached is Dictionary:
+		return cached
+	var d := read_slot(slot)   # older saves: parse once, then remember
+	var sm: Dictionary = d.get("summary", {}) if not d.is_empty() else {}
+	if not sm.is_empty():
+		_set_summary(slot, sm)
+	return sm
+
+
+func _set_summary(slot: int, sm: Dictionary) -> void:
+	_index.set_value("slots", str(slot), sm)
+	_index.save(INDEX_PATH)
 
 
 static func summary_of(data: Dictionary) -> Dictionary:
