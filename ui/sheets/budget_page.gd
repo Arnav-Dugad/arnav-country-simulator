@@ -56,6 +56,18 @@ func _build() -> void:
 	_total.value_changed.connect(func(_v: float) -> void: s1.request())
 
 	var split := section("Where the money goes")
+	var donut_row := HBoxContainer.new()
+	donut_row.add_theme_constant_override(&"separation", DS.S3)
+	split.add_child(donut_row)
+	_donut = Donut.new()
+	_donut.colors = CountryState.BUDGET_KEYS.map(func(k: String) -> Color: return _tint(k))
+	_donut.center_title = "a year"
+	donut_row.add_child(_donut)
+	_legend = VBoxContainer.new()
+	_legend.add_theme_constant_override(&"separation", 3)
+	_legend.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_legend.alignment = BoxContainer.ALIGNMENT_CENTER
+	donut_row.add_child(_legend)
 	for k in CountryState.BUDGET_KEYS:
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override(&"separation", DS.S3)
@@ -130,6 +142,44 @@ func refresh() -> void:
 		DS.money(c.debt), DS.pct(c.debt_pct(), 0), DS.money(c.interest_cost)]
 	for k in _shares:
 		_shares[k].set_value(c.budget[k] * 100.0, false)
+	_update_donut()
+
+
+var _donut: Donut
+var _legend: VBoxContainer
+
+
+func _update_donut() -> void:
+	if _donut == null:
+		return
+	var c := Game.me()
+	_donut.set_shares(CountryState.BUDGET_KEYS.map(func(k: String) -> float: return float(c.budget[k])))
+	_donut.center_value = DS.money(c.gdp * c.spending_pct / 100.0, 1)
+	_donut.queue_redraw()
+	for ch in _legend.get_children():
+		ch.queue_free()
+	var keys: Array = CountryState.BUDGET_KEYS.duplicate()
+	keys.sort_custom(func(a: String, b: String) -> bool: return float(c.budget[a]) > float(c.budget[b]))
+	for k in keys:
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override(&"separation", 6)
+		_legend.add_child(row)
+		var dot := ColorRect.new()
+		dot.color = _tint(k)
+		dot.custom_minimum_size = Vector2(9, 9)
+		dot.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		row.add_child(dot)
+		var l := Label.new()
+		l.theme_type_variation = &"Footnote"
+		l.text = CountryState.BUDGET_LABELS[k]
+		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		l.clip_text = true
+		l.custom_minimum_size = Vector2(10, 0)
+		row.add_child(l)
+		var p := Label.new()
+		p.theme_type_variation = &"StatSmall"
+		p.text = "%d%%" % roundi(float(c.budget[k]) * 100.0)
+		row.add_child(p)
 
 
 func on_open() -> void:
