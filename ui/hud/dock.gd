@@ -13,7 +13,7 @@ const ITEMS := [
 ]
 
 var _buttons := {}
-var _badge: Panel
+var _badges := {}
 var active := ""
 
 
@@ -32,14 +32,20 @@ func _ready() -> void:
 		b.pressed.connect(func() -> void: opened.emit(it[0]))
 		row.add_child(b)
 		_buttons[it[0]] = b
-	_badge = Panel.new()
-	_badge.theme_type_variation = &"Badge"
-	_badge.custom_minimum_size = Vector2(9, 9)
-	_badge.size = Vector2(9, 9)
-	_badge.visible = false
-	_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_buttons["events"].add_child(_badge)
-	_buttons["events"].resized.connect(_place_badge)
+	for k in _buttons:
+		var badge := Panel.new()
+		badge.theme_type_variation = &"Badge"
+		badge.custom_minimum_size = Vector2(9, 9)
+		badge.size = Vector2(9, 9)
+		badge.visible = false
+		badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_buttons[k].add_child(badge)
+		_buttons[k].resized.connect(func() -> void: badge.position = Vector2(_buttons[k].size.x * 0.5 + 8, 4))
+		_badges[k] = badge
+
+
+func button_rect(page: String) -> Rect2:
+	return (_buttons[page] as Control).get_global_rect()
 
 
 func set_active(page: String) -> void:
@@ -55,10 +61,6 @@ func set_active(page: String) -> void:
 				b.remove_theme_color_override(c)
 
 
-func set_badge(show_it: bool) -> void:
-	_badge.visible = show_it
-
-
-func _place_badge() -> void:
-	var b: Control = _buttons["events"]
-	_badge.position = Vector2(b.size.x * 0.5 + 8, 4)
+## Small red dot on a dock item ("events" pending, "economy" needs attention).
+func set_badge(show_it: bool, page: String = "events") -> void:
+	_badges[page].visible = show_it

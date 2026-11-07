@@ -4,6 +4,7 @@ extends SheetPage
 
 signal new_game_requested
 signal store_requested
+signal tour_requested
 
 var _slots_box: VBoxContainer
 var _account_box: VBoxContainer
@@ -46,6 +47,9 @@ func _build() -> void:
 	var hap := AppToggle.new().setup("Haptic feedback", Settings.haptics, "vibrate")
 	hap.toggled.connect(func(v: bool) -> void: Settings.set_value("haptics", v))
 	prefs.add_child(hap)
+	var tour := AppButton.make("Replay the guided tour", &"", "map")
+	tour.pressed.connect(func() -> void: tour_requested.emit())
+	prefs.add_child(tour)
 	var rm := AppToggle.new().setup("Reduce motion", Settings.reduce_motion, "sparkles")
 	rm.toggled.connect(func(v: bool) -> void: Settings.set_value("reduce_motion", v))
 	prefs.add_child(rm)

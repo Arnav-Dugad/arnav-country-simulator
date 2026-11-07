@@ -118,6 +118,7 @@ static func icon_tile(icon_name: String, tint: Color) -> Control:
 	var p := PanelContainer.new()
 	p.theme_type_variation = &"IconTile"
 	p.custom_minimum_size = Vector2(36, 36)
+	p.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	p.self_modulate = tint
 	var t := TextureRect.new()
 	t.texture = DS.icon(icon_name)

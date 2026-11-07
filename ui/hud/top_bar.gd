@@ -86,6 +86,10 @@ func _draw_progress() -> void:
 	_progress.draw_line(Vector2(r, y), Vector2(r + w * Game.month_progress(), y), Color(DS.ACCENT_SOFT, 0.7), 1.5, true)
 
 
+func speed_rect() -> Rect2:
+	return _speed.get_global_rect()
+
+
 func refresh() -> void:
 	var c := Game.me()
 	if c == null:

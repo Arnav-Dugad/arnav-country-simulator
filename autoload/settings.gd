@@ -12,6 +12,7 @@ var last_update_check: int = 0
 var skipped_version: String = ""
 var last_slot: int = 1
 var map_theme: String = "default"
+var tutorial_done: bool = false
 
 var _cfg := ConfigFile.new()
 
@@ -25,6 +26,7 @@ func _ready() -> void:
 		skipped_version = _cfg.get_value("prefs", "skipped_version", "")
 		last_slot = _cfg.get_value("prefs", "last_slot", 1)
 		map_theme = _cfg.get_value("prefs", "map_theme", "default")
+		tutorial_done = _cfg.get_value("prefs", "tutorial_done", false)
 
 
 func set_value(key: String, value: Variant) -> void:

@@ -69,6 +69,47 @@ func _ready() -> void:
 		_show_event.call_deferred(Game.pending_event)
 	get_tree().root.go_back_requested.connect(_on_back)
 	_dev_open.call_deferred()
+	if not Settings.tutorial_done and Game.months_played == 0 and DevTools.arg("open") == null:
+		get_tree().create_timer(0.9).timeout.connect(start_tour)
+
+
+# ------------------------------------------------------------------- tour ----
+func start_tour() -> void:
+	if not is_inside_tree() or is_instance_valid(_modal):
+		return
+	var prev := Game.speed
+	Game.set_speed(0)
+	var name := World.map.names[Game.player]
+	var g := Guide.new()
+	g.steps = [
+		{"target": _player_rect, "title": "Welcome, leader of %s" % name,
+			"text": "This is your country. Everything starts from real 2025 data: its people, money, debt and mood."},
+		{"target": top_bar.speed_rect, "title": "Time moves month by month",
+			"text": "One month passes every 2 seconds. Pause whenever you want to think, or speed up to 4×."},
+		{"target": func() -> Rect2: return dock.button_rect("economy"), "title": "Economy",
+			"text": "See how your country is doing and what to fix first. Set taxes and interest rates, with a forecast as you move each slider."},
+		{"target": func() -> Rect2: return dock.button_rect("budget"), "title": "Budget",
+			"text": "Decide how much the government spends, and on what: healthcare, schools, roads and more."},
+		{"target": func() -> Rect2: return dock.button_rect("diplomacy"), "title": "The world",
+			"text": "Make friends abroad with trade deals, alliances and aid. You can also tap any country on the map."},
+		{"target": modes.get_global_rect, "title": "Map views",
+			"text": "Color the world by wealth, relations with you, happiness or stability."},
+		{"title": "Your goal",
+			"text": "Keep your people happy and the economy healthy. Elections come every 4 years: stay above 50% approval to keep your job. Good luck!"},
+	]
+	add_child(g)
+	g.finished.connect(func() -> void:
+		Settings.set_value("tutorial_done", true)
+		Game.set_speed(maxi(prev, 1)))
+
+
+func _player_rect() -> Rect2:
+	var r := map.focus_rect(Game.player)
+	var xf := map.get_global_transform()
+	var a := xf * map.world_to_screen(r.position)
+	var b := xf * map.world_to_screen(r.end)
+	var view := map.get_global_rect().grow(-DS.S4)
+	return Rect2(a, b - a).intersection(view)
 
 
 ## DevTools: --open=<page> [--scroll=<px>] opens a sheet page at full height.
@@ -163,11 +204,16 @@ func _wire_page(page: String, p: SheetPage) -> void:
 	match page:
 		"diplomacy":
 			p.country_requested.connect(func(i: int) -> void: _open_country(i, true))
+		"economy":
+			p.page_requested.connect(open_page)
 		"country":
 			p.page_requested.connect(open_page)
 		"settings":
 			p.new_game_requested.connect(_confirm_new_game)
 			p.store_requested.connect(func() -> void: open_page("store"))
+			p.tour_requested.connect(func() -> void:
+				sheet.close()
+				start_tour())
 		"events":
 			p.open_pending.connect(func() -> void: _show_event(Game.pending_event))
 
@@ -221,6 +267,7 @@ func _on_month() -> void:
 	if _mode != MapModes.Mode.POLITICAL and Game.month % 3 == 1:
 		map.set_colors(_colors_for(_mode))
 	dock.set_badge(not Game.pending_event.is_empty())
+	dock.set_badge(Advisor.health(Game.me()) == 0, "economy")
 
 
 func _on_relations_changed() -> void:

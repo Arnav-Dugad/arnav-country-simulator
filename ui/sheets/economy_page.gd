@@ -17,6 +17,9 @@ var _rate: AppSlider
 var _trade: AppSlider
 var _balance_note: Label
 var _strips: Array[ForecastStrip] = []
+var _health: HealthCard
+
+signal page_requested(page: String)
 
 
 func _init() -> void:
@@ -25,6 +28,9 @@ func _init() -> void:
 
 
 func _build() -> void:
+	_health = HealthCard.new()
+	_health.page_requested.connect(func(p: String) -> void: page_requested.emit(p))
+	add_child(_health)
 	var g := grid(self)
 	_tiles.gdp = _tile(g, "GDP", func(v: float) -> String: return DS.money(v), true)
 	_tiles.growth = _tile(g, "Growth", SheetPage.fmt_pct, true)
@@ -143,6 +149,7 @@ func refresh() -> void:
 	_tiles.approval.show_value(c.approval, year_ago("approval"), SheetPage.fmt_pts)
 	_update_balance()
 	_update_chart(false)
+	_health.refresh()
 
 
 func on_open() -> void:

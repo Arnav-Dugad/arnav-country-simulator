@@ -83,8 +83,9 @@ func _refresh(animate: bool) -> void:
 		var has_icon := i < icons.size() and icons[i] != ""
 		_buttons[i].text = labels[i] if (on or not compact or not has_icon) else ""
 	_sync_size()
-	if not animate:
-		_move_indicator.call_deferred(false)
+	# Move after layout settles (labels may change width). Needed explicitly when
+	# no re-sort happens (non-compact controls where every label stays visible).
+	_move_indicator.call_deferred(animate)
 
 
 func _sync_size() -> void:
