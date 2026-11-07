@@ -25,6 +25,17 @@ const THEMES := {
 const RAMP_SEQ := [Color("1f2b45"), Color("1d4f73"), Color("1f7a7a"), Color("4fa07a"), Color("c9c27a")]
 const RAMP_DIV := [Color("b5434b"), Color("6e3a4a"), Color("323c55"), Color("2f6b5a"), Color("3fae7a")]
 const NO_DATA := Color("1b2436")
+## Colour-blind friendly: luminance rises steadily; blue -> orange avoids red/green.
+const RAMP_SEQ_CB := [Color("1d2a4a"), Color("38457a"), Color("6b6e7e"), Color("a89a6b"), Color("f2d25a")]
+const RAMP_DIV_CB := [Color("d97a1f"), Color("8a5a3a"), Color("333c55"), Color("3a6aa0"), Color("5aa8e8")]
+
+
+static func seq_ramp() -> Array:
+	return RAMP_SEQ_CB if Settings.colorblind else RAMP_SEQ
+
+
+static func div_ramp() -> Array:
+	return RAMP_DIV_CB if Settings.colorblind else RAMP_DIV
 
 static var _political_cache: PackedColorArray
 static var _cache_theme := ""
@@ -83,7 +94,7 @@ static func ramp(stops: Array, t: float) -> Color:
 static func data_colors(mode: int, values: PackedFloat32Array) -> PackedColorArray:
 	var out := PackedColorArray()
 	out.resize(values.size())
-	var stops := RAMP_DIV if mode == Mode.RELATIONS else RAMP_SEQ
+	var stops := div_ramp() if mode == Mode.RELATIONS else seq_ramp()
 	for i in values.size():
 		var v := values[i]
 		out[i] = NO_DATA if is_nan(v) else ramp(stops, v)
@@ -91,4 +102,4 @@ static func data_colors(mode: int, values: PackedFloat32Array) -> PackedColorArr
 
 
 static func legend_stops(mode: int) -> Array:
-	return RAMP_DIV if mode == Mode.RELATIONS else RAMP_SEQ
+	return div_ramp() if mode == Mode.RELATIONS else seq_ramp()

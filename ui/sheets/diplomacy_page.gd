@@ -26,7 +26,8 @@ func _build() -> void:
 	_filter = SegmentedControl.new().setup(["Friends", "Rivals", "Neighbours", "Partners"], [], 0)
 	_filter.plain = true
 	_filter.compact = false
-	_filter.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_filter.fill = true
+	_filter.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_filter.changed.connect(func(i: int) -> void:
 		_mode = i
 		refresh())

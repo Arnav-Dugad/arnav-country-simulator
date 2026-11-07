@@ -66,6 +66,28 @@ func _build() -> void:
 	rm.toggled.connect(func(v: bool) -> void: Settings.set_value("reduce_motion", v))
 	prefs.add_child(rm)
 
+	var acc := section("Accessibility")
+	var ts_lab := Label.new()
+	ts_lab.theme_type_variation = &"Body"
+	ts_lab.text = "Text size"
+	acc.add_child(ts_lab)
+	var sizes := [0.9, 1.0, 1.15, 1.3]
+	var ts := SegmentedControl.new().setup(["Small", "Default", "Large", "Larger"], [],
+		maxi(0, sizes.find(Settings.text_scale)))
+	ts.plain = true
+	ts.compact = false
+	ts.fill = true
+	ts.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	ts.changed.connect(func(i: int) -> void: Settings.set_value("text_scale", sizes[i]))
+	acc.add_child(ts)
+	var cb := AppToggle.new().setup("Colour-blind friendly map", Settings.colorblind, "layers")
+	cb.toggled.connect(func(v: bool) -> void: Settings.set_value("colorblind", v))
+	acc.add_child(cb)
+	var sp := AppToggle.new().setup("Reduce transparency", Settings.solid_panels, "layers")
+	sp.toggled.connect(func(v: bool) -> void: Settings.set_value("solid_panels", v))
+	acc.add_child(sp)
+	note("Reduce transparency uses solid panels: easier to read, and faster on older phones.", acc)
+
 	var about := section("About")
 	var ver := ListRow.new().setup("Arnav Country Simulator", "Version %s" % ProjectSettings.get_setting(
 		"application/config/version", "0.0.0"))

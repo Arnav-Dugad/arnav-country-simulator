@@ -2,6 +2,17 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.7.0] - 2026-11-07
+
+**For everyone**
+- New Accessibility settings: text size (Small to Larger), a colour-blind friendly map (blue and orange instead of red and green), and Reduce transparency (solid panels: easier to read and faster on older phones)
+- Layouts adapt to larger text: labels shorten gracefully instead of overflowing
+
+**Easier to play**
+- A new home screen: continue your last game in one tap, see your other saves, or lead a new nation
+- "Undo my changes" in Economy and Budget, so you can experiment freely
+- "Save and go to the main menu" in Settings
+
 ## [0.6.0] - 2026-11-07
 
 - **Credit rating** (AAA to C) in Economy: tap it to see exactly what goes into it. Starting ratings closely match real ones. Headlines when you're upgraded or downgraded

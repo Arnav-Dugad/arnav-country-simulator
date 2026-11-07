@@ -75,8 +75,10 @@ func _ready() -> void:
 		if _current == "laws":
 			_pages["laws"].refresh())
 	Settings.changed.connect(func(key: String, _v: Variant) -> void:
-		if key == "map_theme" and _mode == MapModes.Mode.POLITICAL:
-			map.set_colors(_colors_for(_mode)))
+		if (key == "map_theme" and _mode == MapModes.Mode.POLITICAL) or key == "colorblind":
+			map.set_colors(_colors_for(_mode))
+		if key == "text_scale":
+			_layout.call_deferred())
 	if not Game.pending_event.is_empty():
 		_show_event.call_deferred(Game.pending_event)
 	get_tree().root.go_back_requested.connect(_on_back)

@@ -15,6 +15,9 @@ var skipped_version: String = ""
 var last_slot: int = 1
 var map_theme: String = "default"
 var tutorial_done: bool = false
+var text_scale: float = 1.0          # 0.9 / 1.0 / 1.15 / 1.3
+var colorblind: bool = false         # colour-blind friendly data map palettes
+var solid_panels: bool = false       # "Reduce transparency": no glass blur
 
 var _cfg := ConfigFile.new()
 
@@ -31,13 +34,40 @@ func _ready() -> void:
 		last_slot = _cfg.get_value("prefs", "last_slot", 1)
 		map_theme = _cfg.get_value("prefs", "map_theme", "default")
 		tutorial_done = _cfg.get_value("prefs", "tutorial_done", false)
+		text_scale = _cfg.get_value("prefs", "text_scale", 1.0)
+		colorblind = _cfg.get_value("prefs", "colorblind", false)
+		solid_panels = _cfg.get_value("prefs", "solid_panels", false)
+	_apply_text_scale()
 
 
 func set_value(key: String, value: Variant) -> void:
 	set(key, value)
 	_cfg.set_value("prefs", key, value)
 	_cfg.save(PATH)
+	if key == "text_scale":
+		_apply_text_scale()
 	changed.emit(key, value)
+
+
+var _base_sizes := {}
+
+
+## Scales every font size in the project theme (text only; layout follows).
+func _apply_text_scale() -> void:
+	var th := ThemeDB.get_project_theme()
+	if th == null:
+		return
+	if _base_sizes.is_empty():
+		for type in th.get_font_size_type_list():
+			for n in th.get_font_size_list(type):
+				_base_sizes[[type, n]] = th.get_font_size(n, type)
+		_base_sizes[["", "default"]] = th.default_font_size
+	for key in _base_sizes:
+		var v := int(round(float(_base_sizes[key]) * text_scale))
+		if key[0] == "":
+			th.default_font_size = v
+		else:
+			th.set_font_size(key[1], key[0], v)
 
 
 ## Animation duration helper that honours "Reduce motion".

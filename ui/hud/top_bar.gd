@@ -30,9 +30,15 @@ func _ready() -> void:
 	left.alignment = BoxContainer.ALIGNMENT_CENTER
 	left_wrap.add_child(left)
 	_date = Label.new()
+	_date.clip_text = true
+	_date.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	_date.custom_minimum_size = Vector2(20, 0)
 	_date.theme_type_variation = &"Headline"
 	left.add_child(_date)
 	_election = Label.new()
+	_election.clip_text = true
+	_election.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	_election.custom_minimum_size = Vector2(20, 0)
 	_election.theme_type_variation = &"Caption"
 	left.add_child(_election)
 
@@ -53,11 +59,16 @@ func _ready() -> void:
 	var cap := Label.new()
 	cap.theme_type_variation = &"Overline"
 	cap.text = "TREASURY"
+	cap.clip_text = true
+	cap.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	cap.custom_minimum_size = Vector2(20, 0)
 	cap.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	right.add_child(cap)
 	_treasury = AnimatedNumber.new()
 	_treasury.theme_type_variation = &"StatSmall"
 	_treasury.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_treasury.clip_text = true
+	_treasury.custom_minimum_size = Vector2(20, 0)
 	_treasury.formatter = func(v: float) -> String: return DS.money(v)
 	right.add_child(_treasury)
 

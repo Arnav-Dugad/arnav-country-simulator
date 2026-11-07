@@ -169,7 +169,7 @@ The basics should feel finished before anything new is added.
 
 ## v0.5 "Delight": premium presentation  *(priority: high, effort: M)*
 
-- [ ] **Home screen:** a resume card ("Continue as India · Mar 2031") over the slowly drifting map, with save slots showing **map thumbnails** captured at save time.
+- [x] **Home screen:** a resume card ("Continue as India · Mar 2031") over the slowly drifting map, with save slots showing **map thumbnails** captured at save time.
 - [ ] **Year in review** every January: a full-screen glass card with 4 tiny sparklines, the headline of the year, best and worst decisions, and a **Share** button.
 - [ ] **Share cards:** render a 1080×1350 summary image (map crop, flag, key stats) and share it through the Android share sheet (new method in the Kotlin plugin).
 - [ ] **Milestone toasts:** "GDP passed $5T", "Inflation under 2%", "First trade deal".
@@ -194,9 +194,9 @@ The basics should feel finished before anything new is added.
 ## v0.6 "Reach": everyone, every device  *(priority: medium-high, effort: M)*
 
 - [ ] **Screen reader** (Godot AccessKit): accessible names, roles and values on every control, plus stat readouts ("Inflation, 3.1 percent, down 0.4 since last year").
-- [ ] **Text size** at 85, 100, 115 or 130%, regenerating theme sizes at runtime with layouts verified at each size.
-- [ ] **Colour-blind palettes** for data modes (Okabe-Ito and cividis), checked in a deuteranopia simulation.
-- [ ] **Reduce transparency:** solid panels instead of glass (also faster on low-end phones).
+- [x] **Text size** at 85, 100, 115 or 130%, regenerating theme sizes at runtime with layouts verified at each size.
+- [x] **Colour-blind palettes** for data modes (Okabe-Ito and cividis), checked in a deuteranopia simulation.
+- [x] **Reduce transparency:** solid panels instead of glass (also faster on low-end phones).
 - [ ] **English only** (decided). Still route strings through one place so wording can be polished, and offer an optional **lakh/crore** number format.
 - [ ] **Tablets and landscape:** a two-pane layout with the sheet as a right-side panel, plus foldable-aware insets.
 - [ ] **Low-end mode**, auto-detected: 4-sample glass, the low-detail map only, and no glow pulse.
@@ -277,4 +277,4 @@ and Firebase Spark can't verify purchases server-side, so:
 - [ ] **"What should I do?" button:** shows the single most impactful suggestion right now.
 - [ ] **Health summary:** one colour ring (Thriving, Okay, Struggling) on the top bar, tappable for the top 3 problems.
 - [ ] **Bigger, fewer targets:** every tap target at least 44 pt, max 5 items per row, no hidden gestures without a visible alternative.
-- [ ] **Undo:** the last policy change can be undone within the same month.
+- [x] **Undo:** the last policy change can be undone within the same month.

@@ -16,6 +16,9 @@ var plain := false
 var segment_width := 40.0
 ## Tight = smaller horizontal padding (SegmentTight theme variations).
 var tight := false
+## Fill = equal-width segments that share the available width (iOS style) and
+## shrink with an ellipsis instead of overflowing (large text sizes).
+var fill := false
 
 var _stack: Control
 var _indicator: Panel
@@ -32,6 +35,8 @@ func setup(labels_: PackedStringArray, icons_: PackedStringArray = [], selected_
 
 
 func _ready() -> void:
+	if fill:
+		tight = true   # equal-width segments need the compact padding
 	theme_type_variation = &"PanelContainer" if plain else &"GlassPill"
 	super._ready()
 	_glass.visible = not plain
@@ -51,7 +56,11 @@ func _ready() -> void:
 		b.theme_type_variation = &"SegmentTight" if tight else &"Segment"
 		if i < icons.size() and icons[i] != "":
 			b.icon_name = icons[i]
-		b.custom_minimum_size = Vector2(segment_width, 36)
+		b.custom_minimum_size = Vector2(segment_width if not fill else 0.0, 36)
+		if fill:
+			b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			b.clip_text = true
+			b.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		b.pressed.connect(_on_pressed.bind(i))
 		b.tooltip_text = labels[i]
 		_row.add_child(b)
@@ -91,6 +100,8 @@ func _refresh(animate: bool) -> void:
 func _sync_size() -> void:
 	if _row:
 		_stack.custom_minimum_size = _row.get_combined_minimum_size()
+		if fill:
+			_stack.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
 
 func _move_indicator(animate: bool) -> void:

@@ -11,6 +11,8 @@ var _shares := {}
 var _interest_note: Label
 var _syncing := false
 var _strips: Array[ForecastStrip] = []
+var _undo: AppButton
+var _snapshot := {}
 
 
 func _init() -> void:
@@ -65,6 +67,15 @@ func _build() -> void:
 	split.add_child(s2)
 	note("Healthcare, welfare and education lift happiness. Infrastructure, research and " +
 		"education lift long-run growth. Military strengthens stability and security.", split)
+	_undo = AppButton.make("Undo my changes", &"GhostButton", "rotate-ccw")
+	_undo.visible = false
+	_undo.pressed.connect(func() -> void:
+		var cs := Game.me()
+		cs.spending_pct = float(_snapshot.spending_pct)
+		cs.budget = (_snapshot.budget as Dictionary).duplicate()
+		Simulation.update_finances(cs)
+		on_open())
+	add_child(_undo)
 
 
 func _tint(k: String) -> Color:
@@ -86,6 +97,7 @@ func _on_share(v: float, k: String) -> void:
 
 func _after_change() -> void:
 	var c := Game.me()
+	_undo.visible = true
 	Simulation.update_finances(c)
 	_syncing = true
 	for k in _shares:
@@ -111,5 +123,8 @@ func refresh() -> void:
 func on_open() -> void:
 	for s in _strips:
 		s.commit()
+	var c0 := Game.me()
+	_snapshot = {"spending_pct": c0.spending_pct, "budget": c0.budget.duplicate()}
+	_undo.visible = false
 	_total.set_value(Game.me().spending_pct, false)
 	refresh()

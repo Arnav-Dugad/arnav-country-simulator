@@ -41,6 +41,9 @@ func _ready() -> void:
 	_mat.set_shader_parameter(&"border_opacity", DS.GLASS_BORDER_OPACITY)
 	if not Engine.is_editor_hint():
 		get_viewport().size_changed.connect(_sync)
+		Settings.changed.connect(func(k: String, _v: Variant) -> void:
+			if k == "solid_panels":
+				_sync())
 	_sync()
 
 
@@ -71,4 +74,11 @@ func _sync() -> void:
 	if is_inside_tree():
 		scale = get_viewport().get_final_transform().get_scale().x
 	_mat.set_shader_parameter(&"blur_radius_px", 9.0 * scale * blur)
+	# Reduce transparency: an opaque tint and no sampling (also faster).
+	var solid := Settings.solid_panels if not Engine.is_editor_hint() else false
+	var t := tint
+	if solid:
+		t = Color(tint.r * 0.9 + 0.02, tint.g * 0.9 + 0.025, tint.b * 0.9 + 0.04, 0.97)
+	_mat.set_shader_parameter(&"tint", t)
+	_mat.set_shader_parameter(&"solid", solid)
 	_mat.set_shader_parameter(&"blur_lod", clampf(1.2 + log(maxf(scale, 1.0)) / log(2.0) + blur, 0.0, 5.0))

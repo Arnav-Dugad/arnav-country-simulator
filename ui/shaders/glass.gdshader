@@ -19,6 +19,7 @@ uniform float saturation = 1.3;
 uniform float border_opacity = 0.15;
 uniform float noise_strength = 0.03;
 uniform float highlight = 0.06;
+uniform bool solid = false;   // "Reduce transparency": skip the blur entirely
 
 float sd_round_box(vec2 p, vec2 half_size, float r) {
 	vec2 q = abs(p) - half_size + r;
@@ -40,16 +41,19 @@ void fragment() {
 	float mask = 1.0 - smoothstep(-aa, aa, d);
 
 	// Blur
-	vec3 acc = vec3(0.0);
-	vec2 spread = SCREEN_PIXEL_SIZE * blur_radius_px;
-	for (int i = 0; i < 12; i++) {
-		float fi = float(i);
-		float ang = fi * 2.39996323;
-		float rad = sqrt((fi + 0.5) / 12.0);
-		vec2 o = vec2(cos(ang), sin(ang)) * rad * spread;
-		acc += textureLod(screen_tex, SCREEN_UV + o, blur_lod).rgb;
+	vec3 col = tint.rgb;
+	if (!solid) {
+		vec3 acc = vec3(0.0);
+		vec2 spread = SCREEN_PIXEL_SIZE * blur_radius_px;
+		for (int i = 0; i < 12; i++) {
+			float fi = float(i);
+			float ang = fi * 2.39996323;
+			float rad = sqrt((fi + 0.5) / 12.0);
+			vec2 o = vec2(cos(ang), sin(ang)) * rad * spread;
+			acc += textureLod(screen_tex, SCREEN_UV + o, blur_lod).rgb;
+		}
+		col = acc / 12.0;
 	}
-	vec3 col = acc / 12.0;
 
 	// Vibrancy + tint
 	float luma = dot(col, vec3(0.299, 0.587, 0.114));

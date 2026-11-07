@@ -29,6 +29,9 @@ func setup(title: String, fmt: Callable, good_up: bool = true) -> StatTile:
 	caption.text = title.to_upper()
 	caption.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	caption.clip_text = true
+	caption.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	caption.custom_minimum_size = Vector2(20, 0)
 	head.add_child(caption)
 	_info = TextureRect.new()
 	_info.texture = DS.icon("info")
@@ -41,9 +44,15 @@ func setup(title: String, fmt: Callable, good_up: bool = true) -> StatTile:
 	head.add_child(_info)
 	number = AnimatedNumber.new()
 	number.formatter = fmt
+	number.clip_text = true
+	number.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	number.custom_minimum_size = Vector2(20, 0)
 	v.add_child(number)
 	delta_label = Label.new()
 	delta_label.theme_type_variation = &"Caption"
+	delta_label.clip_text = true
+	delta_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	delta_label.custom_minimum_size = Vector2(20, 0)
 	v.add_child(delta_label)
 	return self
 

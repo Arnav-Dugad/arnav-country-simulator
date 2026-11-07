@@ -18,6 +18,8 @@ var _trade: AppSlider
 var _balance_note: Label
 var _strips: Array[ForecastStrip] = []
 var _health: HealthCard
+var _undo: AppButton
+var _snapshot := {}
 
 signal page_requested(page: String)
 
@@ -59,7 +61,8 @@ func _build() -> void:
 	_chart_tabs = SegmentedControl.new().setup(labels, [], 0)
 	_chart_tabs.plain = true
 	_chart_tabs.compact = false
-	_chart_tabs.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_chart_tabs.fill = true
+	_chart_tabs.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_chart_tabs.changed.connect(func(i: int) -> void:
 		_chart_idx = i
 		_update_chart(true))
@@ -92,6 +95,15 @@ func _build() -> void:
 	_trade.value_changed.connect(func(v: float) -> void: _apply("trade_openness", v / 100.0))
 	note("Openness lifts growth and lowers prices but exposes industry to competition.", trade)
 	_attach_forecast(trade, [_trade])
+	_undo = AppButton.make("Undo my changes", &"GhostButton", "rotate-ccw")
+	_undo.visible = false
+	_undo.pressed.connect(func() -> void:
+		var cs := Game.me()
+		for k in _snapshot:
+			cs.set(k, _snapshot[k])
+		Simulation.update_finances(cs)
+		on_open())
+	add_child(_undo)
 
 
 ## A live 12-month forecast under a group of sliders.
@@ -161,6 +173,7 @@ func _slider(parent: Control, t: String, lo: float, hi: float, step: float, v: f
 func _apply(field: String, v: float) -> void:
 	var c := Game.me()
 	c.set(field, v)
+	_undo.visible = true
 	Simulation.update_finances(c)
 	_update_balance()
 
@@ -184,7 +197,7 @@ func refresh() -> void:
 	_tiles.debt_pct.show_value(c.debt_pct(), year_ago("debt_pct"), SheetPage.fmt_pts)
 	_tiles.approval.show_value(c.approval, year_ago("approval"), SheetPage.fmt_pts)
 	_tiles.rating.number.set_instant(c.rating_score())
-	_tiles.rating.delta_label.text = "Lower = costlier borrowing"
+	_tiles.rating.delta_label.text = "Tap for details"
 	_tiles.balance.number.value = c.balance_pct()
 	_tiles.balance.number.add_theme_color_override(&"font_color", DS.GREEN if c.balance >= 0.0 else DS.RED)
 	_tiles.balance.delta_label.text = "Surplus" if c.balance >= 0.0 else "Deficit"
@@ -196,6 +209,10 @@ func refresh() -> void:
 func on_open() -> void:
 	for s in _strips:
 		s.commit()
+	var c0 := Game.me()
+	_snapshot = {"income_tax": c0.income_tax, "corp_tax": c0.corp_tax, "interest_rate": c0.interest_rate,
+		"trade_openness": c0.trade_openness}
+	_undo.visible = false
 	var c := Game.me()
 	_income.set_value(c.income_tax, false)
 	_corp.set_value(c.corp_tax, false)

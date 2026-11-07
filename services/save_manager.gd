@@ -48,13 +48,28 @@ func save_slot(slot: int, background: bool = true) -> bool:
 		_again[slot] = data          # newest wins; written right after the current one
 		return true
 	_busy[slot] = true
-	WorkerThreadPool.add_task(func() -> void:
-		var ok := _write(slot, data)
-		_finished.call_deferred(slot, ok))
+	_spawn(slot, data)
 	return true
 
 
+## Runs a write on a worker thread. The task only touches its own arguments
+## (static _write), and _exit_tree waits for it, so quitting mid-save is safe.
+func _spawn(slot: int, data: Dictionary) -> void:
+	var file := path(slot)
+	var id := WorkerThreadPool.add_task(func() -> void:
+		var ok := SaveManager._write_file(file, data)
+		_finished.call_deferred(slot, ok))
+	_tasks.append(id)
+
+
+func _exit_tree() -> void:
+	for id in _tasks:
+		WorkerThreadPool.wait_for_task_completion(id)
+	_tasks.clear()
+
+
 var _busy := {}
+var _tasks: Array[int] = []
 var _again := {}
 var _index := ConfigFile.new()   # slot -> summary (so menus never parse full saves)
 const INDEX_PATH := DIR + "index.cfg"
@@ -62,15 +77,19 @@ const INDEX_PATH := DIR + "index.cfg"
 
 ## Atomic write: temp file, then rename, so readers never see a half-written save.
 func _write(slot: int, data: Dictionary) -> bool:
-	var tmp := path(slot) + ".tmp"
+	return _write_file(path(slot), data)
+
+
+static func _write_file(file: String, data: Dictionary) -> bool:
+	var tmp := file + ".tmp"
 	var f := FileAccess.open(tmp, FileAccess.WRITE)
 	if f == null:
 		return false
 	f.store_string(JSON.stringify(data))
 	f.close()
-	if FileAccess.file_exists(path(slot)):
-		DirAccess.remove_absolute(path(slot))
-	return DirAccess.rename_absolute(tmp, path(slot)) == OK
+	if FileAccess.file_exists(file):
+		DirAccess.remove_absolute(file)
+	return DirAccess.rename_absolute(tmp, file) == OK
 
 
 func is_busy(slot: int) -> bool:
@@ -79,6 +98,7 @@ func is_busy(slot: int) -> bool:
 
 func _finished(slot: int, ok: bool) -> void:
 	_busy.erase(slot)
+	_tasks = _tasks.filter(func(id: int) -> bool: return not WorkerThreadPool.is_task_completed(id))
 	if not ok:
 		push_error("SaveManager: cannot write %s" % path(slot))
 		return
@@ -88,9 +108,7 @@ func _finished(slot: int, ok: bool) -> void:
 		var data: Dictionary = _again[slot]
 		_again.erase(slot)
 		_busy[slot] = true
-		WorkerThreadPool.add_task(func() -> void:
-			var ok2 := _write(slot, data)
-			_finished.call_deferred(slot, ok2))
+		_spawn(slot, data)
 
 
 func read_slot(slot: int) -> Dictionary:
