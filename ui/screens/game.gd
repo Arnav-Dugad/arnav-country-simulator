@@ -191,7 +191,7 @@ func _build_sheet_header() -> void:
 	var close := AppButton.make("", &"IconButton", "x")
 	close.pressed.connect(sheet.close)
 	row.add_child(close)
-	_scroll = ScrollContainer.new()
+	_scroll = TouchScroll.new()
 	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	sheet.body.add_child(_scroll)
@@ -527,6 +527,7 @@ func _show_election(r: Dictionary) -> void:
 	_modal.content.add_child(share)
 	var bar := Control.new()
 	bar.custom_minimum_size = Vector2(0, 14)
+	bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var prog := {"v": 0.0}
 	bar.draw.connect(func() -> void:
 		var w := bar.size.x

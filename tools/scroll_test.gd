@@ -15,15 +15,22 @@ func _check(ok: bool, what: String) -> void:
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	var scroll := ScrollContainer.new()
+	var scroll := TouchScroll.new()
 	scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(scroll)
 	scroll.gui_input.connect(func(e: InputEvent) -> void:
 		if e is InputEventMouseMotion:
 			_motions += 1)
+	# Like real pages: controls sit inside a grouped card (a PanelContainer,
+	# which blocks touches by default unless TouchScroll lets them through).
+	var outer := VBoxContainer.new()
+	outer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(outer)
+	var card := PanelContainer.new()
+	card.theme_type_variation = &"GroupPanel"
+	outer.add_child(card)
 	var v := VBoxContainer.new()
-	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll.add_child(v)
+	card.add_child(v)
 	var slider := AppSlider.new().setup("Test", 0, 100, 1, 50)
 	v.add_child(slider)
 	var button := AppButton.make("Button")
@@ -36,22 +43,31 @@ func _ready() -> void:
 	v.add_child(toggle)
 	var spacer := Control.new()
 	spacer.custom_minimum_size = Vector2(0, 2000)
+	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE   # like a Label: decoration
 	v.add_child(spacer)
 	await get_tree().process_frame
 	await get_tree().process_frame
 	chart.set_data(PackedFloat32Array([1, 2, 3, 2, 4]))
 	await get_tree().process_frame
 
-	for item in [["slider", slider._track], ["button", button], ["chart", chart], ["toggle", toggle._switch]]:
-		_motions = 0
+	for item in [["slider", slider._track], ["button", button], ["chart", chart], ["toggle", toggle._switch], ["label", spacer]]:
+		scroll.set(&"_vel", 0.0)
+		scroll.scroll_vertical = 0
+		await get_tree().process_frame
 		var c: Vector2 = (item[1] as Control).get_global_rect().get_center()
+		if item[0] == "label":
+			c = Vector2(100, 400)
 		await _drag(c, c + Vector2(0, -120))
-		_check(_motions >= 10, "vertical swipe on %s reaches the scroll view (%d events)" % [item[0], _motions])
+		_check(scroll.scroll_vertical >= 90, "swipe up starting on %s scrolls the page (by %d pt)" % [item[0], scroll.scroll_vertical])
 	_check(is_equal_approx(slider.value, 50.0), "vertical swipe leaves slider value alone")
 	_check(pressed[0] == 0, "vertical swipe on a button does not press it")
 
+	scroll.set(&"_vel", 0.0)
+	scroll.scroll_vertical = 0
+	await get_tree().process_frame
 	var t: Vector2 = slider._track.get_global_rect().get_center()
 	await _drag(t, t + Vector2(80, 2))
+	_check(scroll.scroll_vertical == 0, "horizontal slider drag does not scroll the page")
 	_check(slider.value > 55.0, "horizontal drag still moves the slider (%.0f)" % slider.value)
 	var bc := button.get_global_rect().get_center()
 	await _drag(bc, bc)

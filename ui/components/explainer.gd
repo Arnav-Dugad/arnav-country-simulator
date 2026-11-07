@@ -124,6 +124,7 @@ func _row(label: String, value: String, frac: float, color: Color, is_base: bool
 	if not is_base:
 		var bar := Control.new()
 		bar.custom_minimum_size = Vector2(0, 5)
+		bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		bar.draw.connect(func() -> void:
 			var track := get_theme_stylebox(&"track", &"AppSlider")
 			bar.draw_style_box(track, Rect2(0, 0, bar.size.x, 5))

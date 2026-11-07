@@ -44,6 +44,7 @@ func _build() -> void:
 	rel_row.add_child(_rel_label)
 	_rel_bar = Control.new()
 	_rel_bar.custom_minimum_size = Vector2(0, 10)
+	_rel_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_rel_bar.draw.connect(_draw_rel_bar)
 	_rel_box.add_child(_rel_bar)
 

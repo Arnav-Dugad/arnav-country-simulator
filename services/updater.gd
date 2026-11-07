@@ -137,7 +137,7 @@ func show_sheet() -> void:
 	sub.text = "You have %s%s" % [current_version(),
 		"  ·  %s download" % _mb(int(latest.apk_size)) if int(latest.apk_size) > 0 else ""]
 	_modal.content.add_child(sub)
-	var scroll := ScrollContainer.new()
+	var scroll := TouchScroll.new()
 	scroll.custom_minimum_size = Vector2(0, 160)
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_modal.content.add_child(scroll)

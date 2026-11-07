@@ -22,8 +22,6 @@ func _ready() -> void:
 		get_window().size = Vector2i(int(wh[0]), int(wh[1]))
 	if _args.has("scene"):
 		get_tree().change_scene_to_file.call_deferred(_args["scene"])
-	if _args.has("drag"):
-		Input.emulate_touch_from_mouse = true
 	if _args.has("click") or _args.has("hold") or _args.has("drag"):
 		_clicks()
 	if _args.has("shot"):

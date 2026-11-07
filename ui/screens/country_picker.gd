@@ -58,7 +58,7 @@ func _build_header() -> void:
 	_search.text_changed.connect(func(_t: String) -> void: _apply_filter())
 	_search.focus_entered.connect(func() -> void: _sheet.snap_to(BottomSheet.Snap.FULL))
 	_sheet.header.add_child(_search)
-	var chip_scroll := ScrollContainer.new()
+	var chip_scroll := TouchScroll.make_horizontal()
 	chip_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	chip_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
 	chip_scroll.custom_minimum_size = Vector2(0, 36)
@@ -86,7 +86,7 @@ func _build_header() -> void:
 
 
 func _build_list() -> void:
-	var scroll := ScrollContainer.new()
+	var scroll := TouchScroll.new()
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_sheet.body.add_child(scroll)
@@ -234,7 +234,7 @@ func _show_challenges() -> void:
 	add_child(m)
 	m.header("crown", DS.GOLD, "Challenges", "A real country, one goal")
 	m.body("Pick a challenge. You can keep governing after you win or run out of time.")
-	var scroll := ScrollContainer.new()
+	var scroll := TouchScroll.new()
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.custom_minimum_size = Vector2(0, minf(size.y * 0.5, 420.0))
 	m.content.add_child(scroll)
