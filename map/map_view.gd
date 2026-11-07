@@ -11,7 +11,6 @@ signal country_tapped(index: int)
 signal selection_changed(index: int)
 signal camera_changed
 
-const MAP_PATH := "res://data/world_map.res"
 const FILL_SHADER := preload("res://map/shaders/map_fill.gdshader")
 const LINE_SHADER := preload("res://map/shaders/map_line.gdshader")
 const GLOW_SHADER := preload("res://map/shaders/map_glow.gdshader")
@@ -26,6 +25,8 @@ const PLAYER_LINE_PX := 1.6
 const GLOW_PX := 12.0
 const SELECT_LINE_PX := 2.2
 
+## false = decorative background map (no input, used on onboarding/picker).
+var interactive := true
 var data: MapData
 var zoom := 1.0
 var center := Vector2.ZERO
@@ -77,12 +78,13 @@ var _mouse_down := false
 var _cam_tween: Tween
 var _sel_tween: Tween
 var _glow_bucket := -999
+var _focus_cache := {}
 
 
 func _ready() -> void:
-	mouse_filter = Control.MOUSE_FILTER_STOP
+	mouse_filter = Control.MOUSE_FILTER_STOP if interactive else Control.MOUSE_FILTER_IGNORE
 	clip_contents = true
-	data = load(MAP_PATH)
+	data = World.map
 	_tex_w = 256 if data.count() <= 256 else 512
 	_by_country = MapMeshes.rings_by_country(data)
 	_build_nodes()
@@ -335,9 +337,30 @@ func fly_to(target_center: Vector2, target_zoom: float, duration: float = 0.6) -
 		_apply_camera(), 0.0, 1.0, Settings.dur(duration))
 
 
+## Bounds of a country's major landmasses (ignores far-flung islands such as the
+## Aleutians, which would otherwise make the USA span the whole map).
+func focus_rect(i: int) -> Rect2:
+	if _focus_cache.has(i):
+		return _focus_cache[i]
+	var largest := 0.0
+	for r in _by_country[i]:
+		largest = maxf(largest, absf(Geo.signed_area(data.ring_points[r])))
+	var rect := Rect2()
+	var first := true
+	for r in _by_country[i]:
+		if absf(Geo.signed_area(data.ring_points[r])) >= largest * 0.2:
+			var b := Geo.bounds(data.ring_points[r])
+			rect = b if first else rect.merge(b)
+			first = false
+	if first:
+		rect = data.bbox(i)
+	_focus_cache[i] = rect
+	return rect
+
+
 ## Frame a country, leaving room for UI chrome (frame_insets).
 func focus_country(i: int, duration: float = 0.7) -> void:
-	var bb := data.bbox(i)
+	var bb := focus_rect(i)
 	var avail := size - Vector2(frame_insets.x + frame_insets.z, frame_insets.y + frame_insets.w)
 	avail = avail.max(Vector2(80, 80))
 	var z := minf(avail.x / maxf(bb.size.x, 1.0), avail.y / maxf(bb.size.y, 1.0)) * 0.72

@@ -4,7 +4,7 @@ extends Node
 ##   --shot=C:/out.png         save a screenshot and quit
 ##   --shot-delay=2.5          seconds to wait before the screenshot
 ##   --size=390x844            resize the window (logical aspect test)
-##   --click=x,y;x,y           inject left clicks (viewport coords) 0.6 s apart, after 1 s
+##   --click=x,y;x,y           inject left clicks (window/screenshot pixels) 0.6 s apart, after --click-delay (1 s)
 
 var _args := {}
 
@@ -40,12 +40,10 @@ func _shoot() -> void:
 
 
 func _clicks() -> void:
-	await get_tree().create_timer(1.0).timeout
+	await get_tree().create_timer(float(_args.get("click-delay", "1.0"))).timeout
 	for pair in String(_args["click"]).split(";"):
 		var xy := pair.split(",")
-		var pos := Vector2(float(xy[0]), float(xy[1]))
-		# Viewport coords -> window coords for parse_input_event.
-		var win_pos: Vector2 = get_viewport().get_final_transform() * pos
+		var win_pos := Vector2(float(xy[0]), float(xy[1]))
 		for pressed in [true, false]:
 			var e := InputEventMouseButton.new()
 			e.button_index = MOUSE_BUTTON_LEFT

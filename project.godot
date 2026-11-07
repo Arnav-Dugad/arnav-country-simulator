@@ -47,5 +47,7 @@ environment/defaults/default_clear_color=Color(0.0156863, 0.0392157, 0.0784314, 
 Settings="*res://autoload/settings.gd"
 Haptics="*res://autoload/haptics.gd"
 Screen="*res://autoload/screen.gd"
+World="*res://autoload/world.gd"
+Game="*res://autoload/game.gd"
 Router="*res://autoload/router.gd"
 DevTools="*res://autoload/dev_tools.gd"

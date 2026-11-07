@@ -61,7 +61,7 @@ DevTools user args (after `--`): `--scene=`, `--shot=`, `--shot-delay=`, `--size
   Body 16/400, Subhead 15/500, Footnote 13, Caption 12. StatValue uses tabular numerals.
 - **Color**: dark deep-ocean background; iOS dark system colors (ACCENT #0A84FF, GREEN, RED, ORANGE…);
   text white / 66 % / 38 %.
-- **Icons**: Lucide (ISC), recolored white, imported at svg scale 2.75; tint via theme icon colors.
+- **Icons**: Lucide (ISC), recolored white, imported as **DPITexture** (crisp at any density); tint via theme icon colors.
   No emojis anywhere.
 - **Layout**: full-screen map; floating glass top bar (date, speed, treasury); floating glass dock
   (Economy, Budget, Diplomacy, Events, Settings); bottom sheets with handle + snap (peek/half/full).

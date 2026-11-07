@@ -160,6 +160,14 @@ func _panels() -> void:
 	th.set_stylebox(&"panel", &"SegmentIndicator", _box(Color(1, 1, 1, 0.16), DS.R_PILL, 0, 0))
 	th.set_type_variation(&"SheetHandle", &"Panel")
 	th.set_stylebox(&"panel", &"SheetHandle", _box(Color(1, 1, 1, 0.28), DS.R_PILL, 0, 0))
+	for v in [&"ListRow", &"ListRowSelected", &"IconTile"]:
+		th.set_type_variation(v, &"PanelContainer")
+	th.set_stylebox(&"panel", &"ListRow", _box(Color(1, 1, 1, 0), DS.R_FIELD, DS.S3, 10))
+	var sel := _box(Color(DS.ACCENT, 0.16), DS.R_FIELD, DS.S3, 10)
+	sel.border_color = Color(DS.ACCENT, 0.55)
+	sel.set_border_width_all(1)
+	th.set_stylebox(&"panel", &"ListRowSelected", sel)
+	th.set_stylebox(&"panel", &"IconTile", _box(Color(1, 1, 1, 0.9), 10, 8, 8))
 	th.set_stylebox(&"panel", &"PanelContainer", StyleBoxEmpty.new())
 	th.set_stylebox(&"panel", &"Panel", StyleBoxEmpty.new())
 

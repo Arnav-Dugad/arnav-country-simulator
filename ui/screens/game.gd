@@ -37,7 +37,7 @@ func _ready() -> void:
 	Screen.insets_changed.connect(_layout)
 	resized.connect(_layout)
 	_layout.call_deferred()
-	var start := map.data.index_of("IND")
+	var start := Game.player if Game.player >= 0 else map.data.index_of("IND")
 	map.set_player(start)
 	map.focus_country.call_deferred(start, 0.01)
 

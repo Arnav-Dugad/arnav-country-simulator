@@ -1,7 +1,6 @@
 extends Control
 ## Launch screen: ocean backdrop, logo settles in with a soft glow, wordmark fades up.
 
-const NEXT_SCENE := "res://ui/screens/design_gallery.tscn"
 
 var _logo: TextureRect
 var _title: Label
@@ -59,4 +58,12 @@ func _animate_in() -> void:
 	t.tween_property(_subtitle, "modulate:a", 1.0, 0.5).set_delay(0.4)
 	await get_tree().create_timer(1.6).timeout
 	if is_inside_tree():
-		Router.goto(NEXT_SCENE)
+		Router.goto(_next_scene())
+
+
+func _next_scene() -> String:
+	if not Settings.onboarding_done:
+		return "res://ui/screens/onboarding.tscn"
+	if Game.has_game():
+		return "res://ui/screens/game.tscn"
+	return "res://ui/screens/country_picker.tscn"
