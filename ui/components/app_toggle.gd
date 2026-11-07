@@ -25,7 +25,7 @@ func setup(title: String, value: bool, icon_name: String = "") -> AppToggle:
 	_switch = Control.new()
 	_switch.custom_minimum_size = Vector2(51, 31)
 	_switch.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	_switch.mouse_filter = Control.MOUSE_FILTER_STOP
+	_switch.mouse_filter = Control.MOUSE_FILTER_PASS
 	_switch.draw.connect(_draw_switch)
 	_switch.gui_input.connect(_on_input)
 	add_child(_switch)

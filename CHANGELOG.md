@@ -2,6 +2,13 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.12.0] - 2026-11-07
+
+- **Fixed: menus that wouldn't scroll.** Swiping up or down now scrolls every panel, even when your finger starts on a slider, button, chart or switch. Sideways drags still move sliders and scrub charts, and taps still work as before
+- **(i) on every slider** in Economy and Budget explains what it does in plain words
+- The update prompt no longer interrupts your very first launch
+- A subtle latitude/longitude grid on the ocean, and budget figures that always fit
+
 ## [0.11.0] - 2026-11-07
 
 **Challenges**

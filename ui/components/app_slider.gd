@@ -8,6 +8,8 @@ signal value_changed(value: float)
 signal drag_ended(value: float)
 
 var title := ""
+## Plain-language explanation shown from a small (i) next to the title.
+var info_text := ""
 var min_value := 0.0
 var max_value := 100.0
 var step := 0.5
@@ -45,12 +47,27 @@ func _ready() -> void:
 	_title_label.text = title
 	_title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	head.add_child(_title_label)
+	if info_text != "":
+		_title_label.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		var info := Button.new()
+		info.theme_type_variation = &"InfoButton"
+		info.icon = DS.icon("info")
+		info.focus_mode = Control.FOCUS_NONE
+		info.custom_minimum_size = Vector2(30, 24)
+		info.pressed.connect(_show_info)
+		head.add_child(info)
+		var spacer := Control.new()
+		spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		head.add_child(spacer)
 	_value_label = Label.new()
 	_value_label.theme_type_variation = &"StatSmall"
 	head.add_child(_value_label)
 	_track = Control.new()
 	_track.custom_minimum_size = Vector2(0, 34)
-	_track.mouse_filter = Control.MOUSE_FILTER_STOP
+	# PASS: touches also reach the parent ScrollContainer, so a vertical swipe that
+	# starts on the slider still scrolls the page (see _on_input arbitration).
+	_track.mouse_filter = Control.MOUSE_FILTER_PASS
 	_track.draw.connect(_draw_track)
 	_track.gui_input.connect(_on_input)
 	add_child(_track)
@@ -104,20 +121,38 @@ func _draw_track() -> void:
 	_track.draw_style_box(knob, Rect2(kx - r, cy - r, r * 2.0, r * 2.0))
 
 
+const SLOP := 8.0
+var _press := Vector2.ZERO
+var _pending := false   # finger down, direction not decided yet
+
+
 func _on_input(e: InputEvent) -> void:
 	if e is InputEventMouseButton and e.button_index == MOUSE_BUTTON_LEFT:
 		if e.pressed:
-			_dragging = true
-			_animate_knob(1.18)
-			_set_from_x(e.position.x)
+			_pending = true
+			_press = e.position
 		else:
+			if _pending:            # a tap: jump to that spot
+				_set_from_x(e.position.x)
+				drag_ended.emit(value)
+			elif _dragging:
+				_animate_knob(1.0)
+				drag_ended.emit(value)
+				_track.accept_event()
+			_pending = false
 			_dragging = false
-			_animate_knob(1.0)
-			drag_ended.emit(value)
-		_track.accept_event()
-	elif e is InputEventMouseMotion and _dragging:
-		_set_from_x(e.position.x)
-		_track.accept_event()
+	elif e is InputEventMouseMotion:
+		if _pending:
+			var d: Vector2 = e.position - _press
+			if absf(d.x) > SLOP and absf(d.x) > absf(d.y):
+				_pending = false
+				_dragging = true      # horizontal: this is a slider drag
+				_animate_knob(1.18)
+			elif absf(d.y) > SLOP:
+				_pending = false      # vertical: leave it to the scroll view
+		if _dragging:
+			_set_from_x(e.position.x)
+			_track.accept_event()
 
 
 func _set_from_x(x: float) -> void:
@@ -134,3 +169,12 @@ func _animate_knob(s: float) -> void:
 	_tween.tween_method(func(v: float) -> void:
 		_knob_scale = v
 		_track.queue_redraw(), _knob_scale, s, 0.22)
+
+
+func _show_info() -> void:
+	Haptics.tap()
+	var m := ModalCard.new()
+	get_tree().current_scene.add_child(m)
+	m.header("info", DS.ACCENT, "What it does", title)
+	m.body(info_text)
+	m.choice("Got it", "", &"PrimaryButton", m.dismiss)

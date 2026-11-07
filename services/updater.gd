@@ -29,12 +29,21 @@ func _ready() -> void:
 		_auto_check.call_deferred()
 
 
+func _calm_screen() -> bool:
+	var sc := get_tree().current_scene
+	return sc != null and sc.scene_file_path in ["res://ui/screens/home.tscn", "res://ui/screens/game.tscn"]
+
+
 func current_version() -> String:
 	return str(ProjectSettings.get_setting("application/config/version", "0.0.0"))
 
 
 func _auto_check() -> void:
 	await get_tree().create_timer(4.0).timeout  # let the app settle first
+	# Never interrupt a first launch: wait until onboarding is done and the
+	# player is on the home screen or in a game.
+	while not Settings.onboarding_done or not _calm_screen():
+		await get_tree().create_timer(3.0).timeout
 	var r := await check()
 	if r.get("update", false) and str(r.version) != Settings.skipped_version:
 		show_sheet()

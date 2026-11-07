@@ -178,6 +178,10 @@ func _panels() -> void:
 	gb.border_color = Color(DS.GOLD, 0.55)
 	gb.set_border_width_all(2)
 	th.set_stylebox(&"panel", &"GradeBadge", gb)
+	th.set_type_variation(&"InfoButton", &"Button")
+	_button_states(&"InfoButton", Color(1, 1, 1, 0), Color(1, 1, 1, 0.05), Color(1, 1, 1, 0.03), DS.R_PILL,
+		_font(500, 12), 12, DS.TEXT_3, 4, 2)
+	th.set_constant(&"icon_max_width", &"InfoButton", 15)
 	th.set_type_variation(&"Badge", &"Panel")
 	th.set_stylebox(&"panel", &"Badge", _box(DS.RED, DS.R_PILL, 0, 0))
 	th.set_type_variation(&"SheetHandle", &"Panel")

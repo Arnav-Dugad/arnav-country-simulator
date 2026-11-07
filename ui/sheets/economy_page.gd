@@ -17,6 +17,12 @@ var _rate: AppSlider
 var _trade: AppSlider
 var _balance_note: Label
 var _strips: Array[ForecastStrip] = []
+const INFO_TEXT := {
+	"Income tax": "The share of people's earnings the government takes. Higher taxes raise money for services but slow the economy a little, and voters dislike them.",
+	"Corporate tax": "Tax on company profits. It raises money, but high rates make businesses invest and hire less.",
+	"Interest rate": "Set by your central bank. Raise it to cool high prices (inflation); lower it to boost growth and jobs. It works slowly, over months.",
+	"Openness": "How freely goods flow across your borders. Open trade brings growth and cheaper goods; closing it protects some jobs but raises prices.",
+}
 var _health: HealthCard
 var _undo: AppButton
 var _snapshot := {}
@@ -170,6 +176,7 @@ func _tile(parent: Control, title_: String, fmt: Callable, good_up: bool) -> Sta
 func _slider(parent: Control, t: String, lo: float, hi: float, step: float, v: float, start: Variant,
 		hint: String, hints: Array = []) -> AppSlider:
 	var s := AppSlider.new().setup(t, lo, hi, step, v)
+	s.info_text = INFO_TEXT.get(t, "")
 	s.marker = float(start) if start != null else NAN
 	if hints.size() == 2:
 		s.left_hint = hints[0]

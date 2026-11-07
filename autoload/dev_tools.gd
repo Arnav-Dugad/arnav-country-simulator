@@ -4,6 +4,7 @@ extends Node
 ##   --shot=C:/out.png         save a screenshot and quit
 ##   --shot-delay=2.5          seconds to wait before the screenshot
 ##   --size=390x844            resize the window (logical aspect test)
+##   --drag=x1,y1,x2,y2         touch-drag (emulated touchscreen) after the clicks
 ##   --hold=x,y                press (and keep holding) at a point after the clicks
 ##   --click=x,y;x,y           inject left clicks (window/screenshot pixels) 0.6 s apart, after --click-delay (1 s)
 
@@ -21,7 +22,9 @@ func _ready() -> void:
 		get_window().size = Vector2i(int(wh[0]), int(wh[1]))
 	if _args.has("scene"):
 		get_tree().change_scene_to_file.call_deferred(_args["scene"])
-	if _args.has("click") or _args.has("hold"):
+	if _args.has("drag"):
+		Input.emulate_touch_from_mouse = true
+	if _args.has("click") or _args.has("hold") or _args.has("drag"):
 		_clicks()
 	if _args.has("shot"):
 		_shoot()
@@ -54,6 +57,33 @@ func _clicks() -> void:
 			Input.parse_input_event(e)
 			await get_tree().create_timer(0.05).timeout
 		await get_tree().create_timer(0.6).timeout
+	if _args.has("drag"):
+		var v := String(_args["drag"]).split(",")
+		var a := Vector2(float(v[0]), float(v[1]))
+		var b := Vector2(float(v[2]), float(v[3]))
+		var down := InputEventMouseButton.new()
+		down.button_index = MOUSE_BUTTON_LEFT
+		down.pressed = true
+		down.position = a
+		down.global_position = a
+		Input.parse_input_event(down)
+		var prev := a
+		for k in range(1, 21):
+			await get_tree().process_frame
+			var p := a.lerp(b, k / 20.0)
+			var mm := InputEventMouseMotion.new()
+			mm.position = p
+			mm.global_position = p
+			mm.relative = p - prev
+			mm.button_mask = MOUSE_BUTTON_MASK_LEFT
+			Input.parse_input_event(mm)
+			prev = p
+		var up := InputEventMouseButton.new()
+		up.button_index = MOUSE_BUTTON_LEFT
+		up.pressed = false
+		up.position = b
+		up.global_position = b
+		Input.parse_input_event(up)
 	if _args.has("hold"):
 		var hp := String(_args["hold"]).split(",")
 		var e := InputEventMouseButton.new()

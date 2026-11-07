@@ -51,6 +51,8 @@ DevTools user args (after `--`): `--scene=`, `--shot=`, `--shot-delay=`, `--size
 - Haptics only through the `Haptics` autoload. Safe-area insets only through `Screen`.
 - Simulation constants: only in `sim/economy.gd`, documented.
 - Every phase: run headless import + smoke run, fix all errors/warnings, then commit.
+- **Touch & scrolling:** controls inside scroll views use MOUSE_FILTER_PASS and decide direction after an 8 px slop (vertical = let the ScrollContainer scroll). Never use STOP + accept_event on press. Guarded by tools/scroll_test (CI, xvfb).
+- **Laptop resources:** do not use the emulator or run local APK/Gradle exports; push a tag and let CI build.
 
 ## Design system
 - **Glass**: `GlassPanel` (PanelContainer) = theme stylebox (soft shadow, radius, padding) + internal

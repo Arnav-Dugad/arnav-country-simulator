@@ -139,19 +139,33 @@ func _draw_scrub(plot: Rect2) -> void:
 		draw_string(_font, Vector2(bx + 10, by + 33), when, HORIZONTAL_ALIGNMENT_LEFT, -1, fs_d, DS.TEXT_2)
 
 
+var _press := Vector2.ZERO
+var _pending := false
+
+
 func _gui_input(e: InputEvent) -> void:
 	if _pts.size() < 2:
 		return
 	if e is InputEventMouseButton and e.button_index == MOUSE_BUTTON_LEFT:
 		if e.pressed:
+			_pending = true
+			_press = e.position
+		else:
+			_pending = false
+			if _scrub >= 0:
+				_scrub = -1
+				queue_redraw()
+	elif e is InputEventMouseMotion:
+		if _pending:
+			var d: Vector2 = e.position - _press
+			if absf(d.x) > 8.0 and absf(d.x) > absf(d.y):
+				_pending = false
+				_scrub_to(e.position.x)   # horizontal: scrub
+			elif absf(d.y) > 8.0:
+				_pending = false          # vertical: let the page scroll
+		elif _scrub >= 0:
 			_scrub_to(e.position.x)
 			accept_event()
-		else:
-			_scrub = -1
-			queue_redraw()
-	elif e is InputEventMouseMotion and _scrub >= 0:
-		_scrub_to(e.position.x)
-		accept_event()
 
 
 func _scrub_to(x: float) -> void:

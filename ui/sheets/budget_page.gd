@@ -11,6 +11,14 @@ var _shares := {}
 var _interest_note: Label
 var _syncing := false
 var _strips: Array[ForecastStrip] = []
+const BUDGET_INFO := {
+	"health": "Hospitals, doctors and medicine. More healthcare makes people happier and healthier.",
+	"education": "Schools and universities. It slowly lowers unemployment and lifts long-term growth.",
+	"infrastructure": "Roads, power, railways and internet. A strong driver of long-term growth.",
+	"military": "Defence and security forces. Adds stability and makes the country stronger.",
+	"welfare": "Pensions, unemployment support and help for families. People feel more secure and happier.",
+	"research": "Science and new technology. The biggest long-term boost to growth, but it takes years.",
+}
 var _undo: AppButton
 var _snapshot := {}
 
@@ -36,6 +44,7 @@ func _build() -> void:
 	_total = AppSlider.new().setup("Public spending", 8, 60, 0.5, c.spending_pct)
 	_total.formatter = func(v: float) -> String: return String.num(v, 1) + "% of GDP"
 	_total.marker = float(c.base.spending_pct)
+	_total.info_text = "How much the government spends each year, as a share of the whole economy. More spending improves services and gives a short boost, but if it is more than you collect in taxes, the gap is borrowed."
 	_total.value_changed.connect(func(v: float) -> void:
 		Game.me().spending_pct = v
 		_after_change())
@@ -57,6 +66,7 @@ func _build() -> void:
 		var s := AppSlider.new().setup(CountryState.BUDGET_LABELS[k], 0, 60, 0.5, c.budget[k] * 100.0)
 		s.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		s.marker = float(c.base.budget[k]) * 100.0
+		s.info_text = BUDGET_INFO[k]
 		s.formatter = _share_fmt.bind(k)
 		s.value_changed.connect(_on_share.bind(k))
 		row.add_child(s)
