@@ -13,8 +13,22 @@ var stats: Array[Dictionary] = []
 var playable: PackedInt32Array
 
 
+## Friendlier names for the map data's abbreviations (shown everywhere).
+const NAME_FIX := {"SSD": "South Sudan", "KOR": "South Korea", "PRK": "North Korea", "COG": "Congo",
+	"COD": "DR Congo", "CAF": "Central African Republic", "DOM": "Dominican Republic",
+	"BIH": "Bosnia and Herzegovina", "GNQ": "Equatorial Guinea", "VCT": "St Vincent and the Grenadines",
+	"ATG": "Antigua and Barbuda", "SLB": "Solomon Islands", "MHL": "Marshall Islands", "USA": "United States"}
+## Countries whose name takes "the" in a sentence ("the United States").
+const THE := ["USA", "GBR", "NLD", "PHL", "ARE", "CAF", "DOM", "BHS", "GMB", "MDV", "SLB", "MHL", "COM", "CZE"]
+
+
 func _ready() -> void:
 	map = load(MAP_PATH)
+	for i in map.count():
+		var fix: String = NAME_FIX.get(map.iso3[i], "")
+		if fix != "":
+			map.names[i] = fix
+			map.names_long[i] = fix
 	var parsed: Variant = JsonUtil.parse(FileAccess.get_file_as_string(COUNTRIES_PATH), "countries.json")
 	if parsed == null:
 		push_error("World: failed to parse %s" % COUNTRIES_PATH)
@@ -73,6 +87,16 @@ func flag_of(i: int) -> Texture2D:
 func sovereign_of(i: int) -> int:
 	var s: Variant = stats[i].get("sovereign")
 	return index_of(s) if s is String else i
+
+
+## The name as used mid-sentence: "the United States", "India".
+func the_name(i: int) -> String:
+	return ("the " + map.names[i]) if iso(i) in THE else map.names[i]
+
+
+## Sentence start: "The United States", "India".
+func The_name(i: int) -> String:
+	return ("The " + map.names[i]) if iso(i) in THE else map.names[i]
 
 
 func iso(i: int) -> String:

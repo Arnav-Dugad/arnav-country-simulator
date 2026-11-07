@@ -39,13 +39,13 @@ func _ready() -> void:
 	sub.theme_type_variation = &"BodySecondary"
 	sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	sub.text = {
-		"election": "The people of %s chose a new leader." % data.country,
-		"collapse": "Unrest brought down your government in %s." % data.country,
-		"revolution": "Protests in %s swept your government from power." % data.country,
-		"coup": "The army of %s removed you from power." % data.country,
-		"review": "The party leadership of %s replaced you." % data.country,
+		"election": "The people of %s chose a new leader." % World.the_name(Game.player),
+		"collapse": "Unrest brought down your government in %s." % World.the_name(Game.player),
+		"revolution": "Protests in %s swept your government from power." % World.the_name(Game.player),
+		"coup": "The army of %s removed you from power." % World.the_name(Game.player),
+		"review": "The party leadership of %s replaced you." % World.the_name(Game.player),
 		"daily": "Your four years in today's challenge are up.",
-	}.get(reason, "You led %s for %.1f years." % [data.country, float(data.years)])
+	}.get(reason, "You led %s for %.1f years." % [World.the_name(Game.player), float(data.years)])
 	col.add_child(sub)
 
 	# Legacy grade

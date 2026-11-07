@@ -2,6 +2,10 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.35.1] - 2026-11-08
+
+- Country names read naturally: "the United States", "the Netherlands", and full names instead of abbreviations (South Korea, North Korea, DR Congo, Dominican Republic, Bosnia and Herzegovina, Solomon Islands…)
+
 ## [0.35.0] - 2026-11-08
 
 - **Your rival**: every game has a rival nation (your country's real rival, or the closest economy in your region). The World page tracks the race in economy size, income per person, happiness and growth, and headlines celebrate when you overtake them

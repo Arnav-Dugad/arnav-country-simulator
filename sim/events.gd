@@ -691,7 +691,13 @@ static func instance(e: Dictionary, other: int = -1) -> Dictionary:
 		choices.append(ch)
 	return {"id": e.id, "title": e.title, "icon": e.icon, "tint": e.tint, "other": other, "next": e.get("next", {}),
 		"face": e.get("face", ""), "scene_hint": e.get("scene_hint", ""),
-		"body": String(e.body).format({"country": name, "other": other_name, "project": _building_name()}), "choices": choices}
+		"body": _sentence(String(e.body).format({"country": World.the_name(Game.player), "other": World.the_name(other) if other >= 0 else "",
+			"project": _building_name()})), "choices": choices}
+
+
+## Capitalise a sentence that starts with "the …" after formatting.
+static func _sentence(t: String) -> String:
+	return t.left(1).to_upper() + t.substr(1) if t != "" else t
 
 
 static func _building_name() -> String:
