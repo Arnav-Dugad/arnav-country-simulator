@@ -18,30 +18,38 @@ A calm, realistic country simulator for Android. Every country starts from real 
 ## What it is
 
 Pick any of **185 real countries** and run it month by month. Population, GDP, unemployment,
-inflation and government debt all start from World Bank and IMF figures. Then it's up to you:
+inflation, debt and stability all start from World Bank and IMF figures. Then it's up to you.
 
-- **Economy.** Set income and corporate tax, the central-bank interest rate and trade policy.
-  Higher taxes raise revenue but slow growth, and tighter money cools inflation but costs jobs.
-- **Budget.** Split spending across healthcare, education, infrastructure, military, welfare and
-  research. Every choice shows up in growth, happiness and stability.
-- **Diplomacy.** Tap any country on the map to sign trade deals, form alliances, send aid or
-  impose sanctions. Relations run from −100 to 100 and drift over time.
-- **Events.** Recessions, floods, booms, protests, scandals, pandemics and more, each with two
-  or three choices that carry real tradeoffs.
-- **Elections.** Every four years your approval decides whether you stay in power.
-- **A living world.** Every other country is simulated too, so the map changes as you play.
+- **See why.** Tap any number to see exactly what's pushing it up or down, in plain words.
+- **Try before you commit.** Move a tax or budget slider and a live 12-month forecast shows the effect,
+  and *Undo* takes it all back.
+- **Economy and budget.** Set taxes, the interest rate and trade policy, then split spending across
+  healthcare, education, infrastructure, military, welfare and research.
+- **Laws and reforms.** Universal healthcare, free university, a carbon tax, the pension age and more.
+  Each takes months to pass and has clear tradeoffs.
+- **A living world.** Trade deals, alliances, aid and sanctions with every country; a credit rating
+  from AAA to C; and your world rank.
+- **36 events.** Floods, hurricanes and droughts where they really happen, oil booms and busts for
+  oil states, and story chains that play out over months.
+- **Elections.** Plan a campaign on your record, then watch election night unfold.
+  At the end you get a legacy grade from A+ to F.
+- **Made with care.** Glass interface, original sound and music, haptics, a guided first game,
+  text-size, colour-blind and reduced-transparency options, cloud saves and offline play.
 
-The main screen is a real interactive world map (Natural Earth, Equal Earth projection) with
-pinch-zoom, smooth panning and five map modes: Political, Wealth, Relations, Happiness and Stability.
+The world map is real (Natural Earth, Equal Earth projection), with pinch-zoom, soft springy edges,
+capital cities, real flags and five map views.
 
 ## Screenshots
 
 <p align="center">
-  <img src="docs/screenshots/onboarding.png" width="19%" alt="Onboarding" />
-  <img src="docs/screenshots/picker.png" width="19%" alt="Country picker" />
-  <img src="docs/screenshots/map_relations.png" width="19%" alt="Relations map" />
-  <img src="docs/screenshots/economy.png" width="19%" alt="Economy panel" />
-  <img src="docs/screenshots/country.png" width="19%" alt="Country sheet" />
+  <img src="docs/screenshots/1_home.png" width="32%" alt="Home" />
+  <img src="docs/screenshots/2_map.png" width="32%" alt="World map" />
+  <img src="docs/screenshots/3_economy.png" width="32%" alt="Economy" />
+</p>
+<p align="center">
+  <img src="docs/screenshots/4_event.png" width="32%" alt="Event with tradeoffs" />
+  <img src="docs/screenshots/5_laws.png" width="32%" alt="Laws and reforms" />
+  <img src="docs/screenshots/6_campaign.png" width="32%" alt="Election campaign" />
 </p>
 
 ## Install on Android
