@@ -2,6 +2,10 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.34.2] - 2026-11-08
+
+- Landscape: panels use their full height and skip the header pictures, so more of what matters fits on screen
+
 ## [0.34.1] - 2026-11-08
 
 - Elections are a real contest again on Standard and Realistic (tuned with simulated games): voters tire a little faster of long-serving governments. Relaxed stays forgiving

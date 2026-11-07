@@ -188,7 +188,7 @@ func _relayout() -> void:
 	if not is_inside_tree():
 		return
 	# Bottom sheets overhang the screen edge by 40 pt; side panels don't.
-	_pad.custom_minimum_size = Vector2(0, DS.S2 if side() else Screen.bottom + 40.0)
+	_pad.custom_minimum_size = Vector2(0, 0.0 if side() else Screen.bottom + 40.0)
 	_set_y(top_for(state) if not _dragging else _y)
 
 

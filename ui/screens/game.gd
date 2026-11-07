@@ -351,6 +351,10 @@ func open_page(page: String) -> void:
 		_pages[k].visible = k == page
 	_current = page
 	_sheet_flag.visible = false
+	# Landscape is short: page banners (photos / line art) give their room to content.
+	for ch in p.get_children():
+		if ch is Photo or ch is Illustration:
+			(ch as Control).visible = not Screen.landscape
 	p.on_open()
 	_stagger(p)
 	_sheet_title.text = p.title
