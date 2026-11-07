@@ -25,7 +25,7 @@ const ALL := [
 	{"id": "debt_slayer", "icon": "piggy-bank", "title": "Debt slayer", "desc": "Cut debt by 20 points of GDP."},
 	{"id": "surplus", "icon": "wallet", "title": "In the black", "desc": "Turn a budget deficit into a surplus."},
 	{"id": "decade", "icon": "calendar", "title": "A decade in power", "desc": "Lead for ten years."},
-	{"id": "all_views", "icon": "layers", "title": "Cartographer", "desc": "Look at the world in all five map views."},
+	{"id": "all_views", "icon": "layers", "title": "Cartographer", "desc": "Look at the world in five different map views."},
 	{"id": "curious", "icon": "info", "title": "Curious mind", "desc": "Check what's moving a number five times."},
 	{"id": "challenger", "icon": "crown", "title": "Challenger", "desc": "Complete a challenge."},
 	{"id": "ribbon", "icon": "hammer", "title": "Ribbon cutting", "desc": "Finish your first construction project."},

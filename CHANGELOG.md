@@ -2,6 +2,19 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.21.0] - 2026-11-08
+
+**Read all about it**
+- The year in review is now a newspaper front page: a paper named after your capital, a headline written from your year, a photo, the year's numbers, your biggest decision and the world's biggest story
+
+**Three new map views**
+- **Growth**: who's booming and who's shrinking
+- **Debt**: who owes the most
+- **Blocs**: the EU, NATO, BRICS, ASEAN, the Gulf, Mercosur and more, each in its own colour, with a key
+
+**Under the hood**
+- Clearer diagnostics when a file can't be read
+
 ## [0.20.0] - 2026-11-08
 
 **Crises in stages**

@@ -207,7 +207,7 @@ func get_save(slot: int) -> Dictionary:
 	var packed := Marshalls.base64_to_raw(f.get("data", {}).get("bytesValue", ""))
 	var size := int(f.get("size", {}).get("integerValue", "0"))
 	var raw := packed.decompress(size, FileAccess.COMPRESSION_GZIP)
-	var parsed: Variant = JSON.parse_string(raw.get_string_from_utf8())
+	var parsed: Variant = JsonUtil.parse(raw.get_string_from_utf8(), "cloud save")
 	if not parsed is Dictionary:
 		return _fail(0, "Cloud save is damaged")
 	r.data = parsed
@@ -277,7 +277,7 @@ func _http(url: String, method: int, headers: PackedStringArray, body: String = 
 	var text: String = (res[3] as PackedByteArray).get_string_from_utf8()
 	if result != HTTPRequest.RESULT_SUCCESS:
 		return _fail(0, "You appear to be offline")
-	var parsed: Variant = JSON.parse_string(text) if text != "" else {}
+	var parsed: Variant = JsonUtil.parse(text, "firebase response %d" % code, {})
 	if code >= 200 and code < 300:
 		return {"ok": true, "code": code, "data": parsed if parsed != null else {}, "error": ""}
 	var msg := "Request failed (%d)" % code

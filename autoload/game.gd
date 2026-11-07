@@ -460,6 +460,10 @@ func map_values(mode: int) -> PackedFloat32Array:
 				out[i] = clampf((c.happiness - 20.0) / 65.0, 0.0, 1.0)
 			MapModes.Mode.STABILITY:
 				out[i] = clampf(c.stability / 100.0, 0.0, 1.0)
+			MapModes.Mode.GROWTH:
+				out[i] = clampf((c.growth + 4.0) / 12.0, 0.0, 1.0)     # -4 % .. +8 %
+			MapModes.Mode.DEBT:
+				out[i] = clampf(c.debt_pct() / 160.0, 0.0, 1.0)
 			_:
 				out[i] = NAN
 	return out

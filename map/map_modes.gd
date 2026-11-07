@@ -3,11 +3,21 @@ extends RefCounted
 ## Map colouring modes. Data modes take normalised values (0..1, NAN = no data)
 ## and map them through calm, dark-mode-friendly ramps.
 
-enum Mode { POLITICAL, WEALTH, RELATIONS, HAPPINESS, STABILITY }
+enum Mode { POLITICAL, WEALTH, RELATIONS, HAPPINESS, STABILITY, GROWTH, DEBT, BLOCS }
 
-const LABELS := ["Political", "GDP per capita", "Relations", "Happiness", "Stability"]
-const SHORT := ["Political", "Wealth", "Relations", "Happiness", "Stability"]
-const ICONS := ["map", "coins", "handshake", "heart", "shield"]
+const LABELS := ["Political", "GDP per capita", "Relations", "Happiness", "Stability", "Growth", "Debt", "Blocs"]
+const SHORT := ["Political", "Wealth", "Relations", "Happiness", "Stability", "Growth", "Debt", "Blocs"]
+const ICONS := ["map", "coins", "handshake", "heart", "shield", "trending-up", "piggy-bank", "users"]
+
+## Blocs view: the bloc each country is drawn in (first match wins), and its colour.
+const BLOC_ORDER := ["eu", "nato", "brics", "eaeu", "asean", "gcc", "mercosur", "afcfta", "usmca"]
+const BLOC_COLORS := {
+	"eu": Color("2f6fd6"), "nato": Color("5b8fd9"), "brics": Color("c2453c"), "eaeu": Color("8e3a59"),
+	"asean": Color("2aa38f"), "gcc": Color("c99a2e"), "mercosur": Color("44a35a"), "afcfta": Color("b5763a"),
+	"usmca": Color("6b7fb3"),
+}
+const BLOC_NAMES := {"eu": "EU", "nato": "NATO", "brics": "BRICS", "eaeu": "Eurasian Union", "asean": "ASEAN",
+	"gcc": "Gulf", "mercosur": "Mercosur", "afcfta": "African FTA", "usmca": "USMCA"}
 
 ## Muted political palette (adjacent countries never share a colour).
 const POLITICAL := [
@@ -94,7 +104,10 @@ static func ramp(stops: Array, t: float) -> Color:
 static func data_colors(mode: int, values: PackedFloat32Array) -> PackedColorArray:
 	var out := PackedColorArray()
 	out.resize(values.size())
-	var stops := div_ramp() if mode == Mode.RELATIONS else seq_ramp()
+	var stops := div_ramp() if mode in [Mode.RELATIONS, Mode.GROWTH] else seq_ramp()
+	if mode == Mode.DEBT:
+		stops = seq_ramp().duplicate()
+		stops.reverse()      # more debt = darker/redder
 	for i in values.size():
 		var v := values[i]
 		out[i] = NO_DATA if is_nan(v) else ramp(stops, v)
@@ -102,4 +115,24 @@ static func data_colors(mode: int, values: PackedFloat32Array) -> PackedColorArr
 
 
 static func legend_stops(mode: int) -> Array:
-	return div_ramp() if mode == Mode.RELATIONS else seq_ramp()
+	if mode == Mode.DEBT:
+		var s := seq_ramp().duplicate()
+		s.reverse()
+		return s
+	return div_ramp() if mode in [Mode.RELATIONS, Mode.GROWTH] else seq_ramp()
+
+
+## Blocs view: one colour per bloc, everyone else dim.
+static func bloc_colors(md: MapData) -> PackedColorArray:
+	var out := PackedColorArray()
+	out.resize(md.count())
+	for i in md.count():
+		var col := NO_DATA
+		var host := i if World.is_playable(i) else World.sovereign_of(i)
+		if host >= 0 and Game.has_game():
+			for b in BLOC_ORDER:
+				if Treaties.is_member(host, b):
+					col = BLOC_COLORS[b]
+					break
+		out[i] = col
+	return out

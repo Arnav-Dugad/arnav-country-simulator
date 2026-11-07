@@ -67,7 +67,7 @@ func check() -> Dictionary:
 		return _done({"ok": true, "update": false, "error": "No releases published yet."})
 	if res[1] != 200:
 		return _done({"ok": false, "error": "GitHub returned %d." % res[1]})
-	var d: Variant = JSON.parse_string((res[3] as PackedByteArray).get_string_from_utf8())
+	var d: Variant = JsonUtil.parse((res[3] as PackedByteArray).get_string_from_utf8(), "GitHub release info")
 	if not d is Dictionary:
 		return _done({"ok": false, "error": "Unexpected response."})
 	var tag := str(d.get("tag_name", ""))

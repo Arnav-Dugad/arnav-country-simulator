@@ -15,7 +15,7 @@ var playable: PackedInt32Array
 
 func _ready() -> void:
 	map = load(MAP_PATH)
-	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(COUNTRIES_PATH))
+	var parsed: Variant = JsonUtil.parse(FileAccess.get_file_as_string(COUNTRIES_PATH), "countries.json")
 	if parsed == null:
 		push_error("World: failed to parse %s" % COUNTRIES_PATH)
 		parsed = {"meta": {}, "countries": {}}

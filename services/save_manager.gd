@@ -114,7 +114,7 @@ func _finished(slot: int, ok: bool) -> void:
 func read_slot(slot: int) -> Dictionary:
 	if not FileAccess.file_exists(path(slot)):
 		return {}
-	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(path(slot)))
+	var parsed: Variant = JsonUtil.parse(FileAccess.get_file_as_string(path(slot)), "save slot %d" % slot)
 	return parsed if parsed is Dictionary else {}
 
 

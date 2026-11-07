@@ -13,6 +13,9 @@ const LEGEND := {
 	MapModes.Mode.RELATIONS: ["How each country feels about you", "Hostile", "Friendly"],
 	MapModes.Mode.HAPPINESS: ["How happy people are", "Unhappy", "Happy"],
 	MapModes.Mode.STABILITY: ["How stable each country is", "Unstable", "Stable"],
+	MapModes.Mode.GROWTH: ["Economic growth this year", "Shrinking", "Booming"],
+	MapModes.Mode.DEBT: ["Government debt vs. economy size", "Low debt", "Heavy debt"],
+	MapModes.Mode.BLOCS: ["Alliances and trade blocs", "", ""],
 }
 
 var _card: GlassPanel
@@ -25,6 +28,25 @@ var _mode := 0
 var _anchor := Rect2()
 var _globe_btn: AppButton
 var _grid: GridContainer
+var _bloc_key: HFlowContainer
+
+
+func _fill_bloc_key() -> void:
+	for ch in _bloc_key.get_children():
+		ch.queue_free()
+	for b in MapModes.BLOC_ORDER:
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override(&"separation", 4)
+		var dot := ColorRect.new()
+		dot.color = MapModes.BLOC_COLORS[b]
+		dot.custom_minimum_size = Vector2(10, 10)
+		dot.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		row.add_child(dot)
+		var l := Label.new()
+		l.theme_type_variation = &"Caption"
+		l.text = str(MapModes.BLOC_NAMES[b])
+		row.add_child(l)
+		_bloc_key.add_child(row)
 
 
 func set_globe_state(on: bool) -> void:
@@ -61,7 +83,7 @@ func _ready() -> void:
 		var b := AppButton.make(MapModes.SHORT[m], &"LayerTile", MapModes.ICONS[m])
 		b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		b.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
-		b.custom_minimum_size = Vector2(92, 64)
+		b.custom_minimum_size = Vector2(72, 62)
 		b.pressed.connect(func() -> void:
 			select(m)
 			mode_selected.emit(m))
@@ -77,6 +99,11 @@ func _ready() -> void:
 	_legend_title.theme_type_variation = &"Footnote"
 	_legend_title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	v.add_child(_legend_title)
+	_bloc_key = HFlowContainer.new()
+	_bloc_key.add_theme_constant_override(&"h_separation", DS.S3)
+	_bloc_key.add_theme_constant_override(&"v_separation", 4)
+	_bloc_key.visible = false
+	v.add_child(_bloc_key)
 	_legend_bar = Control.new()
 	_legend_bar.custom_minimum_size = Vector2(0, 10)
 	_legend_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -101,7 +128,7 @@ func _gui_input(e: InputEvent) -> void:
 
 func open(anchor: Rect2) -> void:
 	_anchor = anchor
-	_grid.columns = 5 if Screen.landscape else 3   # wide screens: one short row
+	_grid.columns = 8 if Screen.landscape else 4   # wide screens: one short row
 	visible = true
 	await get_tree().process_frame
 	_card.size = Vector2.ZERO
@@ -142,7 +169,10 @@ func select(m: int) -> void:
 	_legend_title.text = str(info[0])
 	_lo.text = str(info[1])
 	_hi.text = str(info[2])
-	_legend_bar.visible = m != MapModes.Mode.POLITICAL
+	_legend_bar.visible = not m in [MapModes.Mode.POLITICAL, MapModes.Mode.BLOCS]
+	_bloc_key.visible = m == MapModes.Mode.BLOCS
+	if m == MapModes.Mode.BLOCS:
+		_fill_bloc_key()
 	_lo.get_parent().visible = _legend_bar.visible
 	_legend_bar.queue_redraw()
 

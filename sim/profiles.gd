@@ -93,7 +93,7 @@ static func _ensure() -> void:
 		return
 	_loaded = true
 	if FileAccess.file_exists(PATH):
-		var v: Variant = JSON.parse_string(FileAccess.get_file_as_string(PATH))
+		var v: Variant = JsonUtil.parse(FileAccess.get_file_as_string(PATH), "country_profiles.json")
 		if v is Dictionary:
 			_data = v
 

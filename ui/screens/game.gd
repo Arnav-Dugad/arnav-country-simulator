@@ -621,25 +621,7 @@ func _show_year_review(r: Dictionary) -> void:
 	_refresh_next()
 	_modal = ModalCard.new()
 	add_child(_modal)
-	_modal.content.add_child(Illustration.banner("celebration", "city", DS.GOLD))
-	_modal.header("calendar", DS.GOLD, "%d in review" % int(r.year), str(r.title))
-	for row in r.rows:
-		var line := HBoxContainer.new()
-		_modal.content.add_child(line)
-		var l := Label.new()
-		l.theme_type_variation = &"Body"
-		l.text = str(row.label)
-		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		line.add_child(l)
-		var a := float(row.from)
-		var b := float(row.to)
-		var fmt := func(v: float) -> String: return DS.money(v) if row.kind == "money" else DS.pct(v)
-		var v := Label.new()
-		v.theme_type_variation = &"StatSmall"
-		var up := b > a
-		v.text = "%s  %s  %s" % [fmt.call(a), "→", fmt.call(b)]
-		v.add_theme_color_override(&"font_color", DS.TEXT_2 if absf(b - a) < 0.05 else (DS.GREEN if up == bool(row.good_up) else DS.RED))
-		line.add_child(v)
+	_modal.content.add_child(FrontPage.new().build(r))
 	var yr_share := AppButton.make("Share", &"GhostButton", "arrow-up-right")
 	_modal.content.add_child(yr_share)
 	var hide_list: Array = [yr_share]
@@ -691,7 +673,7 @@ func _on_world_news(item: Dictionary) -> void:
 
 
 func _on_relations_changed() -> void:
-	if _mode == MapModes.Mode.RELATIONS:
+	if _mode in [MapModes.Mode.RELATIONS, MapModes.Mode.BLOCS]:
 		map.set_colors(_colors_for(_mode))
 
 
@@ -705,6 +687,8 @@ func _on_mode_changed(m: int) -> void:
 func _colors_for(m: int) -> PackedColorArray:
 	if m == MapModes.Mode.POLITICAL:
 		return MapModes.political(map.data)
+	if m == MapModes.Mode.BLOCS:
+		return MapModes.bloc_colors(map.data)
 	return MapModes.data_colors(m, Game.map_values(m))
 
 
