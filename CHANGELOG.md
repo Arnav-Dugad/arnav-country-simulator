@@ -2,6 +2,11 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.30.1] - 2026-11-08
+
+- Cabinet decisions read naturally and keep country names capitalised ("Bangladesh asks for help: your cabinet chose to send generous aid")
+- Settings shows how many achievements you've unlocked
+
 ## [0.30.0] - 2026-11-08
 
 - **Daily challenge**: a new scenario every day, the same for every player: a country plus a twist (a recession, a debt mountain, runaway prices, an unpopular start, restless streets, an oil shock or a boom to tame). You have four years; your legacy grade is your score, and your best of the day is kept. Find it under Daily in the country picker

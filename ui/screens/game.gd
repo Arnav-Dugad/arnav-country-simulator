@@ -489,7 +489,7 @@ func _on_decision_added(_ev: Dictionary) -> void:
 func _on_event_resolved(ev: Dictionary, choice: int, by_cabinet: bool) -> void:
 	if by_cabinet and not _dev_fast:
 		var label := str(ev.choices[clampi(choice, 0, ev.choices.size() - 1)].label)
-		_notify("Cabinet decided on %s: %s" % [str(ev.title).to_lower(), label.to_lower()], str(ev.icon),
+		_notify("%s: your cabinet chose to %s" % [str(ev.title), label.left(1).to_lower() + label.substr(1)], str(ev.icon),
 			GameEvents.tint(str(ev.tint)), Settings.decisions != "cabinet")
 	_refresh_next()
 	if _current != "" and _pages.has(_current):

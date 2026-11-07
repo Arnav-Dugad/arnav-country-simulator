@@ -50,7 +50,8 @@ func _build() -> void:
 	var game := section("Game", _root)
 	_nav(game, "Save & load", "Slots, main menu, new game", "download", DS.ACCENT, func() -> void: _open("Save & load", _build_saves))
 	_nav(game, "Notifications", "How events and banners reach you", "bell", DS.RED, func() -> void: _open("Notifications", _build_notifications))
-	_ach_row = _nav(game, "Achievements", "", "crown", DS.GOLD, func() -> void: achievements_requested.emit())
+	_ach_row = _nav(game, "Achievements", "%d of %d unlocked" % [Achievements.count(), Achievements.ALL.size()], "crown", DS.GOLD,
+		func() -> void: achievements_requested.emit())
 	_nav(game, "Store", "Map themes, expansions (demo)", "sparkles", DS.ORANGE, func() -> void: store_requested.emit())
 	_nav(game, "Replay the guided tour", "", "map", DS.TEAL, func() -> void: tour_requested.emit())
 
