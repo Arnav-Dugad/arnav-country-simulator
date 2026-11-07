@@ -315,6 +315,12 @@ func _rebuild_glow() -> void:
 var _spot_tween: Tween
 
 
+## A state visit: frame both countries and draw a flight from a to b.
+func show_flight(a: int, b: int) -> void:
+	_frame(focus_rect(a).merge(focus_rect(b)), 0.7)
+	_overlays.flight(a, b)
+
+
 func spotlight(i: int, on: bool, color: Color = DS.GOLD) -> void:
 	if _spot_tween:
 		_spot_tween.kill()
@@ -500,7 +506,11 @@ func focus_rect(i: int) -> Rect2:
 
 ## Frame a country, leaving room for UI chrome (frame_insets).
 func focus_country(i: int, duration: float = 0.7) -> void:
-	var bb := focus_rect(i)
+	_frame(focus_rect(i), duration)
+
+
+## Frame a world rectangle in the free area between the UI chrome.
+func _frame(bb: Rect2, duration: float) -> void:
 	var avail := size - Vector2(frame_insets.x + frame_insets.z, frame_insets.y + frame_insets.w)
 	avail = avail.max(Vector2(80, 80))
 	var z := minf(avail.x / maxf(bb.size.x, 1.0), avail.y / maxf(bb.size.y, 1.0)) * 0.72

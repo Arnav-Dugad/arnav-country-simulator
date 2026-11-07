@@ -7,6 +7,7 @@ extends Control
 ##   weather       calm, abstract signs of disasters: a slow swirl over a hurricane,
 ##                 a warm haze in a heatwave, rain over floods, ripples after a quake
 ##   projects      small pins around your capital for what you've built and are building
+##   flight        a state visit: a plane of light arcs from your capital to theirs
 ## Everything is decorative: it reads Game state and never takes input.
 
 const ARC_SEGMENTS := 28
@@ -22,6 +23,14 @@ func ripple(pos: Vector2, land: bool) -> void:
 	if not Settings.reduce_motion:
 		_ripples.append([pos, Time.get_ticks_msec() / 1000.0, land])
 var _icons := {}
+var _flight := {}           # {from, to, start} while a state-visit flight is shown
+const FLIGHT_TIME := 1.8
+const FLIGHT_FADE := 0.8
+
+
+## Shows a state-visit flight from country a to country b.
+func flight(a: int, b: int) -> void:
+	_flight = {"from": a, "to": b, "start": Time.get_ticks_msec() / 1000.0}
 
 
 func _ready() -> void:
@@ -42,6 +51,7 @@ func _draw() -> void:
 	_draw_weather()
 	_draw_trade()
 	_draw_projects()
+	_draw_flight()
 	_draw_ripples()
 
 
@@ -152,6 +162,40 @@ func _draw_trade() -> void:
 			var a := sin(u * PI)
 			draw_circle(p, 3.2 * weight + 0.8, Color(col.lightened(0.35), 0.18 * a), true, -1.0, true)
 			draw_circle(p, 1.5 * weight + 0.6, Color(1, 1, 1, 0.85 * a), true, -1.0, true)
+
+
+func _draw_flight() -> void:
+	if _flight.is_empty():
+		return
+	var el := Time.get_ticks_msec() / 1000.0 - float(_flight.start)
+	var fly := FLIGHT_TIME * (0.4 if Settings.reduce_motion else 1.0)
+	if el > fly + FLIGHT_FADE:
+		_flight = {}
+		return
+	var from := map.world_to_screen(_anchor(int(_flight.from)))
+	var to := map.world_to_screen(_anchor(int(_flight.to)))
+	var d := from.distance_to(to)
+	var n := (to - from).orthogonal().normalized()
+	if n.y > 0.0:
+		n = -n
+	var ctrl := (from + to) * 0.5 + n * minf(d * 0.32, 240.0)
+	var u := clampf(el / fly, 0.0, 1.0)
+	u = 1.0 - pow(1.0 - u, 2.2)       # ease out: the plane slows into landing
+	var fade := 1.0 - clampf((el - fly) / FLIGHT_FADE, 0.0, 1.0)
+	var pts := PackedVector2Array()
+	var steps := maxi(2, int(ARC_SEGMENTS * u))
+	for s in steps + 1:
+		pts.append(_bezier(from, ctrl, to, u * float(s) / steps))
+	map_line(pts, Color(DS.GOLD, 0.16 * fade), 6.0)
+	map_line(pts, Color(1, 1, 1, 0.75 * fade), 1.6)
+	draw_circle(from, 3.5, Color(DS.GOLD, 0.9 * fade), true, -1.0, true)
+	var head := _bezier(from, ctrl, to, u)
+	draw_circle(head, 9.0, Color(DS.GOLD, 0.22 * fade), true, -1.0, true)
+	draw_circle(head, 3.6, Color(1, 1, 1, fade), true, -1.0, true)
+	if el > fly:
+		# Arrival: a soft ring opens over their capital.
+		var k := clampf((el - fly) / FLIGHT_FADE, 0.0, 1.0)
+		draw_arc(to, 6.0 + 26.0 * k, 0.0, TAU, 40, Color(DS.GOLD, 0.8 * (1.0 - k)), 2.0, true)
 
 
 func map_line(pts: PackedVector2Array, col: Color, w: float) -> void:

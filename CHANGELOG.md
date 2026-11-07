@@ -2,6 +2,13 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.41.0] - 2026-11-08
+
+- **State visits.** Once a year, fly to another country and meet its leader: a business delegation, security talks, or culture and people. Their personality decides how it lands (traders love business, hawks want security, peacemakers warm to culture). A business trip can end with a trade deal signed on the spot
+- Watch your plane arc across the map to their capital
+- Visiting a country your people distrust builds bridges abroad but draws criticism at home
+- New achievement: Globetrotter
+
 ## [0.40.1] - 2026-11-08
 
 - Voter groups now lean differently: the opposition party's heartland (workers for the Labour Movement, business for the Enterprise Party, rural voters and retirees for the National Union…) is harder to win over. The People card shows who leans where

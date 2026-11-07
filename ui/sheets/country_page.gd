@@ -194,6 +194,9 @@ func _build_actions(i: int, is_me: bool, playable: bool) -> void:
 	var ld := Leaders.leader(i)
 	_action("Call %s" % str(ld.name).split(" ")[0], &"", "message-circle", _call.bind(i), wait > 0,
 		"You can call again in %d months" % wait if wait > 0 else "Leaders react to tone by personality")
+	var vwait := Visits.wait()
+	_action("Visit %s" % World.the_name(i), &"", "plane-takeoff", _visit.bind(i), vwait > 0,
+		"One state visit a year · next in %d months" % vwait if vwait > 0 else "Fly over and meet %s" % str(ld.name).split(" ")[0])
 	# Trade
 	if Diplomacy.has_deal(i):
 		_action("Cancel trade deal", &"", "x", func() -> void:
@@ -263,6 +266,39 @@ func _call(i: int) -> void:
 			_status.text = str(r.line)
 			_status.add_theme_color_override(&"font_color", DS.GREEN if float(r.relation) >= 0.0 else DS.ORANGE)
 			Game.add_feed("Call with %s: %s" % [str(ld.name), str(r.line)], "message-circle", "green" if float(r.relation) >= 0.0 else "orange")
+			refresh())
+	m.choice("Not now", "", &"GhostButton", m.dismiss)
+
+
+## A state visit: pick what the trip is about; their personality decides.
+func _visit(i: int) -> void:
+	var ld := Leaders.leader(i)
+	var per: Dictionary = Leaders.PERSONALITIES[ld.personality]
+	var m := ModalCard.new()
+	get_tree().current_scene.add_child(m)
+	var holder := CenterContainer.new()
+	holder.add_child(Photo.portrait(str(ld.portrait), 120.0, Color(DS.GOLD, 0.6)))
+	m.content.add_child(holder)
+	m.header("plane-takeoff", DS.GOLD, "State visit to %s" % World.map.names[i], str(ld.name))
+	var warn := " Your people distrust %s: expect criticism at home." % World.the_name(i) if Game.relations[i] < -20.0 else ""
+	m.body("%s: %s. What is the trip about?%s" % [str(per.label), str(per.desc).to_lower(), warn])
+	for agenda in ["trade", "security", "culture"]:
+		var info: Dictionary = Visits.AGENDAS[agenda]
+		m.choice(str(info.label), str(info.desc), &"", func() -> void:
+			var r := Visits.visit(i, agenda)
+			if float(r.taste) >= 1.0:
+				Haptics.success()
+			else:
+				Haptics.select()
+			m.dismiss()
+			var gs := get_tree().current_scene
+			if gs and "map" in gs and gs.map != null:
+				gs.map.show_flight(Game.player, i)
+			_status.text = str(r.line)
+			_status.add_theme_color_override(&"font_color", DS.GREEN if float(r.taste) >= 1.0 else DS.ORANGE)
+			Game.add_feed("State visit to %s: %s" % [World.map.names[i], str(r.line)], "plane-takeoff",
+				"green" if float(r.taste) >= 1.0 else "orange")
+			Game.feed[0]["face"] = str(ld.portrait)
 			refresh())
 	m.choice("Not now", "", &"GhostButton", m.dismiss)
 
