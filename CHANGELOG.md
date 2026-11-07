@@ -2,6 +2,14 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.19.0] - 2026-11-08
+
+**Who supports you, and why**
+- Voter groups: Workers, Business, Young people, Retirees and Rural voters, sized from your country's real population (how old, how urban)
+- A new "Your voters" card in Economy shows each group's support and the biggest reason behind it ("Angry about: prices", "Likes: free university")
+- Every law now says who would cheer and who would object
+- Election night shows how each group voted
+
 ## [0.18.0] - 2026-11-08
 
 **National goals**

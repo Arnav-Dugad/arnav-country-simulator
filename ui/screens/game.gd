@@ -877,6 +877,7 @@ func _show_election(r: Dictionary) -> void:
 		("Another term to shape the nation." + (" Observers call the vote unfair." if managed and float(r.approval) < Economy.DISPUTED_BELOW else ""))
 		if won else ((("After %d terms, many voters wanted a change. " % int(r.terms)) if int(r.get("terms", 0)) >= 2 else "")
 			+ ("The opposition takes office." if not Game.god_mode else "Somehow, you stay in office anyway."))]
+	_election_groups(r)
 	if won:
 		Haptics.success()
 		_modal.sweep(Color(DS.GOLD, 0.28))
@@ -927,6 +928,38 @@ static func _confetti_colors() -> Gradient:
 	g.offsets = PackedFloat32Array([0.0, 0.33, 0.66, 1.0])
 	g.colors = PackedColorArray([DS.GOLD, DS.ACCENT_SOFT, DS.GREEN, Color.WHITE])
 	return g
+
+
+## Election night: how each voter group voted (support at election time).
+func _election_groups(r: Dictionary) -> void:
+	if not is_instance_valid(_modal) or Screen.landscape:
+		return
+	var sup := Blocs.support(Game.me())
+	var shift := float(r.share) - Game.me().approval
+	var grid_ := GridContainer.new()
+	grid_.columns = 5
+	grid_.add_theme_constant_override(&"h_separation", DS.S2)
+	_modal.content.add_child(grid_)
+	_modal.content.move_child(grid_, mini(_modal.content.get_child_count() - 1, 5))
+	for g in Blocs.IDS:
+		var col := VBoxContainer.new()
+		col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		col.add_theme_constant_override(&"separation", 0)
+		grid_.add_child(col)
+		var v := clampf(float(sup[g]) + shift, 0.0, 100.0)
+		var pl := Label.new()
+		pl.theme_type_variation = &"StatSmall"
+		pl.text = "%d%%" % roundi(v)
+		pl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		pl.add_theme_color_override(&"font_color", DS.GOLD if v >= 50.0 else DS.TEXT_2)
+		col.add_child(pl)
+		var nl := Label.new()
+		nl.theme_type_variation = &"Caption"
+		nl.text = str(Blocs.INFO[g].title).split(" ")[0]
+		nl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		nl.clip_text = true
+		nl.custom_minimum_size = Vector2(20, 0)
+		col.add_child(nl)
 
 
 ## The army is restless (military governments): a calm, critical warning.

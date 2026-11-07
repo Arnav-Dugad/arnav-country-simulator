@@ -114,6 +114,21 @@ func _card(c: CountryState, l: Dictionary) -> Control:
 		else:
 			text = "%s %+.1f" % [Laws.FX_LABELS[k], val]
 		chips.add_child(_chip(text, DS.GREEN if good else DS.RED))
+	# Who would cheer or boo (voter groups)
+	var who := Blocs.law_chips(c, l.id, on and pend == 0)
+	if not who.is_empty():
+		var likes: Array = who.filter(func(x: Array) -> bool: return x[1]).map(func(x: Array) -> String: return str(x[0]))
+		var hates: Array = who.filter(func(x: Array) -> bool: return not x[1]).map(func(x: Array) -> String: return str(x[0]))
+		var wl := Label.new()
+		wl.theme_type_variation = &"Caption"
+		wl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		var parts: PackedStringArray = []
+		if not likes.is_empty():
+			parts.append("Popular with " + ", ".join(likes).to_lower())
+		if not hates.is_empty():
+			parts.append("opposed by " + ", ".join(hates).to_lower())
+		wl.text = ("If repealed: " if on and pend == 0 else "") + "; ".join(parts).capitalize().left(1) + "; ".join(parts).substr(1) + "."
+		v.add_child(wl)
 	# Action
 	var b: AppButton
 	if pend > 0:

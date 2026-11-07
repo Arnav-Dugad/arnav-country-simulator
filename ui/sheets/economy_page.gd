@@ -29,6 +29,7 @@ const INFO_TEXT := {
 var _health: HealthCard
 var _trend: TrendCard
 var _goals: GoalsCard
+var _people: PeopleCard
 var _undo: AppButton
 var _snapshot := {}
 
@@ -48,6 +49,8 @@ func _build() -> void:
 	add_child(_goals)
 	_trend = TrendCard.new()
 	add_child(_trend)
+	_people = PeopleCard.new()
+	add_child(_people)
 	var g := grid(self)
 	_tiles.gdp = _tile(g, "GDP", func(v: float) -> String: return DS.money(v), true)
 	_tiles.growth = _tile(g, "Growth", SheetPage.fmt_pct, true)
@@ -252,6 +255,7 @@ func refresh() -> void:
 	_health.refresh()
 	_trend.refresh()
 	_goals.refresh()
+	_people.refresh()
 	if Game.me().cb_auto:
 		_rate.set_value(Game.me().interest_rate, false)
 		_sync_cb()
