@@ -40,7 +40,7 @@ func refresh() -> void:
 		var ev := GameEvents.by_id(str(e.id))
 		var row := ListRow.new().setup(str(e.title), "You chose: " + str(e.choice), str(e.date))
 		row.trailing_label.theme_type_variation = &"Caption"
-		var icon_name: String = ev.get("icon", "vote") if not ev.is_empty() else "vote"
+		var icon_name: String = str(ev.get("icon", "vote")) if not ev.is_empty() else "vote"
 		var tint := GameEvents.tint(ev.get("tint", "gold")) if not ev.is_empty() else DS.GOLD
 		row.set_leading(ListRow.icon_tile(icon_name, tint))
 		_log.add_child(row)

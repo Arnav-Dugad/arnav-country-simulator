@@ -128,7 +128,7 @@ The basics should feel finished before anything new is added.
 ### Political capital and actors
 - [ ] **Political capital:** earned from approval and election wins, and spent on big reforms and drastic slider moves (moves inside ±2 pts are free). This stops slider spam while keeping things simple.
 - [ ] **Five voter blocs** (Workers, Business, Greens, Traditionalists, Youth). Each bloc's support reacts to specific policies, and approval becomes their weighted sum. A bloc breakdown sits in the "Why?" sheet.
-- [ ] **Elections 2.0:**
+- [x] (campaign themes + election night shipped in v0.5.0; voter blocs still to do) **Elections 2.0:**
   - **Campaign:** in the final 3 months, pick two themes (Economy, Security, Healthcare, Change, and so on). Themes boost the blocs they appeal to.
   - **Result:** an animated election-night sheet with bloc bars filling and the vote share counting up.
 

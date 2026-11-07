@@ -12,6 +12,7 @@ signal event_resolved(event: Dictionary, choice: int)
 signal election_held(result: Dictionary)
 signal game_over(summary: Dictionary)
 signal law_finished(id: String, repealed: bool)
+signal campaign_started
 
 const START_YEAR := 2026
 const HISTORY_MAX := 1200
@@ -50,6 +51,7 @@ var elections_won := 0
 var start_snapshot: Dictionary = {}
 var headlines_seen: Dictionary = {}
 var scheduled: Array = []   # follow-up events: [{id, due (months_played), other}]
+var campaign_year := 0      # absolute month (months_played) of the election already campaigned for
 
 var _last_event_month := -10
 var _speed_before_pause := 1
@@ -94,6 +96,7 @@ func new_game(country_index: int, seed_value: int = -1) -> void:
 	pending_event = {}
 	headlines_seen = {}
 	scheduled = []
+	campaign_year = 0
 	event_log.clear()
 	elections_won = 0
 	_last_event_month = 0  # a few quiet months to settle in
@@ -235,6 +238,12 @@ func _after_month(my_crisis: bool) -> void:
 	if months_to_election <= 0:
 		hold_election()
 		return
+	var election_at := months_played + months_to_election   # absolute month of the vote
+	if months_to_election == Campaign.MONTHS_BEFORE and campaign_year != election_at:
+		campaign_year = election_at
+		_pause_for_modal()
+		campaign_started.emit()
+		return
 	if not pending_event.is_empty():
 		return
 	var due := -1
@@ -291,6 +300,19 @@ func hold_election() -> void:
 		"choice": "%.1f%% of the vote" % share, "id": "election"})
 	_pause_for_modal()
 	election_held.emit({"won": won, "share": share, "year": year, "approval": a})
+
+
+## Call after the campaign card is closed.
+func finish_campaign(themes: Array) -> float:
+	var gain := Campaign.launch(me(), themes) if not themes.is_empty() else 0.0
+	event_log.push_front({"date": date_text(), "title": "Campaign launched",
+		"choice": ", ".join(themes.map(func(t: String) -> String:
+			for th in Campaign.THEMES:
+				if th.id == t:
+					return str(th.title)
+			return t)) if not themes.is_empty() else "No campaign", "id": "election"})
+	_resume_after_modal()
+	return gain
 
 
 ## Call after the election card is dismissed.
@@ -404,6 +426,7 @@ func to_dict() -> Dictionary:
 		"countries": cs, "relations": rel, "history": hist, "rng_state": str(rng.state),
 		"dip": dip, "event_log": event_log, "elections_won": elections_won,
 		"start": start_snapshot, "pending_event": pending_event, "headlines_seen": headlines_seen, "scheduled": scheduled,
+		"campaign_year": campaign_year,
 	}
 
 
@@ -448,6 +471,7 @@ func load_dict(d: Dictionary) -> bool:
 	pending_event = d.get("pending_event", {})
 	headlines_seen = d.get("headlines_seen", {})
 	scheduled = d.get("scheduled", [])
+	campaign_year = int(d.get("campaign_year", 0))
 	_low_stability_months = 0
 	speed = 1
 	_acc = 0.0

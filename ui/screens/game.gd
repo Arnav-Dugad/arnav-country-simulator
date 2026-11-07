@@ -65,6 +65,7 @@ func _ready() -> void:
 	Game.relations_changed.connect(_on_relations_changed)
 	Game.event_started.connect(_show_event)
 	Game.election_held.connect(_show_election)
+	Game.campaign_started.connect(_show_campaign)
 	Game.game_over.connect(_on_game_over)
 	Game.law_finished.connect(func(id: String, repealed: bool) -> void:
 		var l := Laws.law(id)
@@ -80,7 +81,8 @@ func _ready() -> void:
 		_show_event.call_deferred(Game.pending_event)
 	get_tree().root.go_back_requested.connect(_on_back)
 	_dev_open.call_deferred()
-	if not Settings.tutorial_done and Game.months_played == 0 and DevTools.arg("open") == null 			and DevTools.arg("advance") == null and DevTools.arg("event") == null:
+	if not Settings.tutorial_done and Game.months_played == 0 and DevTools.arg("open") == null 			and DevTools.arg("advance") == null and DevTools.arg("event") == null \
+			and DevTools.arg("campaign") == null and DevTools.arg("election") == null:
 		get_tree().create_timer(0.9).timeout.connect(start_tour)
 
 
@@ -137,6 +139,13 @@ func _dev_open() -> void:
 				Game.resolve_event(0)
 		_dev_fast = false
 		_narrate()
+	if DevTools.arg("campaign") != null:
+		Settings.tutorial_done = true
+		Game.campaign_started.emit()
+	if DevTools.arg("election") != null:
+		Settings.tutorial_done = true
+		Game.months_to_election = 1
+		Game.advance_month()
 	var ev_id: Variant = DevTools.arg("event")
 	if ev_id != null:
 		Settings.tutorial_done = true
@@ -392,28 +401,108 @@ func _show_event(ev: Dictionary) -> void:
 				_pages[_current].refresh(), GameEvents.effect_chips(ch.effects))
 
 
+func _show_campaign() -> void:
+	if is_instance_valid(_modal):
+		_modal.queue_free()
+	Audio.play("event")
+	Haptics.select(false)
+	_modal = ModalCard.new()
+	add_child(_modal)
+	_modal.header("vote", DS.GOLD, "Election in 3 months", "Plan your campaign")
+	_modal.body("Pick two themes. Campaigning on your strengths wins votes; a weak record can backfire.")
+	var c := Game.me()
+	var picked: Array = []
+	var launch := AppButton.make("Choose 2 themes", &"PrimaryButton", "vote")
+	launch.disabled = true
+	var rows := {}
+	for th in Campaign.THEMES:
+		var rec := Campaign.record(c, th.id)
+		var row := ListRow.new().setup(str(th.title), Campaign.record_text(rec),
+			"%+.1f" % Campaign.boost(c, th.id), "approval")
+		row.set_leading(ListRow.icon_tile(str(th.icon), DS.GREEN if rec >= 0.4 else (DS.ORANGE if rec >= -0.1 else DS.RED)))
+		row.subtitle_label.add_theme_color_override(&"font_color",
+			DS.GREEN if rec >= 0.4 else (DS.TEXT_2 if rec >= -0.1 else DS.RED))
+		row.trailing_label.add_theme_color_override(&"font_color", DS.GREEN if Campaign.boost(c, th.id) >= 0.0 else DS.RED)
+		row.tapped.connect(func() -> void:
+			if th.id in picked:
+				picked.erase(th.id)
+			elif picked.size() < 2:
+				picked.append(th.id)
+			else:
+				var old: String = picked.pop_front()
+				rows[old].selected = false
+				picked.append(th.id)
+			row.selected = th.id in picked
+			launch.disabled = picked.size() < 2
+			launch.text = "Launch campaign" if picked.size() == 2 else "Choose %d more" % (2 - picked.size()))
+		rows[th.id] = row
+		_modal.content.add_child(row)
+	launch.custom_minimum_size = Vector2(0, 50)
+	launch.pressed.connect(func() -> void:
+		var gain := Game.finish_campaign(picked)
+		Haptics.success()
+		_modal.dismiss()
+		Toast.show_headline(self, "Campaign launched: approval %+.1f" % gain, "vote",
+			DS.GREEN if gain >= 0.0 else DS.RED, modes.position.y + 52.0))
+	_modal.content.add_child(launch)
+	_modal.choice("Skip campaigning", "", &"GhostButton", func() -> void:
+		Game.finish_campaign([])
+		_modal.dismiss())
+
+
+## Election night: votes count up live, then the result lands.
 func _show_election(r: Dictionary) -> void:
 	if is_instance_valid(_modal):
 		_modal.queue_free()
 	var won: bool = r.won
 	Audio.play("election")
-	if won:
-		Haptics.success(false)
-	else:
-		Haptics.warning(false)
 	_modal = ModalCard.new()
 	add_child(_modal)
-	_modal.header("vote", DS.GOLD if won else DS.RED, "Election %d" % int(r.year),
-		"You won re-election" if won else "You lost the election")
+	_modal.header("vote", DS.GOLD, "Election night %d" % int(r.year), "Counting the votes…")
+	var title: Label = _modal.content.get_child(0).get_child(1).get_child(1)
 	var share := AnimatedNumber.new()
 	share.theme_type_variation = &"LargeTitle"
-	share.formatter = func(v: float) -> String: return String.num(v, 1) + "% of the vote"
-	share.duration = 1.2
+	share.formatter = func(v: float) -> String: return String.num(v, 1) + "%"
+	share.duration = 2.4
+	share.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_modal.content.add_child(share)
+	var bar := Control.new()
+	bar.custom_minimum_size = Vector2(0, 14)
+	var prog := {"v": 0.0}
+	bar.draw.connect(func() -> void:
+		var w := bar.size.x
+		var track: StyleBox = get_theme_stylebox(&"track", &"AppSlider")
+		bar.draw_style_box(track, Rect2(0, 4, w, 6))
+		var fill: StyleBoxFlat = (get_theme_stylebox(&"fill", &"AppSlider") as StyleBoxFlat).duplicate()
+		fill.bg_color = DS.GOLD if prog.v >= 50.0 else DS.ACCENT
+		bar.draw_style_box(fill, Rect2(0, 4, maxf(w * prog.v / 100.0, 6.0), 6))
+		bar.draw_rect(Rect2(w * 0.5 - 1, 0, 2, 14), Color(1, 1, 1, 0.55)))
+	_modal.content.add_child(bar)
+	var cap := Label.new()
+	cap.theme_type_variation = &"Caption"
+	cap.text = "50% to win"
+	cap.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_modal.content.add_child(cap)
+	var msg := _modal.body("")
 	share.set_instant(0.0)
 	share.value = float(r.share)
-	_modal.body("Your approval stood at %s. %s" % [DS.pct(float(r.approval), 0),
-		"Another four years to shape the nation." if won else "The opposition takes office."])
+	var t := create_tween()
+	t.tween_method(func(v: float) -> void:
+		prog.v = v
+		bar.queue_redraw()
+		if int(v) % 5 == 0:
+			Haptics.tick(), 0.0, float(r.share), Settings.dur(2.4)).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	await t.finished
+	if not is_instance_valid(_modal):
+		return
+	title.text = "You won re-election" if won else "You lost the election"
+	title.add_theme_color_override(&"font_color", DS.GOLD if won else DS.RED)
+	msg.text = "Your approval stood at %s. %s" % [DS.pct(float(r.approval), 0),
+		"Another four years to shape the nation." if won else "The opposition takes office."]
+	if won:
+		Haptics.success()
+	else:
+		Haptics.warning()
 	_modal.choice("Continue" if won else "See your legacy", "", &"PrimaryButton", func() -> void:
 		_modal.dismiss()
 		Game.continue_after_election(won))

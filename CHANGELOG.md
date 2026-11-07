@@ -2,6 +2,12 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.5.0] - 2026-11-07
+
+**Elections you can feel**
+- Election campaigns: three months before each vote, pick two themes to run on. Each theme shows your record; campaign on your strengths, because a weak record can backfire
+- Election night: watch the votes count up live against the 50% line before the result lands
+
 ## [0.4.0] - 2026-11-07
 
 **Events 2.0**
