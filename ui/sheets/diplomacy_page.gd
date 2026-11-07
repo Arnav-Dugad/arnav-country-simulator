@@ -5,6 +5,7 @@ extends SheetPage
 signal country_requested(index: int)
 
 var _summary: Label
+var _ranks: GridContainer
 var _filter: SegmentedControl
 var _list: VBoxContainer
 var _mode := 0
@@ -12,10 +13,15 @@ var _mode := 0
 
 func _init() -> void:
 	super._init()
-	title = "Diplomacy"
+	title = "World"
 
 
 func _build() -> void:
+	var rank_head := Label.new()
+	rank_head.theme_type_variation = &"Overline"
+	rank_head.text = "YOUR WORLD RANK"
+	add_child(rank_head)
+	_ranks = grid(self, 2)
 	_summary = note("")
 	_filter = SegmentedControl.new().setup(["Friends", "Rivals", "Neighbours", "Partners"], [], 0)
 	_filter.plain = true
@@ -33,9 +39,15 @@ func _build() -> void:
 func refresh() -> void:
 	if not Game.has_game():
 		return
+	_fill_ranks()
 	var d := Diplomacy.summary()
-	_summary.text = "%d alliances  ·  %d trade deals  ·  %d sanctions on you  ·  aid sent %s" % [
-		d.alliances, d.deals, d.sanctioned_by, DS.money(d.aid_total)]
+	var parts: PackedStringArray = ["%d %s" % [d.alliances, "ally" if d.alliances == 1 else "allies"],
+		"%d trade %s" % [d.deals, "deal" if d.deals == 1 else "deals"]]
+	if int(d.sanctioned_by) > 0:
+		parts.append("%d %s on you" % [d.sanctioned_by, "sanction" if d.sanctioned_by == 1 else "sanctions"])
+	if float(d.aid_total) > 0.0:
+		parts.append("aid sent %s" % DS.money(d.aid_total))
+	_summary.text = "  ·  ".join(parts) + ". Tap a country to talk trade, alliances or aid."
 	for ch in _list.get_children():
 		ch.queue_free()
 	var idx: Array[int] = []
@@ -68,3 +80,30 @@ func refresh() -> void:
 		_list.add_child(row)
 	if idx.is_empty():
 		note("Nobody here yet.", _list)
+
+
+## Your world rank in four measures (among countries with data).
+func _fill_ranks() -> void:
+	for ch in _ranks.get_children():
+		ch.queue_free()
+	var specs := [["GDP", func(c: CountryState) -> float: return c.gdp],
+		["Per person", func(c: CountryState) -> float: return c.gdp_per_capita()],
+		["Happiness", func(c: CountryState) -> float: return c.happiness],
+		["Stability", func(c: CountryState) -> float: return c.stability]]
+	var me := Game.me()
+	for sp in specs:
+		var mine: float = sp[1].call(me)
+		var rank := 1
+		var total := 0
+		for i in World.playable:
+			var c: CountryState = Game.state(i)
+			if c == null:
+				continue
+			total += 1
+			if i != Game.player and float(sp[1].call(c)) > mine:
+				rank += 1
+		var t := StatTile.new().setup(str(sp[0]), func(_v: float) -> String: return "#%d" % rank, true)
+		t.number.theme_type_variation = &"StatSmall"
+		t.number.set_instant(rank)
+		t.delta_label.text = "of %d" % total
+		_ranks.add_child(t)

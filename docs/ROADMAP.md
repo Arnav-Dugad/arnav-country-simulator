@@ -104,7 +104,7 @@ The basics should feel finished before anything new is added.
 ### Briefings and advisors
 - [x] **Monthly briefing:** three generated headlines from the biggest changes ("Inflation falls to 3.1%, its lowest since 2026"), shown as a quiet banner that can be swiped away.
 - [ ] **Cabinet advisors** (opt-in): Finance, Central Bank, Foreign Affairs and Interior. Each gives one short, contextual suggestion with a confidence level ("Rates look high for current inflation: consider −0.5 pts"). Never more than one at a time.
-- [ ] **World rankings:** your rank by GDP, GDP per person, happiness and stability, with a sortable "World" list.
+- [x] **World rankings:** your rank by GDP, GDP per person, happiness and stability, with a sortable "World" list.
 - [ ] **Compare:** you against any country side by side (two columns of tiles), opened from the country sheet.
 
 **Definition of done:** a new player can answer "why did my approval drop?" in two taps.
@@ -141,7 +141,7 @@ The basics should feel finished before anything new is added.
 - [x] Every choice shows its **expected effects** as chips (honest, rounded, with uncertainty where randomness applies).
 
 ### Economy and society depth (still one screen each)
-- [ ] **Credit rating** (AAA to D) from debt, deficit, stability and growth. It drives borrowing costs, shows as a badge in the top bar, and downgrades trigger an event.
+- [x] **Credit rating** (AAA to D) from debt, deficit, stability and growth. It drives borrowing costs, shows as a badge in the top bar, and downgrades trigger an event.
 - [ ] **Global commodity index** (oil and food) moving on a seeded random walk with shocks. It hits importers and exporters differently, using real fuel and food trade shares.
 - [ ] **Inequality** (Gini from the World Bank) feeding happiness and bloc support, and moved by welfare and tax policy.
 - [ ] **Ageing:** a simplified old-age share that raises pension pressure over time, with real starting values.

@@ -229,6 +229,40 @@ static func difficulty(s: Dictionary) -> int:
 
 const DIFFICULTY_LABELS := ["Easy", "Normal", "Hard"]
 
+# ---------------------------------------------------------- CREDIT RATING ---
+## Score → letter grade. Weights were fitted (grid search) so the 2025 starting
+## values of 30 countries land within ~1 notch of their real S&P ratings on
+## average, while keeping debt and deficits meaningful for play.
+const RATING_BASE := 70.0
+const RATING_DEBT := 0.1          # per pt of debt above 40 % of GDP
+const RATING_DEFICIT := 2.0       # per pt of deficit above 3 % of GDP
+const RATING_STABILITY := 1.1     # per pt of stability below 50
+const RATING_INFLATION := 0.5     # per pt of inflation above 5 % (capped at 60 pts)
+const RATING_GROWTH := 1.0        # per pt growth vs 2 % (±2 pts)
+const RATING_WEALTH := 25.0       # times income level (0..1)
+const RATING_GRADES := [[88.0, "AAA"], [78.0, "AA"], [68.0, "A"], [58.0, "BBB"], [48.0, "BB"],
+	[38.0, "B"], [28.0, "CCC"], [18.0, "CC"], [-INF, "C"]]
+
+
+static func rating_parts(debt_pct: float, deficit_pct: float, stability: float, inflation: float,
+		growth: float, gdp_pc: float) -> Array:
+	return [
+		["Starting point", RATING_BASE],
+		["Wealth", RATING_WEALTH * income_level(gdp_pc)],
+		["Debt", -RATING_DEBT * maxf(0.0, debt_pct - 40.0)],
+		["Budget deficit", -RATING_DEFICIT * maxf(0.0, deficit_pct - 3.0)],
+		["Stability", -RATING_STABILITY * maxf(0.0, 50.0 - stability)],
+		["Inflation", -minf(RATING_INFLATION * maxf(0.0, inflation - 5.0), 60.0)],
+		["Growth", RATING_GROWTH * clampf(growth - 2.0, -2.0, 2.0)],
+	]
+
+
+static func rating_grade(score: float) -> String:
+	for g in RATING_GRADES:
+		if score >= float(g[0]):
+			return str(g[1])
+	return "C"
+
 
 ## Laffer-shaped revenue share of GDP for a given tax rate (percent).
 static func tax_yield(rate: float, k: float) -> float:

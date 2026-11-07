@@ -142,6 +142,22 @@ func revenue_pct() -> float:
 	return revenue / maxf(gdp, 1.0) * 100.0
 
 
+## [[label, points], …] that add up to the credit score (see Economy.RATING_*).
+func rating_parts() -> Array:
+	return Economy.rating_parts(debt_pct(), -balance_pct(), stability, inflation, growth, gdp_per_capita())
+
+
+func rating_score() -> float:
+	var s := 0.0
+	for p in rating_parts():
+		s += float(p[1])
+	return s
+
+
+func rating() -> String:
+	return Economy.rating_grade(rating_score())
+
+
 func real_gdp_per_capita() -> float:
 	return gdp_per_capita() / maxf(price_index, 0.01)
 

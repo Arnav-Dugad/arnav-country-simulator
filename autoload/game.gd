@@ -51,6 +51,7 @@ var elections_won := 0
 var start_snapshot: Dictionary = {}
 var headlines_seen: Dictionary = {}
 var scheduled: Array = []   # follow-up events: [{id, due (months_played), other}]
+var last_rating := ""        # for upgrade/downgrade headlines
 var campaign_year := 0      # absolute month (months_played) of the election already campaigned for
 
 var _last_event_month := -10
@@ -97,6 +98,7 @@ func new_game(country_index: int, seed_value: int = -1) -> void:
 	headlines_seen = {}
 	scheduled = []
 	campaign_year = 0
+	last_rating = ""
 	event_log.clear()
 	elections_won = 0
 	_last_event_month = 0  # a few quiet months to settle in
@@ -426,7 +428,7 @@ func to_dict() -> Dictionary:
 		"countries": cs, "relations": rel, "history": hist, "rng_state": str(rng.state),
 		"dip": dip, "event_log": event_log, "elections_won": elections_won,
 		"start": start_snapshot, "pending_event": pending_event, "headlines_seen": headlines_seen, "scheduled": scheduled,
-		"campaign_year": campaign_year,
+		"campaign_year": campaign_year, "last_rating": last_rating,
 	}
 
 
@@ -472,6 +474,7 @@ func load_dict(d: Dictionary) -> bool:
 	headlines_seen = d.get("headlines_seen", {})
 	scheduled = d.get("scheduled", [])
 	campaign_year = int(d.get("campaign_year", 0))
+	last_rating = str(d.get("last_rating", ""))
 	_low_stability_months = 0
 	speed = 1
 	_acc = 0.0

@@ -2,6 +2,14 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.6.0] - 2026-11-07
+
+- **Credit rating** (AAA to C) in Economy: tap it to see exactly what goes into it. Starting ratings closely match real ones. Headlines when you're upgraded or downgraded
+- **Budget tile** shows your surplus or deficit at a glance
+- **World rank**: see where you stand in GDP, wealth per person, happiness and stability
+- The World tab is clearer, with a friendlier summary
+- Saves are now written safely in the background, so cloud sync never reads a half-written save
+
 ## [0.5.0] - 2026-11-07
 
 **Elections you can feel**

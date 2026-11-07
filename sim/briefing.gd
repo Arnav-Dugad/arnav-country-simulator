@@ -39,6 +39,15 @@ static func headline() -> Dictionary:
 	var u: PackedFloat32Array = h.get("unemployment", PackedFloat32Array())
 	if u.size() > 7 and c.unemployment < u[u.size() - 7] - 0.8:
 		cands.append(_h("jobs_%d_%d" % [Game.year, Game.month / 4], "Jobs boom: unemployment down to %s" % DS.pct(c.unemployment), "users", true))
+	var r := c.rating()
+	if Game.last_rating == "":
+		Game.last_rating = r
+	elif r != Game.last_rating:
+		var up := Economy.RATING_GRADES.map(func(g: Array) -> String: return str(g[1])).find(r) \
+			< Economy.RATING_GRADES.map(func(g: Array) -> String: return str(g[1])).find(Game.last_rating)
+		Game.last_rating = r
+		cands.push_front(_h("rating_%s_%d_%d" % [r, Game.year, Game.month],
+			"Credit rating %s to %s" % ["upgraded" if up else "downgraded", r], "landmark", up))
 	if Game.months_to_election == 6:
 		cands.append(_h("elect6_%d" % Game.year, "Six months until the election", "vote", true))
 	for cand in cands:

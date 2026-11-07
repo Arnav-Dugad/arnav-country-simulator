@@ -65,6 +65,8 @@ func flush() -> void:
 	busy = true
 	status_changed.emit()
 	for slot in _dirty.keys():
+		if SaveManager.is_busy(slot):
+			continue   # still being written; uploaded when `saved` fires
 		var data := SaveManager.read_slot(slot)
 		if data.is_empty():
 			_dirty.erase(slot)
@@ -94,6 +96,8 @@ func pull_newer() -> void:
 		status_changed.emit()
 		return
 	for slot in r.data:
+		if int(slot) < 1 or int(slot) > SaveManager.SLOTS:
+			continue
 		var local := SaveManager.read_slot(slot)
 		var local_t := int(local.get("saved_at", 0))
 		if int(r.data[slot]) > local_t and not _dirty.has(slot):

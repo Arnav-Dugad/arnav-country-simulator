@@ -38,6 +38,9 @@ func _build() -> void:
 	_tiles.inflation = _tile(g, "Inflation", SheetPage.fmt_pct, false)
 	_tiles.debt_pct = _tile(g, "Debt / GDP", SheetPage.fmt_pct, false)
 	_tiles.approval = _tile(g, "Approval", SheetPage.fmt_pct, true)
+	_tiles.rating = _tile(g, "Credit rating", func(_v: float) -> String: return Game.me().rating(), true)
+	_tiles.balance = _tile(g, "Budget", func(v: float) -> String: return DS.pct(v, 1, true) + " GDP", true)
+	_tiles.rating.make_tappable().tapped.connect(_explain_rating)
 	# Tap a tile to see why it is moving.
 	for pair in [["gdp", "growth"], ["growth", "growth"], ["unemployment", "unemployment"],
 			["inflation", "inflation"], ["approval", "approval"]]:
@@ -100,6 +103,39 @@ func _attach_forecast(box: Control, sliders: Array) -> void:
 		(s as AppSlider).value_changed.connect(func(_v: float) -> void: strip.request())
 
 
+func _explain_rating() -> void:
+	var c := Game.me()
+	var m := ModalCard.new()
+	get_tree().current_scene.add_child(m)
+	m.header("landmark", DS.GOLD, "Credit rating", "%s  ·  score %d" % [c.rating(), int(c.rating_score())])
+	m.body("Lenders grade your country from AAA (safest) to C. A better grade means cheaper borrowing and calmer markets.")
+	var cap := Label.new()
+	cap.theme_type_variation = &"Overline"
+	cap.text = "WHAT GOES INTO IT"
+	m.content.add_child(cap)
+	for p in c.rating_parts():
+		var row := HBoxContainer.new()
+		m.content.add_child(row)
+		var l := Label.new()
+		l.theme_type_variation = &"Body"
+		l.text = str(p[0])
+		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(l)
+		var v := Label.new()
+		v.theme_type_variation = &"StatSmall"
+		var val := float(p[1])
+		v.text = ("%+.0f" % val) if p[0] != "Starting point" else "%.0f" % val
+		v.add_theme_color_override(&"font_color", DS.TEXT if p[0] == "Starting point" or p[0] == "Wealth" else
+			(DS.TEXT_2 if absf(val) < 0.5 else (DS.GREEN if val > 0.0 else DS.RED)))
+		row.add_child(v)
+	var tip := Label.new()
+	tip.theme_type_variation = &"Footnote"
+	tip.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	tip.text = "Grades: AAA 88+, AA 78+, A 68+, BBB 58+, BB 48+, B 38+, CCC 28+. Keep deficits small, inflation low and the country calm."
+	m.content.add_child(tip)
+	m.choice("Got it", "", &"PrimaryButton", m.dismiss)
+
+
 func _tile(parent: Control, title_: String, fmt: Callable, good_up: bool) -> StatTile:
 	var t := StatTile.new().setup(title_, fmt, good_up)
 	parent.add_child(t)
@@ -147,6 +183,11 @@ func refresh() -> void:
 	_tiles.inflation.show_value(c.inflation, year_ago("inflation"), SheetPage.fmt_pts)
 	_tiles.debt_pct.show_value(c.debt_pct(), year_ago("debt_pct"), SheetPage.fmt_pts)
 	_tiles.approval.show_value(c.approval, year_ago("approval"), SheetPage.fmt_pts)
+	_tiles.rating.number.set_instant(c.rating_score())
+	_tiles.rating.delta_label.text = "Lower = costlier borrowing"
+	_tiles.balance.number.value = c.balance_pct()
+	_tiles.balance.number.add_theme_color_override(&"font_color", DS.GREEN if c.balance >= 0.0 else DS.RED)
+	_tiles.balance.delta_label.text = "Surplus" if c.balance >= 0.0 else "Deficit"
 	_update_balance()
 	_update_chart(false)
 	_health.refresh()

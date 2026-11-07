@@ -60,13 +60,21 @@ var _index := ConfigFile.new()   # slot -> summary (so menus never parse full sa
 const INDEX_PATH := DIR + "index.cfg"
 
 
+## Atomic write: temp file, then rename, so readers never see a half-written save.
 func _write(slot: int, data: Dictionary) -> bool:
-	var f := FileAccess.open(path(slot), FileAccess.WRITE)
+	var tmp := path(slot) + ".tmp"
+	var f := FileAccess.open(tmp, FileAccess.WRITE)
 	if f == null:
 		return false
 	f.store_string(JSON.stringify(data))
 	f.close()
-	return true
+	if FileAccess.file_exists(path(slot)):
+		DirAccess.remove_absolute(path(slot))
+	return DirAccess.rename_absolute(tmp, path(slot)) == OK
+
+
+func is_busy(slot: int) -> bool:
+	return _busy.has(slot)
 
 
 func _finished(slot: int, ok: bool) -> void:
