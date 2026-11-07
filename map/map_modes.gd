@@ -14,16 +14,28 @@ const POLITICAL := [
 	Color("2f4566"), Color("2d5a5c"), Color("4a5571"), Color("3c4a6e"),
 	Color("335d6e"), Color("4d4f6b"), Color("3d5d55"),
 ]
+## Store map themes (cosmetic). Same graph colouring, different palette.
+const THEMES := {
+	"gold": [Color("6b5527"), Color("7a6a3a"), Color("5c4a2a"), Color("8a6d33"), Color("6e5f3c"), Color("594628"), Color("7d6a45")],
+	"aurora": [Color("1f5a57"), Color("2a6b52"), Color("1d4f66"), Color("2f6e6a"), Color("245f45"), Color("1f4a5c"), Color("2e5f5a")],
+	"graphite": [Color("3a3d44"), Color("4a4d55"), Color("2f3238"), Color("55585f"), Color("41444b"), Color("36393f"), Color("4e5158")],
+	"ember": [Color("6e4136"), Color("7d5a3e"), Color("5e3a33"), Color("85603f"), Color("6b4a3a"), Color("5a3c2e"), Color("7a5545")],
+}
+
 const RAMP_SEQ := [Color("1f2b45"), Color("1d4f73"), Color("1f7a7a"), Color("4fa07a"), Color("c9c27a")]
 const RAMP_DIV := [Color("b5434b"), Color("6e3a4a"), Color("323c55"), Color("2f6b5a"), Color("3fae7a")]
 const NO_DATA := Color("1b2436")
 
 static var _political_cache: PackedColorArray
+static var _cache_theme := ""
 
 
 static func political(md: MapData) -> PackedColorArray:
-	if _political_cache.size() == md.count():
+	var theme := active_theme()
+	if _political_cache.size() == md.count() and _cache_theme == theme:
 		return _political_cache
+	_cache_theme = theme
+	var palette: Array = THEMES.get(theme, POLITICAL)
 	# Greedy graph colouring, most-connected first.
 	var order := range(md.count())
 	order.sort_custom(func(a: int, b: int) -> bool: return md.neighbours[a].size() > md.neighbours[b].size())
@@ -34,9 +46,9 @@ static func political(md: MapData) -> PackedColorArray:
 		var used := {}
 		for j in md.neighbours[i]:
 			used[assigned[j]] = true
-		var start := absi(hash(md.iso3[i])) % POLITICAL.size()
-		for k in POLITICAL.size():
-			var cidx := (start + k) % POLITICAL.size()
+		var start := absi(hash(md.iso3[i])) % palette.size()
+		for k in palette.size():
+			var cidx := (start + k) % palette.size()
 			if not used.has(cidx):
 				assigned[i] = cidx
 				break
@@ -45,7 +57,7 @@ static func political(md: MapData) -> PackedColorArray:
 	var out := PackedColorArray()
 	out.resize(md.count())
 	for i in md.count():
-		var c: Color = POLITICAL[assigned[i]]
+		var c: Color = palette[assigned[i]]
 		# Tiny per-country lightness jitter so neighbours with equal hue still read apart.
 		var j := (float(absi(hash(md.iso3[i] + "j")) % 100) / 100.0 - 0.5) * 0.08
 		out[i] = c.lightened(j) if j > 0 else c.darkened(-j)
@@ -53,6 +65,12 @@ static func political(md: MapData) -> PackedColorArray:
 			out[i] = Color("2a3346")
 	_political_cache = out
 	return out
+
+
+## The selected store theme if it is owned, else the default palette.
+static func active_theme() -> String:
+	var t := str(Settings.map_theme)
+	return t if THEMES.has(t) and Store.owns("theme_" + t) else "default"
 
 
 static func ramp(stops: Array, t: float) -> Color:

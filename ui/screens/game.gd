@@ -6,6 +6,7 @@ const PAGES := {
 	"economy": "res://ui/sheets/economy_page.gd", "budget": "res://ui/sheets/budget_page.gd",
 	"diplomacy": "res://ui/sheets/diplomacy_page.gd", "events": "res://ui/sheets/events_page.gd",
 	"settings": "res://ui/sheets/settings_page.gd", "country": "res://ui/sheets/country_page.gd",
+	"store": "res://ui/sheets/store_page.gd",
 }
 
 var map: MapView
@@ -16,6 +17,7 @@ var sheet: BottomSheet
 var _sheet_title: Label
 var _sheet_flag: Flag
 var _scroll: ScrollContainer
+var _pages_box: VBoxContainer   # every created page lives here; only one is visible
 var _pages := {}
 var _current := ""
 var _mode := MapModes.Mode.POLITICAL
@@ -60,6 +62,9 @@ func _ready() -> void:
 	Game.event_started.connect(_show_event)
 	Game.election_held.connect(_show_election)
 	Game.game_over.connect(_on_game_over)
+	Settings.changed.connect(func(key: String, _v: Variant) -> void:
+		if key == "map_theme" and _mode == MapModes.Mode.POLITICAL:
+			map.set_colors(_colors_for(_mode)))
 	if not Game.pending_event.is_empty():
 		_show_event.call_deferred(Game.pending_event)
 	get_tree().root.go_back_requested.connect(_on_back)
@@ -84,6 +89,9 @@ func _build_sheet_header() -> void:
 	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	sheet.body.add_child(_scroll)
+	_pages_box = VBoxContainer.new()
+	_pages_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_scroll.add_child(_pages_box)
 
 
 func _layout() -> void:
@@ -119,11 +127,11 @@ func open_page(page: String) -> void:
 		p = load(PAGES[page]).new()
 		_pages[page] = p
 		_wire_page(page, p)
-	for k in _pages:
-		if _pages[k].get_parent() == _scroll and k != page:
-			_scroll.remove_child(_pages[k])
+	# Pages stay in the tree (hidden) so they are freed with the screen.
 	if p.get_parent() == null:
-		_scroll.add_child(p)
+		_pages_box.add_child(p)
+	for k in _pages:
+		_pages[k].visible = k == page
 	_current = page
 	_sheet_flag.visible = false
 	p.on_open()
@@ -146,6 +154,7 @@ func _wire_page(page: String, p: SheetPage) -> void:
 			p.page_requested.connect(open_page)
 		"settings":
 			p.new_game_requested.connect(_confirm_new_game)
+			p.store_requested.connect(func() -> void: open_page("store"))
 		"events":
 			p.open_pending.connect(func() -> void: _show_event(Game.pending_event))
 

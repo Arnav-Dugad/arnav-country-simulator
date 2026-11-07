@@ -3,6 +3,7 @@ extends SheetPage
 ## Preferences, saves, account, updates and credits.
 
 signal new_game_requested
+signal store_requested
 
 var _slots_box: VBoxContainer
 var _account_box: VBoxContainer
@@ -16,6 +17,13 @@ func _init() -> void:
 
 
 func _build() -> void:
+	var store_row := ListRow.new().setup("Store", "Map themes, expansions and supporter items",
+		"Demo", "")
+	store_row.set_leading(ListRow.icon_tile("crown", DS.GOLD))
+	store_row.trailing_label.add_theme_color_override(&"font_color", DS.ORANGE)
+	store_row.tapped.connect(func() -> void: store_requested.emit())
+	section("").add_child(store_row)
+
 	var game := section("Game")
 	var save := AppButton.make("Save now", &"PrimaryButton", "download")
 	save.pressed.connect(func() -> void:

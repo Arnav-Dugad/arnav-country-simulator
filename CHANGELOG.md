@@ -2,6 +2,14 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.1.2] - 2026-11-07
+
+- Real country flags across the game
+- New players are invited to create a free account (or play as a backed-up guest)
+- Demo store in Settings: map themes you can try (Gold Leaf, Aurora, Graphite, Ember), expansions,
+  Statesman Pass and supporter items. Purchases are simulated and nothing is charged
+- Calmer top bar and a cleaner glow around your country
+
 ## [0.1.1] - 2026-11-07
 
 - Cloud saves are live: play as a guest with automatic backup, or add an email to use your saves on any device

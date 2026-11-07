@@ -20,7 +20,7 @@ ui/shaders/    glass.gdshader, ocean.gdshader, map shaders
 ui/components/ Reusable widgets: GlassPanel, AppButton, BottomSheet, LineChart, AnimatedNumber …
 ui/screens/    Full screens (splash, onboarding, country picker, game, game over)
 ui/sheets/     Bottom-sheet contents (economy, budget, diplomacy, events, settings, country)
-services/      firebase.gd, save_manager.gd, updater.gd; firebase_config.gd (public web config)
+services/      firebase.gd, cloud_sync.gd, save_manager.gd, updater.gd, store.gd (DEMO store); firebase_config.gd
 data/          Generated data (world_map.res, countries.json) + SOURCES.md
 assets/        fonts/ (Inter, OFL), icons/ (Lucide, ISC), branding/ (icon.svg + exports)
 tools/         Offline build scripts (Python + Godot --script tools). Not shipped logic.

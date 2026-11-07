@@ -54,6 +54,7 @@ SaveManager="*res://services/save_manager.gd"
 Firebase="*res://services/firebase.gd"
 CloudSync="*res://services/cloud_sync.gd"
 Updater="*res://services/updater.gd"
+Store="*res://services/store.gd"
 Router="*res://autoload/router.gd"
 DevTools="*res://autoload/dev_tools.gd"
 

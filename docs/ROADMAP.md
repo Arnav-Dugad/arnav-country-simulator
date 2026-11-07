@@ -260,7 +260,7 @@ The basics should feel finished before anything new is added.
 | Distribution | GitHub only (no Play Store) |
 | Languages | English only |
 | Accounts | **Always ask to create an account on first launch** (onboarding step; "Not now" plays as a backed-up guest) |
-| Monetization | Pending. Honest options only (see below) |
+| Monetization | **Demo store** built from a genre study (docs/MONETIZATION.md): content packs, cosmetic map themes, Statesman Pass, supporter tips, Complete Edition. Real prices, simulated purchases, no dark patterns |
 | UX | **Very easy to use and understand** is now a core pillar (principle 7) |
 
 ### Monetization (honest options only)
