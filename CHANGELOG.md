@@ -2,7 +2,7 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
-## [0.21.0] - 2026-11-08
+## [0.21.1] - 2026-11-08
 
 **Read all about it**
 - The year in review is now a newspaper front page: a paper named after your capital, a headline written from your year, a photo, the year's numbers, your biggest decision and the world's biggest story

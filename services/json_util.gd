@@ -7,7 +7,9 @@ extends RefCounted
 static func parse(text: String, source: String, fallback: Variant = null) -> Variant:
 	if text.strip_edges() == "":
 		return fallback
-	if text.begins_with("﻿"):
+	# A byte-order mark is checked by code point: an escaped "﻿" literal
+	# can come out empty on some platforms, and begins_with("") is always true.
+	if text.length() > 0 and text.unicode_at(0) == 0xFEFF:
 		text = text.substr(1)
 	var j := JSON.new()
 	if j.parse(text) != OK:
