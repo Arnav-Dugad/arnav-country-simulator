@@ -626,6 +626,8 @@ const RISK_OF := {"floods": "flood", "monsoon": "monsoon", "hurricane": "hurrica
 static func apply_effects(fx: Dictionary, other: int, ev_id: String = "") -> void:
 	var c := Game.me()
 	var sev := Difficulty.severity() * Profiles.mult(Game.player, "event_severity") * (1.0 + Cabinet.bonus("event_severity"))
+	# People forgive a trusted leader more: low credibility makes bad news hit harder.
+	sev *= lerpf(1.15, 0.9, Press.credibility() / 100.0)
 	# Flood defences soften natural disasters.
 	var soften := 0.7 if ev_id in DISASTERS and Projects.is_done(c, "flood_defences") else 1.0
 	for k in fx:
@@ -670,6 +672,8 @@ static func apply_effects(fx: Dictionary, other: int, ev_id: String = "") -> voi
 					for j in Treaties.camp(str(camp_name)):
 						Game.relations[j] = clampf(Game.relations[j] + float(v[camp_name]), -100.0, 100.0)
 				Game.relations_changed.emit()
+			"press_cred":
+				Press.apply_cred(float(v))
 			"project_delay":
 				for id in c.projects:
 					if str(c.projects[id].state) == "building":
@@ -694,6 +698,8 @@ static func effect_chips(fx: Dictionary) -> Array:
 	var c := Game.me()
 	for k in fx:
 		var v: Variant = fx[k]
+		if (v is float or v is int) and absf(float(v)) < 0.05:
+			continue
 		match k:
 			"cost":
 				var money := c.gdp * absf(float(v)) / 100.0
@@ -710,6 +716,8 @@ static func effect_chips(fx: Dictionary) -> Array:
 				out.append(["Trade deal", true, 2.0])
 			"project_delay":
 				out.append(["Project delayed %d mo" % int(v), false, float(v) * 0.3])
+			"press_cred":
+				out.append(["Credibility %+d" % roundi(float(v)), float(v) > 0.0, absf(float(v)) * 0.25])
 			"bloc_relations":
 				var names := {"west": "The West", "east": "Russia & China's camp", "south": "Global South", "region": "Neighbours"}
 				for camp_name in (v as Dictionary):

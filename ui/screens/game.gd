@@ -732,7 +732,10 @@ func _show_event(ev: Dictionary) -> void:
 	for k in ev.choices.size():
 		var ch: Dictionary = ev.choices[k]
 		var label := str(ch.label)
-		_modal.choice(label, "Your cabinet recommends this" if k == rec else "", &"PrimaryButton" if k == rec else &"", func() -> void:
+		var sub := str(ch.get("detail", "")) if str(ev.id) == "press" else ""
+		if k == rec:
+			sub = (sub + "  ·  " if sub != "" else "") + "Your cabinet recommends this"
+		_modal.choice(label, sub, &"PrimaryButton" if k == rec else &"", func() -> void:
 			Haptics.success()
 			_modal.dismiss()
 			Game.resolve_decision(ev, k)

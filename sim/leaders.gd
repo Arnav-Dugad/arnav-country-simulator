@@ -51,7 +51,7 @@ static func _term(i: int) -> int:
 ## The current leader of an AI country: {name, title, female, personality, portrait}.
 static func leader(i: int) -> Dictionary:
 	var g := group_of(i)
-	var names: Array = Cabinet.NAMES[g]
+	var names: Array = Names.pool(i)
 	var h := absi(hash("%s#%d" % [World.iso(i), _term(i)]))
 	var firsts: Array = names[0]
 	var lasts: Array = names[1]
@@ -59,7 +59,7 @@ static func leader(i: int) -> Dictionary:
 	var li: int = (h / 7) % lasts.size()
 	var female: bool = fi % 2 == 0          # first-name lists alternate female / male
 	var p: String = KEYS[(h / 131) % KEYS.size()]
-	return {"name": "%s %s" % [firsts[fi], lasts[li]], "title": Government.leader_title(i),
+	return {"name": Names.full(i, fi, li), "title": Government.leader_title(i),
 		"female": female, "personality": p, "portrait": portrait_key(g, female)}
 
 
@@ -82,7 +82,14 @@ static func drift(i: int) -> float:
 	return float(PERSONALITIES[leader(i).personality].get("drift", 0.0))
 
 
-## Portrait for a person from their first name (cabinet members, saved games).
+## Portrait for a minister or candidate ({name, female, group}).
+static func portrait_for(person: Dictionary) -> String:
+	if person.has("female") and person.has("group"):
+		return portrait_key(str(person.group), bool(person.female))
+	return portrait_for_name(str(person.get("name", "")))
+
+
+## Portrait from a first name (older saves without gender/group).
 static func portrait_for_name(full_name: String) -> String:
 	var first := full_name.split(" ")[0]
 	for g in Cabinet.NAMES:
@@ -99,7 +106,7 @@ static func cabinet_portraits() -> Dictionary:
 	var used := {}
 	for post in Cabinet.POSTS:
 		var mn: Dictionary = Game.cabinet.ministers.get(post, {})
-		var key := portrait_for_name(str(mn.get("name", "")))
+		var key := portrait_for(mn)
 		if key == "":
 			continue
 		var parts := key.split("_")

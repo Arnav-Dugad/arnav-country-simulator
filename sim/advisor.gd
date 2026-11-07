@@ -35,7 +35,7 @@ static func advice(c: CountryState) -> Array:
 	if c.debt_pct() > maxf(120.0, float(b.debt_pct) + 10.0):
 		out.append(_item(2, "Debt is getting dangerous (%s of GDP)" % DS.pct(c.debt_pct(), 0),
 			"Above about 100% markets may panic. Run a smaller deficit for a few years.", "budget", "alert"))
-	if c.stability < 30.0:
+	if c.stability < minf(30.0, float(b.stability) - 6.0):
 		out.append(_item(2, "Unrest is growing (stability %d)" % int(c.stability),
 			"Raise approval and happiness, and bring unemployment down.", "economy", "shield"))
 	if c.happiness < float(b.happiness) - 5.0:

@@ -183,7 +183,7 @@ func _minister_card(post: String) -> void:
 				return "%s (%s)" % [Cabinet.TRAITS[t].label, Cabinet.TRAITS[t].desc])))
 			row.subtitle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 			row.subtitle_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
-			var cf := Leaders.portrait_for_name(str(cand.name))
+			var cf := Leaders.portrait_for(cand)
 			row.set_leading(Photo.portrait(cf, 36.0) if cf != "" else _avatar(str(cand.name), post))
 			row.tapped.connect(func() -> void:
 				cab.appoint(post, k)

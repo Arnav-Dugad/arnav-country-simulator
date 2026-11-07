@@ -2,6 +2,23 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.17.0] - 2026-11-08
+
+**Face the press**
+- Press conferences: a few times a year reporters ask about the weakest part of your record (prices, jobs, debt, growth, unrest), using your real numbers. Be honest, spin it or deflect
+- Your credibility with the press now matters: spin works better when people trust you, and when they don't, bad news hits harder
+
+**Understand your year**
+- New "Over the last year" card in Economy: every key number's change with a sparkline and what's lifting it or holding it back
+
+**Fairer for fragile countries** (found by playing Mali)
+- Military governments no longer face restless generals in their very first month: the army now judges you against where your country started
+- The same for unrest in countries without elections
+
+**More believable people**
+- Leaders and ministers now have names that fit their own country (German names in Germany, Japanese in Japan, Brazilian in Brazil…), across 30 countries and every region
+- Food price headlines get a farming icon
+
 ## [0.16.0] - 2026-11-07
 
 **A world full of people**

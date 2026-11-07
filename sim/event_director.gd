@@ -48,6 +48,10 @@ func monthly(my_crisis: bool) -> void:
 	if Game.month == 11 and Game.months_played > 6:
 		add(GameEvents.summit(Game.rng))
 		return
+	if Press.due() and Game.rng.randf() < 0.5:
+		Press.held()
+		add(Press.make_event())
+		return
 	for k in scheduled.size():
 		if int(scheduled[k].due) <= Game.months_played:
 			var item: Dictionary = scheduled.pop_at(k)
@@ -156,6 +160,9 @@ static func score(fx: Dictionary) -> float:
 			s -= v * 0.6
 		elif k == "sanction_me":
 			s -= 3.0
+		elif k == "press_cred":
+			# Credibility is worth more the less of it you have left.
+			s += v * (0.12 + 0.25 * (1.0 - Press.credibility() / 100.0))
 		elif k == "deal":
 			s += 1.5
 	return s

@@ -90,13 +90,17 @@ func _name_group() -> String:
 
 func _pool(r: RandomNumberGenerator) -> Array:
 	var out: Array = []
-	var names: Array = NAMES[_name_group()]
+	var p: Array = Names.pool(Game.player)
+	var nf: int = p[0].size()
+	var nl: int = p[1].size()
+	var grp := Leaders.group_of(Game.player)
 	for _k in 3:
 		var t1: String = GOOD[r.randi() % GOOD.size()]
 		var t2: String = GOOD[r.randi() % GOOD.size()] if r.randf() < 0.6 else BAD[r.randi() % BAD.size()]
 		if t2 == t1:
 			t2 = BAD[r.randi() % BAD.size()]
-		out.append({"name": "%s %s" % [names[0][r.randi() % names[0].size()], names[1][r.randi() % names[1].size()]],
+		var fi := r.randi() % nf
+		out.append({"name": Names.full(Game.player, fi, r.randi() % nl), "female": fi % 2 == 0, "group": grp,
 			"traits": [t1, t2]})
 	return out
 

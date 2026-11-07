@@ -247,7 +247,7 @@ func advance_month() -> void:
 	world_ai.finish_month()
 	var market_news := markets.monthly(rng)
 	if market_news != "":
-		add_feed(market_news, "flame" if market_news.begins_with("Oil") else "trending-up", "orange")
+		add_feed(market_news, "tractor" if markets.food_news else "flame", "orange")
 	if me().cb_auto and month % 3 == 0:
 		AI.central_bank(me())
 	var my_crisis := Simulation.tick(me(), rng, true)

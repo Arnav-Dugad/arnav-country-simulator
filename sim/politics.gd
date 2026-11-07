@@ -89,7 +89,8 @@ func monthly() -> String:
 	if low_stability_months >= E.COLLAPSE_MONTHS:
 		return "end:collapse"
 	if not Government.has_elections(i):
-		unrest_months = unrest_months + 1 if c.stability < E.UNREST_STABILITY and c.approval < E.UNREST_SUPPORT else 0
+		var unrest_st := minf(E.UNREST_STABILITY, float(c.base.get("stability", 50.0)) - E.COLLAPSE_HEADROOM)
+		unrest_months = unrest_months + 1 if c.stability < unrest_st and c.approval < E.UNREST_SUPPORT else 0
 		if unrest_months >= E.UNREST_MONTHS:
 			return "end:revolution"
 		if Government.army_rules(i):
@@ -125,8 +126,10 @@ func coup_risk() -> float:
 	var risk := 0.0
 	if cut > E.COUP_BUDGET_CUT:
 		risk += (cut - E.COUP_BUDGET_CUT) * E.COUP_PER_CUT
-	if c.stability < E.COUP_STABILITY:
-		risk += (E.COUP_STABILITY - c.stability) * E.COUP_PER_STABILITY
+	# Measured against where this country started: fragile states aren't doomed on day one.
+	var floor_st := minf(E.COUP_STABILITY, float(c.base.get("stability", 50.0)) - E.COLLAPSE_HEADROOM)
+	if c.stability < floor_st:
+		risk += (floor_st - c.stability) * E.COUP_PER_STABILITY
 	return clampf(risk, 0.0, 0.25)
 
 

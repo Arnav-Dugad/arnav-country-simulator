@@ -27,6 +27,7 @@ const INFO_TEXT := {
 	"Openness": "How freely goods flow across your borders. Open trade brings growth and cheaper goods; closing it protects some jobs but raises prices.",
 }
 var _health: HealthCard
+var _trend: TrendCard
 var _undo: AppButton
 var _snapshot := {}
 
@@ -42,6 +43,8 @@ func _build() -> void:
 	_health = HealthCard.new()
 	_health.page_requested.connect(func(p: String) -> void: page_requested.emit(p))
 	add_child(_health)
+	_trend = TrendCard.new()
+	add_child(_trend)
 	var g := grid(self)
 	_tiles.gdp = _tile(g, "GDP", func(v: float) -> String: return DS.money(v), true)
 	_tiles.growth = _tile(g, "Growth", SheetPage.fmt_pct, true)
@@ -244,6 +247,7 @@ func refresh() -> void:
 	_update_balance()
 	_update_chart(false)
 	_health.refresh()
+	_trend.refresh()
 	if Game.me().cb_auto:
 		_rate.set_value(Game.me().interest_rate, false)
 		_sync_cb()

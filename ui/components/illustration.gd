@@ -39,6 +39,7 @@ const EVENT_SCENE := {
 	"drought": "drought", "heatwave": "drought", "tech_boom": "tech", "cyberattack": "tech", "automation": "tech",
 	"brain_drain": "tech", "un_ai": "tech", "sports": "celebration", "games_bid": "celebration",
 	"royal_wedding": "celebration", "tourism": "celebration", "trade_offer": "port", "sanction_threat": "port",
+	"press": "parliament",
 }
 
 

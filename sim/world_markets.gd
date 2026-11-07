@@ -50,8 +50,12 @@ func food_gap() -> float:
 
 ## Monthly: move prices, measure the world's economic temperature.
 ## Returns a headline string when something big happened ("" otherwise).
+var food_news := false
+
+
 func monthly(rng: RandomNumberGenerator) -> String:
 	var news := ""
+	food_news = false
 	oil += -oil * E.OIL_REVERSION + rng.randfn(0.0, E.OIL_VOLATILITY)
 	food += -food * E.FOOD_REVERSION + rng.randfn(0.0, E.FOOD_VOLATILITY)
 	if rng.randf() < E.OIL_SHOCK_CHANCE:
@@ -61,6 +65,7 @@ func monthly(rng: RandomNumberGenerator) -> String:
 	if rng.randf() < E.FOOD_SHOCK_CHANCE:
 		food += E.FOOD_SHOCK
 		news = "Poor harvests push world food prices up"
+		food_news = true
 	oil = clampf(oil, -0.9, 0.9)
 	food = clampf(food, -0.5, 0.7)
 	oil_hist.append(oil_price())
