@@ -5,6 +5,7 @@ extends Control
 ## Tap outside to close.
 
 signal mode_selected(mode: int)
+signal globe_requested
 
 const LEGEND := {
 	MapModes.Mode.POLITICAL: ["Countries in calm colours. Yours glows gold.", "", ""],
@@ -22,6 +23,13 @@ var _lo: Label
 var _hi: Label
 var _mode := 0
 var _anchor := Rect2()
+var _globe_btn: AppButton
+
+
+func set_globe_state(on: bool) -> void:
+	if _globe_btn:
+		_globe_btn.text = "Flat map" if on else "Globe view"
+		_globe_btn.icon_name = "map" if on else "earth"
 
 
 func _init() -> void:
@@ -57,6 +65,12 @@ func _ready() -> void:
 			mode_selected.emit(m))
 		g.add_child(b)
 		_tiles.append(b)
+	_globe_btn = AppButton.make("Globe view", &"", "earth")
+	var gb := _globe_btn
+	gb.pressed.connect(func() -> void:
+		close()
+		globe_requested.emit())
+	v.add_child(gb)
 	_legend_title = Label.new()
 	_legend_title.theme_type_variation = &"Footnote"
 	_legend_title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

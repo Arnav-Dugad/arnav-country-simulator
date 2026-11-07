@@ -59,7 +59,9 @@ func _ready() -> void:
 	add_child(top_bar)
 	strip = ControlStrip.new()
 	strip.next_tapped.connect(_on_next)
-	strip.layers_tapped.connect(func() -> void: layers.open(strip.layers_rect()))
+	strip.layers_tapped.connect(func() -> void:
+		layers.set_globe_state(map.globe_on)
+		layers.open(strip.layers_rect()))
 	add_child(strip)
 	dock = Dock.new()
 	dock.opened.connect(open_page)
@@ -74,6 +76,13 @@ func _ready() -> void:
 	_build_sheet_header()
 	layers = LayersPopover.new()
 	layers.mode_selected.connect(_on_mode_changed)
+	layers.globe_requested.connect(func() -> void:
+		if map.globe_on:
+			map.exit_globe()
+			return
+		if sheet.is_open():
+			sheet.close()
+		map.enter_globe())
 	add_child(layers)
 
 	Screen.insets_changed.connect(_layout)

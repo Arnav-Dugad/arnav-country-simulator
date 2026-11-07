@@ -50,8 +50,7 @@ var _sel_shadow: MeshInstance2D
 var _sel_fill: MeshInstance2D
 var _sel_line: MeshInstance2D
 var _labels: MapLabels
-var _coast: MeshInstance2D
-var _coast_mat: ShaderMaterial
+
 var _overlays: MapOverlays
 
 var _fill_mat: ShaderMaterial
@@ -140,12 +139,6 @@ func _build_nodes() -> void:
 	_fill_mat.set_shader_parameter(&"player_tint", DS.GOLD)
 	_fill_mat.set_shader_parameter(&"world_half_height", data.world_rect.size.y * 0.5)
 	_build_graticule()
-	# Shallow water: a soft cyan halo along every coast, drawn under the land so
-	# only the sea side shows.
-	_coast_mat = _line_material(GLOW_SHADER, Color(0.35, 0.75, 1.0, 0.07), 1.0)
-	_coast = MeshInstance2D.new()
-	_coast.material = _coast_mat
-	_world.add_child(_coast)
 	_fill = MeshInstance2D.new()
 	_fill.mesh = _baked("res://data/map_fill.res", func() -> ArrayMesh:
 		return MapMeshes.fill_mesh(data, PackedInt32Array(draw_order), _tex_w))
@@ -156,7 +149,6 @@ func _build_nodes() -> void:
 	_borders = MeshInstance2D.new()
 	_borders.mesh = _baked("res://data/map_borders.res", func() -> ArrayMesh:
 		return MapMeshes.line_mesh(data.ring_points))
-	_coast.mesh = _borders.mesh
 	_borders.material = _border_mat
 	_world.add_child(_borders)
 
@@ -540,7 +532,6 @@ func _update_line_widths() -> void:
 	_border_mat.set_shader_parameter(&"aa", 1.0 / (BORDER_PX * 0.5 + 0.5))
 	_border_mat.set_shader_parameter(&"line_color", Color(DS.BORDER, DS.BORDER.a * lerpf(0.55, 1.0, zt)))
 	_glow_mat.set_shader_parameter(&"half_width", GLOW_PX * px)
-	_coast_mat.set_shader_parameter(&"half_width", 9.0 * px)
 	_rebuild_glow()
 	_player_line_mat.set_shader_parameter(&"half_width", (PLAYER_LINE_PX * 0.5 + 0.5) * px)
 	_player_line_mat.set_shader_parameter(&"aa", 1.0 / (PLAYER_LINE_PX * 0.5 + 0.5))
@@ -568,7 +559,7 @@ var _globe_pinch := 1.0
 
 
 func _globe_materials() -> Array:
-	return [_fill_mat, _border_mat, _glow_mat, _player_line_mat, _sel_line_mat, _grat_mat, _coast_mat]
+	return [_fill_mat, _border_mat, _glow_mat, _player_line_mat, _sel_line_mat, _grat_mat]
 
 
 ## Points the globe at the current view and sizes it to the screen.
