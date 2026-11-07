@@ -44,6 +44,12 @@ func _build() -> void:
 	_account_box.add_child(AccountSection.new())
 
 	var prefs := section("Preferences")
+	var snd := AppToggle.new().setup("Sound effects", Settings.sound_on, "volume-2")
+	snd.toggled.connect(func(v: bool) -> void: Settings.set_value("sound_on", v))
+	prefs.add_child(snd)
+	var mus := AppToggle.new().setup("Music", Settings.music_on, "sparkles")
+	mus.toggled.connect(func(v: bool) -> void: Settings.set_value("music_on", v))
+	prefs.add_child(mus)
 	var hap := AppToggle.new().setup("Haptic feedback", Settings.haptics, "vibrate")
 	hap.toggled.connect(func(v: bool) -> void: Settings.set_value("haptics", v))
 	prefs.add_child(hap)

@@ -56,6 +56,7 @@ func _animate_in() -> void:
 	t.tween_property(_logo, "modulate:a", 1.0, 0.45)
 	t.tween_property(_title, "modulate:a", 1.0, 0.5).set_delay(0.25)
 	t.tween_property(_subtitle, "modulate:a", 1.0, 0.5).set_delay(0.4)
+	Audio.music_start()
 	await get_tree().create_timer(1.6).timeout
 	if is_inside_tree():
 		Router.goto(_next_scene())

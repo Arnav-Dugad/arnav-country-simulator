@@ -290,7 +290,8 @@ func _show_event(ev: Dictionary) -> void:
 	if ev.is_empty() or is_instance_valid(_modal):
 		return
 	dock.set_badge(true)
-	Haptics.warning()
+	Haptics.warning(false)
+	Audio.play("event")
 	_modal = ModalCard.new()
 	add_child(_modal)
 	var other := int(ev.get("other", -1))
@@ -312,10 +313,11 @@ func _show_election(r: Dictionary) -> void:
 	if is_instance_valid(_modal):
 		_modal.queue_free()
 	var won: bool = r.won
+	Audio.play("election")
 	if won:
-		Haptics.success()
+		Haptics.success(false)
 	else:
-		Haptics.warning()
+		Haptics.warning(false)
 	_modal = ModalCard.new()
 	add_child(_modal)
 	_modal.header("vote", DS.GOLD if won else DS.RED, "Election %d" % int(r.year),

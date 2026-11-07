@@ -44,7 +44,8 @@ func set_on(v: bool, emit: bool = true) -> void:
 		_t = x
 		_switch.queue_redraw(), _t, 1.0 if v else 0.0, Settings.dur(DS.DUR))
 	if emit:
-		Haptics.select()
+		Haptics.select(false)
+		Audio.play("toggle_on" if v else "toggle_off")
 		toggled.emit(v)
 
 

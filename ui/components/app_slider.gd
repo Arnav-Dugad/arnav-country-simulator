@@ -77,7 +77,7 @@ func set_value(v: float, emit: bool = true) -> void:
 		_track.queue_redraw()
 	if changed and emit:
 		if absf(fmod(value, step * 4.0)) < step * 0.5:
-			Haptics.tap()
+			Haptics.tick()
 		value_changed.emit(value)
 
 

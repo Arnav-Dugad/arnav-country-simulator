@@ -132,7 +132,10 @@ func snap_to(s: int, animate: bool = true) -> void:
 		_set_y(target)
 		panel.modulate.a = 0.0 if s == Snap.HIDDEN else 1.0
 	if s == Snap.HIDDEN and prev != Snap.HIDDEN:
+		Audio.play("sheet_down")
 		dismissed.emit()
+	elif prev == Snap.HIDDEN and s != Snap.HIDDEN:
+		Audio.play("sheet_up")
 	snapped.emit(s)
 
 

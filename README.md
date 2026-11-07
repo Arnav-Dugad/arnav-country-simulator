@@ -79,6 +79,7 @@ Firebase (Authentication + Cloud Firestore) on the free Spark plan.
 | Debt & fiscal data | [IMF](https://www.imf.org/external/datamapper/) World Economic Outlook | Free with attribution |
 | Font | [Inter](https://rsms.me/inter/) by Rasmus Andersson | SIL Open Font License 1.1 |
 | Icons | [Lucide](https://lucide.dev/) | ISC |
+| Sound & music | Original, synthesized in-house (`tools/make_audio.py`) | Same as the game |
 | Flags | [flag-icons](https://github.com/lipis/flag-icons) | MIT |
 | Engine | [Godot Engine](https://godotengine.org/) | MIT |
 

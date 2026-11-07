@@ -6,6 +6,8 @@ signal changed(key: String, value: Variant)
 const PATH := "user://settings.cfg"
 
 var haptics: bool = true
+var sound_on: bool = true
+var music_on: bool = true
 var reduce_motion: bool = false
 var onboarding_done: bool = false
 var last_update_check: int = 0
@@ -20,6 +22,8 @@ var _cfg := ConfigFile.new()
 func _ready() -> void:
 	if _cfg.load(PATH) == OK:
 		haptics = _cfg.get_value("prefs", "haptics", haptics)
+		sound_on = _cfg.get_value("prefs", "sound_on", true)
+		music_on = _cfg.get_value("prefs", "music_on", true)
 		reduce_motion = _cfg.get_value("prefs", "reduce_motion", reduce_motion)
 		onboarding_done = _cfg.get_value("prefs", "onboarding_done", onboarding_done)
 		last_update_check = _cfg.get_value("prefs", "last_update_check", 0)

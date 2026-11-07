@@ -44,6 +44,14 @@ func _layout() -> void:
 	card.pivot_offset = card.size * 0.5
 
 
+func _enter_tree() -> void:
+	Audio.duck(true)
+
+
+func _exit_tree() -> void:
+	Audio.duck(false)
+
+
 func _pop_in() -> void:
 	await get_tree().process_frame
 	_layout()

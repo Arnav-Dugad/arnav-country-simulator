@@ -4,20 +4,34 @@ extends Node
 var _enabled_platform := OS.has_feature("mobile")
 
 
-func tap() -> void:
+## Each cue pairs a vibration with its sound (pass sound=false to vibrate only).
+func tap(sound: bool = true) -> void:
 	_buzz(10, 0.35)
+	if sound:
+		Audio.play("tap")
 
 
-func select() -> void:
+func tick() -> void:
+	_buzz(6, 0.25)
+	Audio.play("tick", -4.0)
+
+
+func select(sound: bool = true) -> void:
 	_buzz(16, 0.5)
+	if sound:
+		Audio.play("select")
 
 
-func success() -> void:
+func success(sound: bool = true) -> void:
 	_buzz(22, 0.7)
+	if sound:
+		Audio.play("success")
 
 
-func warning() -> void:
+func warning(sound: bool = true) -> void:
 	_buzz(40, 1.0)
+	if sound:
+		Audio.play("warning")
 
 
 func _buzz(ms: int, amplitude: float) -> void:

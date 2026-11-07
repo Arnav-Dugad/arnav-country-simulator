@@ -1,0 +1,2 @@
+All audio in this folder is original, synthesized by tools/make_audio.py for
+Arnav Country Simulator. Same license as the game's code.
