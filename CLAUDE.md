@@ -37,7 +37,7 @@ $G --headless --path . --script res://tools/export_icons.gd       # regenerate a
 $G --headless --path . --quit-after 400                           # smoke-run main scene
 $G --path . -- --scene=res://ui/screens/x.tscn --shot=C:/tmp/x.png --shot-delay=2   # screenshot
 ```
-DevTools user args (after `--`): `--scene=`, `--shot=`, `--shot-delay=`, `--size=WxH`, `--click=x,y;x,y` (window px), `--click-delay=`, game screen: `--open=<page> --scroll=<px>`.
+DevTools user args (after `--`): `--scene=`, `--shot=`, `--shot-delay=`, `--size=WxH`, `--click=x,y;x,y` (window px), `--click-delay=`, game screen: `--open=<page> --scroll=<px>`, `--advance=<months>`.
 
 ## Coding conventions
 - Static typing everywhere (`var x: int`, `:=`, typed returns). Tabs for indentation.

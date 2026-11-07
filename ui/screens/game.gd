@@ -23,6 +23,7 @@ var _current := ""
 var _mode := MapModes.Mode.POLITICAL
 var _modal: ModalCard
 var _dock_tween: Tween
+var _dev_fast := false   # DevTools fast-forward: skip modals
 
 
 func _ready() -> void:
@@ -72,7 +73,7 @@ func _ready() -> void:
 		_show_event.call_deferred(Game.pending_event)
 	get_tree().root.go_back_requested.connect(_on_back)
 	_dev_open.call_deferred()
-	if not Settings.tutorial_done and Game.months_played == 0 and DevTools.arg("open") == null:
+	if not Settings.tutorial_done and Game.months_played == 0 and DevTools.arg("open") == null 			and DevTools.arg("advance") == null:
 		get_tree().create_timer(0.9).timeout.connect(start_tour)
 
 
@@ -117,6 +118,16 @@ func _player_rect() -> Rect2:
 
 ## DevTools: --open=<page> [--scroll=<px>] opens a sheet page at full height.
 func _dev_open() -> void:
+	var adv: Variant = DevTools.arg("advance")
+	if adv != null:
+		Settings.tutorial_done = true
+		_dev_fast = true
+		for _m in int(str(adv)):
+			Game.advance_month()
+			if not Game.pending_event.is_empty():
+				Game.resolve_event(0)
+		_dev_fast = false
+		_narrate()
 	var page: Variant = DevTools.arg("open")
 	if page == null or not PAGES.has(str(page)):
 		return
@@ -264,6 +275,7 @@ func _on_country_tapped(i: int) -> void:
 
 
 func _on_month() -> void:
+	_narrate.call_deferred()
 	if _current != "" and _pages.has(_current):
 		_pages[_current].refresh()
 		_sheet_title.text = _pages[_current].title
@@ -271,6 +283,54 @@ func _on_month() -> void:
 		map.set_colors(_colors_for(_mode))
 	dock.set_badge(not Game.pending_event.is_empty())
 	dock.set_badge(Advisor.health(Game.me()) == 0, "economy")
+
+
+## Headlines and the yearly review (deferred so events/elections show first).
+func _narrate() -> void:
+	if not Game.running or is_instance_valid(_modal) or _dev_fast:
+		return
+	if Game.month == 1 and Game.months_played >= 12:
+		var r := Briefing.year_review()
+		if not r.is_empty():
+			_show_year_review(r)
+			return
+	var h := Briefing.headline()
+	if not h.is_empty():
+		Toast.show_headline(self, str(h.text), str(h.icon), DS.GREEN if h.good else DS.ORANGE,
+			modes.position.y + 52.0)
+		Audio.play("select", -8.0)
+
+
+func _show_year_review(r: Dictionary) -> void:
+	var prev := Game.speed
+	Game.set_speed(0)
+	_modal = ModalCard.new()
+	add_child(_modal)
+	_modal.header("calendar", DS.GOLD, "%d in review" % int(r.year), str(r.title))
+	for row in r.rows:
+		var line := HBoxContainer.new()
+		_modal.content.add_child(line)
+		var l := Label.new()
+		l.theme_type_variation = &"Body"
+		l.text = str(row.label)
+		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		line.add_child(l)
+		var a := float(row.from)
+		var b := float(row.to)
+		var fmt := func(v: float) -> String: return DS.money(v) if row.kind == "money" else DS.pct(v)
+		var v := Label.new()
+		v.theme_type_variation = &"StatSmall"
+		var up := b > a
+		v.text = "%s  %s  %s" % [fmt.call(a), "→", fmt.call(b)]
+		v.add_theme_color_override(&"font_color", DS.TEXT_2 if absf(b - a) < 0.05 else (DS.GREEN if up == bool(row.good_up) else DS.RED))
+		line.add_child(v)
+	_modal.choice("On to %d" % (int(r.year) + 1), "", &"PrimaryButton", func() -> void:
+		_modal.dismiss()
+		Game.set_speed(maxi(prev, 1))
+		if not Game.pending_event.is_empty():
+			get_tree().create_timer(0.4).timeout.connect(func() -> void: _show_event(Game.pending_event)))
+	Haptics.success(false)
+	Audio.play("success", -4.0)
 
 
 func _on_relations_changed() -> void:
@@ -290,7 +350,7 @@ func _colors_for(m: int) -> PackedColorArray:
 
 
 func _show_event(ev: Dictionary) -> void:
-	if ev.is_empty() or is_instance_valid(_modal):
+	if ev.is_empty() or is_instance_valid(_modal) or _dev_fast:
 		return
 	dock.set_badge(true)
 	Haptics.warning(false)

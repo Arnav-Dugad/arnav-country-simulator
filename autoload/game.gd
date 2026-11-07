@@ -47,6 +47,7 @@ var pending_event: Dictionary = {}
 var event_log: Array = []           # [{date, title, choice, id}]
 var elections_won := 0
 var start_snapshot: Dictionary = {}
+var headlines_seen: Dictionary = {}
 
 var _last_event_month := -10
 var _speed_before_pause := 1
@@ -83,6 +84,7 @@ func new_game(country_index: int, seed_value: int = -1) -> void:
 	for i in relations.size():
 		dip.baseline[str(i)] = relations[i]
 	pending_event = {}
+	headlines_seen = {}
 	event_log.clear()
 	elections_won = 0
 	_last_event_month = 0  # a few quiet months to settle in
@@ -348,7 +350,7 @@ func to_dict() -> Dictionary:
 		"months_played": months_played, "months_to_election": months_to_election,
 		"countries": cs, "relations": rel, "history": hist, "rng_state": str(rng.state),
 		"dip": dip, "event_log": event_log, "elections_won": elections_won,
-		"start": start_snapshot, "pending_event": pending_event,
+		"start": start_snapshot, "pending_event": pending_event, "headlines_seen": headlines_seen,
 	}
 
 
@@ -391,6 +393,7 @@ func load_dict(d: Dictionary) -> bool:
 	elections_won = int(d.get("elections_won", 0))
 	start_snapshot = d.get("start", {})
 	pending_event = d.get("pending_event", {})
+	headlines_seen = d.get("headlines_seen", {})
 	_low_stability_months = 0
 	speed = 1
 	_acc = 0.0
