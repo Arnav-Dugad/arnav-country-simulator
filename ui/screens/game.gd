@@ -14,6 +14,7 @@ var top_bar: TopBar
 var dock: Dock
 var sheet: BottomSheet
 var _sheet_title: Label
+var _sheet_flag: Flag
 var _scroll: ScrollContainer
 var _pages := {}
 var _current := ""
@@ -66,7 +67,11 @@ func _ready() -> void:
 
 func _build_sheet_header() -> void:
 	var row := HBoxContainer.new()
+	row.add_theme_constant_override(&"separation", DS.S3)
 	sheet.header.add_child(row)
+	_sheet_flag = Flag.new()
+	_sheet_flag.visible = false
+	row.add_child(_sheet_flag)
 	_sheet_title = Label.new()
 	_sheet_title.theme_type_variation = &"Title2"
 	_sheet_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -120,6 +125,7 @@ func open_page(page: String) -> void:
 	if p.get_parent() == null:
 		_scroll.add_child(p)
 	_current = page
+	_sheet_flag.visible = false
 	p.on_open()
 	_sheet_title.text = p.title
 	_scroll.scroll_vertical = 0
@@ -150,6 +156,7 @@ func _open_country(i: int, focus: bool) -> void:
 	var cp: CountryPage = _pages["country"]
 	cp.show_country(i)
 	_sheet_title.text = cp.title
+	_sheet_flag.show_country(i, 24.0)
 	if focus:
 		await get_tree().process_frame
 		_update_insets()

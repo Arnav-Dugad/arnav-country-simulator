@@ -53,7 +53,8 @@ The basics should feel finished before anything new is added.
 - [ ] **Ocean depth:** a subtle procedural depth gradient near coasts (distance field baked offline), plus a faint graticule (every 30°) that fades in at mid zoom.
 - [ ] **Coastline light:** a 1 px inner highlight on land edges facing north-west, to suggest relief without textures.
 - [ ] **Capitals:** Natural Earth populated places (admin-0 capitals) as 3 pt dots with a soft halo, with labels from zoom ×4 and the player's capital in gold.
-- [ ] **Flags:** country flags from `flag-icons` (MIT) as SVG DPITextures with rounded 4 pt corners, in the picker rows, the country sheet header, the top bar (player) and the diplomacy list.
+- [x] **Flags:** country flags from `flag-icons` 7.6.0 (MIT) as SVG DPITextures with rounded corners and a hairline edge, in the picker rows and footer, the country sheet header, the top bar (player) and the diplomacy list.
+- [ ] **Distance-field player glow:** bake a signed-distance texture per country so the halo is perfectly smooth (replaces the outline-extruded glow, which still shows faint flares in very narrow inlets).
 - [ ] **Label system v2:** keep labels clear of HUD rectangles, cross-fade between zoom bands (no popping), letter-spacing scaled to zoom, and two lines for long names ("United States / of America").
 - [ ] **Selection feel:** a tap ripple at the touch point (expanding ring, 300 ms), and the raised country gets a soft 8 pt drop shadow tied to the zoom level.
 - [ ] **Mode transitions:** a 450 ms colour crossfade with a legend that slides in under the mode control (gradient bar, min/max labels and the player's marker).

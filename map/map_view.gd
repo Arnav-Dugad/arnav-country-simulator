@@ -239,7 +239,7 @@ func _rebuild_glow() -> void:
 	var tol := GLOW_PX * 0.45 / pow(2.0, bucket * 0.5)
 	var rings: Array[PackedVector2Array] = []
 	for r in _by_country[player]:
-		var pts := Geo.simplify_ring(data.ring_points[r], tol)
+		var pts := Geo.remove_spikes(Geo.simplify_ring(data.ring_points[r], tol), tol * 2.5)
 		if pts.size() >= 3 and absf(Geo.signed_area(pts)) > tol * tol * 4.0:
 			rings.append(pts)
 	_glow.mesh = MapMeshes.line_mesh(rings, false) if not rings.is_empty() else null

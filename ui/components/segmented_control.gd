@@ -14,6 +14,8 @@ var compact := true
 var plain := false
 ## Minimum width of each segment.
 var segment_width := 40.0
+## Tight = smaller horizontal padding (SegmentTight theme variations).
+var tight := false
 
 var _stack: Control
 var _indicator: Panel
@@ -46,7 +48,7 @@ func _ready() -> void:
 	_stack.add_child(_row)
 	for i in labels.size():
 		var b := AppButton.new()
-		b.theme_type_variation = &"Segment"
+		b.theme_type_variation = &"SegmentTight" if tight else &"Segment"
 		if i < icons.size() and icons[i] != "":
 			b.icon_name = icons[i]
 		b.custom_minimum_size = Vector2(segment_width, 36)
@@ -76,7 +78,8 @@ func _on_pressed(i: int) -> void:
 func _refresh(animate: bool) -> void:
 	for i in _buttons.size():
 		var on := i == selected
-		_buttons[i].theme_type_variation = &"SegmentSelected" if on else &"Segment"
+		var base := "SegmentTight" if tight else "Segment"
+		_buttons[i].theme_type_variation = StringName(base + ("Selected" if on else ""))
 		var has_icon := i < icons.size() and icons[i] != ""
 		_buttons[i].text = labels[i] if (on or not compact or not has_icon) else ""
 	_sync_size()

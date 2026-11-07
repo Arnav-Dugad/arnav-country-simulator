@@ -4,6 +4,7 @@ extends GlassPanel
 ## A hairline along the bottom fills as the current month elapses.
 
 var _date: Label
+var _flag: Flag
 var _election: Label
 var _speed: SegmentedControl
 var _treasury: AnimatedNumber
@@ -17,11 +18,17 @@ func _ready() -> void:
 	row.add_theme_constant_override(&"separation", DS.S2)
 	add_child(row)
 
+	var left_wrap := HBoxContainer.new()
+	left_wrap.add_theme_constant_override(&"separation", DS.S2)
+	left_wrap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(left_wrap)
+	_flag = Flag.new()
+	left_wrap.add_child(_flag)
 	var left := VBoxContainer.new()
 	left.add_theme_constant_override(&"separation", 0)
 	left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	left.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.add_child(left)
+	left_wrap.add_child(left)
 	_date = Label.new()
 	_date.theme_type_variation = &"Headline"
 	left.add_child(_date)
@@ -32,7 +39,8 @@ func _ready() -> void:
 	_speed = SegmentedControl.new().setup(["", "1×", "2×", "4×"], ["pause", "", "", ""], 1)
 	_speed.plain = true
 	_speed.compact = false
-	_speed.segment_width = 38.0
+	_speed.segment_width = 30.0
+	_speed.tight = true
 	_speed.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_speed.changed.connect(func(i: int) -> void: Game.set_speed(Game.SPEEDS[i]))
 	row.add_child(_speed)
@@ -83,8 +91,11 @@ func refresh() -> void:
 	if c == null:
 		return
 	_date.text = Game.date_text()
+	_flag.show_country(Game.player, 18.0)
 	var m := Game.months_to_election
-	_election.text = "Election in %dy %dm" % [m / 12, m % 12] if m > 0 else "Election this month"
+	# Short and calm: the year of the next election (exact countdown lives in Events).
+	var ey := Game.year + int((Game.month - 1 + m) / 12)
+	_election.text = "Election %d" % ey if m > 0 else "Election this month"
 	_treasury.value = c.treasury
 
 

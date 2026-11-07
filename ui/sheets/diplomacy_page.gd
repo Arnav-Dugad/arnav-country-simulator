@@ -63,6 +63,7 @@ func refresh() -> void:
 		var row := ListRow.new().setup(World.map.names[i], Diplomacy.status_text(i),
 			Diplomacy.relation_text(Game.relations[i]), "%+.0f" % Game.relations[i])
 		row.trailing_label.add_theme_color_override(&"font_color", Diplomacy.relation_color(Game.relations[i]))
+		row.set_leading(Flag.new().show_country(i, 22.0))
 		row.tapped.connect(func() -> void: country_requested.emit(i))
 		_list.add_child(row)
 	if idx.is_empty():

@@ -128,6 +128,11 @@ func _buttons() -> void:
 	_button_states(&"ChipSelected", Color(1, 1, 1, 0.92), Color(1, 1, 1, 1), Color(1, 1, 1, 0.8), DS.R_PILL, cf, 14, Color("0b1324"), 14, 7)
 	_button_states(&"Segment", Color(1, 1, 1, 0), Color(1, 1, 1, 0.04), Color(1, 1, 1, 0.02), DS.R_PILL, cf, 13, DS.TEXT_2, 12, 7)
 	_button_states(&"SegmentSelected", Color(1, 1, 1, 0), Color(1, 1, 1, 0), Color(1, 1, 1, 0), DS.R_PILL, cf, 13, DS.TEXT, 12, 7)
+	# Compact segments for tight spaces (top-bar speed control).
+	for v in [&"SegmentTight", &"SegmentTightSelected"]:
+		th.set_type_variation(v, &"Button")
+	_button_states(&"SegmentTight", Color(1, 1, 1, 0), Color(1, 1, 1, 0.04), Color(1, 1, 1, 0.02), DS.R_PILL, cf, 13, DS.TEXT_2, 7, 7)
+	_button_states(&"SegmentTightSelected", Color(1, 1, 1, 0), Color(1, 1, 1, 0), Color(1, 1, 1, 0), DS.R_PILL, cf, 13, DS.TEXT, 7, 7)
 	var lf := _font(500, 16)
 	_button_states(&"ListButton", Color(1, 1, 1, 0), DS.FILL_3, DS.FILL, DS.R_FIELD, lf, DS.FS_BODY, DS.TEXT, 14, 12)
 	th.set_constant(&"align_to_largest_stylebox", &"ListButton", 0)

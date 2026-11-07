@@ -52,6 +52,32 @@ static func _dp(pts: PackedVector2Array, a: int, b: int, tol2: float, keep: Pack
 			stack.append(Vector2i(idx, seg.y))
 
 
+## Removes hairpin vertices (where the outline doubles back by more than
+## acos(min_dot)) until none remain. Used for the soft player glow so narrow
+## inlets and gulfs don't fold the halo into bright spikes.
+## Only hairpins whose tip lies within `max_depth` of the shortcut are removed, so
+## real peninsulas survive.
+static func remove_spikes(pts: PackedVector2Array, max_depth: float, min_dot: float = -0.7) -> PackedVector2Array:
+	var out := pts.duplicate()
+	var changed := true
+	while changed and out.size() > 4:
+		changed = false
+		var n := out.size()
+		for i in n:
+			var p0 := out[(i - 1 + n) % n]
+			var p1 := out[i]
+			var p2 := out[(i + 1) % n]
+			var d0 := (p1 - p0).normalized()
+			var d1 := (p2 - p1).normalized()
+			var degenerate := d0.is_zero_approx() or d1.is_zero_approx()
+			var depth := p1.distance_to(Geometry2D.get_closest_point_to_segment(p1, p0, p2))
+			if degenerate or (d0.dot(d1) < min_dot and depth < max_depth):
+				out.remove_at(i)
+				changed = true
+				break
+	return out
+
+
 static func signed_area(pts: PackedVector2Array) -> float:
 	var a := 0.0
 	var n := pts.size()

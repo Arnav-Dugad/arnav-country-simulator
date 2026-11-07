@@ -15,6 +15,7 @@ var _scroll: ScrollContainer
 var _rows := {}               # map index -> ListRow
 var _selected := -1
 var _sel_name: Label
+var _sel_flag: Flag
 var _sel_meta: Label
 var _lead: AppButton
 var _empty: Label
@@ -90,6 +91,7 @@ func _build_list() -> void:
 			DS.money(s.get("gdp", 0.0)),
 			Economy.DIFFICULTY_LABELS[diff])
 		row.trailing_sub_label.add_theme_color_override(&"font_color", [DS.GREEN, DS.TEXT_2, DS.ORANGE][diff])
+		row.set_leading(Flag.new().show_country(i, 22.0))
 		row.tapped.connect(_select.bind(i, true))
 		_list.add_child(row)
 		_rows[i] = row
@@ -105,6 +107,8 @@ func _build_footer() -> void:
 	var bar := HBoxContainer.new()
 	bar.add_theme_constant_override(&"separation", DS.S3)
 	_sheet.body.add_child(bar)
+	_sel_flag = Flag.new()
+	bar.add_child(_sel_flag)
 	var info := VBoxContainer.new()
 	info.add_theme_constant_override(&"separation", 0)
 	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -142,6 +146,7 @@ func _select(i: int, from_tap: bool) -> void:
 	_rows[i].selected = true
 	var s: Dictionary = World.stats[i]
 	_sel_name.text = World.map.names_long[i]
+	_sel_flag.show_country(i, 30.0)
 	var pc := Economy.per_capita(s.get("gdp", 0.0), s.get("population", 1.0))
 	_sel_meta.text = "GDP/person %s  ·  Debt %s of GDP" % [DS.money(pc, 0), DS.pct(s.get("debt_pct", 0.0), 0)]
 	_lead.text = "Lead"

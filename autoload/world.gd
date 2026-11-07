@@ -61,6 +61,14 @@ func group_of(i: int) -> String:
 	return c
 
 
+## Flag texture for a map index (null if none). Cached by ResourceLoader.
+func flag_of(i: int) -> Texture2D:
+	if i < 0:
+		return null
+	var path := "res://assets/flags/%s.svg" % map.iso2[i].to_lower()
+	return load(path) if ResourceLoader.exists(path) else null
+
+
 ## Sovereign index for territories (e.g. Greenland -> Denmark), else itself.
 func sovereign_of(i: int) -> int:
 	var s: Variant = stats[i].get("sovereign")

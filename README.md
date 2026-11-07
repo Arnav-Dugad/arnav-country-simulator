@@ -79,6 +79,7 @@ Firebase (Authentication + Cloud Firestore) on the free Spark plan.
 | Debt & fiscal data | [IMF](https://www.imf.org/external/datamapper/) World Economic Outlook | Free with attribution |
 | Font | [Inter](https://rsms.me/inter/) by Rasmus Andersson | SIL Open Font License 1.1 |
 | Icons | [Lucide](https://lucide.dev/) | ISC |
+| Flags | [flag-icons](https://github.com/lipis/flag-icons) | MIT |
 | Engine | [Godot Engine](https://godotengine.org/) | MIT |
 
 Starting values for a few small states use regional estimates; the game marks them as estimated.
