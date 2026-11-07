@@ -108,7 +108,18 @@ func is_open() -> bool:
 	return state != Snap.HIDDEN
 
 
+## Wide screens: the sheet is a panel on the right instead of rising from the bottom.
+func side() -> bool:
+	return Screen.landscape
+
+
+func side_width() -> float:
+	return clampf(size.x * 0.46, 340.0, 440.0)
+
+
 func top_for(s: int) -> float:
+	if side():
+		return size.y + 40.0 if s == Snap.HIDDEN else Screen.top + DS.S2
 	var h := size.y
 	match s:
 		Snap.HIDDEN:
@@ -150,6 +161,16 @@ func snap_to(s: int, animate: bool = true) -> void:
 
 func _set_y(y: float) -> void:
 	_y = y
+	if side():
+		# Slide in from the right; y here is just the animated value (hidden..top).
+		var w := side_width()
+		var t := clampf(inverse_lerp(size.y + 40.0, Screen.top + DS.S2, y), 0.0, 1.0)
+		panel.size = Vector2(w, size.y - Screen.top - Screen.bottom - DS.S2 * 2.0 + 40.0)
+		panel.position = Vector2(lerpf(size.x + 10.0, size.x - w - SIDE_INSET - Screen.right, t), Screen.top + DS.S2)
+		_dim.modulate.a = 0.0
+		_dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		panel.visible = t > 0.001
+		return
 	panel.position = Vector2(SIDE_INSET + Screen.left, y)
 	# The visible part ends at the screen bottom; pad the body so scroll content
 	# never hides under the edge or the gesture bar.
@@ -177,6 +198,8 @@ func _on_panel_input(e: InputEvent) -> void:
 	var in_header := false
 	if e is InputEventMouse:
 		in_header = e.position.y <= header.position.y + header.size.y + DS.S3 + _col.position.y
+	if side():
+		return     # side panel: no drag (close with X, Back or by tapping the map)
 	if e is InputEventMouseButton and e.button_index == MOUSE_BUTTON_LEFT:
 		if e.pressed:
 			_pressing = in_header

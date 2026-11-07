@@ -11,6 +11,7 @@ var _tiles := {}
 var _chart: LineChart
 var _chart_tabs: SegmentedControl
 var _chart_idx := 0
+var _range: SegmentedControl
 var _income: AppSlider
 var _corp: AppSlider
 var _rate: AppSlider
@@ -77,16 +78,23 @@ func _build() -> void:
 		_update_chart(true))
 	chart_box.add_child(_chart_tabs)
 	_chart = LineChart.new()
+	_chart.window = 60
 	_chart.date_of = func(i: int) -> String:
-		# i indexes the visible window; history ends at the current month.
+		# i indexes the full history; it ends at the current month.
 		var h: PackedFloat32Array = Game.history.get(CHARTS[_chart_idx][1], PackedFloat32Array())
-		var shown := mini(h.size(), _chart.window)
-		var back := shown - 1 - i
+		var back := h.size() - 1 - i
 		var m := Game.month - 1 - back
 		var y := Game.year + floori(m / 12.0)
 		const N := ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 		return "%s %d" % [N[posmod(m, 12)], y]
 	chart_box.add_child(_chart)
+	_range = SegmentedControl.new().setup(["1 year", "5 years", "All"], [], 1)
+	_range.plain = true
+	_range.compact = true
+	_range.changed.connect(func(i: int) -> void:
+		_chart.window = [12, 60, 1200][i]
+		_update_chart(true))
+	chart_box.add_child(_range)
 	var scrub_hint := Label.new()
 	scrub_hint.theme_type_variation = &"Caption"
 	scrub_hint.text = "Drag across the chart to see any month."
@@ -274,4 +282,29 @@ func _update_chart(animate: bool) -> void:
 			_chart.formatter = func(v: float) -> String: return DS.money(v, 1)
 		_:
 			_chart.formatter = func(v: float) -> String: return String.num(v, 0) + "%"
+	# Your decisions as dots on the line, and a dashed 12-month forecast.
+	var marks: Array = []
+	for e in Game.event_log:
+		if e.has("m"):
+			marks.append([int(e.m), DS.GOLD if str(e.id) == "election" else DS.ACCENT, str(e.title)])
+	_chart.markers = marks
+	_chart.forecast = _forecast(str(spec[1]))
 	_chart.set_data(Game.history.get(spec[1], PackedFloat32Array()), animate)
+
+
+## 12 months ahead on a copy of the country (no events), for the dashed line.
+func _forecast(key: String) -> PackedFloat32Array:
+	var out := PackedFloat32Array()
+	var c := Game.me().clone()
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 1
+	for _m in 12:
+		Simulation.tick(c, rng)
+		match key:
+			"gdp":
+				out.append(c.gdp)
+			"debt_pct":
+				out.append(c.debt_pct())
+			_:
+				out.append(float(c.get(key)))
+	return out

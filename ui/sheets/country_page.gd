@@ -93,11 +93,30 @@ func refresh() -> void:
 		_sub.text = "%s  ·  %s people" % [World.map.subregions[i], DS.compact(c.population)]
 	_gov.visible = playable
 	if playable:
-		_gov.text = "%s  ·  led by the %s" % [Government.describe(i), Government.leader_title(i).to_lower()]
+		var lines: PackedStringArray = []
+		if Profiles.tagline(i) != "":
+			lines.append(Profiles.tagline(i) + ".")
+		lines.append("%s  ·  led by the %s" % [Government.describe(i), Government.leader_title(i).to_lower()]
+			if i != Game.player else "%s  ·  %s" % [Government.describe(i), Government.leader_display(i)])
+		if not Profiles.exports(i).is_empty():
+			lines.append("Sells: " + ", ".join(Profiles.exports(i)).to_lower())
+		if Profiles.fact(i) != "":
+			lines.append(Profiles.fact(i))
+		_gov.text = "\n".join(lines)
 	for ch in _traits.get_children():
 		ch.queue_free()
 	if playable:
-		for t in World.traits(i):
+		for chip in Profiles.trait_chips(i):
+			var pc := PanelContainer.new()
+			pc.theme_type_variation = &"ForecastChip"
+			var lc := Label.new()
+			lc.theme_type_variation = &"ChipValue"
+			lc.add_theme_font_size_override(&"font_size", 12)
+			lc.add_theme_color_override(&"font_color", DS.GREEN if chip[1] else DS.ORANGE)
+			lc.text = str(chip[0])
+			pc.add_child(lc)
+			_traits.add_child(pc)
+		for t in World.traits(i).filter(func(x: String) -> bool: return x in ["Landlocked", "Island nation", "Ageing population", "Very young population"]):
 			var p := PanelContainer.new()
 			p.theme_type_variation = &"ForecastChip"
 			var l := Label.new()
@@ -148,6 +167,7 @@ func _build_actions(i: int, is_me: bool, playable: bool) -> void:
 		return
 	if not playable:
 		return
+	_action("Compare with you", &"", "scale", _compare.bind(i))
 	# Trade
 	if Diplomacy.has_deal(i):
 		_action("Cancel trade deal", &"", "x", func() -> void:
@@ -188,6 +208,61 @@ func _build_actions(i: int, is_me: bool, playable: bool) -> void:
 			Diplomacy.sanction(i)
 			_done("Sanctions imposed on %s." % World.map.names[i], false),
 			false, "Hurts their economy, and yours a little")
+
+
+## Side by side: you and another country.
+func _compare(i: int) -> void:
+	var me := Game.me()
+	var them: CountryState = Game.state(i)
+	if them == null:
+		return
+	var m := ModalCard.new()
+	get_tree().current_scene.add_child(m)
+	m.header("scale", DS.ACCENT, "Compare", "%s vs %s" % [World.map.names[Game.player], World.map.names[i]])
+	var rows := [
+		["GDP", me.gdp, them.gdp, true, func(v: float) -> String: return DS.money(v)],
+		["Per person", me.gdp_per_capita(), them.gdp_per_capita(), true, func(v: float) -> String: return DS.money(v, 0)],
+		["Growth", me.growth, them.growth, true, func(v: float) -> String: return DS.pct(v)],
+		["Inflation", me.inflation, them.inflation, false, func(v: float) -> String: return DS.pct(v)],
+		["Jobless", me.unemployment, them.unemployment, false, func(v: float) -> String: return DS.pct(v)],
+		["Debt", me.debt_pct(), them.debt_pct(), false, func(v: float) -> String: return DS.pct(v, 0)],
+		["Happiness", me.happiness, them.happiness, true, func(v: float) -> String: return String.num(v, 0)],
+		["Stability", me.stability, them.stability, true, func(v: float) -> String: return String.num(v, 0)],
+		["Military", me.military, them.military, true, func(v: float) -> String: return String.num(v, 0)],
+		["People", me.population, them.population, true, func(v: float) -> String: return DS.compact(v)],
+	]
+	var head := HBoxContainer.new()
+	m.content.add_child(head)
+	for t in ["", "You", World.map.names[i]]:
+		var l := Label.new()
+		l.theme_type_variation = &"Overline"
+		l.text = t.to_upper()
+		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT if t != "" else HORIZONTAL_ALIGNMENT_LEFT
+		l.clip_text = true
+		head.add_child(l)
+	for r in rows:
+		var line := HBoxContainer.new()
+		m.content.add_child(line)
+		var a := float(r[1])
+		var b := float(r[2])
+		var mine_better: bool = (a > b) == bool(r[3]) and absf(a - b) > absf(b) * 0.01
+		var theirs_better: bool = (b > a) == bool(r[3]) and absf(a - b) > absf(a) * 0.01
+		for k in 3:
+			var l := Label.new()
+			l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			if k == 0:
+				l.theme_type_variation = &"Body"
+				l.text = str(r[0])
+			else:
+				l.theme_type_variation = &"StatSmall"
+				l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+				l.text = r[4].call(a if k == 1 else b)
+				var better := mine_better if k == 1 else theirs_better
+				l.add_theme_color_override(&"font_color", DS.GREEN if better else DS.TEXT)
+			line.add_child(l)
+	m.body("%s  ·  %s" % [Government.system_name(Game.player), Government.system_name(i)])
+	m.choice("Close", "", &"GhostButton", m.dismiss)
 
 
 func _action(text: String, variant: StringName, icon_: String, cb: Callable, disabled: bool = false,

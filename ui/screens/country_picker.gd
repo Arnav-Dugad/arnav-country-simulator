@@ -182,7 +182,10 @@ func _frame_map() -> void:
 	if _selected < 0 or _sheet == null:
 		return
 	# Frame the country in the space above the sheet.
-	_map.frame_insets = Vector4(DS.S6, Screen.top + DS.S6, DS.S6, size.y - _sheet.top_for(_sheet.state) + DS.S4)
+	if _sheet.side():
+		_map.frame_insets = Vector4(DS.S6, Screen.top + DS.S6, _sheet.side_width() + DS.S6, DS.S6)
+	else:
+		_map.frame_insets = Vector4(DS.S6, Screen.top + DS.S6, DS.S6, size.y - _sheet.top_for(_sheet.state) + DS.S4)
 	_map.focus_country(_selected, 0.9)
 
 

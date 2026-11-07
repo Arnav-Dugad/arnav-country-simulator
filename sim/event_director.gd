@@ -39,6 +39,15 @@ func monthly(my_crisis: bool) -> void:
 		return
 	if inbox.size() >= MAX_OPEN:
 		return
+	# The world's calendar: UN General Assembly votes in September, summits in November.
+	if Game.month == 9 and Game.rng.randf() < 0.7:
+		var un := GameEvents.un_vote(Game.rng)
+		if not un.is_empty():
+			add(un)
+			return
+	if Game.month == 11 and Game.months_played > 6:
+		add(GameEvents.summit(Game.rng))
+		return
 	for k in scheduled.size():
 		if int(scheduled[k].due) <= Game.months_played:
 			var item: Dictionary = scheduled.pop_at(k)
@@ -106,7 +115,8 @@ func resolve(ev: Dictionary, choice: int, by_cabinet: bool = false) -> void:
 	var nxt: Dictionary = ch.get("next", ev.get("next", {}))
 	if not nxt.is_empty():
 		scheduled.append({"id": str(nxt.id), "due": Game.months_played + int(nxt.get("in", 6)), "other": int(ev.other)})
-	log.push_front({"date": Game.date_text(), "title": ev.title, "choice": ch.label, "id": ev.id, "cabinet": by_cabinet})
+	log.push_front({"date": Game.date_text(), "title": ev.title, "choice": ch.label, "id": ev.id, "cabinet": by_cabinet,
+		"m": Game.months_played})
 	if log.size() > 80:
 		log.pop_back()
 	if bool(ev.get("critical", false)) or str(Settings.get_value("decisions", "inbox")) == "ask":

@@ -39,9 +39,15 @@ func _layout() -> void:
 	var w := minf(size.x - DS.S4 * 2.0, 420.0)
 	card.size = Vector2(w, 0)
 	card.size = Vector2(w, card.get_combined_minimum_size().y)
+	# Short screens (landscape): shrink the card to fit rather than overflow.
+	var avail := size.y - Screen.top - Screen.bottom - DS.S4 * 2.0
+	var s := clampf(avail / maxf(card.size.y, 1.0), 0.62, 1.0)
 	card.position = Vector2((size.x - w) * 0.5,
-		clampf((size.y - card.size.y) * 0.5, Screen.top + DS.S4, size.y - card.size.y - Screen.bottom - DS.S4))
+		clampf((size.y - card.size.y) * 0.5, Screen.top + DS.S4, maxf(size.y - card.size.y - Screen.bottom - DS.S4, Screen.top)))
 	card.pivot_offset = card.size * 0.5
+	if s < 1.0:
+		card.position.y = (size.y - card.size.y) * 0.5
+	set_meta(&"fit", s)
 
 
 func _enter_tree() -> void:
@@ -57,13 +63,13 @@ func _pop_in() -> void:
 	_layout()
 	_dim.modulate.a = 0.0
 	card.modulate.a = 0.0
-	card.scale = Vector2.ONE * 0.92
+	card.scale = Vector2.ONE * 0.92 * float(get_meta(&"fit", 1.0))
 	var t := create_tween().set_parallel(true)
 	DS.ease_out(t)
 	t.tween_property(_dim, "modulate:a", 1.0, Settings.dur(DS.DUR))
 	t.tween_property(card, "modulate:a", 1.0, Settings.dur(DS.DUR_FAST))
 	DS.spring(t)
-	t.tween_property(card, "scale", Vector2.ONE, Settings.dur(DS.DUR_SLOW))
+	t.tween_property(card, "scale", Vector2.ONE * float(get_meta(&"fit", 1.0)), Settings.dur(DS.DUR_SLOW))
 
 
 func dismiss() -> void:

@@ -26,8 +26,15 @@ var banners: String = "calm"
 var pause_full_sheet: bool = false   # pause while a panel is open at full height
 var cheats: bool = false             # Settings > Cheats unlocked (sandbox)
 var last_difficulty: String = "standard"
+## Leader profile: your name and party, used in titles, headlines and the legacy card.
+var leader_name: String = ""
+var party_name: String = ""
+var party_color: int = 0
+var landscape: bool = true          # follow the phone's rotation (landscape layout)
 
-const EXTRA_KEYS := ["decisions", "banners", "pause_full_sheet", "cheats", "last_difficulty"]
+const EXTRA_KEYS := ["decisions", "banners", "pause_full_sheet", "cheats", "last_difficulty",
+	"leader_name", "party_name", "party_color", "landscape"]
+const PARTY_COLORS := [Color("0a84ff"), Color("30d158"), Color("ff453a"), Color("ff9f0a"), Color("bf5af2"), Color("64d2ff")]
 
 var _cfg := ConfigFile.new()
 
@@ -50,6 +57,13 @@ func _ready() -> void:
 		for k in EXTRA_KEYS:
 			set(k, _cfg.get_value("prefs", k, get(k)))
 	_apply_text_scale()
+	_apply_orientation()
+
+
+## Portrait only, or follow the phone's sensor (landscape layouts).
+func _apply_orientation() -> void:
+	if OS.has_feature("mobile"):
+		DisplayServer.screen_set_orientation(DisplayServer.SCREEN_SENSOR if landscape else DisplayServer.SCREEN_PORTRAIT)
 
 
 func get_value(key: String, fallback: Variant = null) -> Variant:
@@ -63,6 +77,8 @@ func set_value(key: String, value: Variant) -> void:
 	_cfg.save(PATH)
 	if key == "text_scale":
 		_apply_text_scale()
+	if key == "landscape":
+		_apply_orientation()
 	changed.emit(key, value)
 
 

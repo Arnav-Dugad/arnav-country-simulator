@@ -166,7 +166,7 @@ func start_tour() -> void:
 		goal = "There are no elections here. Your rule rests on stability and public support: if both collapse, the streets (or the army) decide."
 	var g := Guide.new()
 	g.steps = [
-		{"target": _player_rect, "title": "Welcome, %s of %s" % [Government.leader_title(i), name],
+		{"target": _player_rect, "title": "Welcome, %s" % (Government.leader_display(i) if str(Settings.leader_name) != "" else "%s of %s" % [Government.leader_title(i), name]),
 			"text": "This is your country, a %s. Everything starts from real 2025 data." % Government.system_name(i).to_lower()},
 		{"target": strip.time_rect, "title": "Time moves month by month",
 			"text": "Pause or play here, and tap the speed to go faster. You can also tap the date at the top to pause."},
@@ -275,14 +275,19 @@ func _build_sheet_header() -> void:
 func _layout() -> void:
 	var w := size.x
 	var side := DS.S3 + maxf(Screen.left, Screen.right)
-	top_bar.size = Vector2(w - side * 2.0, 0)
-	top_bar.position = Vector2(side, Screen.top + DS.S2)
-	dock.size = Vector2(w - side * 2.0, 0)
+	# Landscape: chrome keeps phone-like widths, centred, so the map gets the room.
+	var bar_w := minf(w - side * 2.0, 560.0)
+	if Screen.landscape:   # stays clear of the side panel
+		bar_w = minf(w - sheet.side_width() - side * 3.0, 520.0)
+	var dock_w := minf(w - side * 2.0, 520.0)
+	top_bar.size = Vector2(bar_w, 0)
+	top_bar.position = Vector2(side + Screen.left * 0.0, Screen.top + DS.S2)
+	dock.size = Vector2(dock_w, 0)
 	var dock_h := dock.get_combined_minimum_size().y
-	dock.position = Vector2(side, size.y - Screen.bottom - DS.S3 - dock_h)
+	dock.position = Vector2((w - dock_w) * 0.5, size.y - Screen.bottom - DS.S3 - dock_h)
 	dock.set_meta(&"home_y", dock.position.y)
-	strip.size = Vector2(w - side * 2.0, ControlStrip.H)
-	strip.position = Vector2(side, dock.position.y - DS.S2 - ControlStrip.H)
+	strip.size = Vector2(dock_w, ControlStrip.H)
+	strip.position = Vector2((w - dock_w) * 0.5, dock.position.y - DS.S2 - ControlStrip.H)
 	strip.set_meta(&"home_y", strip.position.y)
 	if sheet.is_open():
 		dock.position.y += 160.0
@@ -297,6 +302,17 @@ func _toast_top() -> float:
 func _update_insets() -> void:
 	var top := _toast_top()
 	var chrome_top := float(strip.get_meta(&"home_y", size.y))
+	if sheet.side():
+		var right: float = (sheet.side_width() + DS.S4) if sheet.is_open() else float(DS.S4)
+		map.frame_insets = Vector4(DS.S4, top, right, size.y - chrome_top + DS.S3 if not sheet.is_open() else DS.S4)
+		var bl: Array[Rect2] = [top_bar.get_rect().grow(4)]
+		if sheet.is_open():
+			bl.append(Rect2(size.x - sheet.side_width() - 12.0, 0, size.x, size.y))
+		else:
+			bl.append(Rect2(strip.position.x, chrome_top - 6, strip.size.x, size.y))
+		map.label_blockers = bl
+		map.queue_redraw()
+		return
 	var bottom := size.y - (sheet.top_for(sheet.state) if sheet.is_open() else chrome_top) + DS.S3
 	map.frame_insets = Vector4(DS.S4, top, DS.S4, bottom)
 	var blockers: Array[Rect2] = [top_bar.get_rect().grow(4)]
@@ -823,7 +839,8 @@ func _show_election(r: Dictionary) -> void:
 	if not is_instance_valid(_modal):
 		map.spotlight(-1, false)
 		return
-	title.text = "You won re-election" if won else "You lost the election"
+	var who := str(Settings.leader_name).strip_edges()
+	title.text = ("%s wins again" % who if who != "" else "You won re-election") if won else ("%s loses" % who if who != "" else "You lost the election")
 	title.add_theme_color_override(&"font_color", DS.GOLD if won else DS.TEXT_2)
 	var managed := bool(r.get("managed", false))
 	msg.text = "Your approval stood at %s. %s" % [DS.pct(float(r.approval), 0),

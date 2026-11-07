@@ -173,7 +173,8 @@ static func build_months(c: CountryState, p: Dictionary) -> int:
 
 ## Crews work faster with a bigger infrastructure budget.
 static func speed(c: CountryState) -> float:
-	return clampf(1.0 + c.share_delta("infrastructure") / 20.0, 0.6, 1.6)
+	return clampf((1.0 + c.share_delta("infrastructure") / 20.0) * Profiles.mult(c.idx, "project_speed")
+		* (1.0 + (Cabinet.bonus("project_speed") if c.idx == Game.player else 0.0)), 0.5, 1.8)
 
 
 static func start(c: CountryState, id: String) -> bool:

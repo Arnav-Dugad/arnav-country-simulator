@@ -13,7 +13,11 @@ func _init() -> void:
 	title = "Laws"
 
 
+var _cabinet: VBoxContainer
+
+
 func _build() -> void:
+	_cabinet = section("Your cabinet")
 	_summary = note("")
 	_filter = SegmentedControl.new().setup(["All", "In force", "Not yet"], [], 0)
 	_filter.plain = true
@@ -33,6 +37,7 @@ func refresh() -> void:
 	var c := Game.me()
 	if c == null:
 		return
+	_fill_cabinet()
 	var active := 0
 	var passing := 0
 	for l in Laws.ALL:
@@ -126,6 +131,60 @@ func _card(c: CountryState, l: Dictionary) -> Control:
 		b.pressed.connect(_confirm.bind(l, false))
 	v.add_child(b)
 	return v
+
+
+func _fill_cabinet() -> void:
+	for ch in _cabinet.get_children():
+		ch.queue_free()
+	for post in Cabinet.POSTS:
+		var mn: Dictionary = Game.cabinet.ministers.get(post, {})
+		if mn.is_empty():
+			continue
+		var row := ListRow.new().setup(str(mn.name), "%s · %s" % [Cabinet.POST_TITLES[post],
+			" & ".join(mn.traits.map(func(t: String) -> String: return str(Cabinet.TRAITS[t].label)))])
+		row.set_leading(_avatar(str(mn.name), post))
+		row.tapped.connect(_minister_card.bind(post))
+		_cabinet.add_child(row)
+
+
+static func _avatar(name: String, post: String) -> Control:
+	var tint: Color = {"finance": DS.GREEN, "foreign": DS.ACCENT, "interior": DS.ORANGE, "social": DS.PURPLE}.get(post, DS.ACCENT)
+	return Avatar.make(name, tint)
+
+
+func _minister_card(post: String) -> void:
+	var cab := Game.cabinet
+	var mn: Dictionary = cab.ministers[post]
+	var m := ModalCard.new()
+	get_tree().current_scene.add_child(m)
+	m.header(str(Cabinet.POST_ICONS[post]), DS.ACCENT, "%s minister" % Cabinet.POST_TITLES[post], str(mn.name))
+	m.body("
+".join(mn.traits.map(func(t: String) -> String:
+		return "%s: %s" % [Cabinet.TRAITS[t].label, Cabinet.TRAITS[t].desc])))
+	var wait := cab.can_change(post)
+	if wait > 0:
+		m.body("You can reshuffle this post again in %d months." % wait)
+	else:
+		var head := Label.new()
+		head.theme_type_variation = &"Overline"
+		head.text = "REPLACE WITH (APPROVAL −1)"
+		m.content.add_child(head)
+		var pool: Array = cab.candidates.get(post, [])
+		for k in pool.size():
+			var cand: Dictionary = pool[k]
+			var row := ListRow.new().setup(str(cand.name), " & ".join(cand.traits.map(func(t: String) -> String:
+				return "%s (%s)" % [Cabinet.TRAITS[t].label, Cabinet.TRAITS[t].desc])))
+			row.subtitle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			row.subtitle_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+			row.set_leading(_avatar(str(cand.name), post))
+			row.tapped.connect(func() -> void:
+				cab.appoint(post, k)
+				Simulation.update_finances(Game.me())
+				Haptics.success()
+				m.dismiss()
+				refresh())
+			m.content.add_child(row)
+	m.choice("Close", "", &"GhostButton", m.dismiss)
 
 
 func _confirm(l: Dictionary, repeal: bool) -> void:

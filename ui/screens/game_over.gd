@@ -160,3 +160,4 @@ func _place(card: Control) -> void:
 	var w := size.x - DS.S4 * 2.0
 	card.size = Vector2(w, card.get_combined_minimum_size().y)
 	card.position = Vector2(DS.S4, size.y - Screen.bottom - DS.S4 - card.size.y)
+	Screen.fit_card(card, self)

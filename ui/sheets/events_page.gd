@@ -54,7 +54,7 @@ func refresh() -> void:
 	for ch in _politics.get_children():
 		ch.queue_free()
 	var i := Game.player
-	var gov := ListRow.new().setup(Government.system_name(i), "You are the %s" % Government.leader_title(i).to_lower(), "")
+	var gov := ListRow.new().setup(Government.system_name(i), Government.leader_display(i) + ("  ·  " + str(Settings.party_name) if str(Settings.party_name).strip_edges() != "" else ""), "")
 	gov.set_leading(ListRow.icon_tile("landmark", DS.GOLD))
 	_politics.add_child(gov)
 	var m := Game.politics.months_left()

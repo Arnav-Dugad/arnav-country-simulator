@@ -25,6 +25,10 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 	var debt_pct := c.debt_pct()
 	var lx := Laws.modifiers(c)
 	var px := Projects.modifiers(c)
+	var mx := Game.markets.effects(c)
+	var tx := Treaties.modifiers(c) if c.idx == Game.player else {}
+	var cx := Cabinet.modifiers(c) if c.idx == Game.player else {}
+	var i := c.idx
 	var autocracy := not Government.has_elections(c.idx)
 
 	# --- Growth ---------------------------------------------------------------
@@ -36,13 +40,18 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Interest rates", -E.RATE_GROWTH_DRAG * gap],
 		["Government spending", E.FISCAL_MULTIPLIER * d_spend],
 		["Infrastructure", E.INFRA_GROWTH * c.share_delta("infrastructure") / 10.0],
-		["Research", E.RESEARCH_GROWTH * c.share_delta("research") / 10.0],
-		["Education", E.EDUCATION_GROWTH * c.share_delta("education") / 10.0],
-		["Trade openness", E.TRADE_GROWTH * d_trade * 2.0 * 0.5],
-		["Trade deals", E.TRADE_DEAL_GROWTH * c.trade_deals],
+		["Research", E.RESEARCH_GROWTH * Profiles.mult(i, "research_growth") * c.share_delta("research") / 10.0],
+		["Education", E.EDUCATION_GROWTH * Profiles.mult(i, "education_growth") * c.share_delta("education") / 10.0],
+		["Trade openness", E.TRADE_GROWTH * Profiles.mult(i, "trade_growth") * d_trade * 2.0 * 0.5],
+		["Trade deals", E.TRADE_DEAL_GROWTH * Profiles.mult(i, "deal_growth") * c.trade_deals],
+		["World oil prices", float(mx.growth)],
+		["Treaties & blocs", float(tx.get("growth", 0.0))],
+		["Your ministers", float(cx.get("growth", 0.0))],
+		["World economy", float(mx.world)],
 		["Sanctions on you", -E.SANCTION_GROWTH * c.sanctioned_by],
 		["Debt burden", -E.DEBT_GROWTH_DRAG * maxf(0.0, debt_pct - maxf(E.DEBT_SAFE, float(b.debt_pct)))],
-		["Instability", -E.STABILITY_GROWTH_DRAG * maxf(0.0, minf(float(b.stability), E.STABILITY_FLOOR) - c.stability)],
+		["Instability", -E.STABILITY_GROWTH_DRAG * Profiles.mult(i, "instability_drag")
+			* maxf(0.0, minf(float(b.stability), E.STABILITY_FLOOR) - c.stability)],
 		["Recent events", float(c.shocks.growth)],
 		["Laws & reforms", float(lx.get("growth", 0.0))],
 		["Projects you built", float(px.get("growth", 0.0))],
@@ -55,9 +64,9 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 
 	# --- Inflation ------------------------------------------------------------
 	if gap > 0.0:
-		c.core_inflation -= (c.core_inflation - E.INFLATION_TARGET) * (E.CORE_DECAY + E.CORE_TIGHT_DECAY * gap)
+		c.core_inflation -= (c.core_inflation - E.INFLATION_TARGET) * (E.CORE_DECAY + E.CORE_TIGHT_DECAY * gap) * Profiles.mult(i, "core_inflation_decay")
 	else:
-		c.core_inflation -= (c.core_inflation - E.INFLATION_TARGET) * E.CORE_DECAY
+		c.core_inflation -= (c.core_inflation - E.INFLATION_TARGET) * E.CORE_DECAY * Profiles.mult(i, "core_inflation_decay")
 		c.core_inflation += E.CORE_LOOSE_RISE * -gap
 	c.core_inflation = clampf(c.core_inflation, -3.0, 400.0)
 	var deficit := -c.balance_pct()
@@ -68,6 +77,9 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Budget deficit", E.DEFICIT_INFLATION * maxf(0.0, deficit - maxf(E.DEFICIT_SAFE, float(b.deficit_pct)))],
 		["Trade barriers", E.PROTECTION_INFLATION * maxf(0.0, -d_trade) * 2.0],
 		["Interest rates", -E.RATE_INFLATION_EFFECT * gap],
+		["World oil & food prices", float(mx.inflation)],
+		["Treaties & blocs", float(tx.get("inflation", 0.0))],
+		["Your ministers", float(cx.get("inflation", 0.0))],
 		["Recent events", float(c.shocks.inflation)],
 		["Laws & reforms", float(lx.get("inflation", 0.0))],
 		["Projects you built", float(px.get("inflation", 0.0))],
@@ -102,6 +114,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 	# --- Public finances ------------------------------------------------------
 	var premium := minf(E.RISK_PREMIUM_PER_DEBT * maxf(0.0, debt_pct - E.DEBT_SAFE) \
 		+ E.RISK_PREMIUM_INSTABILITY * maxf(0.0, 40.0 - c.stability), E.RISK_PREMIUM_CAP)
+	premium *= Profiles.mult(i, "risk_premium")
 	c.debt_rate += (maxf(c.interest_rate, 0.5) + premium - c.debt_rate) * E.DEBT_RATE_ADJUST
 	update_finances(c)
 	c.treasury += c.balance * M
@@ -125,6 +138,8 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Jobs", -E.UNEMP_HAPPY * (c.unemployment - float(b.unemployment))],
 		["Prices", -E.INFLATION_HAPPY * (minf(c.inflation, 60.0) - minf(float(b.inflation), 60.0))],
 		["Income tax", -E.TAX_HAPPY * d_inc],
+		["Food prices", float(mx.happiness)],
+		["Treaties & blocs", float(tx.get("happiness", 0.0))],
 		["Recent events", float(c.shocks.happiness)],
 		["Laws & reforms", float(lx.get("happiness", 0.0))],
 		["Projects you built", float(px.get("happiness", 0.0))],
@@ -144,6 +159,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Recent events", float(c.shocks.approval)],
 		["Laws & reforms", float(lx.get("approval", 0.0))],
 		["Projects you built", float(px.get("approval", 0.0))],
+		["Your ministers", float(cx.get("approval", 0.0))],
 	]
 	var a := clampf(_sum(a_terms), 0.0, 100.0)
 	c.approval += (a - c.approval) * E.APPROVAL_ADJUST
@@ -159,6 +175,8 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Recent events", float(c.shocks.stability)],
 		["Laws & reforms", float(lx.get("stability", 0.0))],
 		["Projects you built", float(px.get("stability", 0.0))],
+		["Treaties & blocs", float(tx.get("stability", 0.0))],
+		["Your ministers", float(cx.get("stability", 0.0))],
 	]
 	var st := clampf(_sum(st_terms), 0.0, 100.0)
 	c.stability += (st - c.stability) * E.STABILITY_ADJUST
@@ -210,7 +228,8 @@ static func update_finances(c: CountryState) -> void:
 	var cycle := 1.0 + (c.growth - c.growth_anchor) * 0.01
 	var rate := Economy.tax_yield(c.income_tax, Economy.K_INCOME) + Economy.tax_yield(c.corp_tax, Economy.K_CORP)
 	var lx := Laws.modifiers(c)
-	c.revenue = c.gdp * (rate + (c.other_rev_pct + float(lx.get("revenue", 0.0))) / 100.0) * cycle
+	var market_rev := float(Game.markets.effects(c).revenue) if Game.has_game() else 0.0
+	c.revenue = c.gdp * (rate + (c.other_rev_pct + float(lx.get("revenue", 0.0)) + market_rev) / 100.0) * cycle
 	c.spending = c.gdp * (c.spending_pct + float(lx.get("cost", 0.0)) + Projects.spending_pct(c)) / 100.0
 	# Inflation above the floor erodes local-currency debt, so only the real
 	# part of the rate is a burden in dollar terms.

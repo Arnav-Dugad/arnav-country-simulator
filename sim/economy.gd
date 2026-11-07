@@ -179,6 +179,29 @@ const COUP_PER_STABILITY := 0.004 # monthly coup chance per stability point belo
 const AUTOCRACY_APPROVAL_WEIGHT := 0.6   # x STABILITY_FROM_APPROVAL
 const AUTOCRACY_MILITARY_WEIGHT := 2.0   # x STABILITY_MILITARY
 
+# ------------------------------------------------------------ WORLD MARKETS ---
+## Oil and food prices (WorldMarkets): log random walks with mean reversion.
+const OIL_BASE_PRICE := 75.0      # $ per barrel at index 0
+const FOOD_BASE_INDEX := 120.0    # FAO food price index at index 0
+const OIL_REVERSION := 0.04       # per month, pull back toward normal
+const OIL_VOLATILITY := 0.06      # monthly std-dev of log price (~ ±20 % typical swings)
+const FOOD_REVERSION := 0.04
+const FOOD_VOLATILITY := 0.03
+const OIL_SHOCK_CHANCE := 0.012   # per month: a war, an OPEC cut, a glut
+const OIL_SHOCK := 0.35
+const FOOD_SHOCK_CHANCE := 0.008  # per month: a global harvest failure
+const FOOD_SHOCK := 0.18
+## Effects per unit of price gap (0.2 = 20 % above normal) x exposure (see WorldMarkets).
+const OIL_GROWTH := 4.0           # growth pts for a pure exporter (exposure 1)
+const OIL_INFLATION := 2.5        # inflation pts for an importer
+const OIL_REVENUE := 3.0          # % of GDP of government revenue for a pure exporter
+const FOOD_INFLATION := 3.0
+const FOOD_HAPPY := 4.0
+## Contagion: share of the world's / your region's / your partners' boom or bust you catch.
+const CONTAGION_WORLD := 0.25     # x trade openness
+const CONTAGION_REGION := 0.2
+const CONTAGION_PARTNERS := 0.15
+
 # ------------------------------------------------------------ SOCIETY DETAIL ---
 ## Welfare matters more where incomes are unequal (Gini): x(1 + (gini-35)/GINI_SCALE).
 const GINI_SCALE := 40.0

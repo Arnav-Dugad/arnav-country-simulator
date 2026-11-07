@@ -430,6 +430,52 @@ const EVENTS := [
 ]
 
 
+## UN General Assembly votes: each pleases one camp and annoys another.
+const UN_VOTES := [
+	{"id": "un_sanctions", "title": "UN vote: sanctions on an aggressor", "body": "The General Assembly votes to condemn an invasion and back sanctions. Everyone is watching how {country} votes.",
+		"choices": [{"label": "Vote yes", "effects": {"bloc_relations": {"west": 4.0, "east": -4.0}}},
+			{"label": "Abstain", "effects": {"bloc_relations": {"west": -1.0, "east": 1.0}}},
+			{"label": "Vote no", "effects": {"bloc_relations": {"west": -5.0, "east": 4.0}}}]},
+	{"id": "un_climate", "title": "UN vote: climate finance", "body": "Poorer countries ask the rich to pay into a fund for climate damage.",
+		"choices": [{"label": "Vote yes and pledge money", "effects": {"cost": 0.05, "bloc_relations": {"south": 4.0}, "happiness": 0.5}},
+			{"label": "Vote yes, pledge nothing", "effects": {"bloc_relations": {"south": 1.5}}},
+			{"label": "Vote no", "effects": {"bloc_relations": {"south": -4.0, "west": 0.5}}}]},
+	{"id": "un_ceasefire", "title": "UN vote: a ceasefire call", "body": "A resolution demands an immediate ceasefire in a bloody war.",
+		"choices": [{"label": "Vote yes", "effects": {"bloc_relations": {"south": 3.0, "east": 1.0, "west": -1.0}, "happiness": 0.5}},
+			{"label": "Abstain", "effects": {"bloc_relations": {"south": -1.0}}}]},
+	{"id": "un_rights", "title": "UN vote: human rights inquiry", "body": "A resolution would send investigators to look into abuses by a government.",
+		"choices": [{"label": "Vote yes", "effects": {"bloc_relations": {"west": 3.0, "east": -2.0}}},
+			{"label": "Vote no: no meddling", "effects": {"bloc_relations": {"west": -3.0, "east": 2.0, "south": 1.0}}}]},
+	{"id": "un_ocean", "title": "UN vote: protect the high seas", "body": "A treaty would make a third of the world's oceans protected areas.",
+		"choices": [{"label": "Vote yes", "effects": {"relations_all": 1.0, "happiness": 0.5, "growth": -0.05}},
+			{"label": "Vote no: fishing jobs first", "effects": {"relations_all": -1.0, "unemployment": -0.1}}]},
+	{"id": "un_ai", "title": "UN vote: rules for artificial intelligence", "body": "The first global rules for powerful AI systems are put to a vote.",
+		"choices": [{"label": "Vote yes", "effects": {"bloc_relations": {"west": 1.5, "south": 1.0}, "growth": -0.03}},
+			{"label": "Vote no: don't slow innovation", "effects": {"bloc_relations": {"west": -1.0}, "growth": 0.05}}]},
+]
+
+
+static func un_vote(rng: RandomNumberGenerator) -> Dictionary:
+	var e: Dictionary = UN_VOTES[rng.randi() % UN_VOTES.size()].duplicate(true)
+	e.merge({"icon": "globe", "tint": "accent", "weight": 0.0})
+	return instance(e)
+
+
+## A yearly summit: pick the agenda you push.
+static func summit(rng: RandomNumberGenerator) -> Dictionary:
+	var name := Treaties.summit_name()
+	var host := World.map.names[World.playable[rng.randi() % World.playable.size()]]
+	var e := {"id": "summit", "title": "%s summit" % name.capitalize() if name == "regional" else "%s summit" % name,
+		"icon": "users", "tint": "gold", "weight": 0.0,
+		"body": "Leaders meet in %s. What will {country} push for?" % host,
+		"choices": [
+			{"label": "Trade and investment", "effects": {"growth": 0.3, "bloc_relations": {"region": 2.0}}},
+			{"label": "Climate action", "effects": {"happiness": 1.0, "bloc_relations": {"south": 2.0}}},
+			{"label": "Security", "effects": {"stability": 1.5, "bloc_relations": {"west": 1.0, "east": -1.0}}},
+			{"label": "Help for poorer countries", "effects": {"cost": 0.04, "bloc_relations": {"south": 3.5}, "approval": 0.5}}]}
+	return instance(e)
+
+
 static func tint(name: String) -> Color:
 	return {"orange": DS.ORANGE, "teal": DS.TEAL, "accent": DS.ACCENT, "red": DS.RED, "gold": DS.GOLD,
 		"green": DS.GREEN}.get(name, DS.ACCENT)
@@ -453,8 +499,13 @@ static func roll(rng: RandomNumberGenerator) -> Dictionary:
 		if w <= 0.0:
 			continue
 		var other := -1
-		if e.has("where") and not World.map.subregions[Game.player] in e.where:
+		# Natural risks: the researched profile decides where it has one, else the region list.
+		var risk_known := Profiles.at_risk(Game.player, str(RISK_OF.get(e.id, "")))
+		if risk_known == 0 and RISK_OF.has(e.id):
 			continue
+		if risk_known != 1 and e.has("where") and not World.map.subregions[Game.player] in e.where:
+			continue
+		w *= Profiles.event_weight(Game.player, str(e.id))
 		match e.get("cond", ""):
 			"oil_exporter":
 				if float(World.stats[Game.player].get("fuel_exports_pct", 0.0)) < 30.0:
@@ -567,11 +618,14 @@ const _BAD_UP := {"growth": false, "inflation": true, "unemployment": true, "hap
 
 
 const DISASTERS := ["floods", "monsoon", "hurricane", "heatwave", "earthquake", "drought"]
+## Event -> the natural risk it needs (Profiles.risks).
+const RISK_OF := {"floods": "flood", "monsoon": "monsoon", "hurricane": "hurricane", "heatwave": "heatwave",
+	"earthquake": "earthquake", "drought": "drought"}
 
 
 static func apply_effects(fx: Dictionary, other: int, ev_id: String = "") -> void:
 	var c := Game.me()
-	var sev := Difficulty.severity()
+	var sev := Difficulty.severity() * Profiles.mult(Game.player, "event_severity") * (1.0 + Cabinet.bonus("event_severity"))
 	# Flood defences soften natural disasters.
 	var soften := 0.7 if ev_id in DISASTERS and Projects.is_done(c, "flood_defences") else 1.0
 	for k in fx:
@@ -611,6 +665,11 @@ static func apply_effects(fx: Dictionary, other: int, ev_id: String = "") -> voi
 			"sanction_me":
 				if other >= 0:
 					Game.dip.sanctioned_by[str(other)] = Game.months_played
+			"bloc_relations":
+				for camp_name in (v as Dictionary):
+					for j in Treaties.camp(str(camp_name)):
+						Game.relations[j] = clampf(Game.relations[j] + float(v[camp_name]), -100.0, 100.0)
+				Game.relations_changed.emit()
 			"project_delay":
 				for id in c.projects:
 					if str(c.projects[id].state) == "building":
@@ -651,6 +710,11 @@ static func effect_chips(fx: Dictionary) -> Array:
 				out.append(["Trade deal", true, 2.0])
 			"project_delay":
 				out.append(["Project delayed %d mo" % int(v), false, float(v) * 0.3])
+			"bloc_relations":
+				var names := {"west": "The West", "east": "Russia & China's camp", "south": "Global South", "region": "Neighbours"}
+				for camp_name in (v as Dictionary):
+					var d := float(v[camp_name])
+					out.append(["%s %+d" % [names.get(camp_name, camp_name), roundi(d)], d > 0.0, absf(d) * 0.8])
 			"sanction_me":
 				out.append(["Sanctions on you", false, 3.0])
 			"gdp":

@@ -100,6 +100,12 @@ static func acceptance(i: int, kind: String) -> float:
 	if them and me:
 		size_ratio = clampf(me.gdp / maxf(them.gdp, 1.0), 0.1, 10.0)
 	var size_bonus := clampf(log(size_ratio) / log(10.0) * 0.12, -0.15, 0.15)
+	# Partners in the same bloc, and a diplomat at the foreign ministry, help.
+	for t in Treaties.memberships(Game.player):
+		if Treaties.is_member(i, str(t.id)) and str(t.id) != "climate":
+			size_bonus += 0.08
+			break
+	size_bonus += Cabinet.bonus("deal_acceptance")
 	match kind:
 		"deal":
 			return clampf((r - 5.0) / 55.0 + size_bonus, 0.0, 0.95)

@@ -142,6 +142,19 @@ static func leader_title(i: int) -> String:
 	return str(e[2]) if str(e[2]) != "" else str(KINDS[k].leader)
 
 
+## "President Arnav Dugad" for the player once a name is set, else the title.
+static func leader_display(i: int) -> String:
+	var t := leader_title(i)
+	if i == Game.player and str(Settings.leader_name).strip_edges() != "":
+		return "%s %s" % [t, str(Settings.leader_name).strip_edges()]
+	return t
+
+
+static func party() -> String:
+	var p := str(Settings.party_name).strip_edges()
+	return p if p != "" else "your party"
+
+
 static func term_years(i: int) -> int:
 	return int(_entry(i)[1])
 

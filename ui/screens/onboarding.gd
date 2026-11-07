@@ -121,6 +121,7 @@ func _layout() -> void:
 	var w := size.x - DS.S4 * 2.0
 	_card.size = Vector2(w, _card.get_combined_minimum_size().y)
 	_card.position = Vector2(DS.S4, size.y - Screen.bottom - DS.S4 - _card.get_combined_minimum_size().y)
+	Screen.fit_card(_card, self)
 
 
 func _process(delta: float) -> void:

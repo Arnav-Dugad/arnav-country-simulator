@@ -25,6 +25,7 @@ signal campaign_started
 signal world_news(item: Dictionary)
 signal challenge_ended(won: bool)
 signal feed_added(item: Dictionary)
+signal treaty_joined(id: String)
 
 const START_YEAR := Calendar.START_YEAR
 const HISTORY_MAX := 1200
@@ -51,6 +52,8 @@ var calendar := Calendar.new()
 var world_ai := WorldAI.new()
 var director := EventDirector.new()
 var politics := Politics.new()
+var markets := WorldMarkets.new()
+var cabinet := Cabinet.new()
 
 var countries: Array = []           # CountryState or null (unsimulated territory)
 var player := -1
@@ -115,6 +118,7 @@ func new_challenge(id: String, seed_value: int = -1) -> void:
 func new_game(country_index: int, seed_value: int = -1, level: String = "") -> void:
 	rng.seed = seed_value if seed_value >= 0 else int(Time.get_unix_time_from_system())
 	difficulty = level if level in Difficulty.LEVELS else "standard"
+	markets.reset(rng)
 	countries.clear()
 	countries.resize(World.count())
 	player = country_index
@@ -126,6 +130,7 @@ func new_game(country_index: int, seed_value: int = -1, level: String = "") -> v
 	director.reset()
 	politics.kind_override = ""
 	politics.reset(player)
+	cabinet.reset(rng)
 	history.clear()
 	for k in HISTORY_KEYS:
 		history[k] = PackedFloat32Array()
@@ -236,6 +241,9 @@ func date_text() -> String:
 
 func advance_month() -> void:
 	world_ai.finish_month()
+	var market_news := markets.monthly(rng)
+	if market_news != "":
+		add_feed(market_news, "flame" if market_news.begins_with("Oil") else "trending-up", "orange")
 	if me().cb_auto and month % 3 == 0:
 		AI.central_bank(me())
 	var my_crisis := Simulation.tick(me(), rng, true)
@@ -251,6 +259,9 @@ func advance_month() -> void:
 		law_finished.emit(str(done.id), bool(done.repealed))
 	for id in Projects.monthly(me()):
 		project_finished.emit(str(id))
+	for id in Treaties.monthly(rng):
+		treaty_joined.emit(str(id))
+	cabinet.monthly()
 	_record_history()
 	month_passed.emit()
 	_after_month(my_crisis)
@@ -273,7 +284,7 @@ func _after_month(my_crisis: bool) -> void:
 		"review":
 			var r := politics.hold_review()
 			director.log.push_front({"date": date_text(), "title": "%s %s" % [r.name, "renews your mandate" if r.kept else "removes you"],
-				"choice": "Support %s · stability %s" % [DS.pct(float(r.approval), 0), String.num(float(r.stability), 0)], "id": "election"})
+				"choice": "Support %s · stability %s" % [DS.pct(float(r.approval), 0), String.num(float(r.stability), 0)], "id": "election", "m": months_played})
 			if not r.kept and not god_mode:
 				finish("review")
 				return
@@ -301,11 +312,11 @@ func _check_challenge() -> void:
 		return
 	if Challenges.met(ch):
 		challenge.state = "won"
-		director.log.push_front({"date": date_text(), "title": "Challenge complete", "choice": str(ch.title), "id": "election"})
+		director.log.push_front({"date": date_text(), "title": "Challenge complete", "choice": str(ch.title), "id": "election", "m": months_played})
 		challenge_ended.emit(true)
 	elif months_played >= int(challenge.deadline):
 		challenge.state = "lost"
-		director.log.push_front({"date": date_text(), "title": "Challenge missed", "choice": str(ch.title), "id": "election"})
+		director.log.push_front({"date": date_text(), "title": "Challenge missed", "choice": str(ch.title), "id": "election", "m": months_played})
 		challenge_ended.emit(false)
 
 
@@ -328,7 +339,7 @@ func resolve_decision(ev: Dictionary, choice: int) -> void:
 func hold_election() -> void:
 	var r := politics.hold_election()
 	director.log.push_front({"date": date_text(), "title": "Election " + ("won" if r.won else "lost"),
-		"choice": "%.1f%% of the vote" % float(r.share), "id": "election"})
+		"choice": "%.1f%% of the vote" % float(r.share), "id": "election", "m": months_played})
 	pause_for_modal()
 	election_held.emit(r)
 
@@ -339,7 +350,7 @@ func finish_campaign(themes: Array) -> float:
 	var gain := Campaign.launch(me(), themes) if not themes.is_empty() else 0.0
 	director.log.push_front({"date": date_text(), "title": "Campaign launched",
 		"choice": ", ".join(themes.map(func(t: String) -> String:
-			return Campaign.title_of(t))) if not themes.is_empty() else "No campaign", "id": "election"})
+			return Campaign.title_of(t))) if not themes.is_empty() else "No campaign", "id": "election", "m": months_played})
 	return gain
 
 
@@ -468,7 +479,7 @@ func to_dict() -> Dictionary:
 		"rng_state": str(rng.state), "dip": dip, "start": start_snapshot, "headlines_seen": headlines_seen,
 		"last_rating": last_rating, "news": news, "challenge": challenge, "feed": feed,
 		"difficulty": difficulty, "weather": weather, "cheats_used": cheats_used, "god_mode": god_mode,
-		"director": director.to_dict(), "politics": politics.to_dict(),
+		"director": director.to_dict(), "politics": politics.to_dict(), "markets": markets.to_dict(), "cabinet": cabinet.to_dict(),
 	}
 
 
@@ -516,6 +527,8 @@ func load_dict(d: Dictionary) -> bool:
 	feed = d.get("feed", [])
 	difficulty = str(d.get("difficulty", "standard"))
 	weather = d.get("weather", [])
+	markets.load_dict(d.get("markets", {}))
+	cabinet.load_dict(d.get("cabinet", {}), rng)
 	cheats_used = bool(d.get("cheats_used", false))
 	god_mode = bool(d.get("god_mode", false))
 	# Saves from before projects existed (v1, and v2 files written by 0.13.0 from
