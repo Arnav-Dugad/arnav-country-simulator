@@ -67,3 +67,13 @@ DevTools user args (after `--`): `--scene=`, `--shot=`, `--shot-delay=`, `--size
   (Economy, Budget, Diplomacy, Events, Settings); bottom sheets with handle + snap (peek/half/full).
 - Respect safe areas (`Screen.top/bottom/left/right`).
 - **Anchors:** always use `set_anchors_and_offsets_preset()`. Plain `set_anchors_preset()` on a node already in the tree keeps its old (often zero) size.
+
+## Android, releases & services
+- Export presets: **Android** (release, arm64, compressed native libs) and **Android Dev** (debug, arm64+x86_64 for the emulator).
+  Gradle build needs JDK 17 (`C:\Users\rduga\.jdks\jdk-17.0.21+9`); set `JAVA_TOOL_OPTIONS=-Djava.net.preferIPv4Stack=true` locally (IPv6 times out).
+- Release keystore lives OUTSIDE the repo: `C:\Users\rduga\.keystores\arnav-country-simulator\` (alias `acs-release`). Never commit it.
+- CI: push tag `vX.Y.Z` → `.github/workflows/release.yml` stamps version (versionCode = X*10000+Y*100+Z), exports a signed APK,
+  publishes a GitHub Release with the matching CHANGELOG.md section. Secrets: ANDROID_KEYSTORE_BASE64 / _ALIAS / _PASSWORD.
+- Updater plugin (Kotlin, Godot v2): `android/plugin` → `android/plugin/build_plugin.sh` → `addons/acs_updater/bin/*.aar`.
+- Firebase (Spark): config in `services/firebase_config.gd` (empty = offline mode); rules in `firestore.rules`.
+- The Android emulator may be shared with other projects/sessions — never kill processes by image name, only by PID.

@@ -1,0 +1,157 @@
+name: Release APK
+
+# Push a version tag to build a signed release APK and publish a GitHub Release:
+#   git tag v0.2.0 && git push origin v0.2.0
+#
+# Required repository secrets (Settings > Secrets and variables > Actions):
+#   ANDROID_KEYSTORE_BASE64    base64 of the release .jks file
+#   ANDROID_KEYSTORE_ALIAS     key alias (acs-release)
+#   ANDROID_KEYSTORE_PASSWORD  keystore + key password
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to (re)build, e.g. v0.1.0"
+        required: true
+
+permissions:
+  contents: write
+
+env:
+  GODOT_VERSION: "4.7.2"
+  GODOT_STATUS: "stable"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Resolve tag
+        id: tag
+        run: |
+          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          if ! [[ "$TAG" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+            echo "Tag '$TAG' is not vMAJOR.MINOR.PATCH"; exit 1
+          fi
+          MA=${BASH_REMATCH[1]}; MI=${BASH_REMATCH[2]}; PA=${BASH_REMATCH[3]}
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$MA.$MI.$PA" >> "$GITHUB_OUTPUT"
+          # Monotonic versionCode derived from semver (v1.2.3 -> 10203).
+          echo "code=$(( MA * 10000 + MI * 100 + PA ))" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.tag.outputs.tag }}
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Android SDK packages
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;36.1.0" "platform-tools" > /dev/null
+
+      - name: Cache Godot
+        id: cache-godot
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/godot
+            ~/.local/share/godot/export_templates
+          key: godot-${{ env.GODOT_VERSION }}-${{ env.GODOT_STATUS }}-v1
+
+      - name: Download Godot + export templates
+        if: steps.cache-godot.outputs.cache-hit != 'true'
+        run: |
+          BASE="https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}-${GODOT_STATUS}"
+          mkdir -p ~/godot ~/.local/share/godot/export_templates
+          curl -fsSL -o /tmp/godot.zip "$BASE/Godot_v${GODOT_VERSION}-${GODOT_STATUS}_linux.x86_64.zip"
+          unzip -q /tmp/godot.zip -d ~/godot
+          mv ~/godot/Godot_v${GODOT_VERSION}-${GODOT_STATUS}_linux.x86_64 ~/godot/godot
+          curl -fsSL -o /tmp/templates.tpz "$BASE/Godot_v${GODOT_VERSION}-${GODOT_STATUS}_export_templates.tpz"
+          unzip -q /tmp/templates.tpz -d /tmp/tpl
+          # Only the Android parts are needed; keeps the cache small.
+          DEST=~/.local/share/godot/export_templates/${GODOT_VERSION}.${GODOT_STATUS}
+          mkdir -p "$DEST"
+          cp /tmp/tpl/templates/version.txt /tmp/tpl/templates/android_source.zip "$DEST/"
+          rm -rf /tmp/tpl /tmp/templates.tpz /tmp/godot.zip
+
+      - name: Configure Godot editor settings
+        run: |
+          mkdir -p ~/.config/godot
+          keytool -genkeypair -keystore ~/debug.keystore -storepass android -keypass android \
+            -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US" > /dev/null 2>&1
+          cat > ~/.config/godot/editor_settings-4.7.tres <<EOF
+          [gd_resource type="EditorSettings" format=3]
+
+          [resource]
+          export/android/android_sdk_path = "$ANDROID_HOME"
+          export/android/java_sdk_path = "$JAVA_HOME"
+          export/android/debug_keystore = "$HOME/debug.keystore"
+          export/android/debug_keystore_user = "androiddebugkey"
+          export/android/debug_keystore_pass = "android"
+          EOF
+          sed -i 's/^          //' ~/.config/godot/editor_settings-4.7.tres
+
+      - name: Stamp version
+        run: |
+          V="${{ steps.tag.outputs.version }}"; C="${{ steps.tag.outputs.code }}"
+          sed -i "s/^version\/code=.*/version\/code=$C/" export_presets.cfg
+          sed -i "s/^version\/name=.*/version\/name=\"$V\"/" export_presets.cfg
+          sed -i "s/^config\/version=.*/config\/version=\"$V\"/" project.godot
+          grep -n "version/" export_presets.cfg | head -4
+          grep -n "config/version" project.godot
+
+      - name: Decode keystore
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$KS_B64" ]; then echo "::error::ANDROID_KEYSTORE_BASE64 secret is missing"; exit 1; fi
+          echo "$KS_B64" | base64 --decode > "$RUNNER_TEMP/release.jks"
+
+      - name: Import project
+        run: ~/godot/godot --headless --path . --import || true
+
+      - name: Export signed APK
+        env:
+          GODOT_ANDROID_KEYSTORE_RELEASE_PATH: ${{ runner.temp }}/release.jks
+          GODOT_ANDROID_KEYSTORE_RELEASE_USER: ${{ secrets.ANDROID_KEYSTORE_ALIAS }}
+          GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          mkdir -p build
+          OUT="build/ArnavCountrySimulator-v${{ steps.tag.outputs.version }}.apk"
+          ~/godot/godot --headless --path . --install-android-build-template --export-release "Android" "$OUT"
+          test -s "$OUT" || { echo "::error::Export produced no APK"; exit 1; }
+          "$ANDROID_HOME/build-tools/36.1.0/apksigner" verify --print-certs "$OUT" | grep -E "Signer|SHA-256"
+          ls -la build/
+
+      - name: Release notes
+        run: |
+          V="${{ steps.tag.outputs.version }}"
+          awk -v v="$V" '
+            $0 ~ "^## \\[?"v"\\]?" {on=1; next}
+            on && /^## / {exit}
+            on {print}
+          ' CHANGELOG.md > notes.md || true
+          if [ ! -s notes.md ]; then echo "Improvements and fixes." > notes.md; fi
+          printf '\n---\nInstall: download the APK below on your Android phone and open it. Updates install over the top and keep your saves.\n' >> notes.md
+          cat notes.md
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ steps.tag.outputs.tag }}"
+          APK="build/ArnavCountrySimulator-v${{ steps.tag.outputs.version }}.apk"
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" --clobber
+            gh release edit "$TAG" --notes-file notes.md
+          else
+            gh release create "$TAG" "$APK" --title "Arnav Country Simulator $TAG" --notes-file notes.md
+          fi
