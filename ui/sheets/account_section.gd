@@ -41,7 +41,7 @@ func _rebuild() -> void:
 				_error(r.error))
 		_btn("Sign in with email", &"", "mail", _email_form.bind(false))
 	elif Firebase.is_anonymous:
-		_who.setup("Playing as guest", "Cloud backup is on. Add an email to keep your saves on any device.")
+		_who.setup("Playing as guest", "Backed up. Add email for any device.")
 		_who.set_leading(ListRow.icon_tile("user", DS.ACCENT))
 		_btn("Create account", &"PrimaryButton", "mail", _email_form.bind(true))
 		_btn("Sign in to existing account", &"", "log-out", _email_form.bind(false))

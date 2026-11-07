@@ -21,6 +21,9 @@ var _id_token := ""
 var _refresh_token := ""
 var _expires_at := 0.0
 var _refreshing := false
+## Bumped on every sign-in/out so a slow, superseded auth call (e.g. the automatic
+## guest sign-in at launch) can't overwrite a newer session.
+var _gen := 0
 
 
 func _ready() -> void:
@@ -37,31 +40,39 @@ func signed_in() -> bool:
 
 # ------------------------------------------------------------------ auth -----
 func sign_in_anonymously() -> Dictionary:
+	_gen += 1
+	var gen := _gen
 	var r := await _auth_call("signUp", {"returnSecureToken": true})
-	if r.ok:
+	if r.ok and gen == _gen:
 		_take_session(r.data, true)
 	return r
 
 
 func sign_up_email(mail: String, password: String) -> Dictionary:
 	# A guest keeps their uid (and cloud saves) by linking credentials instead.
+	# (accounts:signUp with the guest's idToken links the credential; accounts:update
+	# is blocked by email-enumeration protection on new projects.)
+	_gen += 1
+	var gen := _gen
 	if signed_in() and is_anonymous:
 		var tok := await id_token()
-		var r := await _auth_call("update", {"idToken": tok, "email": mail, "password": password,
+		var r := await _auth_call("signUp", {"idToken": tok, "email": mail, "password": password,
 			"returnSecureToken": true})
-		if r.ok:
+		if r.ok and gen == _gen:
 			_take_session(r.data, false)
 		return r
 	var r2 := await _auth_call("signUp", {"email": mail, "password": password, "returnSecureToken": true})
-	if r2.ok:
+	if r2.ok and gen == _gen:
 		_take_session(r2.data, false)
 	return r2
 
 
 func sign_in_email(mail: String, password: String) -> Dictionary:
+	_gen += 1
+	var gen := _gen
 	var r := await _auth_call("signInWithPassword", {"email": mail, "password": password,
 		"returnSecureToken": true})
-	if r.ok:
+	if r.ok and gen == _gen:
 		_take_session(r.data, false)
 	return r
 
@@ -71,6 +82,7 @@ func send_password_reset(mail: String) -> Dictionary:
 
 
 func sign_out() -> void:
+	_gen += 1
 	uid = ""
 	email = ""
 	is_anonymous = true
