@@ -22,7 +22,8 @@ func _init() -> void:
 
 func _build() -> void:
 	var g := grid(self, 3)
-	var money := func(v: float) -> String: return DS.money(v)
+	# Whole numbers keep three tiles readable on a 390 pt screen ("-$296B").
+	var money := func(v: float) -> String: return DS.money(v, 0 if absf(v) < 1e12 else 1)
 	_rev = StatTile.new().setup("Revenue", money, true)
 	_spend = StatTile.new().setup("Spending", money, false)
 	_bal = StatTile.new().setup("Balance", money, true)
