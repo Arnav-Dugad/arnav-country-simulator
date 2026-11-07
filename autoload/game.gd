@@ -341,7 +341,9 @@ func summary(reason: String = "") -> Dictionary:
 		"gdp_start": g0, "gdp_end": c.gdp, "avg_growth": avg_growth,
 		"debt_start": float(start_snapshot.get("debt_pct", 0.0)), "debt_end": c.debt_pct(),
 		"approval": c.approval, "happiness_start": float(start_snapshot.get("happiness", 0.0)),
-		"happiness_end": c.happiness, "events": event_log.size()}
+		"happiness_end": c.happiness, "events": event_log.size(), "trend": c.trend,
+		"laws": c.laws.keys().filter(func(k: String) -> bool:
+			return Laws.is_active(c, k) and not c.laws_start.has(k)).size()}
 
 
 func _pause_for_modal() -> void:

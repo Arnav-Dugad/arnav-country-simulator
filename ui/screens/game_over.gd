@@ -44,6 +44,59 @@ func _ready() -> void:
 	}.get(reason, "You led %s for %.1f years." % [data.country, float(data.years)])
 	col.add_child(sub)
 
+	# Legacy grade
+	var parts := Economy.legacy_parts(data)
+	var score := 50.0
+	for p in parts:
+		score += float(p[1])
+	var grade := Economy.legacy_grade(score)
+	var grade_row := HBoxContainer.new()
+	grade_row.add_theme_constant_override(&"separation", DS.S4)
+	col.add_child(grade_row)
+	var badge := PanelContainer.new()
+	badge.theme_type_variation = &"GradeBadge"
+	badge.custom_minimum_size = Vector2(76, 76)
+	grade_row.add_child(badge)
+	var gl := Label.new()
+	gl.theme_type_variation = &"LargeTitle"
+	gl.text = grade
+	gl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	gl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	gl.add_theme_color_override(&"font_color", DS.GOLD if grade.begins_with("A") else (DS.TEXT if grade in ["B", "C"] else DS.RED))
+	badge.add_child(gl)
+	var gv := VBoxContainer.new()
+	gv.alignment = BoxContainer.ALIGNMENT_CENTER
+	gv.add_theme_constant_override(&"separation", 2)
+	grade_row.add_child(gv)
+	var go := Label.new()
+	go.theme_type_variation = &"Overline"
+	go.text = "YOUR LEGACY"
+	gv.add_child(go)
+	var gt := Label.new()
+	gt.theme_type_variation = &"Title2"
+	gt.text = str(Economy.LEGACY_TITLES[grade])
+	gv.add_child(gt)
+	var best: Array = parts[0]
+	var worst: Array = parts[0]
+	for p in parts:
+		if float(p[1]) > float(best[1]):
+			best = p
+		if float(p[1]) < float(worst[1]):
+			worst = p
+	var gs := Label.new()
+	gs.theme_type_variation = &"Footnote"
+	gs.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	gs.text = "Strongest: %s%s" % [str(best[0]).to_lower(), "" if float(worst[1]) >= 0.0 else "
+Weakest: %s" % str(worst[0]).to_lower()]
+	gv.add_child(gs)
+	badge.pivot_offset = Vector2(38, 38)
+	badge.scale = Vector2.ONE * 0.6
+	badge.modulate.a = 0.0
+	var bt := create_tween().set_parallel(true)
+	DS.spring(bt)
+	bt.tween_property(badge, "scale", Vector2.ONE, 0.6).set_delay(0.5)
+	bt.tween_property(badge, "modulate:a", 1.0, 0.3).set_delay(0.5)
+
 	var g := GridContainer.new()
 	g.columns = 2
 	g.add_theme_constant_override(&"h_separation", DS.S2)

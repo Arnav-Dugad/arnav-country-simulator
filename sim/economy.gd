@@ -229,6 +229,36 @@ static func difficulty(s: Dictionary) -> int:
 
 const DIFFICULTY_LABELS := ["Easy", "Normal", "Hard"]
 
+# ----------------------------------------------------------- LEGACY GRADE ---
+## End-of-term grade: 50 + parts below, then A+ 90 / A 80 / B 68 / C 55 / D 42 / F.
+const LEGACY_GRADES := [[90.0, "A+"], [80.0, "A"], [68.0, "B"], [55.0, "C"], [42.0, "D"], [-INF, "F"]]
+const LEGACY_TITLES := {"A+": "A historic leader", "A": "A great leader", "B": "A good leader",
+	"C": "A steady hand", "D": "A difficult term", "F": "A term to forget"}
+
+
+## [[label, points], …] for a finished term (see Game.summary()).
+static func legacy_parts(s: Dictionary) -> Array:
+	var years := float(s.years)
+	# Short terms prove less: performance counts fully only after two years.
+	var w := clampf(years / 2.0, 0.15, 1.0)
+	return [
+		["Economic growth", w * clampf((float(s.avg_growth) - float(s.trend)) * 6.0 + 4.0, -20.0, 20.0)],
+		["People's happiness", w * clampf((float(s.happiness_end) - float(s.happiness_start)) * 1.2, -20.0, 20.0)],
+		["Public debt", w * clampf(-(float(s.debt_end) - float(s.debt_start)) * 0.3, -15.0, 15.0)],
+		["Elections won", minf(float(s.elections_won) * 6.0, 24.0)],
+		["Time in office", minf(years * 1.5, 15.0)],
+		["Final approval", clampf((float(s.approval) - 45.0) * 0.4, -8.0, 8.0)],
+		["Short term", -12.0 * (1.0 - w)],
+	]
+
+
+static func legacy_grade(score: float) -> String:
+	for g in LEGACY_GRADES:
+		if score >= float(g[0]):
+			return str(g[1])
+	return "F"
+
+
 # ---------------------------------------------------------- CREDIT RATING ---
 ## Score → letter grade. Weights were fitted (grid search) so the 2025 starting
 ## values of 30 countries land within ~1 notch of their real S&P ratings on
