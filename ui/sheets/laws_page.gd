@@ -46,6 +46,12 @@ func refresh() -> void:
 		passing += 1 if Laws.pending_months(c, l.id) > 0 else 0
 	_summary.text = "%d %s in force%s. New laws take months to pass, and you can change course while they do." % [
 		active, "law" if active == 1 else "laws", "  ·  %d being debated" % passing if passing > 0 else ""]
+	if Mandate.active():
+		_summary.text = "Your first 100 days: for %d more %s, laws pass faster and voters forgive tough reforms. Use it!" % [
+			Mandate.months_left(), "month" if Mandate.months_left() == 1 else "months"]
+		_summary.add_theme_color_override(&"font_color", DS.GOLD)
+	else:
+		_summary.remove_theme_color_override(&"font_color")
 	for ch in _list.get_children():
 		ch.queue_free()
 	for g in Laws.GROUPS:

@@ -2,6 +2,10 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.34.0] - 2026-11-08
+
+- **Your first 100 days**: new leaders get a honeymoon. For your first four months, laws pass 30% faster and voters forgive unpopular reforms more easily. The Laws page reminds you, and your story records what you did with it
+
 ## [0.33.1] - 2026-11-08
 
 - New headlines for record lows in unemployment and record highs in happiness during your time in office

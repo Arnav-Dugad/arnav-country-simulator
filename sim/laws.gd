@@ -164,10 +164,13 @@ static func start(c: CountryState, id: String) -> int:
 	if repeal and bool(l.get("oneway", false)):
 		return 0
 	var months := maxi(3, int(l.months * (0.5 if repeal else 1.0) * Profiles.mult(c.idx, "law_months")
-		* (1.0 - (Cabinet.bonus("law_speed") if c.idx == Game.player else 0.0))))
+		* (1.0 - (Cabinet.bonus("law_speed") if c.idx == Game.player else 0.0))
+		* (1.0 - (Mandate.LAW_SPEED if c.idx == Game.player and Mandate.active() else 0.0))))
 	c.laws[id] = {"state": "repealing" if repeal else "passing", "months_left": months}
 	c.laws_ver += 1
 	var pol := float(l.politics) * (-0.6 if repeal else 1.0)
+	if c.idx == Game.player and Mandate.active() and pol < 0.0:
+		pol *= Mandate.POLITICS_DISCOUNT     # honeymoon: voters forgive early reforms
 	c.shocks.approval = float(c.shocks.approval) + pol
 	return months
 
