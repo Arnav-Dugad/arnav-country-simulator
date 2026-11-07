@@ -169,6 +169,7 @@ static func sanction(i: int) -> void:
 	if is_sanctioning(i):
 		return
 	_d().sanctions[str(i)] = Game.months_played
+	Leaders.react("sanction", i)
 	_d().deals.erase(str(i))
 	_d().alliances.erase(str(i))
 	change_relation(i, -SANCTION_RELATION_LOSS)

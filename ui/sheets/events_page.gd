@@ -72,7 +72,10 @@ func refresh() -> void:
 	for item in Game.feed.slice(0, 20):
 		var row := ListRow.new().setup(str(item.text), "", str(item.date))
 		_wrap(row)
-		row.set_leading(ListRow.icon_tile(str(item.icon), _tint(str(item.get("tint", "accent")))))
+		if str(item.get("face", "")) != "":
+			row.set_leading(Photo.portrait(str(item.face), 36.0))
+		else:
+			row.set_leading(ListRow.icon_tile(str(item.icon), _tint(str(item.get("tint", "accent")))))
 		if str(item.get("kind", "")) == "review":
 			row.tapped.connect(func() -> void: review_requested.emit())
 		if not bool(item.get("read", false)):

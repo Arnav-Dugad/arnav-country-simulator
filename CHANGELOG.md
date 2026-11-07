@@ -2,6 +2,13 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.22.0] - 2026-11-08
+
+**The world reacts**
+- When you pass a big law, join or leave a bloc, impose sanctions or win an election, foreign leaders respond in your Inbox, with their portrait and their own words. What they say depends on their personality and how much they like you, and it nudges relations
+- Fitting names for leaders in Afghanistan, Sri Lanka, Nepal, Bhutan and the Maldives
+- Portraits stay perfectly round in lists
+
 ## [0.21.1] - 2026-11-08
 
 **Read all about it**

@@ -262,10 +262,13 @@ func advance_month() -> void:
 	for done in Laws.monthly(me()):
 		if str(done.id) == "free_elections" and not bool(done.repealed):
 			politics.become_democracy()
+		if not bool(done.repealed) and Leaders.LAW_KIND.has(str(done.id)):
+			Leaders.react(str(Leaders.LAW_KIND[done.id]))
 		law_finished.emit(str(done.id), bool(done.repealed))
 	for id in Projects.monthly(me()):
 		project_finished.emit(str(id))
 	for id in Treaties.monthly(rng):
+		Leaders.react("treaty_join")
 		treaty_joined.emit(str(id))
 	cabinet.monthly()
 	for g in Goals.monthly():
@@ -348,6 +351,8 @@ func hold_election() -> void:
 	var r := politics.hold_election()
 	director.log.push_front({"date": date_text(), "title": "Election " + ("won" if r.won else "lost"),
 		"choice": "%.1f%% of the vote" % float(r.share), "id": "election", "m": months_played})
+	if bool(r.won):
+		Leaders.react("election")
 	pause_for_modal()
 	election_held.emit(r)
 

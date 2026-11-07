@@ -32,6 +32,8 @@ static func portrait(key: String, size_px: float, ring: Color = Color(1, 1, 1, 0
 	p.set(&"radius", size_px)
 	p.set(&"rim", ring)
 	p.custom_minimum_size = Vector2(size_px, size_px)
+	p.size_flags_vertical = Control.SIZE_SHRINK_CENTER     # stays round inside rows
+	p.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	return p
 
 

@@ -183,6 +183,7 @@ static func leave(id: String) -> void:
 	Game.me().shocks.approval = float(Game.me().shocks.approval) - 1.5
 	Game.me().laws_ver += 1      # treaty modifiers are cached with laws
 	Game.add_feed("You left the %s" % str(t.title), str(t.icon), "orange")
+	Leaders.react("treaty_leave")
 
 
 static func _relations_to_members(id: String, delta: float) -> void:
