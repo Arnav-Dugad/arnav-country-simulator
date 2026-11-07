@@ -33,6 +33,9 @@ func _ready() -> void:
 	map.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(map)
 	map.country_tapped.connect(_on_country_tapped)
+	map.country_long_pressed.connect(func(i: int) -> void:
+		_open_country(i, false)
+		sheet.snap_to(BottomSheet.Snap.HALF))
 	map.set_player(Game.player)
 
 	modes = SegmentedControl.new().setup(MapModes.SHORT, MapModes.ICONS, 0)

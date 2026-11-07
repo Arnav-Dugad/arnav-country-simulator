@@ -43,8 +43,8 @@ The basics should feel finished before anything new is added.
 
 ### Gestures and camera
 - [ ] **Real-device gesture pass** (pinch, two-finger pan, fling, double-tap, sheet drag), with tuning notes recorded.
-- [ ] **Rubber-band edges:** panning past the world gives soft resistance (0.35× drag) and springs back on release, instead of a hard stop.
-- [ ] **Zoom inertia:** a pinch-release carries a little zoom momentum (decays in about 180 ms), anchored at the pinch midpoint.
+- [x] **Rubber-band edges:** panning past the world gives soft resistance (0.35× drag) and springs back on release, instead of a hard stop.
+- [x] **Zoom inertia:** a pinch-release carries a little zoom momentum (decays in about 180 ms), anchored at the pinch midpoint.
 - [ ] **Two-finger tap** zooms out one level, and **long-press** on a country opens its sheet at half height with a haptic "select".
 - [ ] **Smart framing:** `focus_country` avoids the top bar, mode control and open sheet using real measured insets.
 - [ ] **120 Hz aware:** inertia uses real frame delta; tested at 60, 90 and 120 Hz.
@@ -60,9 +60,9 @@ The basics should feel finished before anything new is added.
 - [ ] **Mode transitions:** a 450 ms colour crossfade with a legend that slides in under the mode control (gradient bar, min/max labels and the player's marker).
 
 ### Sound (new)
-- [ ] **Audio system** (`Audio` autoload) with a UI bus, an ambience bus and a music bus, Settings sliders, and auto-ducking when an event card opens.
-- [ ] **UI sound set** (about 12 sounds, under 60 ms, soft and pitched): tap, toggle on and off, sheet up and down, slider detent, success, warning, event chime, month tick (very quiet, optional), election drumroll and result.
-- [ ] **Ambient music:** 2–3 calm loops (piano and pads) with seamless crossfades. CC0 or original only, with licences recorded in `assets/audio/LICENSES.md`.
+- [x] **Audio system** (`Audio` autoload) with a UI bus, an ambience bus and a music bus, Settings sliders, and auto-ducking when an event card opens.
+- [x] **UI sound set** (about 12 sounds, under 60 ms, soft and pitched): tap, toggle on and off, sheet up and down, slider detent, success, warning, event chime, month tick (very quiet, optional), election drumroll and result.
+- [x] **Ambient music:** 2–3 calm loops (piano and pads) with seamless crossfades. CC0 or original only, with licences recorded in `assets/audio/LICENSES.md`.
 - [ ] Respect the system's silent mode and the "Reduce motion" setting (no whooshes).
 
 ### Haptic language
@@ -87,12 +87,12 @@ The basics should feel finished before anything new is added.
 ## v0.3 "Understand": a legible simulation  *(priority: very high, effort: M–L)*
 
 ### "Why?" for every number
-- [ ] The simulation records each term's **contribution** per tick (growth = trend + fiscal − taxes − rates ± events …) in a small ring buffer.
-- [ ] Tapping any stat tile opens an **explainer sheet**: a waterfall chart (custom `_draw`) of contributors, sorted by size, coloured good or bad, with one plain-English line each ("Higher interest rates are cooling the economy: −0.6 pts").
+- [x] The simulation records each term's **contribution** per tick (growth = trend + fiscal − taxes − rates ± events …) in a small ring buffer.
+- [x] Tapping any stat tile opens an **explainer sheet**: a waterfall chart (custom `_draw`) of contributors, sorted by size, coloured good or bad, with one plain-English line each ("Higher interest rates are cooling the economy: −0.6 pts").
 
 ### Live forecast while you decide
-- [ ] Dragging a slider runs a **12-month projection** on a cloned `CountryState` (12 ticks of one country takes under 1 ms), throttled to 20 Hz.
-- [ ] Under the slider, **delta chips** show the projected effect, for example `Growth −0.4`, `Approval −1.2`, `Revenue +$12B`, coloured by good or bad.
+- [x] Dragging a slider runs a **12-month projection** on a cloned `CountryState` (12 ticks of one country takes under 1 ms), throttled to 20 Hz.
+- [x] Under the slider, **delta chips** show the projected effect, for example `Growth −0.4`, `Approval −1.2`, `Revenue +$12B`, coloured by good or bad.
 - [ ] On the open chart, a **dashed ghost line** shows the projected path next to history.
 
 ### Charts 2.0
@@ -272,8 +272,8 @@ and Firebase Spark can't verify purchases server-side, so:
 ## "Easy to use" workstream (added to v0.2 and v0.3)
 - [ ] **Plain-language pass on every label:** "Interest rate" gets the helper "Higher = slower prices, fewer jobs";
       "Debt / GDP" becomes "Debt (vs. economy size)"; jargon moves into an info sheet.
-- [ ] **(i) button on every control,** opening a 2-line explanation plus a tiny illustration.
-- [ ] **Guided first game:** coach marks for the first three months, one task at a time, with checkmarks.
+- [x] **(i) button on every control,** opening a 2-line explanation plus a tiny illustration.
+- [x] **Guided first game:** coach marks for the first three months, one task at a time, with checkmarks.
 - [ ] **"What should I do?" button:** shows the single most impactful suggestion right now.
 - [ ] **Health summary:** one colour ring (Thriving, Okay, Struggling) on the top bar, tappable for the top 3 problems.
 - [ ] **Bigger, fewer targets:** every tap target at least 44 pt, max 5 items per row, no hidden gestures without a visible alternative.

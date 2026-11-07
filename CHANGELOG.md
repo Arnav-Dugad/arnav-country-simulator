@@ -2,6 +2,19 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.2.0] - 2026-11-07
+
+**Easier to understand**
+- Tap any number in Economy to see *why* it's moving: every factor that pushes it, in plain words, plus tips
+- Live forecast: as you move a slider, see what happens in 12 months (growth, prices, jobs, approval, budget)
+- Nation health card: Thriving / Doing okay / Struggling, with the three most useful things to do next
+- A guided tour on your first game (replay any time from Settings)
+
+**Feels better**
+- Original sound design: soft taps, sheet whooshes, event chimes, election swells, and a calm ambient soundtrack (toggles in Settings)
+- The map now has soft, springy edges, pinch-zoom momentum, and long-press on a country to open it
+- The speed control now shows Pause correctly
+
 ## [0.1.2] - 2026-11-07
 
 - Real country flags across the game

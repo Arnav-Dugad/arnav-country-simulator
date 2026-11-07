@@ -10,6 +10,7 @@ extends Control
 signal country_tapped(index: int)
 signal selection_changed(index: int)
 signal camera_changed
+signal country_long_pressed(index: int)
 
 const FILL_SHADER := preload("res://map/shaders/map_fill.gdshader")
 const LINE_SHADER := preload("res://map/shaders/map_line.gdshader")
@@ -78,6 +79,15 @@ var _mouse_down := false
 var _cam_tween: Tween
 var _sel_tween: Tween
 var _glow_bucket := -999
+# Feel: rubber-band edges, zoom momentum, long-press
+const LONG_PRESS := 0.45
+const ZOOM_SOFT_MIN := 0.82     # pinch may undershoot min zoom by this factor, then springs back
+const ZOOM_SOFT_MAX := 1.15
+var _raw_center := Vector2.ZERO  # finger-driven centre before edge resistance
+var _zoom_vel := 0.0            # log-zoom per second after a pinch
+var _pinch_mid := Vector2.ZERO
+var _last_pinch_time := 0.0
+var _long_fired := false
 var _focus_cache := {}
 
 
@@ -308,16 +318,64 @@ func screen_to_world(p: Vector2) -> Vector2:
 	return (p - size * 0.5) / zoom + center
 
 
-func zoom_at(screen_pos: Vector2, factor: float) -> void:
+func zoom_at(screen_pos: Vector2, factor: float, soft: bool = false) -> void:
 	var anchor := screen_to_world(screen_pos)
-	zoom = clampf(zoom * factor, min_zoom, max_zoom)
+	if soft:  # gesture: allow a little over/undershoot that springs back
+		zoom = clampf(zoom * factor, min_zoom * ZOOM_SOFT_MIN, max_zoom * ZOOM_SOFT_MAX)
+	else:
+		zoom = clampf(zoom * factor, min_zoom, max_zoom)
 	center = anchor - (screen_pos - size * 0.5) / zoom
-	_apply_camera()
+	_raw_center = center
+	_apply_camera(soft)
 
 
 func pan_by(screen_delta: Vector2) -> void:
 	center -= screen_delta / zoom
+	_raw_center = center
 	_apply_camera()
+
+
+## Finger-driven pan with iOS-style resistance past the edges.
+func pan_soft(screen_delta: Vector2) -> void:
+	_raw_center -= screen_delta / zoom
+	var lim := _center_limits()
+	var cl := Vector2(clampf(_raw_center.x, lim.position.x, lim.end.x), clampf(_raw_center.y, lim.position.y, lim.end.y))
+	var over := (_raw_center - cl) * zoom
+	over = Vector2(_rubber(over.x, size.x), _rubber(over.y, size.y))
+	center = cl + over / zoom
+	_apply_camera(true)
+
+
+static func _rubber(x: float, d: float) -> float:
+	if absf(x) < 0.001:
+		return 0.0
+	return signf(x) * (1.0 - 1.0 / (absf(x) * 0.55 / maxf(d, 1.0) + 1.0)) * d
+
+
+## Range the view centre may occupy at the current zoom.
+func _center_limits() -> Rect2:
+	var wr := data.world_rect
+	var half := size * 0.5 / zoom
+	var lo := Vector2.ZERO
+	var hi := Vector2.ZERO
+	if wr.size.x <= half.x * 2.0:
+		lo.x = wr.get_center().x
+		hi.x = lo.x
+	else:
+		lo.x = wr.position.x + half.x * 0.35
+		hi.x = wr.end.x - half.x * 0.35
+	if wr.size.y <= half.y * 2.0:
+		lo.y = wr.end.y - half.y
+		hi.y = wr.position.y + half.y
+	else:
+		lo.y = wr.position.y + half.y * 0.5
+		hi.y = wr.end.y - half.y * 0.5
+	return Rect2(lo, hi - lo)
+
+
+func _out_of_bounds() -> bool:
+	var lim := _center_limits().grow(0.01)
+	return not lim.has_point(center) or zoom < min_zoom * 0.999 or zoom > max_zoom * 1.001
 
 
 ## Smoothly animate the camera to a world centre and zoom.
@@ -371,19 +429,13 @@ func focus_country(i: int, duration: float = 0.7) -> void:
 	fly_to(c, z, duration)
 
 
-func _apply_camera() -> void:
-	zoom = clampf(zoom, min_zoom, max_zoom)
-	var wr := data.world_rect
-	var half := size * 0.5 / zoom
-	# Keep the view over the world; centre it when the world is smaller than the view.
-	if wr.size.x <= half.x * 2.0:
-		center.x = wr.get_center().x
-	else:
-		center.x = clampf(center.x, wr.position.x + half.x * 0.35, wr.end.x - half.x * 0.35)
-	if wr.size.y <= half.y * 2.0:
-		center.y = clampf(center.y, wr.end.y - half.y, wr.position.y + half.y)
-	else:
-		center.y = clampf(center.y, wr.position.y + half.y * 0.5, wr.end.y - half.y * 0.5)
+## soft = a gesture is in progress: overshoot is allowed (it springs back later).
+func _apply_camera(soft: bool = false) -> void:
+	if not soft:
+		zoom = clampf(zoom, min_zoom, max_zoom)
+		# Keep the view over the world; centre it when the world is smaller than the view.
+		var lim := _center_limits()
+		center = Vector2(clampf(center.x, lim.position.x, lim.end.x), clampf(center.y, lim.position.y, lim.end.y))
 	_world.transform = Transform2D(0.0, Vector2(zoom, zoom), 0.0, size * 0.5 - center * zoom)
 	_update_line_widths()
 	_labels.queue_redraw()
@@ -432,11 +484,43 @@ func country_at(screen_pos: Vector2) -> int:
 
 # ------------------------------------------------------------------ input ----
 func _process(delta: float) -> void:
-	if _touches.is_empty() and not _mouse_down and _velocity.length_squared() > 4.0:
-		pan_by(_velocity * delta)
-		_velocity *= exp(-FRICTION * delta)
+	var gesturing := not _touches.is_empty() or _mouse_down
+	if not gesturing:
+		var flying := _cam_tween != null and _cam_tween.is_running()
+		if _velocity.length_squared() > 4.0:
+			pan_soft(_velocity * delta)
+			# Fling into an edge: brake hard so it bounces softly instead of sliding on.
+			_velocity *= exp(-(FRICTION if not _out_of_bounds() else 22.0) * delta)
+		elif absf(_zoom_vel) > 0.02:
+			zoom_at(_pinch_mid, exp(_zoom_vel * delta), true)
+			_zoom_vel *= exp(-7.0 * delta)
+		elif not flying and _out_of_bounds():
+			_spring_back(delta)
+	elif _tap_candidate and not _long_fired and Time.get_ticks_msec() / 1000.0 - _tap_start_time > LONG_PRESS:
+		_long_fired = true
+		_tap_candidate = false
+		var c := country_at(_tap_start_pos)
+		if c >= 0:
+			Haptics.select(false)
+			country_long_pressed.emit(c)
 	if _sel_root.visible:
 		_update_line_widths()
+
+
+func _spring_back(delta: float) -> void:
+	var k := 1.0 - exp(-14.0 * delta)
+	var target_zoom := clampf(zoom, min_zoom, max_zoom)
+	if absf(target_zoom - zoom) > 0.0001:
+		zoom_at(size * 0.5, pow(target_zoom / zoom, k), true)
+	var lim := _center_limits()
+	var cl := Vector2(clampf(center.x, lim.position.x, lim.end.x), clampf(center.y, lim.position.y, lim.end.y))
+	center = center.lerp(cl, k)
+	_raw_center = center
+	if center.distance_to(cl) * zoom < 0.4 and absf(target_zoom - zoom) < 0.0001:
+		center = cl
+		_apply_camera()
+	else:
+		_apply_camera(true)
 
 
 func _gui_input(event: InputEvent) -> void:
@@ -487,8 +571,14 @@ func _on_drag(e: InputEventScreenDrag) -> void:
 		var old_mid := (prev + other) * 0.5
 		var new_mid := (e.position + other) * 0.5
 		if old_d > 1.0:
-			zoom_at(new_mid, new_d / old_d)
-		pan_by(new_mid - old_mid)
+			var f := new_d / old_d
+			zoom_at(new_mid, f, true)
+			var now := Time.get_ticks_msec() / 1000.0
+			var dt := clampf(now - _last_pinch_time, 1.0 / 240.0, 0.1)
+			_zoom_vel = lerpf(_zoom_vel, log(f) / dt, 0.3)
+			_last_pinch_time = now
+			_pinch_mid = new_mid
+		pan_soft(new_mid - old_mid)
 		_velocity = Vector2.ZERO
 	else:
 		_drag_pan(e.position - prev)
@@ -522,7 +612,7 @@ func _on_mouse_button(e: InputEventMouseButton) -> void:
 
 
 func _drag_pan(delta: Vector2) -> void:
-	pan_by(delta)
+	pan_soft(delta)
 	var now := Time.get_ticks_msec() / 1000.0
 	var dt := maxf(now - _last_drag_time, 1.0 / 120.0)
 	_last_drag_time = now
@@ -532,12 +622,15 @@ func _drag_pan(delta: Vector2) -> void:
 
 func _stop_motion() -> void:
 	_velocity = Vector2.ZERO
+	_zoom_vel = 0.0
+	_raw_center = center
 	if _cam_tween and _cam_tween.is_running():
 		_cam_tween.kill()
 
 
 func _begin_tap(pos: Vector2) -> void:
 	_tap_candidate = true
+	_long_fired = false
 	_tap_start_pos = pos
 	_tap_start_time = Time.get_ticks_msec() / 1000.0
 	_last_drag_time = _tap_start_time
@@ -548,6 +641,8 @@ func _end_tap(pos: Vector2, allow_double: bool = true) -> void:
 	# Flicks: drop inertia if the finger rested before lifting.
 	if now - _last_drag_time > 0.08:
 		_velocity = Vector2.ZERO
+	if now - _last_pinch_time > 0.08:
+		_zoom_vel = 0.0
 	if not _tap_candidate or now - _tap_start_time > TAP_TIME:
 		return
 	_tap_candidate = false
