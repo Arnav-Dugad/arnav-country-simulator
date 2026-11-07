@@ -38,6 +38,7 @@ func _process(delta: float) -> void:
 func _draw() -> void:
 	if map == null or not Game.has_game() or not map.interactive:
 		return
+	_draw_night()
 	_draw_weather()
 	_draw_trade()
 	_draw_projects()
@@ -55,6 +56,39 @@ func _draw_ripples() -> void:
 		var e := 1.0 - pow(1.0 - u, 3.0)
 		var col := Color(1, 1, 1) if r[2] else DS.TEAL
 		draw_arc(r[0], 6.0 + 30.0 * e, 0.0, TAU, 40, Color(col, 0.45 * (1.0 - u)), 2.0, true)
+
+
+# ------------------------------------------------------------------ night ----
+## A soft night shadow that sweeps around the world once every in-game month
+## (decorative: shows time passing). Columns of shade follow the terminator;
+## the season tilts it (northern summer = longer days in the north).
+func _draw_night() -> void:
+	if Settings.reduce_motion or map.zoom > map.min_zoom * 6.0:
+		return
+	var phase := fposmod(Game.month_progress() + Game.month * 0.0, 1.0)
+	var sun_lon := -PI + TAU * phase           # where it's noon
+	var decl := 0.41 * sin(TAU * (float(Game.month) - 3.5) / 12.0)   # season
+	# One continuous strip (shared vertices, no seams): alpha varies smoothly.
+	var cols := 96
+	var top := map.world_to_screen(Geo.equal_earth(0.0, 85.0)).y
+	var bot := map.world_to_screen(Geo.equal_earth(0.0, -85.0)).y
+	var pts := PackedVector2Array()
+	var colors := PackedColorArray()
+	for k in cols + 1:
+		var x := size.x * float(k) / cols
+		var world := map.screen_to_world(Vector2(x, size.y * 0.5))
+		var lon := Geo.equal_earth_inverse(Vector2(world.x, 0.0)).x
+		var d := wrapf(lon - sun_lon, -PI, PI)
+		var a := 0.24 * smoothstep(PI * 0.4, PI * 0.65, absf(d))
+		pts.append(Vector2(x, top))
+		colors.append(Color(0.01, 0.02, 0.07, a * (1.0 - decl * 0.8)))
+		pts.append(Vector2(x, bot))
+		colors.append(Color(0.01, 0.02, 0.07, a * (1.0 + decl * 0.8)))
+	var idx := PackedInt32Array()
+	for k in cols:
+		var i0 := k * 2
+		idx.append_array([i0, i0 + 2, i0 + 1, i0 + 1, i0 + 2, i0 + 3])
+	RenderingServer.canvas_item_add_triangle_array(get_canvas_item(), idx, pts, colors)
 
 
 # ------------------------------------------------------------------ trade ----

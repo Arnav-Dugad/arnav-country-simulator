@@ -2,6 +2,10 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.32.0] - 2026-11-08
+
+- **Day and night**: a soft night shadow sweeps around the world once a month, with longer nights toward the winter pole (turn off with Reduce motion)
+
 ## [0.31.0] - 2026-11-08
 
 - Four new scene paintings: the press room, a bank run, an aid flight and a town rebuilding after an earthquake. Press conferences, scandals, bank runs, refugees, earthquakes and calls for help now each have their own scene
