@@ -94,7 +94,10 @@ const K_CORP := 0.16
 const LAFFER := 0.45
 ## Average interest paid on debt chases (policy rate + risk premium).
 const DEBT_RATE_ADJUST := 0.02
-const RISK_PREMIUM_PER_DEBT := 0.04  # per pt of debt above DEBT_SAFE
+const RISK_PREMIUM_PER_DEBT := 0.04  # per pt of debt above max(DEBT_SAFE, starting debt + DEBT_TOLERANCE)
+## Debt can rise this many points above a country's starting level before
+## markets charge more (they already price in where it is today).
+const DEBT_TOLERANCE := 10.0
 const RISK_PREMIUM_INSTABILITY := 0.03
 ## Treasury keeps a cash buffer of this many months of spending; deficits are
 ## financed by issuing bonds (debt) to maintain it.

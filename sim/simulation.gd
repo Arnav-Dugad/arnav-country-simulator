@@ -112,8 +112,14 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 	c.population *= pow(1.0 + c.pop_growth / 100.0, M)
 
 	# --- Public finances ------------------------------------------------------
-	var premium := minf(E.RISK_PREMIUM_PER_DEBT * maxf(0.0, debt_pct - E.DEBT_SAFE) \
-		+ E.RISK_PREMIUM_INSTABILITY * maxf(0.0, 40.0 - c.stability), E.RISK_PREMIUM_CAP)
+	# Markets judge debt against what they already trust this country with: the
+	# premium starts above the higher of DEBT_SAFE and the starting debt (Japan
+	# borrows cheaply at 200%+, as it really does); instability only counts
+	# below the country's own starting level.
+	var debt_ok := maxf(E.DEBT_SAFE, float(b.debt_pct) + E.DEBT_TOLERANCE)
+	var stab_ok := minf(40.0, float(b.stability) - 5.0)
+	var premium := minf(E.RISK_PREMIUM_PER_DEBT * maxf(0.0, debt_pct - debt_ok) \
+		+ E.RISK_PREMIUM_INSTABILITY * maxf(0.0, stab_ok - c.stability), E.RISK_PREMIUM_CAP)
 	premium *= Profiles.mult(i, "risk_premium")
 	c.debt_rate += (maxf(c.interest_rate, 0.5) + premium - c.debt_rate) * E.DEBT_RATE_ADJUST
 	update_finances(c)

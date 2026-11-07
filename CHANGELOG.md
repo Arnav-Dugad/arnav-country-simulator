@@ -2,6 +2,12 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.33.0] - 2026-11-08
+
+**Fairer public finances** (found by playing 15-year games)
+- Fixed: countries that already had high debt (Japan, Italy, the US…) were charged a growing "risk premium" from day one, so interest costs spiralled even if you did nothing. Markets now judge debt against where your country started, as they really do: Japan borrows cheaply at 200%+ debt, and only debt that rises well beyond your starting level gets more expensive
+- Instability only raises borrowing costs when it falls below your country's normal level
+
 ## [0.32.0] - 2026-11-08
 
 - **Day and night**: a soft night shadow sweeps around the world once a month, with longer nights toward the winter pole (turn off with Reduce motion)
