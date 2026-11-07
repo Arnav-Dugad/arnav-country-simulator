@@ -159,6 +159,7 @@ func new_game(country_index: int, seed_value: int = -1, level: String = "") -> v
 	_record_history()
 	me().refresh_explainer()
 	Goals.refill()
+	add_milestone("Took office as %s of %s" % [Government.leader_title(player).to_lower(), World.map.names[player]], "crown", "gold")
 	running = true
 	started.emit()
 
@@ -262,16 +263,22 @@ func advance_month() -> void:
 	for done in Laws.monthly(me()):
 		if str(done.id) == "free_elections" and not bool(done.repealed):
 			politics.become_democracy()
+		var lt := Laws.title_of(me(), Laws.law(str(done.id)))
+		add_milestone(("%s repealed" if bool(done.repealed) else "%s became law") % lt, str(Laws.law(str(done.id)).icon),
+			"orange" if bool(done.repealed) else "accent")
 		if not bool(done.repealed) and Leaders.LAW_KIND.has(str(done.id)):
 			Leaders.react(str(Leaders.LAW_KIND[done.id]))
 		law_finished.emit(str(done.id), bool(done.repealed))
 	for id in Projects.monthly(me()):
+		add_milestone("Opened the %s" % str(Projects.by_id(id).title).to_lower(), str(Projects.by_id(id).icon), "green")
 		project_finished.emit(str(id))
 	for id in Treaties.monthly(rng):
+		add_milestone("Joined the %s" % str(Treaties.by_id(id).title), str(Treaties.by_id(id).icon), "accent")
 		Leaders.react("treaty_join")
 		treaty_joined.emit(str(id))
 	cabinet.monthly()
 	for g in Goals.monthly():
+		add_milestone("Goal reached: %s" % Goals.title(g).to_lower(), str(Goals.SPECS[g.id].icon), "gold")
 		goal_reached.emit(g)
 	_record_history()
 	month_passed.emit()
@@ -351,6 +358,8 @@ func hold_election() -> void:
 	var r := politics.hold_election()
 	director.log.push_front({"date": date_text(), "title": "Election " + ("won" if r.won else "lost"),
 		"choice": "%.1f%% of the vote" % float(r.share), "id": "election", "m": months_played})
+	add_milestone("Election %s with %.1f%% of the vote" % ["won" if bool(r.won) else "lost", float(r.share)], "vote",
+		"gold" if bool(r.won) else "red")
 	if bool(r.won):
 		Leaders.react("election")
 	pause_for_modal()
@@ -412,6 +421,15 @@ func add_feed(text: String, icon: String, tint: String = "accent") -> void:
 ## Shows a disaster on the map for a few months (purely visual).
 func add_weather(kind: String, i: int, months: int = 3) -> void:
 	weather.append({"kind": kind, "country": World.iso(i), "until": months_played + months, "len": months})
+
+
+## The story of your rule (the Inbox timeline): only the big moments.
+func add_milestone(text: String, icon: String, tint: String) -> void:
+	if not dip.has("story"):
+		dip["story"] = []
+	dip.story.push_front({"date": date_text(), "text": text, "icon": icon, "tint": tint})
+	if dip.story.size() > 80:
+		dip.story.pop_back()
 
 
 func unread_count() -> int:

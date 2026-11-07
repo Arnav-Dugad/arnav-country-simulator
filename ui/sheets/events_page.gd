@@ -12,6 +12,7 @@ var _updates: VBoxContainer
 var _news: VBoxContainer
 var _log: VBoxContainer
 var _politics: VBoxContainer
+var _story: VBoxContainer
 
 
 func _init() -> void:
@@ -22,6 +23,7 @@ func _init() -> void:
 func _build() -> void:
 	_decisions = section("Needs your decision")
 	_politics = section("")
+	_story = section("Your story")
 	_updates = section("Updates")
 	_news = section("World news")
 	_log = section("Your history")
@@ -64,6 +66,16 @@ func refresh() -> void:
 			DS.pct(Game.me().approval, 0), Government.support_word(i).to_lower())
 		nxt.set_leading(ListRow.icon_tile("vote", DS.GOLD))
 		_politics.add_child(nxt)
+	# Story timeline
+	for ch in _story.get_children():
+		ch.queue_free()
+	var story: Array = Game.dip.get("story", [])
+	_story.get_parent().get_parent().visible = not story.is_empty()
+	if not story.is_empty():
+		_story.add_child(Timeline.new().build(story.slice(0, 8).map(func(it: Dictionary) -> Dictionary:
+			var d := it.duplicate()
+			d["tint"] = _tint(str(it.get("tint", "accent")))
+			return d)))
 	# Updates
 	for ch in _updates.get_children():
 		ch.queue_free()

@@ -127,7 +127,7 @@ func _ready() -> void:
 		_confetti())
 	Game.project_finished.connect(func(id: String) -> void:
 		var p := Projects.by_id(id)
-		_notify("%s is open" % str(p.title), str(p.icon), DS.GREEN, true)
+		_notify("Now open: %s" % str(p.title).to_lower(), str(p.icon), DS.GREEN, true)
 		Haptics.success()
 		Audio.play("success", -8.0)
 		map.queue_redraw()
@@ -513,7 +513,7 @@ func _refresh_next() -> void:
 			"tint": GameEvents.tint(str(ev.tint)), "due": int(ev.due), "count": open.size(),
 			"sub": ("Decide now" if bool(ev.get("critical", false)) else
 				("%s · %s" % ["Decide" if open.size() == 1 else "+%d more" % (open.size() - 1),
-					"cabinet decides soon" if left <= 1 else "%d months left" % left]))}
+					"due now" if left <= 1 else "%d mo left" % left]))}
 	elif Game.politics.campaign_open:
 		item = {"kind": "campaign", "key": "campaign", "title": "Plan your campaign", "icon": "vote", "tint": DS.GOLD,
 			"sub": "Election in %d months" % Game.politics.months_to_election}

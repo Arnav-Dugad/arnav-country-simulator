@@ -2,6 +2,11 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.28.0] - 2026-11-08
+
+- **Your story**: a timeline in the Inbox of the big moments of your rule (taking office, laws passed, projects opened, goals reached, treaties joined, elections)
+- The "next" pill's countdown is shorter so it always fits ("2 mo left", "due now")
+
 ## [0.27.0] - 2026-11-08
 
 - **Your career**: every finished game adds to your record (countries led, years in power, elections, goals reached and your best legacy grade), shown on the home screen. Sandbox and cheat games don't count
