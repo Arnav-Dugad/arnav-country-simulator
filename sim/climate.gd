@@ -16,6 +16,11 @@ const CUTS := {"coal_phaseout": 0.15, "carbon_tax": 0.10, "nuclear": 0.12, "sola
 	"hydro": 0.06, "ev_subsidy": 0.04, "forests": 0.04, "rail": 0.03, "metro": 0.02}
 ## ... and points of renewable energy share they add.
 const RENEW := {"solar": 7.0, "wind": 7.0, "hydro": 6.0, "coal_phaseout": 3.0, "ev_subsidy": 1.0}
+## Clean energy and transport you add -> share of oil-price exposure it removes
+## for an energy importer (IEA: oil-shock pass-through falls with oil's share
+## of the energy mix; electric transport and rail replace oil directly).
+const OIL_SHIELD := {"nuclear": 0.12, "solar": 0.08, "wind": 0.08, "hydro": 0.06, "ev_subsidy": 0.06,
+	"rail": 0.04, "metro": 0.03}
 ## Events that a warmer world makes more likely.
 const WEATHER := ["floods", "monsoon", "hurricane", "heatwave", "drought", "heat_grid"]
 
@@ -54,6 +59,16 @@ static func co2_pc(c: CountryState) -> float:
 	for id in extras(c):
 		cut *= 1.0 - float(CUTS[id])
 	return start * income * tech * cut
+
+
+## 0..1 multiplier on an importer's oil-price exposure (1 = nothing built yet).
+static func oil_shield(c: CountryState) -> float:
+	if c == null:
+		return 1.0
+	var s := 1.0
+	for id in extras(c):
+		s *= 1.0 - float(OIL_SHIELD.get(id, 0.0))
+	return s
 
 
 ## Renewables, % of final energy use.

@@ -174,6 +174,9 @@ func _fill_markets() -> void:
 	var ox := WorldMarkets.oil_exposure(Game.player)
 	var how := "You export oil: high prices fill your treasury." if ox > 0.1 else (
 		"You import energy: high oil prices raise your prices and slow growth." if ox < -0.1 else "Oil prices barely touch your economy.")
+	var shield := 1.0 - Climate.oil_shield(Game.me())
+	if ox < -0.05 and shield >= 0.01:
+		how += " Your clean energy softens that by %d%%." % roundi(shield * 100.0)
 	if WorldMarkets.food_exposure(Game.player) > 0.5:
 		how += " Food price spikes hit your people hard."
 	var wc := Game.markets.world_cycle
@@ -226,7 +229,7 @@ func _fill_climate() -> void:
 	if not p.is_empty():
 		how += "Your pledge: cut emissions %d%% by %d. So far: %s. " % [roundi(float(p.cut) * 100.0), int(p.year),
 			Climate._pct(-Climate.pledge_done())]
-	how += "Solar, wind, nuclear, a coal phase-out and a carbon tax cut emissions."
+	how += "Solar, wind, nuclear, a coal phase-out and a carbon tax cut emissions. Clean energy also shields you from oil shocks."
 	var more := Climate.disaster_mult() - 1.0
 	if more >= 0.05:
 		how += " Floods, storms and heatwaves are now %d%% more likely than in %d." % [roundi(more * 100.0), Calendar.START_YEAR]

@@ -103,7 +103,8 @@ func _measure() -> void:
 static func oil_exposure(i: int) -> float:
 	var fuel := World.stat(i, "fuel_exports_pct", 5.0) / 100.0
 	var importer := 0.0 if fuel > 0.25 else (1.0 if Profiles.has_challenge(i, "energy_imports") else 0.6)
-	return fuel - importer * (1.0 - fuel) * 0.5 * Profiles.mult(i, "oil_import_exposure")
+	var shield := Climate.oil_shield(Game.state(i)) if Game.has_game() else 1.0
+	return fuel - importer * (1.0 - fuel) * 0.5 * Profiles.mult(i, "oil_import_exposure") * shield
 
 
 static func food_exposure(i: int) -> float:

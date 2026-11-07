@@ -63,6 +63,10 @@ static func headline() -> Dictionary:
 			low_u = minf(low_u, u[k])
 		if c.unemployment < low_u - 0.05:
 			cands.append(_h("u_rec_%d" % int(c.unemployment * 4.0), "Unemployment at a record low: %s" % DS.pct(c.unemployment), "users", true))
+	for deg in [1.5, 1.75, 2.0]:
+		if Climate.warming() >= deg and Climate.start_warming() < deg:
+			cands.append(_h("warm_%d" % int(deg * 100.0), "The world passes %s °C of warming" % String.num(deg, 2 if deg == 1.75 else 1),
+				"thermometer-sun", false))
 	if Government.has_elections(Game.player) and Game.months_to_election == 6:
 		cands.append(_h("elect6_%d" % Game.year, "Six months until the election", "vote", true))
 	for cand in cands:

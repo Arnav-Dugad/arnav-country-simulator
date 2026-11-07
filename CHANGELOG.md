@@ -2,6 +2,11 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.37.1] - 2026-11-08
+
+- **Energy security:** if you import energy, the clean power and transport you build (nuclear, solar, wind, hydro, electric cars, rail, metro) also soften the blow when oil prices spike. The World page shows by how much
+- Headlines when the world passes 1.5 °C, 1.75 °C and 2 °C of warming
+
 ## [0.37.0] - 2026-11-08
 
 - **Climate.** Every country starts at its real CO₂ emissions per person and renewable energy share (World Bank). Emissions follow your economy and fall with solar, wind, nuclear, hydro, a coal phase-out, a carbon tax, electric-car subsidies, rail and new forests (cards now show "CO₂ −7%")
