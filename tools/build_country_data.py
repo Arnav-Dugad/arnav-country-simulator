@@ -65,7 +65,7 @@ WB_INDICATORS = {
 }
 DETAIL_KEYS = ["health_pct", "education_pct", "research_pct", "gini", "age65_pct", "urban_pct",
                "tourism_pct", "manufacturing_pct", "agriculture_pct", "internet_pct", "electricity_pct",
-               "trade_pct", "corruption_wgi", "voice_wgi", "co2_pc", "renewables_pct"]
+               "trade_pct", "corruption_wgi", "voice_wgi", "co2_pc", "renewables_pct", "net_migration_rate"]
 IMF_INDICATORS = {
     "debt_pct": "GGXWDG_NGDP",
     "budget_balance_pct": "GGXCNL_NGDP",
@@ -125,6 +125,20 @@ def wb_latest(code, source):
     return out
 
 
+def wb_mean(code, y0, y1):
+    """{iso3: (mean value, last year)} over y0..y1 (smooths volatile series)."""
+    url = f"{WB}/country/all/indicator/{code}?format=json&per_page=20000&date={y0}:{y1}"
+    rows = fetch_json(url, f"wb_{code}_{y0}_{y1}.json")
+    acc = {}
+    if not isinstance(rows, list) or len(rows) < 2 or rows[1] is None:
+        return {}
+    for r in rows[1]:
+        iso, v, y = r.get("countryiso3code"), r.get("value"), r.get("date")
+        if iso and v is not None:
+            acc.setdefault(iso, []).append((float(v), int(y)))
+    return {iso: (sum(v for v, _ in xs) / len(xs), max(y for _, y in xs)) for iso, xs in acc.items()}
+
+
 def imf_latest(code):
     data = fetch_json(f"{IMF}/{code}", f"imf_{code}.json")
     out = {}
@@ -145,6 +159,9 @@ def main():
 
     wb = {k: wb_latest(code, src) for k, (code, src) in WB_INDICATORS.items()}
     imf = {k: imf_latest(code) for k, code in IMF_INDICATORS.items()}
+    # Net migration (UN WPP via World Bank): 2019-2023 average, people per year.
+    # Converted to a rate per 1,000 people below. Later years are projections.
+    netm = wb_mean("SM.POP.NETM", 2019, 2023)
 
     countries = {}
     admin_to_iso = {}
@@ -183,6 +200,9 @@ def main():
         for k, (ik, mul) in fb.items():
             if k not in c and ik in c:
                 c[k] = c[ik] * mul
+        if wb_code in netm and c.get("population"):
+            c["net_migration_rate"] = netm[wb_code][0] / c["population"] * 1000.0
+            c["years"]["net_migration_rate"] = netm[wb_code][1]
         for k in list(c):
             if k.startswith("_"):
                 del c[k]

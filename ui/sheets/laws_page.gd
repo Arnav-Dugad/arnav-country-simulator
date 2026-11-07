@@ -122,6 +122,10 @@ func _card(c: CountryState, l: Dictionary) -> Control:
 		chips.add_child(_chip(text, DS.GREEN if good else DS.RED))
 	if Climate.CUTS.has(l.id) and not c.laws_start.has(l.id):
 		chips.add_child(_chip("CO₂ −%d%%" % roundi(float(Climate.CUTS[l.id]) * 100.0), DS.GREEN))
+	if l.id == "skilled_visas":
+		chips.add_child(_chip("Migrants +%s per 1,000" % String.num(Economy.MIG_VISAS, 0), DS.TEXT_2))
+	elif l.id == "border_control":
+		chips.add_child(_chip("Migrants −%s per 1,000" % String.num(Economy.MIG_BORDER, 1), DS.TEXT_2))
 	# Who would cheer or boo (voter groups)
 	var who := Blocs.law_chips(c, l.id, on and pend == 0)
 	if not who.is_empty():
@@ -155,7 +159,7 @@ func _card(c: CountryState, l: Dictionary) -> Control:
 		b.pressed.connect(_confirm.bind(l, false))
 		if Government.is_free(c.idx) and Blocs.LAW_FX.has(l.id) and not bool(l.get("oneway", false)):
 			v.add_child(b)
-			var r := AppButton.make("Or ask the people (referendum)", &"GhostButton", "vote")
+			var r := AppButton.make("Or hold a referendum", &"GhostButton", "vote")
 			r.pressed.connect(_referendum.bind(l))
 			v.add_child(r)
 			return v

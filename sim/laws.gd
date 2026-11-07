@@ -37,6 +37,9 @@ const ALL := [
 	{"id": "privatisation", "group": "Economy", "icon": "building-2", "title": "Privatise state companies",
 		"desc": "Sell government-run firms to private owners.", "months": 12, "politics": -3.0,
 		"fx": {"growth": 0.3, "unemployment": 0.3, "happiness": -1.5, "cost": -0.3}},
+	{"id": "skilled_visas", "group": "Economy", "icon": "plane-landing", "title": "Skilled-worker visas",
+		"desc": "Points-based visas that bring in doctors, engineers and builders.", "months": 6, "politics": -0.5,
+		"fx": {"growth": 0.1, "unemployment": 0.05}},
 	{"id": "export_zones", "group": "Economy", "icon": "plane-takeoff", "title": "Special export zones",
 		"desc": "Low-tax zones that attract foreign factories.", "months": 12, "politics": 0.0,
 		"fx": {"growth": 0.4, "unemployment": -0.3, "revenue": -0.1, "stability": -0.5}},
@@ -122,6 +125,9 @@ static func starting_set(c: CountryState) -> Dictionary:
 		out["anti_corruption"] = true
 	if lvl > 0.5 and lvl < 0.75:
 		out["export_zones"] = true
+	# Points-based or skilled-visa systems already run where rich countries draw migrants (Canada, Australia, Germany…).
+	if c.idx >= 0 and lvl > 0.7 and World.stat(c.idx, "net_migration_rate", 0.0) > 3.0:
+		out["skilled_visas"] = true
 	for k in out.keys():
 		if not out[k]:
 			out.erase(k)

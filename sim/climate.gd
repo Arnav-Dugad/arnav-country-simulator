@@ -37,12 +37,18 @@ static func start_warming() -> float:
 
 ## Green laws and projects this country added after the start.
 static func extras(c: CountryState) -> Array[String]:
+	# Cached on the country until its laws or projects change (checked every tick).
+	var key := Vector2i(c.laws_ver, c.projects_ver)
+	if c.has_meta(&"climate_key") and c.get_meta(&"climate_key") == key:
+		return c.get_meta(&"climate_extras")
 	var out: Array[String] = []
 	for id in CUTS:
 		if Laws.is_active(c, id) and not c.laws_start.has(id):
 			out.append(id)
 		elif Projects.is_done(c, id) and not bool(c.projects[id].get("start", false)):
 			out.append(id)
+	c.set_meta(&"climate_key", key)
+	c.set_meta(&"climate_extras", out)
 	return out
 
 

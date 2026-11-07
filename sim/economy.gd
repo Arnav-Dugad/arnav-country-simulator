@@ -400,6 +400,32 @@ static func tax_yield(rate: float, k: float) -> float:
 	return r * k * (1.0 - LAFFER * r * r)
 
 
+# --------------------------------------------------------------- migration ---
+# See sim/migration.gd. Rates are net migrants per 1,000 people a year.
+## Starting rates and changes are capped (war-time outflows like Ukraine's
+## -31 would otherwise dominate the model).
+const MIG_CAP := 15.0
+## Pull and push, compared with the start: per doubling of real income, per 10
+## points of happiness, per 10 points of lost stability, per point of extra
+## unemployment. (Gallup potential-migration surveys: income and safety lead.)
+const MIG_INCOME := 1.0
+## World real income growth that a country's own is compared against (% / 100).
+const MIG_WORLD_GROWTH := 0.02
+const MIG_HAPPY := 0.8
+const MIG_UNREST := 1.2
+const MIG_JOBS := 0.4
+## Laws: points-based skilled visas add arrivals; tougher borders cut them.
+const MIG_VISAS := 2.0
+const MIG_BORDER := 1.5
+## Growth per extra migrant per 1,000 people a year (% a year). IMF WEO 2020
+## ch. 4: a 1 pt rise in the migrant share of employment lifts output about
+## 1 % within five years. Ageing countries gain 1.5x (Migration.growth_effect).
+const MIG_GROWTH := 0.06
+## Short-run joblessness per extra arrival per 1,000 (% points; fades as the
+## economy adjusts through Simulation's unemployment hysteresis).
+const MIG_UNEMP := 0.03
+
+
 # ------------------------------------------------------------- term limits ---
 # See Government.TERM_LIMITS and Politics.
 ## Months before the last allowed election when the player must choose.

@@ -27,6 +27,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 	var px := Projects.modifiers(c)
 	var mx := Game.markets.effects(c)
 	var tx := Treaties.modifiers(c) if c.idx == Game.player else {}
+	var mig := Migration.delta(c)
 	var cx := Cabinet.modifiers(c) if c.idx == Game.player else {}
 	var i := c.idx
 	var autocracy := not Government.has_elections(c.idx)
@@ -44,6 +45,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Education", E.EDUCATION_GROWTH * Profiles.mult(i, "education_growth") * c.share_delta("education") / 10.0],
 		["Trade openness", E.TRADE_GROWTH * Profiles.mult(i, "trade_growth") * d_trade * 2.0 * 0.5],
 		["Trade deals", E.TRADE_DEAL_GROWTH * Profiles.mult(i, "deal_growth") * c.trade_deals],
+		["Migration", Migration.growth_effect(c, mig)],
 		["World oil prices", float(mx.growth)],
 		["Treaties & blocs", float(tx.get("growth", 0.0))],
 		["Your ministers", float(cx.get("growth", 0.0))],
@@ -94,6 +96,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 	var u_terms := [
 		["Normal level for your country", c.u_natural],
 		["Economic momentum", -E.OKUN * (c.growth - c.growth_anchor)],
+		["New arrivals", Migration.jobs_effect(mig)],
 		["Interest rates", E.RATE_UNEMP * gap],
 		["Recent events", float(c.shocks.unemployment)],
 		["Laws & reforms", float(lx.get("unemployment", 0.0))],
@@ -109,7 +112,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 	var usd_inflation := clampf(c.inflation, -2.0, 3.0)
 	c.gdp = maxf(c.gdp * pow(1.0 + (c.growth + usd_inflation) / 100.0, M), 1e6)
 	c.price_index *= pow(1.0 + usd_inflation / 100.0, M)
-	c.population *= pow(1.0 + c.pop_growth / 100.0, M)
+	c.population *= pow(1.0 + (c.pop_growth + Migration.pop_effect(mig)) / 100.0, M)
 
 	# --- Public finances ------------------------------------------------------
 	# Markets judge debt against what they already trust this country with: the

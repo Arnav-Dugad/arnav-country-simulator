@@ -2,6 +2,15 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.40.0] - 2026-11-08
+
+- **Migration.** Every country starts at its real net migration (UN data). Rising incomes and happiness draw people in; unrest, joblessness and falling living standards push them out
+- Newcomers grow the population and the workforce, giving extra growth (most of all in ageing countries) and a little more competition for jobs at first. Both show up in the "Why?" explainers
+- New law: **Skilled-worker visas** (already in force in countries like Canada, Australia and Germany). Tougher border controls now also cut arrivals
+- Country pages show migration, with headlines when the flow turns around
+- The referendum button now reads "Or hold a referendum" (no longer cut off on small phones)
+- Faster monthly simulation (climate lookups are cached)
+
 ## [0.39.0] - 2026-11-08
 
 - **The opposition has a face.** In countries with elections you now run against a named (fictional) opposition leader and their party: People's Voice, Green Alliance, Enterprise Party and more

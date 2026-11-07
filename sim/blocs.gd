@@ -21,6 +21,7 @@ const LAW_FX := {
 	"wealth_tax": {"workers": 3.0, "business": -8.0},
 	"privatisation": {"business": 6.0, "workers": -5.0},
 	"export_zones": {"business": 5.0, "rural": -2.0},
+	"skilled_visas": {"business": 5.0, "youth": 2.0, "rural": -3.0, "retirees": -2.0},
 	"universal_health": {"retirees": 5.0, "workers": 4.0, "business": -2.0},
 	"free_university": {"youth": 8.0, "business": -1.0},
 	"parental_leave": {"youth": 4.0, "workers": 2.0, "business": -2.0},

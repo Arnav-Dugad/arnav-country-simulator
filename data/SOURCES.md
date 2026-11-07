@@ -52,6 +52,7 @@ Snapshot built **2026-11-07**. Each value is the **most recent available year
 | corruption_wgi / voice_wgi (−2.5…2.5) | World Bank WGI | GOV_WGI_CC.EST / GOV_WGI_VA.EST |
 | co2_pc (t CO₂ per person, excl. land use) | World Bank WDI (EDGAR) | EN.GHG.CO2.PC.CE.AR5 |
 | renewables_pct (% of final energy use) | World Bank WDI (IEA/IRENA) | EG.FEC.RNEW.ZS |
+| net_migration_rate (per 1,000 people a year, 2019–2023 mean) | World Bank WDI (UN WPP 2024) | SM.POP.NETM ÷ population |
 
 The detail fields above (health … voice) shape budgets, projects, events and traits. Missing values use
 regional medians and are listed per country in `estimated_detail`.

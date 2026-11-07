@@ -63,6 +63,12 @@ static func headline() -> Dictionary:
 			low_u = minf(low_u, u[k])
 		if c.unemployment < low_u - 0.05:
 			cands.append(_h("u_rec_%d" % int(c.unemployment * 4.0), "Unemployment at a record low: %s" % DS.pct(c.unemployment), "users", true))
+	var m0 := Migration.start_rate(Game.player)
+	var m := Migration.rate(c)
+	if m0 < -0.5 and m > 0.3:
+		cands.append(_h("mig_in", "More people now move to %s than leave" % World.the_name(Game.player), "plane-landing", true))
+	elif m0 > 0.5 and m < -0.3:
+		cands.append(_h("mig_out", "More people now leave %s than arrive" % World.the_name(Game.player), "plane-takeoff", false))
 	for deg in [1.5, 1.75, 2.0]:
 		if Climate.warming() >= deg and Climate.start_warming() < deg:
 			cands.append(_h("warm_%d" % int(deg * 100.0), "The world passes %s °C of warming" % String.num(deg, 2 if deg == 1.75 else 1),
