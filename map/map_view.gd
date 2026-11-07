@@ -319,11 +319,13 @@ func spotlight(i: int, on: bool, color: Color = DS.GOLD) -> void:
 	if _spot_tween:
 		_spot_tween.kill()
 	_fill_mat.set_shader_parameter(&"spot_color", color)
-	var from: float = _fill_mat.get_shader_parameter(&"spotlight")
+	# Unset shader parameters read back as null: start from 0 then.
+	var cur: Variant = _fill_mat.get_shader_parameter(&"spotlight")
+	var from := float(cur) if cur != null else 0.0
 	_spot_tween = create_tween()
 	DS.ease_out(_spot_tween)
 	_spot_tween.tween_method(func(v: float) -> void: _fill_mat.set_shader_parameter(&"spotlight", v),
-		from if from != null else 0.0, 1.0 if on and i >= 0 else 0.0, Settings.dur(0.9))
+		from, 1.0 if on and i >= 0 else 0.0, Settings.dur(0.9))
 
 
 func select(i: int, focus: bool = false) -> void:
