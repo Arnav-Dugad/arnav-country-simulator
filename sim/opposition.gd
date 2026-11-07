@@ -6,13 +6,14 @@ extends RefCounted
 ## you win (losing leaders rarely survive). Generation counter: Game.dip.opp_gen.
 
 ## Fictional parties, one picked per opposition leader.
+## "base": the voter groups it pulls away from you (support points, see Blocs).
 const PARTIES := [
-	{"party": "People's Voice", "pitch": "Power back to ordinary people"},
-	{"party": "Green Alliance", "pitch": "A cleaner, fairer future"},
-	{"party": "Enterprise Party", "pitch": "Lower taxes, more jobs"},
-	{"party": "Labour Movement", "pitch": "Fair wages and strong public services"},
-	{"party": "National Union", "pitch": "Order, family and pride"},
-	{"party": "Renewal Party", "pitch": "Fresh faces, honest government"},
+	{"party": "People's Voice", "pitch": "Power back to ordinary people", "base": {"workers": -5.0, "rural": -5.0}},
+	{"party": "Green Alliance", "pitch": "A cleaner, fairer future", "base": {"youth": -8.0}},
+	{"party": "Enterprise Party", "pitch": "Lower taxes, more jobs", "base": {"business": -8.0}},
+	{"party": "Labour Movement", "pitch": "Fair wages and strong public services", "base": {"workers": -7.0, "youth": -2.0}},
+	{"party": "National Union", "pitch": "Order, family and pride", "base": {"retirees": -6.0, "rural": -5.0}},
+	{"party": "Renewal Party", "pitch": "Fresh faces, honest government", "base": {"youth": -5.0, "business": -2.0}},
 ]
 ## Lines of attack, by your weakest record (see attack()).
 const ATTACKS := {
@@ -53,7 +54,7 @@ static func leader() -> Dictionary:
 	# The party stays; its leaders change.
 	var p: Dictionary = PARTIES[absi(hash("%s#opp-party" % World.iso(i))) % PARTIES.size()]
 	return {"name": Names.full(i, fi, li), "female": female, "portrait": portrait,
-		"party": str(p.party), "pitch": str(p.pitch)}
+		"party": str(p.party), "pitch": str(p.pitch), "base": p.base}
 
 
 ## After an election you won: the opposition picks someone new.

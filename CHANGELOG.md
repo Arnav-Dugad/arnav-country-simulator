@@ -2,6 +2,10 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.40.1] - 2026-11-08
+
+- Voter groups now lean differently: the opposition party's heartland (workers for the Labour Movement, business for the Enterprise Party, rural voters and retirees for the National Union…) is harder to win over. The People card shows who leans where
+
 ## [0.40.0] - 2026-11-08
 
 - **Migration.** Every country starts at its real net migration (UN data). Rising incomes and happiness draw people in; unrest, joblessness and falling living standards push them out

@@ -99,6 +99,11 @@ static func reasons(c: CountryState) -> Dictionary:
 				_add(out, g, "Scrapping " + Laws.title_of(c, Laws.law(id)).to_lower(), -float(LAW_FX[id][g]))
 	if Projects.is_done(c, "rural_roads") and not bool(c.projects.get("rural_roads", {}).get("start", false)):
 		_add(out, "rural", "New rural roads", 4.0)
+	# The opposition's heartland leans away from you.
+	if c.idx == Game.player and Opposition.active():
+		var opp := Opposition.leader()
+		for g in opp.base:
+			_add(out, str(g), "Lean to the %s" % str(opp.party), float(opp.base[g]))
 	if Projects.is_done(c, "housing") and not bool(c.projects.get("housing", {}).get("start", false)):
 		_add(out, "youth", "Affordable homes", 4.0)
 	return out
@@ -137,6 +142,8 @@ static func top_reason(c: CountryState, g: String) -> String:
 			best = str(r[0])
 	if best == "":
 		return "No strong feelings"
+	if best.begins_with("Lean to"):
+		return best
 	var mood := "Pleased with"
 	if bv < 0.0:
 		mood = "Angry about" if float(support(c)[g]) < 40.0 else "Worried about"
