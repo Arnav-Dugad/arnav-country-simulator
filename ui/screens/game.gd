@@ -120,6 +120,11 @@ func _ready() -> void:
 		Haptics.success()
 		if _current == "laws":
 			_pages["laws"].refresh())
+	Game.goal_reached.connect(func(g: Dictionary) -> void:
+		_notify("Goal reached: %s" % Goals.title(g), str(Goals.SPECS[g.id].icon), DS.GOLD, true)
+		Haptics.success()
+		Audio.play("success", -4.0)
+		_confetti())
 	Game.project_finished.connect(func(id: String) -> void:
 		var p := Projects.by_id(id)
 		_notify("%s is open" % str(p.title), str(p.icon), DS.GREEN, true)
@@ -850,14 +855,18 @@ func _show_election(r: Dictionary) -> void:
 	var msg := _modal.body("")
 	share.set_instant(0.0)
 	share.value = float(r.share)
-	var t := create_tween()
+	var card := _modal
+	# Bound to the card: if this card is replaced (two votes in a row while
+	# fast-forwarding), the count stops instead of touching freed nodes.
+	var t := card.create_tween()
 	t.tween_method(func(v: float) -> void:
 		prog.v = v
-		bar.queue_redraw()
+		if is_instance_valid(bar):
+			bar.queue_redraw()
 		if int(v) % 5 == 0:
 			Haptics.tick(), 0.0, float(r.share), Settings.dur(2.4)).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	await t.finished
-	if not is_instance_valid(_modal):
+	if not is_instance_valid(card) or card != _modal or not is_instance_valid(title):
 		map.spotlight(-1, false)
 		return
 	var who := str(Settings.leader_name).strip_edges()
@@ -880,6 +889,44 @@ func _show_election(r: Dictionary) -> void:
 		map.spotlight(-1, false)
 		_modal.dismiss()
 		Game.continue_after_election(won))
+
+
+## A short, tasteful burst of gold sparks from the top bar (goals, big wins).
+func _confetti() -> void:
+	if Settings.reduce_motion or _dev_fast:
+		return
+	var p := CPUParticles2D.new()
+	p.position = Vector2(size.x * 0.5, top_bar.position.y + 40.0)
+	p.amount = 46
+	p.one_shot = true
+	p.explosiveness = 0.92
+	p.lifetime = 1.6
+	p.direction = Vector2(0, 1)
+	p.spread = 70.0
+	p.initial_velocity_min = 140.0
+	p.initial_velocity_max = 320.0
+	p.gravity = Vector2(0, 340)
+	p.damping_min = 20.0
+	p.damping_max = 40.0
+	p.angular_velocity_min = -360.0
+	p.angular_velocity_max = 360.0
+	p.scale_amount_min = 2.0
+	p.scale_amount_max = 4.5
+	var grad := Gradient.new()
+	grad.set_color(0, Color(DS.GOLD, 1.0))
+	grad.set_color(1, Color(DS.GOLD.lightened(0.3), 0.0))
+	p.color_ramp = grad
+	p.color_initial_ramp = _confetti_colors()
+	add_child(p)
+	p.emitting = true
+	get_tree().create_timer(2.2).timeout.connect(p.queue_free)
+
+
+static func _confetti_colors() -> Gradient:
+	var g := Gradient.new()
+	g.offsets = PackedFloat32Array([0.0, 0.33, 0.66, 1.0])
+	g.colors = PackedColorArray([DS.GOLD, DS.ACCENT_SOFT, DS.GREEN, Color.WHITE])
+	return g
 
 
 ## The army is restless (military governments): a calm, critical warning.

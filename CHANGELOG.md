@@ -2,6 +2,15 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.18.0] - 2026-11-08
+
+**National goals**
+- Three goals picked from your own country's weak spots (tame prices, more jobs, cut the debt, a calmer country, raise incomes, balance the budget…), always measured from where you started
+- Progress rings in Economy; reaching a goal brings a burst of gold, a little approval and a new goal. Goals reached count toward your legacy grade
+
+**Fixed**
+- Two elections close together while fast-forwarding no longer leave the vote count animation running on a closed card
+
 ## [0.17.1] - 2026-11-08
 
 - **Fixed: researched country details were missing on phones.** Taglines, main exports, trading partners, friends and rivals, natural risks, strengths and challenges now appear on every country card on Android too (and shape the game as intended)

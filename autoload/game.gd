@@ -26,6 +26,7 @@ signal world_news(item: Dictionary)
 signal challenge_ended(won: bool)
 signal feed_added(item: Dictionary)
 signal treaty_joined(id: String)
+signal goal_reached(goal: Dictionary)
 
 const START_YEAR := Calendar.START_YEAR
 const HISTORY_MAX := 1200
@@ -157,6 +158,7 @@ func new_game(country_index: int, seed_value: int = -1, level: String = "") -> v
 		"unemployment": c.unemployment, "balance": c.balance, "rating": c.rating()}
 	_record_history()
 	me().refresh_explainer()
+	Goals.refill()
 	running = true
 	started.emit()
 
@@ -266,6 +268,8 @@ func advance_month() -> void:
 	for id in Treaties.monthly(rng):
 		treaty_joined.emit(str(id))
 	cabinet.monthly()
+	for g in Goals.monthly():
+		goal_reached.emit(g)
 	_record_history()
 	month_passed.emit()
 	_after_month(my_crisis)
@@ -386,7 +390,7 @@ func summary(reason: String = "") -> Dictionary:
 		"happiness_end": c.happiness, "events": director.log.size(), "trend": c.trend,
 		"projects": Projects.count_done(c) - c.projects.values().filter(func(p: Dictionary) -> bool:
 			return bool(p.get("start", false))).size(),
-		"cheats": cheats_used,
+		"cheats": cheats_used, "goals_done": Goals.done_count(),
 		"laws": c.laws.keys().filter(func(k: String) -> bool:
 			return Laws.is_active(c, k) and not c.laws_start.has(k)).size()}
 
@@ -556,6 +560,7 @@ func load_dict(d: Dictionary) -> bool:
 		director.load_dict(d.get("director", {}))
 	world_ai.reset()
 	me().refresh_explainer()
+	Goals.refill()
 	running = true
 	started.emit()
 	return true

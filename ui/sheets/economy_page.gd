@@ -28,6 +28,7 @@ const INFO_TEXT := {
 }
 var _health: HealthCard
 var _trend: TrendCard
+var _goals: GoalsCard
 var _undo: AppButton
 var _snapshot := {}
 
@@ -43,6 +44,8 @@ func _build() -> void:
 	_health = HealthCard.new()
 	_health.page_requested.connect(func(p: String) -> void: page_requested.emit(p))
 	add_child(_health)
+	_goals = GoalsCard.new()
+	add_child(_goals)
 	_trend = TrendCard.new()
 	add_child(_trend)
 	var g := grid(self)
@@ -248,6 +251,7 @@ func refresh() -> void:
 	_update_chart(false)
 	_health.refresh()
 	_trend.refresh()
+	_goals.refresh()
 	if Game.me().cb_auto:
 		_rate.set_value(Game.me().interest_rate, false)
 		_sync_cb()

@@ -343,6 +343,7 @@ static func legacy_parts(s: Dictionary) -> Array:
 		["Elections won" if int(s.get("reviews_passed", 0)) == 0 else "Mandates renewed",
 			minf((float(s.elections_won) + float(s.get("reviews_passed", 0))) * 6.0, 24.0)],
 		["Time in office", minf(years * 1.5, 15.0)],
+		["National goals reached", minf(float(s.get("goals_done", 0)) * 3.0, 15.0)],
 		["Final approval", clampf((float(s.approval) - 45.0) * 0.4, -8.0, 8.0)],
 		["Short term", -12.0 * (1.0 - w)],
 	]
