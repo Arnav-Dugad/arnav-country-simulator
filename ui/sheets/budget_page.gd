@@ -39,6 +39,7 @@ func _build() -> void:
 		g.add_child(t)
 	_interest_note = note("")
 
+	_build_plans()
 	var c := Game.me()
 	var total := section("Total spending")
 	_total = AppSlider.new().setup("Public spending", 8, 60, 0.5, c.spending_pct)
@@ -131,6 +132,87 @@ func _after_change() -> void:
 		_shares[k].set_value(c.budget[k] * 100.0, false)
 	_syncing = false
 	refresh()
+
+
+# ------------------------------------------------------------- quick plans ---
+## One-tap plans: several sliders at once, previewed with a 12-month forecast.
+const PLANS := [
+	{"id": "balance", "title": "Balance the books", "icon": "piggy-bank", "tint": "green",
+		"desc": "Spend a little less and nudge income tax up to shrink the deficit.",
+		"spending": -2.0, "income_tax": 1.0, "shares": {}},
+	{"id": "growth", "title": "Kickstart growth", "icon": "trending-up", "tint": "accent",
+		"desc": "Spend a bit more, aimed at roads, research and schools.",
+		"spending": 1.5, "income_tax": 0.0, "shares": {"infrastructure": 4.0, "research": 3.0, "education": 2.0}},
+	{"id": "care", "title": "Care for people", "icon": "heart", "tint": "red",
+		"desc": "Shift money toward healthcare and welfare.",
+		"spending": 1.0, "income_tax": 0.0, "shares": {"health": 4.0, "welfare": 4.0}},
+	{"id": "secure", "title": "Strong and secure", "icon": "shield", "tint": "teal",
+		"desc": "A bigger military budget for stability and deterrence.",
+		"spending": 0.5, "income_tax": 0.0, "shares": {"military": 5.0}},
+]
+
+
+static func _apply_plan(c: CountryState, p: Dictionary) -> void:
+	c.spending_pct = clampf(c.spending_pct + float(p.spending), 8.0, 60.0)
+	c.income_tax = clampf(c.income_tax + float(p.income_tax), 0.0, 60.0)
+	for k in p.shares:
+		c.set_budget_share(str(k), float(c.budget[k]) + float(p.shares[k]) / 100.0)
+	Simulation.update_finances(c)
+
+
+func _build_plans() -> void:
+	var box := section("Quick plans")
+	for p in PLANS:
+		var row := ListRow.new().setup(str(p.title), str(p.desc), "›")
+		row.subtitle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		row.subtitle_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+		row.trailing_label.add_theme_color_override(&"font_color", DS.TEXT_3)
+		row.set_leading(ListRow.icon_tile(str(p.icon), {"green": DS.GREEN, "accent": DS.ACCENT, "red": DS.RED,
+			"teal": DS.TEAL}.get(str(p.tint), DS.ACCENT)))
+		row.tapped.connect(_preview_plan.bind(p))
+		box.add_child(row)
+	note("Each plan moves several sliders at once. You'll see what it changes before you commit.", box)
+
+
+func _preview_plan(p: Dictionary) -> void:
+	var c := Game.me()
+	var now := Simulation.project(c, 12)
+	var copy := c.clone()
+	_apply_plan(copy, p)
+	var then := Simulation.project(copy, 12)
+	var m := ModalCard.new()
+	get_tree().current_scene.add_child(m)
+	m.header(str(p.icon), {"green": DS.GREEN, "accent": DS.ACCENT, "red": DS.RED, "teal": DS.TEAL}.get(str(p.tint), DS.ACCENT),
+		"Quick plan", str(p.title))
+	m.body(str(p.desc) + " In 12 months, compared with doing nothing:")
+	var rows := [["Growth", then.growth - now.growth, true, "pts"], ["Inflation", then.inflation - now.inflation, false, "pts"],
+		["Jobless", then.unemployment - now.unemployment, false, "pts"], ["Happiness", then.happiness - now.happiness, true, ""],
+		["Approval", then.approval - now.approval, true, ""], ["Budget balance", then.balance_pct() - now.balance_pct(), true, "% GDP"]]
+	var flow := HFlowContainer.new()
+	flow.add_theme_constant_override(&"h_separation", 6)
+	flow.add_theme_constant_override(&"v_separation", 6)
+	m.content.add_child(flow)
+	for r in rows:
+		var d := float(r[1])
+		if absf(d) < 0.05:
+			continue
+		var pc := PanelContainer.new()
+		pc.theme_type_variation = &"ForecastChip"
+		var l := Label.new()
+		l.theme_type_variation = &"ChipValue"
+		l.text = "%s %+.1f%s" % [r[0], d, (" " + str(r[3])) if str(r[3]) != "" else ""]
+		l.add_theme_color_override(&"font_color", DS.GREEN if (d > 0.0) == bool(r[2]) else DS.RED)
+		pc.add_child(l)
+		flow.add_child(pc)
+	m.choice("Apply this plan", "", &"PrimaryButton", func() -> void:
+		_apply_plan(Game.me(), p)
+		Haptics.success()
+		m.dismiss()
+		_total.set_value(Game.me().spending_pct, false)
+		_after_change()
+		for s in _strips:
+			s.request())
+	m.choice("Not now", "", &"GhostButton", m.dismiss)
 
 
 func refresh() -> void:

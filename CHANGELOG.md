@@ -2,6 +2,10 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.29.0] - 2026-11-08
+
+- **Quick plans** in Budget: Balance the books, Kickstart growth, Care for people and Strong and secure. One tap moves several sliders at once, after a preview of what it would change in 12 months
+
 ## [0.28.0] - 2026-11-08
 
 - **Your story**: a timeline in the Inbox of the big moments of your rule (taking office, laws passed, projects opened, goals reached, treaties joined, elections)
