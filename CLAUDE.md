@@ -52,7 +52,8 @@ DevTools user args (after `--`): `--scene=`, `--shot=`, `--shot-delay=`, `--size
 - Simulation constants: only in `sim/economy.gd`, documented.
 - Every phase: run headless import + smoke run, fix all errors/warnings, then commit.
 - **Touch & scrolling:** controls inside scroll views use MOUSE_FILTER_PASS and decide direction after an 8 px slop (vertical = let the ScrollContainer scroll). Never use STOP + accept_event on press. Guarded by tools/scroll_test (CI, xvfb).
-- **Laptop resources:** do not use the emulator or run local APK/Gradle exports; push a tag and let CI build.
+- **Laptop resources:** no local APK/Gradle exports; push a tag and let CI build.
+- **Release = draft → emulator smoke test → publish.** CI creates a DRAFT release; download its APK (`gh release download`), install on the emulator, check launch/map/sheets/scroll + logcat, then `gh release edit vX.Y.Z --draft=false`.
 
 ## Design system
 - **Glass**: `GlassPanel` (PanelContainer) = theme stylebox (soft shadow, radius, padding) + internal

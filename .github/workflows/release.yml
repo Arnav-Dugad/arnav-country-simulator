@@ -153,5 +153,7 @@ jobs:
             gh release upload "$TAG" "$APK" --clobber
             gh release edit "$TAG" --notes-file notes.md
           else
-            gh release create "$TAG" "$APK" --title "Arnav Country Simulator $TAG" --notes-file notes.md
+            # Draft: invisible to players and the in-app updater until it has been
+            # smoke-tested on an emulator, then published with --draft=false.
+            gh release create "$TAG" "$APK" --draft --title "Arnav Country Simulator $TAG" --notes-file notes.md
           fi
