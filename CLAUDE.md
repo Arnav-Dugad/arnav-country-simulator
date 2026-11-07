@@ -66,3 +66,4 @@ DevTools user args (after `--`): `--scene=`, `--shot=`, `--shot-delay=`, `--size
 - **Layout**: full-screen map; floating glass top bar (date, speed, treasury); floating glass dock
   (Economy, Budget, Diplomacy, Events, Settings); bottom sheets with handle + snap (peek/half/full).
 - Respect safe areas (`Screen.top/bottom/left/right`).
+- **Anchors:** always use `set_anchors_and_offsets_preset()`. Plain `set_anchors_preset()` on a node already in the tree keeps its old (often zero) size.

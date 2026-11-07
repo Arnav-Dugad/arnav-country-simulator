@@ -9,7 +9,7 @@ func _ready() -> void:
 	layer = 120
 	_veil = ColorRect.new()
 	_veil.color = DS.OCEAN_BOTTOM
-	_veil.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_veil.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_veil.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_veil.modulate.a = 0.0
 	add_child(_veil)

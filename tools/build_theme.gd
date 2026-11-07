@@ -156,6 +156,10 @@ func _panels() -> void:
 	th.set_stylebox(&"panel", &"GroupPanel", _box(DS.FILL_3 + Color(0, 0, 0, 0.02), DS.R_CARD, DS.S4, DS.S3))
 	th.set_type_variation(&"TilePanel", &"PanelContainer")
 	th.set_stylebox(&"panel", &"TilePanel", _box(DS.FILL, DS.R_BUTTON, DS.S3, DS.S3))
+	th.set_type_variation(&"SegmentIndicator", &"Panel")
+	th.set_stylebox(&"panel", &"SegmentIndicator", _box(Color(1, 1, 1, 0.16), DS.R_PILL, 0, 0))
+	th.set_type_variation(&"SheetHandle", &"Panel")
+	th.set_stylebox(&"panel", &"SheetHandle", _box(Color(1, 1, 1, 0.28), DS.R_PILL, 0, 0))
 	th.set_stylebox(&"panel", &"PanelContainer", StyleBoxEmpty.new())
 	th.set_stylebox(&"panel", &"Panel", StyleBoxEmpty.new())
 

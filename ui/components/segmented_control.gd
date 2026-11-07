@@ -1,0 +1,100 @@
+class_name SegmentedControl
+extends GlassPanel
+## Glass segmented control. Segments are icon-only except the selected one,
+## which expands to icon + label; a soft pill indicator glides between them.
+
+signal changed(index: int)
+
+var labels: PackedStringArray = []
+var icons: PackedStringArray = []
+var selected := 0
+## When false, every segment shows its label (use for short label sets).
+var compact := true
+
+var _stack: Control
+var _indicator: Panel
+var _row: HBoxContainer
+var _buttons: Array[AppButton] = []
+var _tween: Tween
+
+
+func setup(labels_: PackedStringArray, icons_: PackedStringArray = [], selected_: int = 0) -> SegmentedControl:
+	labels = labels_
+	icons = icons_
+	selected = selected_
+	return self
+
+
+func _ready() -> void:
+	theme_type_variation = &"GlassPill"
+	super._ready()
+	_stack = Control.new()
+	_stack.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_stack)
+	_indicator = Panel.new()
+	_indicator.theme_type_variation = &"SegmentIndicator"
+	_indicator.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_stack.add_child(_indicator)
+	_row = HBoxContainer.new()
+	_row.add_theme_constant_override(&"separation", 2)
+	_row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_stack.add_child(_row)
+	for i in labels.size():
+		var b := AppButton.new()
+		b.theme_type_variation = &"Segment"
+		if i < icons.size():
+			b.icon_name = icons[i]
+		b.custom_minimum_size = Vector2(40, 36)
+		b.pressed.connect(_on_pressed.bind(i))
+		b.tooltip_text = labels[i]
+		_row.add_child(b)
+		_buttons.append(b)
+	_row.minimum_size_changed.connect(_sync_size)
+	_row.sort_children.connect(_move_indicator.bind(true))
+	_refresh(false)
+
+
+func select(i: int, emit: bool = true) -> void:
+	if i == selected:
+		return
+	selected = i
+	_refresh(true)
+	if emit:
+		changed.emit(i)
+
+
+func _on_pressed(i: int) -> void:
+	Haptics.select()
+	select(i)
+
+
+func _refresh(animate: bool) -> void:
+	for i in _buttons.size():
+		var on := i == selected
+		_buttons[i].theme_type_variation = &"SegmentSelected" if on else &"Segment"
+		_buttons[i].text = labels[i] if (on or not compact or icons.is_empty()) else ""
+	_sync_size()
+	if not animate:
+		_move_indicator.call_deferred(false)
+
+
+func _sync_size() -> void:
+	if _row:
+		_stack.custom_minimum_size = _row.get_combined_minimum_size()
+
+
+func _move_indicator(animate: bool) -> void:
+	if _buttons.is_empty() or selected >= _buttons.size():
+		return
+	var b := _buttons[selected]
+	var target := Rect2(b.position, b.size)
+	if _tween:
+		_tween.kill()
+	if not animate or _indicator.size.x < 1.0:
+		_indicator.position = target.position
+		_indicator.size = target.size
+		return
+	_tween = create_tween().set_parallel(true)
+	DS.ease_out(_tween)
+	_tween.tween_property(_indicator, "position", target.position, Settings.dur(DS.DUR))
+	_tween.tween_property(_indicator, "size", target.size, Settings.dur(DS.DUR))

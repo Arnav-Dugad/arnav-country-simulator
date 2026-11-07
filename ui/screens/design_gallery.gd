@@ -7,7 +7,7 @@ func _ready() -> void:
 	add_child(OceanBackground.new())
 	# Colourful shapes behind the glass so the blur is visible.
 	var blobs := Control.new()
-	blobs.set_anchors_preset(Control.PRESET_FULL_RECT)
+	blobs.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	blobs.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	blobs.draw.connect(func() -> void:
 		blobs.draw_circle(Vector2(90, 220), 90, DS.ACCENT, true, -1.0, true)
@@ -17,7 +17,7 @@ func _ready() -> void:
 	add_child(blobs)
 
 	var scroll := ScrollContainer.new()
-	scroll.set_anchors_preset(Control.PRESET_FULL_RECT)
+	scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	add_child(scroll)
 	var margin := MarginContainer.new()

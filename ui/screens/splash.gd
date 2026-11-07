@@ -11,7 +11,7 @@ var _subtitle: Label
 func _ready() -> void:
 	add_child(OceanBackground.new())
 	var col := VBoxContainer.new()
-	col.set_anchors_preset(Control.PRESET_CENTER)
+	col.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
 	col.alignment = BoxContainer.ALIGNMENT_CENTER
 	col.add_theme_constant_override(&"separation", DS.S4)
 	col.grow_horizontal = Control.GROW_DIRECTION_BOTH
