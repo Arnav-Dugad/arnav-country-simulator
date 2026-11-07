@@ -2,17 +2,62 @@ class_name Toast
 extends GlassPanel
 ## A calm headline banner: slides down under the top chrome, stays a few seconds,
 ## then fades away. Tap to dismiss early.
+## Only ever one on screen (Material snackbar rule): others wait in a short queue,
+## duplicates are merged, and calm mode keeps a gap between banners.
 
 const HOLD := 3.6
+const MAX_QUEUE := 3
+const GAP_CALM := 4.0     # seconds between banners in calm mode
+const GAP_ALL := 0.5
+
+static var _queue: Array = []       # [[parent, text, icon, tint, top]]
+static var _busy := false
+static var _last_end_ms := -100000
 
 var _label: Label
 var _icon: Control
 
 
 static func show_headline(parent: Control, text: String, icon_name: String, tint: Color, top: float) -> void:
+	for q in _queue:
+		if str(q[1]) == text:
+			return
+	if _busy:
+		_queue.append([parent, text, icon_name, tint, top])
+		if _queue.size() > MAX_QUEUE:
+			_queue.pop_front()
+		return
+	var gap := GAP_CALM if str(Settings.get_value("banners", "calm")) == "calm" else GAP_ALL
+	var wait := gap - (Time.get_ticks_msec() - _last_end_ms) / 1000.0
+	_busy = true
+	if wait > 0.0 and is_instance_valid(parent) and parent.is_inside_tree():
+		parent.get_tree().create_timer(wait).timeout.connect(func() -> void: _spawn(parent, text, icon_name, tint, top))
+	else:
+		_spawn(parent, text, icon_name, tint, top)
+
+
+static func _spawn(parent: Control, text: String, icon_name: String, tint: Color, top: float) -> void:
+	if not is_instance_valid(parent) or not parent.is_inside_tree():
+		_busy = false
+		_queue.clear()
+		return
 	var t: GlassPanel = load("res://ui/components/toast.gd").new()
 	parent.add_child(t)
 	t.call(&"_present", text, icon_name, tint, top)
+
+
+static func _done() -> void:
+	_busy = false
+	_last_end_ms = Time.get_ticks_msec()
+	if not _queue.is_empty():
+		var q: Array = _queue.pop_front()
+		show_headline(q[0], q[1], q[2], q[3], q[4])
+
+
+## Forget queued banners (e.g. when leaving the game screen).
+static func clear_queue() -> void:
+	_queue.clear()
+	_busy = false
 
 
 func _present(text: String, icon_name: String, icon_tint: Color, top: float) -> void:
@@ -51,6 +96,11 @@ func _present(text: String, icon_name: String, icon_tint: Color, top: float) -> 
 			_leave())
 
 
+func _exit_tree() -> void:
+	if mouse_filter != Control.MOUSE_FILTER_IGNORE:   # freed without leaving (screen change)
+		_done()
+
+
 func _leave() -> void:
 	if not is_inside_tree() or mouse_filter == Control.MOUSE_FILTER_IGNORE:
 		return
@@ -59,4 +109,6 @@ func _leave() -> void:
 	DS.ease_out(t)
 	t.tween_property(self, "position:y", position.y - 12.0, Settings.dur(DS.DUR_FAST))
 	t.tween_property(self, "modulate:a", 0.0, Settings.dur(DS.DUR_FAST))
-	t.chain().tween_callback(queue_free)
+	t.chain().tween_callback(func() -> void:
+		_done()
+		queue_free())

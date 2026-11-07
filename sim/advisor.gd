@@ -8,19 +8,26 @@ static func advice(c: CountryState) -> Array:
 	var out: Array = []
 	var b: Dictionary = c.base
 	var deficit := -c.balance_pct()
-	var m_left := Game.months_to_election
+	var elections := Government.has_elections(c.idx)
+	var m_left := Game.politics.months_left() if elections else 999
+	var auto_cb := c.cb_auto
 
 	if c.inflation > maxf(6.0, float(b.inflation) + 2.0) and c.inflation > 4.0:
 		out.append(_item(2 if c.inflation > 12.0 else 1, "Prices are rising fast (%s)" % DS.pct(c.inflation),
+			"Your central bank is raising rates; trimming the deficit helps it work." if auto_cb else
 			"Raise the interest rate a little to cool inflation. It slows growth for a while.", "economy", "flame"))
 	if c.unemployment > float(b.unemployment) + 2.0:
 		out.append(_item(1, "Jobs are disappearing (%s jobless)" % DS.pct(c.unemployment),
-			"Lower the interest rate or spend a bit more to get people back to work.", "economy", "users"))
+			"Build something: construction projects put people to work." if auto_cb else
+			"Lower the interest rate or spend a bit more to get people back to work.", "build" if auto_cb else "economy", "users"))
 	if c.approval < 45.0 and m_left <= 18:
 		out.append(_item(2, "Election in %d months, approval %s" % [m_left, DS.pct(c.approval, 0)],
 			"Win back voters: avoid income-tax rises, fund healthcare and welfare, keep prices calm.", "budget", "vote"))
+	elif not elections and c.approval < 30.0 and c.stability < 30.0:
+		out.append(_item(2, "Unrest could topple you",
+			"Without elections, anger spills onto the streets. Raise support and stability fast.", "economy", "megaphone"))
 	elif c.approval < 40.0:
-		out.append(_item(1, "Approval is low (%s)" % DS.pct(c.approval, 0),
+		out.append(_item(1, "%s is low (%s)" % [Government.support_word(c.idx), DS.pct(c.approval, 0)],
 			"People back leaders who keep them happy. Check what is pulling approval down.", "economy", "vote"))
 	if deficit > maxf(6.0, float(b.get("deficit_pct", 3.0)) + 2.0):
 		out.append(_item(1 if c.debt_pct() < 110.0 else 2, "Big budget deficit (%s of GDP)" % DS.pct(deficit),
@@ -37,6 +44,12 @@ static func advice(c: CountryState) -> Array:
 	if c.growth < c.trend - 1.5 and c.inflation < 4.0:
 		out.append(_item(1, "The economy is sluggish (%s growth)" % DS.pct(c.growth),
 			"Cut the interest rate, or invest in infrastructure and research.", "economy", "trending-down"))
+	if Government.army_rules(c.idx) and Game.politics.coup_risk() > 0.0:
+		out.append(_item(2, "The army is restless",
+			"Keep the military budget near where it started and stability up, or the generals may act.", "budget", "shield"))
+	if Projects.count_building(c) == 0 and c.treasury > c.spending / 12.0 * 1.5 and -c.balance_pct() < 6.0:
+		out.append(_item(0, "Build something lasting",
+			"Roads, power and hospitals create jobs now and growth for decades.", "build", "hammer"))
 	if c.trade_deals == 0 and m_left > 6:
 		out.append(_item(0, "Sign a trade deal",
 			"Trade deals add growth and goodwill. Friendly countries are most likely to say yes.", "diplomacy", "handshake"))

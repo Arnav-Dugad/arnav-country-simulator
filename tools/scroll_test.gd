@@ -72,6 +72,24 @@ func _ready() -> void:
 	var bc := button.get_global_rect().get_center()
 	await _drag(bc, bc)
 	_check(pressed[0] == 1, "a tap still presses the button")
+
+	# A bottom sheet's close (X) button in the draggable header must close it
+	# (regression: the header drag used to re-snap the sheet on release).
+	scroll.visible = false
+	var sheet := BottomSheet.new()
+	add_child(sheet)
+	var x := AppButton.make("", &"IconButton", "x")
+	x.custom_minimum_size = Vector2(44, 44)
+	x.size_flags_horizontal = Control.SIZE_SHRINK_END
+	x.pressed.connect(sheet.close)
+	sheet.header.add_child(x)
+	await get_tree().process_frame
+	sheet.open(BottomSheet.Snap.HALF)
+	await get_tree().create_timer(0.7).timeout
+	var xc := x.get_global_rect().get_center()
+	await _drag(xc, xc)
+	await get_tree().create_timer(0.7).timeout
+	_check(sheet.state == BottomSheet.Snap.HIDDEN, "tapping the sheet's X closes it (state %d)" % sheet.state)
 	print("SCROLL TEST %s (%d failures)" % ["OK" if _fails == 0 else "FAILED", _fails])
 	get_tree().quit()
 

@@ -11,6 +11,7 @@ func _ready() -> void:
 	for sd in seeds:
 		for ch in Challenges.ALL:
 			Game.new_challenge(str(ch.id), sd)
+			Game.me().cb_auto = false   # the test plays a hands-on leader
 			var c := Game.me()
 			var won_at := -1
 			for m in int(ch.years) * 12:
@@ -42,9 +43,9 @@ func _ready() -> void:
 				Game.advance_month()
 				if not Game.pending_event.is_empty():
 					Game.resolve_event(0)
-				if Game.months_to_election == 48 and Game.speed == 0:
+				if Game.months_to_election == 12 * Government.term_years(Game.player) and Game.speed == 0:
 					Game.continue_after_election(true)
-				if Game.campaign_year != 0 and Game.speed == 0:
+				if Game.politics.campaign_open:
 					Game.finish_campaign(["economy", "prices"])
 				if Game.challenge.get("state", "") == "won" and won_at < 0:
 					won_at = Game.months_played

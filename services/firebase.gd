@@ -239,6 +239,27 @@ func delete_save(slot: int) -> Dictionary:
 	return await _http(_doc_url("users/%s/saves/slot_%d" % [uid, slot]), HTTPClient.METHOD_DELETE, headers)
 
 
+## Deletes everything this account stored (cloud saves), then the account itself,
+## then signs out. Local saves on this device are kept. Returns {ok, error}.
+func delete_account() -> Dictionary:
+	if not signed_in():
+		return _fail(0, "Not signed in")
+	for slot in range(1, SaveManager.SLOTS + 1):
+		var d: Dictionary = await delete_save(slot)
+		if not d.ok and int(d.get("code", 0)) != 404:
+			return _fail(int(d.get("code", 0)), "Couldn't delete your cloud saves. Check your connection and try again.")
+	var tok: String = await id_token()
+	if tok == "":
+		return _fail(0, "Please sign in again, then delete your account.")
+	var r: Dictionary = await _auth_call("delete", {"idToken": tok})
+	if not r.ok:
+		if str(r.get("error", "")).contains("CREDENTIAL_TOO_OLD") or str(r.get("error", "")).contains("REQUIRES_RECENT_LOGIN"):
+			return _fail(400, "For your security, sign out and sign in again, then delete your account.")
+		return r
+	sign_out()
+	return {"ok": true}
+
+
 # ------------------------------------------------------------------ http -----
 func _http(url: String, method: int, headers: PackedStringArray, body: String = "") -> Dictionary:
 	var req := HTTPRequest.new()

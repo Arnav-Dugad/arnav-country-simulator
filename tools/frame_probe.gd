@@ -11,9 +11,9 @@ func _ready() -> void:
 		# Simulate the frames of one month at 4x speed (60 fps).
 		var frames := int(Economy.SECONDS_PER_MONTH / 4.0 * 60.0)
 		for f in frames - 1:
-			Game._acc = Economy.SECONDS_PER_MONTH * f / frames
+			Game.calendar.acc = Economy.SECONDS_PER_MONTH * f / frames
 			var t := Time.get_ticks_usec()
-			Game._work_ai(1.0 / 60.0 * 4.0 / 4.0)
+			Game.world_ai.work(1.0 / 60.0 * 4.0 / 4.0, Game.calendar.acc, 4)
 			batches.append((Time.get_ticks_usec() - t) / 1000.0)
 		var t2 := Time.get_ticks_usec()
 		Game.advance_month()

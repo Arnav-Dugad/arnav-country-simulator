@@ -148,6 +148,36 @@ const MIL_LOG_MAX := 11.95
 const ELECTION_YEARS := 4
 const WIN_SAFE := 50.0           # approval at/above this always wins
 const WIN_NONE := 35.0           # approval below this always loses
+## A tilted ("managed") election won below this approval is disputed: protests.
+const DISPUTED_BELOW := 35.0
+
+# --------------------------------------------------- HOLD ON POWER (Politics) ---
+## Any system: stability below COLLAPSE_STABILITY for COLLAPSE_MONTHS ends your rule.
+const COLLAPSE_STABILITY := 8.0
+const COLLAPSE_MONTHS := 6
+## Without elections: low stability AND low support for UNREST_MONTHS = revolution.
+const UNREST_STABILITY := 18.0
+const UNREST_SUPPORT := 30.0
+const UNREST_MONTHS := 5
+## Leadership reviews (Party Congress …): you stay if support or stability holds.
+const REVIEW_SUPPORT := 30.0
+const REVIEW_STABILITY := 45.0
+## Military governments: cutting the army's budget share by more than this
+## fraction, or letting stability fall below COUP_STABILITY, risks a coup.
+const COUP_BUDGET_CUT := 0.3
+const COUP_PER_CUT := 0.08        # monthly coup chance per 100 % cut beyond the limit
+const COUP_STABILITY := 25.0
+const COUP_PER_STABILITY := 0.004 # monthly coup chance per stability point below
+## Without elections, order rests more on security forces than on approval.
+const AUTOCRACY_APPROVAL_WEIGHT := 0.6   # x STABILITY_FROM_APPROVAL
+const AUTOCRACY_MILITARY_WEIGHT := 2.0   # x STABILITY_MILITARY
+
+# ------------------------------------------------------------ SOCIETY DETAIL ---
+## Welfare matters more where incomes are unequal (Gini): x(1 + (gini-35)/GINI_SCALE).
+const GINI_SCALE := 40.0
+## Demography: trend growth -/+ per point of over-65 share above/below the band.
+const AGEING_DRAG := 0.04              # per pt above 16 %
+const YOUTH_BONUS := 0.05              # per pt below 7 %
 
 # ------------------------------------------------------------- POPULATION ----
 const POP_GROWTH_RICH := 0.1     # %/yr
@@ -165,6 +195,38 @@ static func per_capita(gdp: float, pop: float) -> float:
 ## 0 (poor, $1k) .. 1 (rich, $60k+), log scale.
 static func income_level(pc: float) -> float:
 	return clampf((log(maxf(pc, 100.0)) / log(10.0) - 3.0) / (log(60000.0) / log(10.0) - 3.0), 0.0, 1.0)
+
+
+## Starting budget split from real spending (World Bank): health, education and
+## R&D (about a third of R&D is public) as shares of primary spending; military
+## from SIPRI/WB; welfare and infrastructure share the rest 68/32.
+static func start_budget(s: Dictionary, spending_pct: float) -> Dictionary:
+	var sp := maxf(spending_pct, 5.0)
+	var b := {
+		"military": clampf(float(s.get("military_pct", 1.8)) / sp, 0.02, 0.4),
+		"health": clampf(float(s.get("health_pct", 4.0)) / sp, 0.05, 0.4),
+		"education": clampf(float(s.get("education_pct", 4.0)) / sp, 0.05, 0.35),
+		"research": clampf(float(s.get("research_pct", 0.8)) * 0.35 / sp, 0.01, 0.1),
+	}
+	var used := 0.0
+	for k in b:
+		used += float(b[k])
+	if used > 0.8:   # leave room for welfare and infrastructure
+		for k in b:
+			b[k] = float(b[k]) * 0.8 / used
+		used = 0.8
+	b["welfare"] = (1.0 - used) * 0.68
+	b["infrastructure"] = (1.0 - used) * 0.32
+	return b
+
+
+## Trade slider start (0 closed .. 1 open) from trade as % of GDP.
+static func start_trade_openness(trade_pct: float) -> float:
+	return clampf(0.3 + trade_pct / 250.0, 0.25, 0.85)
+
+
+static func demography_trend(age65_pct: float) -> float:
+	return -AGEING_DRAG * maxf(0.0, age65_pct - 16.0) + YOUTH_BONUS * maxf(0.0, 7.0 - age65_pct)
 
 
 static func trend_growth(pc: float) -> float:
@@ -248,7 +310,8 @@ static func legacy_parts(s: Dictionary) -> Array:
 		["Economic growth", w * clampf((float(s.avg_growth) - float(s.trend)) * 6.0 + 4.0, -20.0, 20.0)],
 		["People's happiness", w * clampf((float(s.happiness_end) - float(s.happiness_start)) * 1.2, -20.0, 20.0)],
 		["Public debt", w * clampf(-(float(s.debt_end) - float(s.debt_start)) * 0.3, -15.0, 15.0)],
-		["Elections won", minf(float(s.elections_won) * 6.0, 24.0)],
+		["Elections won" if int(s.get("reviews_passed", 0)) == 0 else "Mandates renewed",
+			minf((float(s.elections_won) + float(s.get("reviews_passed", 0))) * 6.0, 24.0)],
 		["Time in office", minf(years * 1.5, 15.0)],
 		["Final approval", clampf((float(s.approval) - 45.0) * 0.4, -8.0, 8.0)],
 		["Short term", -12.0 * (1.0 - w)],

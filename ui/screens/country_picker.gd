@@ -116,6 +116,9 @@ func _build_list() -> void:
 	_list.add_child(_empty)
 
 
+var _ask: ModalCard
+
+
 func _build_footer() -> void:
 	var bar := HBoxContainer.new()
 	bar.add_theme_constant_override(&"separation", DS.S3)
@@ -161,7 +164,7 @@ func _select(i: int, from_tap: bool) -> void:
 	_sel_name.text = World.map.names_long[i]
 	_sel_flag.show_country(i, 30.0)
 	var pc := Economy.per_capita(s.get("gdp", 0.0), s.get("population", 1.0))
-	_sel_meta.text = "GDP/person %s  ·  Debt %s of GDP" % [DS.money(pc, 0), DS.pct(s.get("debt_pct", 0.0), 0)]
+	_sel_meta.text = "%s  ·  GDP/person %s" % [Government.system_name(i), DS.money(pc, 0)]
 	_lead.text = "Lead"
 	_map.set_player(i)
 	_frame_map()
@@ -267,9 +270,23 @@ func _surprise() -> void:
 	_scroll.ensure_control_visible(_rows[i])
 
 
+## Lead: one calm question first, how hard should it be?
 func _start() -> void:
-	if _selected < 0:
+	if _selected < 0 or is_instance_valid(_ask):
 		return
-	Haptics.success()
-	Game.new_game(_selected)
-	Router.goto(NEXT)
+	Haptics.tap()
+	var i := _selected
+	_ask = ModalCard.new()
+	add_child(_ask)
+	_ask.header("crown", DS.GOLD, World.map.names[i], "How do you want to play?")
+	_ask.body("You'll lead as %s. %s." % [Government.leader_title(i).to_lower(), Government.describe(i)])
+	var last := str(Settings.get_value("last_difficulty", "standard"))
+	for lvl in Difficulty.LEVELS:
+		_ask.choice(str(Difficulty.TITLES[lvl]), str(Difficulty.BLURBS[lvl]),
+			&"PrimaryButton" if lvl == last else &"", func() -> void:
+				Settings.set_value("last_difficulty", lvl)
+				Haptics.success()
+				_ask.dismiss()
+				Game.new_game(i, -1, lvl)
+				Router.goto(NEXT))
+	_ask.choice("Back", "", &"GhostButton", func() -> void: _ask.dismiss())

@@ -13,7 +13,10 @@ world map. Design language: Apple-like, premium, calm (glass, soft motion).
 ## Folder structure
 ```
 autoload/      Global singletons (Settings, Haptics, Screen, Router, DevTools, GameState …)
-sim/           Simulation. ALL formulas + tweakable constants live in sim/economy.gd
+sim/           Simulation. ALL formulas + tweakable constants live in sim/economy.gd.
+               Session modules owned by the Game autoload: calendar.gd, world_ai.gd,
+               event_director.gd (decision inbox), politics.gd (elections/reviews/unrest/coups).
+               government.gd (system per country), projects.gd (Build), difficulty.gd, laws.gd, events.gd …
 map/           World map rendering, camera/gestures, map modes, labels
 ui/theme/      tokens.gd (DS class: colors, radii, spacing, type, motion) + generated main_theme.tres
 ui/shaders/    glass.gdshader, ocean.gdshader, map shaders
@@ -66,8 +69,13 @@ DevTools user args (after `--`): `--scene=`, `--shot=`, `--shot-delay=`, `--size
   text white / 66 % / 38 %.
 - **Icons**: Lucide (ISC), recolored white, imported as **DPITexture** (crisp at any density); tint via theme icon colors.
   No emojis anywhere.
-- **Layout**: full-screen map; floating glass top bar (date, speed, treasury); floating glass dock
-  (Economy, Budget, Diplomacy, Events, Settings); bottom sheets with handle + snap (peek/half/full).
+- **Layout**: full-screen map; floating glass top bar (flag, date = tap to pause, treasury, Inbox bell, Settings gear);
+  thumb-zone strip above the dock (play/pause + speed · "next" pill · map Layers button); dock with 5 tabs
+  (Economy, Budget, Build, Laws, World); bottom sheets with handle + snap (peek/half/full).
+- **Calm notifications** (researched: Paradox message settings, Stellaris/Frostpunk timers, Material snackbars):
+  routine events NEVER open a modal on their own. They become decisions in the pill/Inbox with a countdown;
+  the cabinet answers when time runs out. Only critical moments pause (elections, debt crisis, army warning).
+  Everything else goes to the Inbox feed (`Game.add_feed`); banners (Toast) are one at a time, queued, spaced.
 - Respect safe areas (`Screen.top/bottom/left/right`).
 - **Anchors:** always use `set_anchors_and_offsets_preset()`. Plain `set_anchors_preset()` on a node already in the tree keeps its old (often zero) size.
 

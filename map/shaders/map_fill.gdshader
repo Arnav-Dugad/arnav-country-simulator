@@ -11,6 +11,9 @@ uniform float player_index = -1.0;
 uniform float selected_index = -1.0;
 uniform vec4 player_tint : source_color = vec4(0.95, 0.78, 0.42, 1.0);
 uniform float world_half_height = 1310.0;
+// Election night: everything but the player dims and greys; the player breathes.
+uniform float spotlight = 0.0;
+uniform vec4 spot_color : source_color = vec4(0.95, 0.78, 0.42, 1.0);
 
 varying float v_idx;
 varying float v_lat;
@@ -27,6 +30,15 @@ void fragment() {
 	if (abs(v_idx - player_index) < 0.5) {
 		float pulse = 0.5 + 0.5 * sin(TIME * 1.6);
 		c.rgb = mix(c.rgb, player_tint.rgb, 0.16 + 0.06 * pulse);
+	}
+	if (spotlight > 0.0) {
+		if (abs(v_idx - player_index) < 0.5) {
+			float b = 0.5 + 0.5 * sin(TIME * 2.4);
+			c.rgb = mix(c.rgb, spot_color.rgb, spotlight * (0.35 + 0.25 * b));
+		} else {
+			float g = dot(c.rgb, vec3(0.299, 0.587, 0.114));
+			c.rgb = mix(c.rgb, vec3(g) * 0.55, spotlight * 0.8);
+		}
 	}
 	if (abs(v_idx - selected_index) < 0.5) {
 		c.rgb = mix(c.rgb, vec3(1.0), 0.10);

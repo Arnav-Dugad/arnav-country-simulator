@@ -92,6 +92,10 @@ var _pinch_mid := Vector2.ZERO
 var _last_pinch_time := 0.0
 var _long_fired := false
 var _focus_cache := {}
+# Two-finger tap = zoom out (Apple/Google Maps)
+var _two_tap := false
+var _two_tap_time := 0.0
+var _two_tap_zoom := 1.0
 
 
 func _ready() -> void:
@@ -284,6 +288,21 @@ func _rebuild_glow() -> void:
 	_glow.mesh = MapMeshes.line_mesh(rings, false) if not rings.is_empty() else null
 
 
+## Election night: dim the world and let one country breathe (i < 0 / on=false: off).
+var _spot_tween: Tween
+
+
+func spotlight(i: int, on: bool, color: Color = DS.GOLD) -> void:
+	if _spot_tween:
+		_spot_tween.kill()
+	_fill_mat.set_shader_parameter(&"spot_color", color)
+	var from: float = _fill_mat.get_shader_parameter(&"spotlight")
+	_spot_tween = create_tween()
+	DS.ease_out(_spot_tween)
+	_spot_tween.tween_method(func(v: float) -> void: _fill_mat.set_shader_parameter(&"spotlight", v),
+		from if from != null else 0.0, 1.0 if on and i >= 0 else 0.0, Settings.dur(0.9))
+
+
 func select(i: int, focus: bool = false) -> void:
 	if i == selected:
 		if focus and i >= 0:
@@ -416,11 +435,20 @@ func fly_to(target_center: Vector2, target_zoom: float, duration: float = 0.6) -
 	var from_c := center
 	var from_lz := log(zoom)
 	var to_lz := log(target_zoom)
+	# Long trips glide along an arc: rise (zoom out) mid-flight, then settle, the
+	# way map apps fly between places. Short hops just slide.
+	var travel := from_c.distance_to(target_center) * minf(zoom, target_zoom)
+	var bump := clampf(log(maxf(travel / maxf(size.length(), 1.0), 1.0)) * 0.9, 0.0, 1.6)
+	if bump > 0.05:
+		duration *= 1.0 + bump * 0.35
 	_cam_tween = create_tween()
 	_cam_tween.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
 	_cam_tween.tween_method(func(t: float) -> void:
-		zoom = exp(lerpf(from_lz, to_lz, t))
-		center = from_c.lerp(target_center, t)
+		var lz := lerpf(from_lz, to_lz, t) - bump * sin(PI * t)
+		zoom = exp(lz)
+		# Move the centre a bit faster than the zoom so the target stays in view.
+		var tc := smoothstep(0.0, 1.0, clampf(t * 1.12, 0.0, 1.0))
+		center = from_c.lerp(target_center, tc)
 		_apply_camera(), 0.0, 1.0, Settings.dur(duration))
 
 
@@ -583,9 +611,25 @@ func _on_touch(e: InputEventScreenTouch) -> void:
 			_begin_tap(e.position)
 		else:
 			_tap_candidate = false
+			var now := Time.get_ticks_msec() / 1000.0
+			# Second finger lands soon after the first: maybe a two-finger tap.
+			_two_tap = _touches.size() == 2 and now - _tap_start_time < 0.2
+			_two_tap_time = now
+			_two_tap_zoom = zoom
 	else:
+		var lifted_mid := Vector2.ZERO
+		for k in _touches:
+			lifted_mid += _touches[k]
+		lifted_mid /= maxf(_touches.size(), 1)
 		_touches.erase(e.index)
 		if _touches.is_empty():
+			if _two_tap and Time.get_ticks_msec() / 1000.0 - _two_tap_time < TAP_TIME 					and absf(zoom / _two_tap_zoom - 1.0) < 0.04:
+				_two_tap = false
+				_zoom_vel = 0.0
+				_velocity = Vector2.ZERO
+				_zoom_step(lifted_mid, 0.5)
+				return
+			_two_tap = false
 			_end_tap(e.position)
 
 
@@ -688,7 +732,24 @@ func _end_tap(pos: Vector2, allow_double: bool = true) -> void:
 
 
 func _double_tap(pos: Vector2) -> void:
+	_zoom_step(pos, 2.0)
+
+
+## Animated zoom by `factor` around a screen point, with a haptic tick.
+func _zoom_step(pos: Vector2, factor: float) -> void:
 	var anchor := screen_to_world(pos)
-	var z := clampf(zoom * 2.0, min_zoom, max_zoom)
-	fly_to(anchor - (pos - size * 0.5) / z, z, 0.38)
-	Haptics.tap()
+	var z := clampf(zoom * factor, min_zoom, max_zoom)
+	if absf(z - zoom) < zoom * 0.01:
+		Haptics.warning(false)   # already at the limit: a soft "bump"
+		return
+	_stop_motion()
+	var from_c := center
+	var from_lz := log(zoom)
+	var to_lz := log(z)
+	_cam_tween = create_tween()
+	_cam_tween.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	_cam_tween.tween_method(func(t: float) -> void:
+		zoom = exp(lerpf(from_lz, to_lz, t))
+		center = anchor - (pos - size * 0.5) / zoom
+		_apply_camera(), 0.0, 1.0, Settings.dur(0.36))
+	Haptics.tick()

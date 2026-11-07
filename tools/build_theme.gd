@@ -136,6 +136,17 @@ func _buttons() -> void:
 	var lf := _font(500, 16)
 	_button_states(&"ListButton", Color(1, 1, 1, 0), DS.FILL_3, DS.FILL, DS.R_FIELD, lf, DS.FS_BODY, DS.TEXT, 14, 12)
 	th.set_constant(&"align_to_largest_stylebox", &"ListButton", 0)
+	# Floating controls in the thumb zone (play/pause, speed, layers) sit on glass pills.
+	th.set_type_variation(&"FloatButton", &"Button")
+	_button_states(&"FloatButton", Color(1, 1, 1, 0), Color(1, 1, 1, 0.05), DS.FILL_2, DS.R_PILL, _font(650, 15), 15, DS.TEXT, 12, 12)
+	th.set_constant(&"icon_max_width", &"FloatButton", 22)
+	# Map-layer tiles (icon over label), selected = accent fill.
+	for v in [&"LayerTile", &"LayerTileSelected"]:
+		th.set_type_variation(v, &"Button")
+	_button_states(&"LayerTile", DS.FILL_3, DS.FILL, DS.FILL_2, DS.R_BUTTON, _font(550, 12), 12, DS.TEXT_2, 6, 10)
+	_button_states(&"LayerTileSelected", Color(DS.ACCENT, 0.22), Color(DS.ACCENT, 0.28), Color(DS.ACCENT, 0.16), DS.R_BUTTON, _font(650, 12), 12, DS.TEXT, 6, 10)
+	th.set_constant(&"icon_max_width", &"LayerTile", 22)
+	th.set_constant(&"icon_max_width", &"LayerTileSelected", 22)
 
 
 func _shadow_box(radius: int, pad: int, shadow: int, bg := Color(0, 0, 0, 0)) -> StyleBoxFlat:

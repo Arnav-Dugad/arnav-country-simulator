@@ -1,16 +1,16 @@
 class_name Dock
 extends GlassPanel
-## Floating glass dock: Economy, Budget, Diplomacy, Events, Settings.
+## Floating glass dock: five places, as on iOS/Material (3–5 destinations):
+## Economy, Budget, Build, Laws, World. Inbox and Settings live in the top bar.
 
 signal opened(page: String)
 
 const ITEMS := [
 	["economy", "Economy", "chart"],
 	["budget", "Budget", "wallet"],
+	["build", "Build", "hammer"],
 	["laws", "Laws", "gavel"],
 	["diplomacy", "World", "globe"],
-	["events", "Events", "zap"],
-	["settings", "Settings", "settings"],
 ]
 
 var _buttons := {}
@@ -29,7 +29,7 @@ func _ready() -> void:
 		b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		b.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		b.custom_minimum_size = Vector2(0, 50)
+		b.custom_minimum_size = Vector2(0, 52)
 		b.clip_text = true
 		b.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		b.pressed.connect(func() -> void: opened.emit(it[0]))
@@ -48,7 +48,7 @@ func _ready() -> void:
 
 
 func button_rect(page: String) -> Rect2:
-	return (_buttons[page] as Control).get_global_rect()
+	return (_buttons[page] as Control).get_global_rect() if _buttons.has(page) else Rect2()
 
 
 func set_active(page: String) -> void:
@@ -64,6 +64,7 @@ func set_active(page: String) -> void:
 				b.remove_theme_color_override(c)
 
 
-## Small red dot on a dock item ("events" pending, "economy" needs attention).
-func set_badge(show_it: bool, page: String = "events") -> void:
-	_badges[page].visible = show_it
+## Small red dot on a dock item (e.g. "economy" needs attention).
+func set_badge(show_it: bool, page: String = "economy") -> void:
+	if _badges.has(page):
+		_badges[page].visible = show_it

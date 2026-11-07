@@ -144,3 +144,40 @@ func choice(label: String, detail: String, variant: StringName, cb: Callable, ch
 			p.add_child(l)
 			flow.add_child(p)
 	return box
+
+
+## A soft diagonal band of light sweeping across the card (election win…).
+func sweep(color: Color, duration: float = 1.1) -> void:
+	if Settings.reduce_motion:
+		return
+	var o := Control.new()
+	o.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	o.clip_contents = true
+	o.position = card.position
+	o.size = card.size
+	add_child(o)
+	var st := {"x": -0.4}
+	o.draw.connect(func() -> void:
+		var w := o.size.x
+		var h := o.size.y
+		var cx: float = st.x * (w + h)
+		var band := 70.0
+		for k in 6:
+			var f := float(k) / 6.0
+			var a := color
+			a.a = color.a * (1.0 - absf(f - 0.5) * 2.0)
+			var x0 := cx + f * band
+			o.draw_colored_polygon(PackedVector2Array([Vector2(x0, 0), Vector2(x0 + band / 6.0, 0),
+				Vector2(x0 + band / 6.0 - h * 0.6, h), Vector2(x0 - h * 0.6, h)]), a))
+	var t := create_tween()
+	t.tween_method(func(v: float) -> void:
+		st.x = v
+		o.queue_redraw(), -0.4, 1.3, duration).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	t.tween_callback(o.queue_free)
+
+
+## Darken the backdrop further (0.55 default) for cinematic moments.
+func set_dim(alpha: float) -> void:
+	var t := create_tween()
+	DS.ease_out(t)
+	t.tween_property(_dim, "color:a", alpha, Settings.dur(0.8))

@@ -1,18 +1,26 @@
 extends Control
-## Main game screen: full-screen world map with floating glass chrome — top bar,
-## map-mode control, dock — and one bottom sheet that hosts every panel.
+## Main game screen: full-screen world map with floating glass chrome.
+##   top bar     flag · date (tap to pause) · treasury · Inbox (bell) · Settings
+##   strip       play/pause + speed · "what needs you next" pill · map layers
+##   dock        Economy · Budget · Build · Laws · World
+##   sheet       one bottom sheet hosting every panel
+## Calm by design: routine events wait in the pill and Inbox instead of popping up;
+## only critical moments (elections, crises) pause the game.
 
 const PAGES := {
 	"economy": "res://ui/sheets/economy_page.gd", "budget": "res://ui/sheets/budget_page.gd",
 	"diplomacy": "res://ui/sheets/diplomacy_page.gd", "events": "res://ui/sheets/events_page.gd",
 	"settings": "res://ui/sheets/settings_page.gd", "country": "res://ui/sheets/country_page.gd",
 	"store": "res://ui/sheets/store_page.gd", "laws": "res://ui/sheets/laws_page.gd",
-	"achievements": "res://ui/sheets/achievements_page.gd",
+	"achievements": "res://ui/sheets/achievements_page.gd", "build": "res://ui/sheets/build_page.gd",
 }
+## How long the "year in review" stays in the pill (months).
+const REVIEW_MONTHS := 3
 
 var map: MapView
-var modes: SegmentedControl
 var top_bar: TopBar
+var strip: ControlStrip
+var layers: LayersPopover
 var dock: Dock
 var sheet: BottomSheet
 var _sheet_title: Label
@@ -25,6 +33,10 @@ var _mode := MapModes.Mode.POLITICAL
 var _modal: ModalCard
 var _dock_tween: Tween
 var _dev_fast := false   # DevTools fast-forward: skip modals
+var _review: Dictionary = {}       # pending year in review (shown in the pill)
+var _review_until := -1
+var _paused_for_sheet := false
+var _tip_snooze_until := -1
 
 
 func _ready() -> void:
@@ -40,11 +52,15 @@ func _ready() -> void:
 		sheet.snap_to(BottomSheet.Snap.HALF))
 	map.set_player(Game.player)
 
-	modes = SegmentedControl.new().setup(MapModes.SHORT, MapModes.ICONS, 0)
-	modes.changed.connect(_on_mode_changed)
-	add_child(modes)
 	top_bar = TopBar.new()
+	top_bar.inbox_requested.connect(func() -> void: open_page("events"))
+	top_bar.settings_requested.connect(func() -> void: open_page("settings"))
+	top_bar.nation_requested.connect(func() -> void: _open_country(Game.player, true))
 	add_child(top_bar)
+	strip = ControlStrip.new()
+	strip.next_tapped.connect(_on_next)
+	strip.layers_tapped.connect(func() -> void: layers.open(strip.layers_rect()))
+	add_child(strip)
 	dock = Dock.new()
 	dock.opened.connect(open_page)
 	add_child(dock)
@@ -53,9 +69,12 @@ func _ready() -> void:
 	sheet.stops = [BottomSheet.Snap.PEEK, BottomSheet.Snap.HALF, BottomSheet.Snap.FULL]
 	sheet.peek_height = 190.0
 	sheet.dismissed.connect(_on_sheet_closed)
-	sheet.snapped.connect(func(_s: int) -> void: _update_insets())
+	sheet.snapped.connect(_on_sheet_snapped)
 	add_child(sheet)
 	_build_sheet_header()
+	layers = LayersPopover.new()
+	layers.mode_selected.connect(_on_mode_changed)
+	add_child(layers)
 
 	Screen.insets_changed.connect(_layout)
 	resized.connect(_layout)
@@ -65,35 +84,62 @@ func _ready() -> void:
 	Game.month_passed.connect(_on_month)
 	Game.relations_changed.connect(_on_relations_changed)
 	Game.event_started.connect(_show_event)
+	Game.decision_added.connect(_on_decision_added)
+	Game.event_resolved.connect(_on_event_resolved)
 	Game.election_held.connect(_show_election)
-	Game.campaign_started.connect(_show_campaign)
+	Game.review_held.connect(func(r: Dictionary) -> void:
+		_notify("%s renews your mandate" % str(r.name), "landmark", DS.GOLD, true, false))
+	Game.army_warning.connect(_show_army_warning)
+	Game.campaign_started.connect(func() -> void:
+		Game.add_feed("Election in 3 months: plan your campaign", "vote", "gold")
+		Audio.play("select", -6.0)
+		_refresh_next())
 	Game.world_news.connect(_on_world_news)
 	Game.challenge_ended.connect(_on_challenge_ended)
 	Achievements.unlocked.connect(func(id: String) -> void:
 		var a := Achievements.info(id)
-		Toast.show_headline(self, "Achievement: " + str(a.title), "crown", DS.GOLD, modes.position.y + 52.0)
+		_notify("Achievement: " + str(a.title), "crown", DS.GOLD, true)
 		Audio.play("success", -6.0))
 	Achievements.bump("map_view", 0)
 	Game.game_over.connect(_on_game_over)
 	Game.law_finished.connect(func(id: String, repealed: bool) -> void:
 		var l := Laws.law(id)
-		Toast.show_headline(self, ("%s repealed" if repealed else "%s is now law") % str(l.title),
-			str(l.icon), DS.GREEN if not repealed else DS.ORANGE, modes.position.y + 52.0)
+		var t := Laws.title_of(Game.me(), l)
+		_notify(("%s repealed" if repealed else "%s is now law") % t, str(l.icon), DS.GREEN if not repealed else DS.ORANGE, true)
+		if id == "free_elections" and not repealed:
+			_notify("Free elections in 12 months", "vote", DS.GOLD, true)
 		Haptics.success()
 		if _current == "laws":
 			_pages["laws"].refresh())
+	Game.project_finished.connect(func(id: String) -> void:
+		var p := Projects.by_id(id)
+		_notify("%s is open" % str(p.title), str(p.icon), DS.GREEN, true)
+		Haptics.success()
+		Audio.play("success", -8.0)
+		map.queue_redraw()
+		if _current == "build":
+			_pages["build"].refresh())
 	Settings.changed.connect(func(key: String, _v: Variant) -> void:
 		if (key == "map_theme" and _mode == MapModes.Mode.POLITICAL) or key == "colorblind":
 			map.set_colors(_colors_for(_mode))
 		if key == "text_scale":
 			_layout.call_deferred())
-	if not Game.pending_event.is_empty():
-		_show_event.call_deferred(Game.pending_event)
+	# A critical decision saved mid-way (or "ask" mode) reopens; routine ones wait in the pill.
+	var first := Game.director.first()
+	if not first.is_empty() and (bool(first.get("critical", false)) or Settings.decisions == "ask"):
+		_show_event.call_deferred(first)
+	_refresh_next.call_deferred()
 	get_tree().root.go_back_requested.connect(_on_back)
 	_dev_open.call_deferred()
-	if not Settings.tutorial_done and Game.months_played == 0 and DevTools.arg("open") == null 			and DevTools.arg("advance") == null and DevTools.arg("event") == null \
-			and DevTools.arg("campaign") == null and DevTools.arg("election") == null 			and DevTools.arg("challenge") == null:
+	if not Settings.tutorial_done and Game.months_played == 0 and DevTools.arg("open") == null \
+			and DevTools.arg("advance") == null and DevTools.arg("event") == null \
+			and DevTools.arg("campaign") == null and DevTools.arg("election") == null \
+			and DevTools.arg("challenge") == null:
 		get_tree().create_timer(0.9).timeout.connect(start_tour)
+
+
+func _exit_tree() -> void:
+	Toast.clear_queue()
 
 
 # ------------------------------------------------------------------- tour ----
@@ -103,24 +149,35 @@ func start_tour() -> void:
 	var prev := Game.speed
 	Game.set_speed(0)
 	var name := World.map.names[Game.player]
+	var i := Game.player
+	var goal := "Keep your people happy and the economy healthy. Elections come every %d years: stay above 50%% approval to keep your job." % Government.term_years(i)
+	if Government.elections(i) == "managed":
+		goal = "Elections every %d years lean your way, but only while people still back you. Keep support and stability up." % Government.term_years(i)
+	elif not Government.has_elections(i):
+		goal = "There are no elections here. Your rule rests on stability and public support: if both collapse, the streets (or the army) decide."
 	var g := Guide.new()
 	g.steps = [
-		{"target": _player_rect, "title": "Welcome, leader of %s" % name,
-			"text": "This is your country. Everything starts from real 2025 data: its people, money, debt and mood."},
-		{"target": top_bar.speed_rect, "title": "Time moves month by month",
-			"text": "One month passes every 2 seconds. Pause whenever you want to think, or speed up to 4×."},
+		{"target": _player_rect, "title": "Welcome, %s of %s" % [Government.leader_title(i), name],
+			"text": "This is your country, a %s. Everything starts from real 2025 data." % Government.system_name(i).to_lower()},
+		{"target": strip.time_rect, "title": "Time moves month by month",
+			"text": "Pause or play here, and tap the speed to go faster. You can also tap the date at the top to pause."},
+		{"target": strip.next_rect, "title": "What needs you",
+			"text": "Decisions and tips appear here. They never stop the game: answer when you're ready, or your cabinet decides after a few months."},
 		{"target": func() -> Rect2: return dock.button_rect("economy"), "title": "Economy",
-			"text": "See how your country is doing and what to fix first. Set taxes and interest rates, with a forecast as you move each slider."},
+			"text": "How your country is doing and what to fix first: taxes, interest rates and forecasts."},
 		{"target": func() -> Rect2: return dock.button_rect("budget"), "title": "Budget",
-			"text": "Decide how much the government spends, and on what: healthcare, schools, roads and more."},
+			"text": "Decide how much the government spends, and on what."},
+		{"target": func() -> Rect2: return dock.button_rect("build"), "title": "Build",
+			"text": "Roads, railways, power, hospitals and more. Projects create jobs now and growth for decades."},
 		{"target": func() -> Rect2: return dock.button_rect("laws"), "title": "Laws",
-			"text": "Pass reforms like universal healthcare or a carbon tax. Each takes months to pass and has clear tradeoffs."},
+			"text": "Reforms like universal healthcare or a carbon tax. Each takes months to pass."},
 		{"target": func() -> Rect2: return dock.button_rect("diplomacy"), "title": "The world",
-			"text": "Make friends abroad with trade deals, alliances and aid. You can also tap any country on the map."},
-		{"target": modes.get_global_rect, "title": "Map views",
-			"text": "Color the world by wealth, relations with you, happiness or stability."},
-		{"title": "Your goal",
-			"text": "Keep your people happy and the economy healthy. Elections come every 4 years: stay above 50% approval to keep your job. Good luck!"},
+			"text": "Trade deals, alliances and aid. You can also tap any country on the map."},
+		{"target": top_bar.inbox_rect, "title": "Your inbox",
+			"text": "Headlines, world news and everything you decided collect here, so nothing needs to pop up."},
+		{"target": strip.layers_rect, "title": "Map views",
+			"text": "Colour the world by wealth, relations with you, happiness or stability."},
+		{"title": "Your goal", "text": goal + " Good luck!"},
 	]
 	add_child(g)
 	g.finished.connect(func() -> void:
@@ -145,13 +202,17 @@ func _dev_open() -> void:
 		_dev_fast = true
 		for _m in int(str(adv)):
 			Game.advance_month()
-			if not Game.pending_event.is_empty():
+			while Game.director.has_open():
 				Game.resolve_event(0)
+			if Game.speed == 0:
+				Game.set_speed(1)
 		_dev_fast = false
-		_narrate()
+		_refresh_next()
 	if DevTools.arg("campaign") != null:
 		Settings.tutorial_done = true
+		Game.politics.campaign_open = true
 		Game.campaign_started.emit()
+		_show_campaign()
 	if DevTools.arg("election") != null:
 		Settings.tutorial_done = true
 		Game.months_to_election = 1
@@ -166,6 +227,7 @@ func _dev_open() -> void:
 	if ev_id != null:
 		Settings.tutorial_done = true
 		Game.trigger_event(GameEvents.instance(GameEvents.by_id(str(ev_id)), World.index_of("CHN")))
+		_show_event(Game.director.first())
 	var page: Variant = DevTools.arg("open")
 	if page == null or not PAGES.has(str(page)):
 		return
@@ -189,6 +251,7 @@ func _build_sheet_header() -> void:
 	_sheet_title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	row.add_child(_sheet_title)
 	var close := AppButton.make("", &"IconButton", "x")
+	close.custom_minimum_size = Vector2(DS.MIN_TOUCH, DS.MIN_TOUCH)
 	close.pressed.connect(sheet.close)
 	row.add_child(close)
 	_scroll = TouchScroll.new()
@@ -205,27 +268,33 @@ func _layout() -> void:
 	var side := DS.S3 + maxf(Screen.left, Screen.right)
 	top_bar.size = Vector2(w - side * 2.0, 0)
 	top_bar.position = Vector2(side, Screen.top + DS.S2)
-	var top_h := top_bar.get_combined_minimum_size().y
-	modes.reset_size()
-	modes.position = Vector2((w - modes.get_combined_minimum_size().x) * 0.5, top_bar.position.y + top_h + DS.S2)
 	dock.size = Vector2(w - side * 2.0, 0)
 	var dock_h := dock.get_combined_minimum_size().y
 	dock.position = Vector2(side, size.y - Screen.bottom - DS.S3 - dock_h)
 	dock.set_meta(&"home_y", dock.position.y)
+	strip.size = Vector2(w - side * 2.0, ControlStrip.H)
+	strip.position = Vector2(side, dock.position.y - DS.S2 - ControlStrip.H)
+	strip.set_meta(&"home_y", strip.position.y)
 	if sheet.is_open():
-		dock.position.y += 90.0
+		dock.position.y += 160.0
+		strip.position.y += 160.0
 	_update_insets()
 
 
+func _toast_top() -> float:
+	return top_bar.position.y + top_bar.get_combined_minimum_size().y + DS.S2
+
+
 func _update_insets() -> void:
-	var top := modes.position.y + 44.0 + DS.S2
-	var bottom := size.y - (sheet.top_for(sheet.state) if sheet.is_open() else float(dock.get_meta(&"home_y", size.y))) + DS.S3
+	var top := _toast_top()
+	var chrome_top := float(strip.get_meta(&"home_y", size.y))
+	var bottom := size.y - (sheet.top_for(sheet.state) if sheet.is_open() else chrome_top) + DS.S3
 	map.frame_insets = Vector4(DS.S4, top, DS.S4, bottom)
-	var blockers: Array[Rect2] = [top_bar.get_rect().grow(4), modes.get_rect().grow(4)]
+	var blockers: Array[Rect2] = [top_bar.get_rect().grow(4)]
 	if sheet.is_open():
 		blockers.append(Rect2(0, sheet.top_for(sheet.state) - 6, size.x, size.y))
 	else:
-		blockers.append(Rect2(dock.position.x, float(dock.get_meta(&"home_y", dock.position.y)) - 6, dock.size.x, size.y))
+		blockers.append(Rect2(0, chrome_top - 6, size.x, size.y))
 	map.label_blockers = blockers
 	map.queue_redraw()
 
@@ -235,6 +304,7 @@ func open_page(page: String) -> void:
 	if page == _current and sheet.is_open() and page != "country":
 		sheet.close()
 		return
+	layers.close()
 	var p: SheetPage = _pages.get(page)
 	if p == null:
 		p = load(PAGES[page]).new()
@@ -255,7 +325,9 @@ func open_page(page: String) -> void:
 	if sheet.is_open() and sheet.state > target:
 		target = sheet.state
 	sheet.open(target)
-	_hide_dock(true)
+	_hide_chrome(true)
+	if page == "events":
+		top_bar.refresh_badge()
 	Haptics.tap()
 
 
@@ -275,7 +347,10 @@ func _wire_page(page: String, p: SheetPage) -> void:
 				sheet.close()
 				start_tour())
 		"events":
-			p.open_pending.connect(func() -> void: _show_event(Game.pending_event))
+			p.decision_requested.connect(_show_event)
+			p.review_requested.connect(func() -> void:
+				if not _review.is_empty():
+					_show_year_review(_review))
 
 
 func _open_country(i: int, focus: bool) -> void:
@@ -295,25 +370,150 @@ func _on_sheet_closed() -> void:
 	_current = ""
 	dock.set_active("")
 	map.select(-1)
-	_hide_dock(false)
+	_hide_chrome(false)
 	_update_insets()
+	if _paused_for_sheet:
+		_paused_for_sheet = false
+		Game.resume_after_modal()
 
 
-func _hide_dock(hide_it: bool) -> void:
+func _on_sheet_snapped(s: int) -> void:
+	_update_insets()
+	if s == BottomSheet.Snap.FULL and Settings.pause_full_sheet and Game.speed != 0:
+		_paused_for_sheet = true
+		Game.pause_for_modal()
+	elif s != BottomSheet.Snap.FULL and _paused_for_sheet:
+		_paused_for_sheet = false
+		Game.resume_after_modal()
+
+
+func _hide_chrome(hide_it: bool) -> void:
 	if _dock_tween:
 		_dock_tween.kill()
 	_dock_tween = create_tween().set_parallel(true)
 	DS.ease_out(_dock_tween)
-	var home: float = dock.get_meta(&"home_y", dock.position.y)
-	_dock_tween.tween_property(dock, "position:y", home + (90.0 if hide_it else 0.0), Settings.dur(DS.DUR))
-	_dock_tween.tween_property(dock, "modulate:a", 0.0 if hide_it else 1.0, Settings.dur(DS.DUR_FAST))
+	for n: Control in [dock, strip]:
+		var home: float = n.get_meta(&"home_y", n.position.y)
+		_dock_tween.tween_property(n, "position:y", home + (160.0 if hide_it else 0.0), Settings.dur(DS.DUR))
+		_dock_tween.tween_property(n, "modulate:a", 0.0 if hide_it else 1.0, Settings.dur(DS.DUR_FAST))
+
+
+# --------------------------------------------------------- notifications ----
+## Everything goes to the Inbox; only `important` items also show a banner
+## (all items do in "Everything" banner mode). Banners queue one at a time.
+func _notify(text: String, icon_name: String, tint: Color, important: bool, to_feed: bool = true) -> void:
+	if to_feed:
+		Game.add_feed(text, icon_name, _tint_name(tint))
+	if _dev_fast:
+		return
+	if important or Settings.banners == "all":
+		Toast.show_headline(self, text, icon_name, tint, _toast_top())
+
+
+static func _tint_name(c: Color) -> String:
+	if c == DS.GREEN:
+		return "green"
+	if c == DS.ORANGE:
+		return "orange"
+	if c == DS.RED:
+		return "red"
+	if c == DS.GOLD:
+		return "gold"
+	return "accent"
+
+
+func _on_decision_added(_ev: Dictionary) -> void:
+	if _dev_fast:
+		return
+	Haptics.select(false)
+	Audio.play("event", -10.0)
+	_refresh_next()
+	if _current == "events":
+		_pages["events"].refresh()
+
+
+func _on_event_resolved(ev: Dictionary, choice: int, by_cabinet: bool) -> void:
+	if by_cabinet and not _dev_fast:
+		var label := str(ev.choices[clampi(choice, 0, ev.choices.size() - 1)].label)
+		_notify("Cabinet decided on %s: %s" % [str(ev.title).to_lower(), label.to_lower()], str(ev.icon),
+			GameEvents.tint(str(ev.tint)), Settings.decisions != "cabinet")
+	_refresh_next()
+	if _current != "" and _pages.has(_current):
+		_pages[_current].refresh()
+
+
+## The one thing that needs the player next, shown in the strip's pill.
+func _refresh_next() -> void:
+	if not is_inside_tree() or not Game.has_game():
+		return
+	var item := {}
+	var open := Game.director.inbox
+	if not open.is_empty():
+		var ev: Dictionary = open[0]
+		for e in open:
+			if bool(e.get("critical", false)):
+				ev = e
+				break
+		var left := Game.director.months_left(ev)
+		item = {"kind": "decision", "key": str(ev.uid), "ev": ev, "title": str(ev.title), "icon": str(ev.icon),
+			"tint": GameEvents.tint(str(ev.tint)), "due": int(ev.due), "count": open.size(),
+			"sub": ("Decide now" if bool(ev.get("critical", false)) else
+				("Decide · %s" % ("cabinet decides soon" if left <= 1 else "%d months left" % left)))
+				+ ("  ·  +%d more" % (open.size() - 1) if open.size() > 1 else "")}
+	elif Game.politics.campaign_open:
+		item = {"kind": "campaign", "key": "campaign", "title": "Plan your campaign", "icon": "vote", "tint": DS.GOLD,
+			"sub": "Election in %d months" % Game.politics.months_to_election}
+	elif not _review.is_empty() and Game.months_played <= _review_until:
+		item = {"kind": "review", "key": "review%d" % int(_review.year), "title": "%d in review" % int(_review.year),
+			"icon": "calendar", "tint": DS.GOLD, "sub": str(_review.title)}
+	elif Game.months_played >= _tip_snooze_until:
+		var tips := Advisor.advice(Game.me())
+		if not tips.is_empty() and int(tips[0].level) >= 1:
+			var t: Dictionary = tips[0]
+			item = {"kind": "tip", "key": "tip" + str(t.title), "title": str(t.title), "icon": str(t.icon),
+				"tint": DS.RED if int(t.level) == 2 else DS.ORANGE, "sub": "Tap for what to do", "tip": t}
+	strip.set_next(item)
+
+
+func _on_next(item: Dictionary) -> void:
+	match str(item.kind):
+		"decision":
+			_show_event(item.ev)
+		"campaign":
+			_show_campaign()
+		"review":
+			_show_year_review(_review)
+		"tip":
+			_show_tip(item.tip)
+
+
+func _show_tip(t: Dictionary) -> void:
+	if is_instance_valid(_modal):
+		return
+	_modal = ModalCard.new()
+	add_child(_modal)
+	_modal.header(str(t.icon), DS.RED if int(t.level) == 2 else DS.ORANGE, "Advisor", str(t.title))
+	_modal.body(str(t.detail))
+	var page := str(t.page)
+	var names := {"economy": "Open Economy", "budget": "Open Budget", "build": "Open Build", "diplomacy": "Open World", "laws": "Open Laws"}
+	_modal.choice(str(names.get(page, "Show me")), "", &"PrimaryButton", func() -> void:
+		_modal.dismiss()
+		if PAGES.has(page):
+			open_page(page))
+	_modal.choice("Not now", "", &"GhostButton", func() -> void:
+		_tip_snooze_until = Game.months_played + 6
+		_modal.dismiss()
+		_refresh_next())
 
 
 # ------------------------------------------------------------------ events ---
 func _on_country_tapped(i: int) -> void:
+	layers.close()
 	if i < 0:
 		if _current == "country":
 			sheet.close()
+		elif sheet.is_open() and sheet.state == BottomSheet.Snap.HALF:
+			sheet.snap_to(BottomSheet.Snap.PEEK)
 		map.select(-1)
 		return
 	Haptics.select()
@@ -327,29 +527,36 @@ func _on_month() -> void:
 		_sheet_title.text = _pages[_current].title
 	if _mode != MapModes.Mode.POLITICAL and Game.month % 3 == 1:
 		map.set_colors(_colors_for(_mode))
-	dock.set_badge(not Game.pending_event.is_empty())
 	dock.set_badge(Advisor.health(Game.me()) == 0, "economy")
+	_refresh_next()
 
 
-## Headlines and the yearly review (deferred so events/elections show first).
+## Headlines and the yearly review: quiet by default (Inbox + pill).
 func _narrate() -> void:
-	if not Game.running or is_instance_valid(_modal) or _dev_fast:
+	if not Game.running or _dev_fast:
 		return
 	if Game.month == 1 and Game.months_played >= 12:
 		var r := Briefing.year_review()
 		if not r.is_empty():
-			_show_year_review(r)
+			_review = r
+			_review_until = Game.months_played + REVIEW_MONTHS
+			Game.feed.push_front({"date": Game.date_text(), "text": "%d in review: %s" % [int(r.year), str(r.title)],
+				"icon": "calendar", "tint": "gold", "read": false, "kind": "review"})
+			Game.feed_added.emit(Game.feed[0])
+			_refresh_next()
 			return
 	var h := Briefing.headline()
 	if not h.is_empty():
-		Toast.show_headline(self, str(h.text), str(h.icon), DS.GREEN if h.good else DS.ORANGE,
-			modes.position.y + 52.0)
-		Audio.play("select", -8.0)
+		_notify(str(h.text), str(h.icon), DS.GREEN if h.good else DS.ORANGE, false)
 
 
 func _show_year_review(r: Dictionary) -> void:
+	if r.is_empty() or is_instance_valid(_modal):
+		return
 	var prev := Game.speed
 	Game.set_speed(0)
+	_review_until = -1
+	_refresh_next()
 	_modal = ModalCard.new()
 	add_child(_modal)
 	_modal.header("calendar", DS.GOLD, "%d in review" % int(r.year), str(r.title))
@@ -377,12 +584,10 @@ func _show_year_review(r: Dictionary) -> void:
 		var msg: String = await Share.share_screen(get_tree(), "%s's %d: %s." % [
 			World.map.names[Game.player], int(r.year), str(r.title).to_lower()], hide_list)
 		if msg != "":
-			Toast.show_headline(self, msg, "info", DS.ACCENT, modes.position.y + 52.0))
-	hide_list.append(_modal.choice("On to %d" % (int(r.year) + 1), "", &"PrimaryButton", func() -> void:
+			Toast.show_headline(self, msg, "info", DS.ACCENT, _toast_top()))
+	hide_list.append(_modal.choice("Back to %d" % (int(r.year) + 1), "", &"PrimaryButton", func() -> void:
 		_modal.dismiss()
-		Game.set_speed(maxi(prev, 1))
-		if not Game.pending_event.is_empty():
-			get_tree().create_timer(0.4).timeout.connect(func() -> void: _show_event(Game.pending_event))))
+		Game.set_speed(maxi(prev, 1))))
 	Haptics.success(false)
 	Audio.play("success", -4.0)
 
@@ -402,22 +607,24 @@ func _on_challenge_ended(won: bool) -> void:
 		Audio.play("success")
 		Haptics.success(false)
 		Achievements.unlock("challenger")
+		_modal.sweep(Color(DS.GOLD, 0.22))
 	_modal.choice("Keep governing", "", &"PrimaryButton", func() -> void:
 		_modal.dismiss()
 		Game.set_speed(maxi(prev, 1)))
 
 
-## Big world stories (friends, neighbours, giants) get a gentle toast.
+## World news lives in the Inbox; only big stories about your friends, neighbours
+## and the giants get a banner, and only in "Everything" banner mode.
 func _on_world_news(item: Dictionary) -> void:
-	if _dev_fast or is_instance_valid(_modal):
-		return
-	var i := World.index_of(str(item.country))
-	var big := Diplomacy.has_alliance(i) or Diplomacy.has_deal(i) or i in World.map.neighbours[Game.player] 		or (Game.state(i) != null and Game.state(i).gdp > 3e12)
-	if big:
-		Toast.show_headline(self, str(item.text), str(item.icon), DS.GREEN if item.good else DS.ORANGE,
-			modes.position.y + 52.0)
 	if _current == "events":
 		_pages["events"].refresh()
+	if _dev_fast or Settings.banners != "all":
+		return
+	var i := World.index_of(str(item.country))
+	var big := Diplomacy.has_alliance(i) or Diplomacy.has_deal(i) or i in World.map.neighbours[Game.player] \
+		or (Game.state(i) != null and Game.state(i).gdp > 3e12)
+	if big:
+		Toast.show_headline(self, str(item.text), str(item.icon), DS.GREEN if item.good else DS.ORANGE, _toast_top())
 
 
 func _on_relations_changed() -> void:
@@ -429,6 +636,7 @@ func _on_mode_changed(m: int) -> void:
 	_mode = m
 	Achievements.bump("map_view", m)
 	map.set_colors(_colors_for(m))
+	Haptics.select()
 
 
 func _colors_for(m: int) -> PackedColorArray:
@@ -437,37 +645,61 @@ func _colors_for(m: int) -> PackedColorArray:
 	return MapModes.data_colors(m, Game.map_values(m))
 
 
+## A decision card. Routine decisions can be put off ("Later") or handed to the
+## cabinet; the recommended choice is marked.
 func _show_event(ev: Dictionary) -> void:
-	if ev.is_empty() or is_instance_valid(_modal) or _dev_fast:
+	if ev.is_empty() or _dev_fast:
 		return
-	dock.set_badge(true)
+	if is_instance_valid(_modal):
+		return
+	ev = Game.director.find(str(ev.get("uid", ""))) if ev.has("uid") else ev
+	if ev.is_empty():
+		return
+	var critical := bool(ev.get("critical", false))
+	var paused_here := false
+	if not critical and Settings.decisions != "ask" and Game.speed != 0:
+		# Reading a decision pauses time softly; it resumes when the card closes.
+		Game.pause_for_modal()
+		paused_here = true
 	Haptics.warning(false)
 	Audio.play("event")
 	_modal = ModalCard.new()
 	add_child(_modal)
 	var other := int(ev.get("other", -1))
 	_modal.header(str(ev.icon), GameEvents.tint(str(ev.tint)),
-		Game.date_text() + ("  ·  " + World.map.names[other] if other >= 0 else ""), str(ev.title))
+		str(ev.get("date", Game.date_text())) + ("  ·  " + World.map.names[other] if other >= 0 else ""), str(ev.title))
 	_modal.body(str(ev.body))
+	var rec := Game.director.recommended(ev)
 	for k in ev.choices.size():
 		var ch: Dictionary = ev.choices[k]
-		_modal.choice(str(ch.label), "", &"PrimaryButton" if k == 0 else &"", func() -> void:
-			Game.resolve_event(k)
+		var label := str(ch.label)
+		_modal.choice(label, "Your cabinet recommends this" if k == rec else "", &"PrimaryButton" if k == rec else &"", func() -> void:
 			Haptics.success()
-			dock.set_badge(false)
 			_modal.dismiss()
-			if _current != "":
-				_pages[_current].refresh(), GameEvents.effect_chips(ch.effects))
+			Game.resolve_decision(ev, k)
+			if paused_here:
+				Game.resume_after_modal(), GameEvents.effect_chips(ch.effects))
+	if not critical and Settings.decisions != "ask":
+		var left := Game.director.months_left(ev)
+		_modal.choice("Decide later", "Your cabinet decides %s if you don't" % ("this month" if left <= 1 else "in %d months" % left),
+			&"GhostButton", func() -> void:
+				_modal.dismiss()
+				if paused_here:
+					Game.resume_after_modal())
 
 
 func _show_campaign() -> void:
 	if is_instance_valid(_modal):
-		_modal.queue_free()
+		return
+	if not Game.politics.campaign_open:
+		return
+	var prev := Game.speed
+	Game.set_speed(0)
 	Audio.play("event")
 	Haptics.select(false)
 	_modal = ModalCard.new()
 	add_child(_modal)
-	_modal.header("vote", DS.GOLD, "Election in 3 months", "Plan your campaign")
+	_modal.header("vote", DS.GOLD, "Election in %d months" % Game.politics.months_to_election, "Plan your campaign")
 	_modal.body("Pick two themes. Campaigning on your strengths wins votes; a weak record can backfire.")
 	var c := Game.me()
 	var picked: Array = []
@@ -501,22 +733,30 @@ func _show_campaign() -> void:
 		var gain := Game.finish_campaign(picked)
 		Haptics.success()
 		_modal.dismiss()
-		Toast.show_headline(self, "Campaign launched: approval %+.1f" % gain, "vote",
-			DS.GREEN if gain >= 0.0 else DS.RED, modes.position.y + 52.0))
+		Game.set_speed(maxi(prev, 1))
+		_refresh_next()
+		_notify("Campaign launched: approval %+.1f" % gain, "vote", DS.GREEN if gain >= 0.0 else DS.RED, true))
 	_modal.content.add_child(launch)
-	_modal.choice("Skip campaigning", "", &"GhostButton", func() -> void:
-		Game.finish_campaign([])
-		_modal.dismiss())
+	_modal.choice("Let my party run it", "Your party picks its two strongest themes", &"GhostButton", func() -> void:
+		var themes := Campaign.best_themes(c)
+		var gain := Game.finish_campaign(themes)
+		_modal.dismiss()
+		Game.set_speed(maxi(prev, 1))
+		_refresh_next()
+		_notify("Campaign launched: approval %+.1f" % gain, "vote", DS.GREEN if gain >= 0.0 else DS.RED, true))
 
 
-## Election night: votes count up live, then the result lands.
+## Election night: the map dims and your country breathes while the votes count
+## up; a win ends in a gold sweep, a loss fades calmly to grey.
 func _show_election(r: Dictionary) -> void:
 	if is_instance_valid(_modal):
 		_modal.queue_free()
 	var won: bool = r.won
 	Audio.play("election")
+	map.spotlight(Game.player, true)
 	_modal = ModalCard.new()
 	add_child(_modal)
+	_modal.set_dim(0.25)
 	_modal.header("vote", DS.GOLD, "Election night %d" % int(r.year), "Counting the votes…")
 	var title: Label = _modal.content.get_child(0).get_child(1).get_child(1)
 	var share := AnimatedNumber.new()
@@ -554,18 +794,51 @@ func _show_election(r: Dictionary) -> void:
 			Haptics.tick(), 0.0, float(r.share), Settings.dur(2.4)).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	await t.finished
 	if not is_instance_valid(_modal):
+		map.spotlight(-1, false)
 		return
 	title.text = "You won re-election" if won else "You lost the election"
-	title.add_theme_color_override(&"font_color", DS.GOLD if won else DS.RED)
+	title.add_theme_color_override(&"font_color", DS.GOLD if won else DS.TEXT_2)
+	var managed := bool(r.get("managed", false))
 	msg.text = "Your approval stood at %s. %s" % [DS.pct(float(r.approval), 0),
-		"Another four years to shape the nation." if won else "The opposition takes office."]
+		("Another term to shape the nation." + (" Observers call the vote unfair." if managed and float(r.approval) < Economy.DISPUTED_BELOW else ""))
+		if won else ("The opposition takes office." if not Game.god_mode else "Somehow, you stay in office anyway.")]
 	if won:
 		Haptics.success()
+		_modal.sweep(Color(DS.GOLD, 0.28))
+		map.spotlight(Game.player, true, DS.GOLD)
 	else:
 		Haptics.warning()
-	_modal.choice("Continue" if won else "See your legacy", "", &"PrimaryButton", func() -> void:
+		_modal.set_dim(0.7)
+		map.spotlight(Game.player, true, Color(0.6, 0.62, 0.68))
+	_modal.choice("Continue" if won or Game.god_mode else "See your legacy", "", &"PrimaryButton", func() -> void:
+		map.spotlight(-1, false)
 		_modal.dismiss()
 		Game.continue_after_election(won))
+
+
+## The army is restless (military governments): a calm, critical warning.
+func _show_army_warning() -> void:
+	if is_instance_valid(_modal):
+		return
+	Audio.play("event")
+	Haptics.warning(false)
+	_modal = ModalCard.new()
+	add_child(_modal)
+	_modal.header("shield", DS.RED, "Critical", "The generals are restless")
+	_modal.body("Officers grumble about budget cuts and disorder. If nothing changes, they may remove you.")
+	var c := Game.me()
+	_modal.choice("Restore the military budget", "Military share back to where it started", &"PrimaryButton", func() -> void:
+		c.set_budget_share("military", maxf(float(c.budget.military), Game.politics.start_military_share))
+		Simulation.update_finances(c)
+		c.shocks.stability = float(c.shocks.stability) + 2.0
+		Haptics.success()
+		_modal.dismiss()
+		Game.resume_after_modal()
+		if _current != "":
+			_pages[_current].refresh())
+	_modal.choice("Hold your nerve", "Risky: a coup becomes possible", &"GhostButton", func() -> void:
+		_modal.dismiss()
+		Game.resume_after_modal())
 
 
 func _on_game_over(s: Dictionary) -> void:
@@ -590,5 +863,7 @@ func _confirm_new_game() -> void:
 func _on_back() -> void:
 	if is_instance_valid(_modal):
 		return
-	if sheet.is_open():
+	if layers.visible:
+		layers.close()
+	elif sheet.is_open():
 		sheet.close()

@@ -44,7 +44,7 @@ func refresh() -> void:
 		ch.queue_free()
 	for g in Laws.GROUPS:
 		var items := Laws.ALL.filter(func(l: Dictionary) -> bool:
-			if l.group != g:
+			if l.group != g or not Laws.available(c, l):
 				return false
 			var on := Laws.is_active(c, l.id)
 			return _mode == 0 or (_mode == 1 and on) or (_mode == 2 and not on))
@@ -71,7 +71,7 @@ func _card(c: CountryState, l: Dictionary) -> Control:
 	top.add_child(mid)
 	var t := Label.new()
 	t.theme_type_variation = &"Headline"
-	t.text = str(l.title)
+	t.text = Laws.title_of(c, l)
 	t.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	mid.add_child(t)
 	var d := Label.new()
@@ -116,6 +116,8 @@ func _card(c: CountryState, l: Dictionary) -> Control:
 			Laws.cancel(c, l.id)
 			Haptics.tap()
 			refresh())
+	elif on and bool(l.get("oneway", false)):
+		return v
 	elif on:
 		b = AppButton.make("Repeal", &"", "rotate-ccw")
 		b.pressed.connect(_confirm.bind(l, true))
@@ -130,10 +132,11 @@ func _confirm(l: Dictionary, repeal: bool) -> void:
 	var c := Game.me()
 	var m := ModalCard.new()
 	get_tree().current_scene.add_child(m)
-	m.header(str(l.icon), DS.ACCENT, "Repeal law" if repeal else "New law", str(l.title))
+	m.header(str(l.icon), DS.ACCENT, "Repeal law" if repeal else "New law", Laws.title_of(c, l))
 	var months := maxi(3, int(l.months * (0.5 if repeal else 1.0)))
 	var pol := float(l.politics) * (-0.6 if repeal else 1.0)
-	var mood := "Voters will welcome it" if pol > 0.5 else ("Expect some backlash" if pol < -0.5 else "Voters are split")
+	var people := "Voters" if Government.has_elections(c.idx) else "People"
+	var mood := people + " will welcome it" if pol > 0.5 else ("Expect some backlash" if pol < -0.5 else people + " are split")
 	m.body("%s\n\nIt will take about %d months%s. %s." % [str(l.desc), months,
 		" and its effects will reverse" if repeal else " before it takes effect", mood])
 	m.choice("Repeal it" if repeal else "Start passing it", "", &"DestructiveButton" if repeal else &"PrimaryButton",

@@ -284,6 +284,140 @@ const EVENTS := [
 				"effects": {"cost": 0.3, "growth": 0.8, "unemployment": -0.4}},
 			{"label": "Add a tourist tax", "detail": "Revenue up · fewer visitors",
 				"effects": {"cost": -0.2, "growth": 0.3}}]},
+	# --- Shaped by how the country is governed (see Government) -------------------
+	{"id": "coalition_crisis", "title": "Coalition wobbles", "icon": "users", "tint": "orange", "weight": 1.4,
+		"cond": "parliamentary",
+		"body": "A junior partner in {country}'s governing coalition threatens to walk out over a key bill.",
+		"choices": [
+			{"label": "Give them a ministry", "detail": "Coalition holds · looks weak",
+				"effects": {"stability": 2.0, "approval": -1.0}},
+			{"label": "Call their bluff", "detail": "Risky · voters like strength",
+				"effects": {"stability": -3.0, "approval": 2.0}},
+			{"label": "Water down the bill", "detail": "Peace now · less done",
+				"effects": {"stability": 1.0, "growth": -0.2}}]},
+	{"id": "budget_standoff", "title": "Budget standoff", "icon": "landmark", "tint": "orange", "weight": 1.3,
+		"cond": "presidential",
+		"body": "Lawmakers refuse to pass {country}'s budget. A government shutdown looms.",
+		"choices": [
+			{"label": "Compromise on spending", "detail": "Spending −1 pt · deal done",
+				"effects": {"spending": -1.0, "approval": 1.0, "stability": 1.0}},
+			{"label": "Govern by decree", "detail": "Gets things moving · critics cry foul",
+				"effects": {"approval": 1.0, "stability": -3.0}},
+			{"label": "Let it shut down", "detail": "Pressure on them · everyone suffers",
+				"effects": {"growth": -0.5, "approval": -3.0}}]},
+	{"id": "court_ruling", "title": "Court strikes down a policy", "icon": "scale", "tint": "accent", "weight": 1.0,
+		"cond": "democracy",
+		"body": "{country}'s highest court rules that one of your policies breaks the constitution.",
+		"choices": [
+			{"label": "Respect the ruling", "detail": "Rule of law · a small defeat",
+				"effects": {"stability": 2.0, "approval": -1.0}},
+			{"label": "Attack the judges", "detail": "Rallies supporters · alarms allies",
+				"effects": {"approval": 1.5, "stability": -3.0, "relations_all": -1.5}}]},
+	{"id": "dissident", "title": "A famous critic is arrested", "icon": "lock", "tint": "red", "weight": 1.3,
+		"cond": "autocracy",
+		"body": "Police in {country} detain a well-known critic of the government. The world is watching.",
+		"choices": [
+			{"label": "Release them", "detail": "Goodwill abroad · looks soft at home",
+				"effects": {"stability": -2.0, "relations_all": 2.5, "happiness": 1.0}},
+			{"label": "House arrest", "detail": "A quiet middle way",
+				"effects": {"relations_all": -1.0, "stability": 0.5}},
+			{"label": "Long prison sentence", "detail": "Order kept · anger at home and abroad",
+				"effects": {"stability": 2.0, "approval": -3.0, "relations_all": -3.5}}]},
+	{"id": "democracy_movement", "title": "Students demand elections", "icon": "megaphone", "tint": "orange",
+		"weight": 1.2, "cond": "autocracy",
+		"body": "Thousands of students march in {country}'s capital calling for free elections.",
+		"choices": [
+			{"label": "Promise gradual reform", "detail": "Hope rises · expectations too",
+				"effects": {"approval": 3.0, "stability": -2.0, "relations_all": 1.0}},
+			{"label": "Open a dialogue", "detail": "Buys time",
+				"effects": {"approval": 1.0, "stability": -0.5}},
+			{"label": "Disperse the crowds", "detail": "Order restored · deep resentment",
+				"effects": {"stability": 3.0, "approval": -5.0, "happiness": -2.0, "relations_all": -4.0}}]},
+	{"id": "succession", "title": "Succession question", "icon": "crown", "tint": "gold", "weight": 0.9,
+		"cond": "monarchy",
+		"body": "Rival branches of {country}'s royal family quarrel over who should be the next heir.",
+		"choices": [
+			{"label": "Name an heir now", "detail": "Certainty · some royals sulk",
+				"effects": {"stability": 3.0, "approval": 1.0}},
+			{"label": "Let the council decide", "detail": "Slower, more legitimate",
+				"effects": {"stability": 1.0, "approval": 2.0, "growth": -0.1}},
+			{"label": "Delay the decision", "detail": "Uncertainty lingers",
+				"effects": {"stability": -2.5}}]},
+	{"id": "generals", "title": "The generals want more", "icon": "shield", "tint": "red", "weight": 1.3,
+		"cond": "army",
+		"body": "Senior officers in {country} demand a bigger budget and more say in government.",
+		"choices": [
+			{"label": "Raise the army's budget", "detail": "Military share +3 pts · loyalty bought",
+				"effects": {"share_military": 3.0, "stability": 2.0, "cost": 0.2}},
+			{"label": "Promote loyal officers", "detail": "A reshuffle at the top",
+				"effects": {"stability": 1.0, "approval": -1.0}},
+			{"label": "Refuse", "detail": "Asserts control · risky",
+				"effects": {"stability": -3.0, "approval": 1.5}}]},
+	{"id": "party_purge", "title": "Graft inside the party", "icon": "gavel", "tint": "orange", "weight": 1.2,
+		"cond": "one_party",
+		"body": "Investigators find officials of {country}'s ruling party taking bribes on a large scale.",
+		"choices": [
+			{"label": "A sweeping clean-up", "detail": "Popular · officials grow cautious",
+				"effects": {"approval": 3.0, "stability": -1.0, "growth": -0.2}},
+			{"label": "Quiet warnings", "detail": "No fuss · the rot stays",
+				"effects": {"approval": -1.5}},
+			{"label": "Target your rivals", "detail": "Power secured · cynicism grows",
+				"effects": {"stability": 2.0, "approval": -2.0, "happiness": -1.0}}]},
+	{"id": "observers", "title": "Election observers", "icon": "search", "tint": "accent", "weight": 1.0,
+		"cond": "managed",
+		"body": "International monitors ask to observe {country}'s next election.",
+		"choices": [
+			{"label": "Welcome them", "detail": "Credibility abroad · less control",
+				"effects": {"relations_all": 3.0, "stability": -1.0}},
+			{"label": "Say no", "detail": "Raised eyebrows abroad",
+				"effects": {"relations_all": -2.0, "stability": 1.0}}]},
+	{"id": "royal_wedding", "title": "A royal wedding", "icon": "heart", "tint": "gold", "weight": 0.7,
+		"cond": "royals",
+		"body": "{country}'s royal family announces a wedding. The whole country is excited.",
+		"choices": [
+			{"label": "A grand public celebration", "detail": "Costs 0.05% of GDP · joy and tourists",
+				"effects": {"cost": 0.05, "happiness": 2.5, "approval": 1.5, "growth": 0.1}},
+			{"label": "Keep it modest", "detail": "No cost · respectful",
+				"effects": {"approval": 0.5}}]},
+	# --- Shaped by the country itself -----------------------------------------------
+	{"id": "pensions", "title": "Pension funds run short", "icon": "users", "tint": "orange", "weight": 1.3,
+		"cond": "ageing",
+		"body": "{country} has more retirees every year, and the pension system can no longer pay its way.",
+		"choices": [
+			{"label": "Raise contributions", "detail": "Income tax +1 pt · fair but felt",
+				"effects": {"income_tax": 1.0, "approval": -2.0}},
+			{"label": "Borrow to cover it", "detail": "Debt +1.5% of GDP · no pain today",
+				"effects": {"debt_gdp": 1.5}},
+			{"label": "Trim benefits", "detail": "Saves money · pensioners are furious",
+				"effects": {"cost": -0.3, "happiness": -2.0, "approval": -3.5}}]},
+	{"id": "blackout", "title": "Nationwide blackout", "icon": "plug-zap", "tint": "red", "weight": 1.4,
+		"cond": "weak_power",
+		"body": "The power grid collapses across {country}. Factories stop and cities go dark.",
+		"choices": [
+			{"label": "Emergency generators", "detail": "Costs 0.3% of GDP · lights back on",
+				"effects": {"cost": 0.3, "approval": 1.0, "growth": -0.2}},
+			{"label": "Ration power", "detail": "No cost · businesses suffer",
+				"effects": {"growth": -0.6, "happiness": -2.0, "approval": -2.0}}]},
+	{"id": "youth_jobs", "title": "Young and jobless", "icon": "graduation-cap", "tint": "orange", "weight": 1.2,
+		"cond": "young",
+		"body": "Millions of young people are entering {country}'s job market, and there aren't enough jobs.",
+		"choices": [
+			{"label": "Apprenticeship drive", "detail": "Costs 0.3% of GDP · skills and jobs",
+				"effects": {"cost": 0.3, "unemployment": -0.6, "growth": 0.2}},
+			{"label": "Public works", "detail": "Costs 0.5% of GDP · jobs now",
+				"effects": {"cost": 0.5, "unemployment": -0.9, "approval": 1.5}},
+			{"label": "Let the market sort it out", "detail": "No cost · frustration grows",
+				"effects": {"stability": -2.0, "approval": -2.0}}]},
+	{"id": "overrun", "title": "Contractors want more", "icon": "construction", "tint": "orange", "weight": 1.5,
+		"cond": "building",
+		"body": "The builders of {country}'s {project} say costs have soared and demand more money.",
+		"choices": [
+			{"label": "Pay up", "detail": "Costs 0.15% of GDP · work goes on",
+				"effects": {"cost": 0.15}},
+			{"label": "Renegotiate", "detail": "No extra cost · four months' delay",
+				"effects": {"project_delay": 4.0}},
+			{"label": "Investigate the contract", "detail": "Popular · six months' delay",
+				"effects": {"project_delay": 6.0, "approval": 1.0}}]},
 	{"id": "debt_crisis", "title": "Bond markets panic", "icon": "alert", "tint": "red", "weight": 0.0,
 		"body": "Investors are dumping {country}'s government bonds. Borrowing costs are spiking.",
 		"choices": [
@@ -339,6 +473,45 @@ static func roll(rng: RandomNumberGenerator) -> Dictionary:
 					return Game.relations[i] >= 35.0 and not Diplomacy.has_deal(i) and not Diplomacy.is_sanctioning(i))
 				if other < 0:
 					continue
+			"democracy":
+				if not Government.is_free(Game.player):
+					continue
+			"autocracy":
+				if Government.has_elections(Game.player):
+					continue
+			"parliamentary":
+				if not Government.kind(Game.player) in ["parliamentary", "monarchy_parl"]:
+					continue
+			"presidential":
+				if not Government.kind(Game.player) in ["presidential", "semi_presidential"]:
+					continue
+			"managed":
+				if Government.elections(Game.player) != "managed":
+					continue
+			"monarchy":
+				if Government.kind(Game.player) != "monarchy":
+					continue
+			"royals":
+				if not Government.kind(Game.player) in ["monarchy", "monarchy_parl"]:
+					continue
+			"army":
+				if not Government.army_rules(Game.player):
+					continue
+			"one_party":
+				if Government.kind(Game.player) != "one_party":
+					continue
+			"ageing":
+				if World.stat(Game.player, "age65_pct", 10.0) < 15.0:
+					continue
+			"young":
+				if World.stat(Game.player, "age65_pct", 10.0) > 6.0:
+					continue
+			"weak_power":
+				if World.stat(Game.player, "electricity_pct", 100.0) >= 90.0 or Projects.is_done(me, "power_grid"):
+					continue
+			"building":
+				if Projects.count_building(me) == 0:
+					continue
 			"hostile":
 				other = _pick_country(rng, func(i: int) -> bool:
 					return Game.relations[i] <= -50.0 and not Diplomacy.sanctions_me(i))
@@ -368,7 +541,17 @@ static func instance(e: Dictionary, other: int = -1) -> Dictionary:
 			continue
 		choices.append(ch)
 	return {"id": e.id, "title": e.title, "icon": e.icon, "tint": e.tint, "other": other, "next": e.get("next", {}),
-		"body": String(e.body).format({"country": name, "other": other_name}), "choices": choices}
+		"body": String(e.body).format({"country": name, "other": other_name, "project": _building_name()}), "choices": choices}
+
+
+static func _building_name() -> String:
+	var c := Game.me()
+	if c == null:
+		return "project"
+	for id in c.projects:
+		if str(c.projects[id].state) == "building":
+			return str(Projects.by_id(id).get("title", "project")).to_lower()
+	return "project"
 
 
 static func _pick_country(rng: RandomNumberGenerator, ok: Callable) -> int:
@@ -379,16 +562,29 @@ static func _pick_country(rng: RandomNumberGenerator, ok: Callable) -> int:
 	return cands[rng.randi() % cands.size()] if not cands.is_empty() else -1
 
 
-static func apply_effects(fx: Dictionary, other: int) -> void:
+const _BAD_UP := {"growth": false, "inflation": true, "unemployment": true, "happiness": false,
+	"approval": false, "stability": false}
+
+
+const DISASTERS := ["floods", "monsoon", "hurricane", "heatwave", "earthquake", "drought"]
+
+
+static func apply_effects(fx: Dictionary, other: int, ev_id: String = "") -> void:
 	var c := Game.me()
+	var sev := Difficulty.severity()
+	# Flood defences soften natural disasters.
+	var soften := 0.7 if ev_id in DISASTERS and Projects.is_done(c, "flood_defences") else 1.0
 	for k in fx:
 		var v: Variant = fx[k]
 		match k:
 			"growth", "inflation", "unemployment", "happiness", "approval", "stability":
-				c.set(k, float(c.get(k)) + float(v) * 0.5)
-				c.shocks[k] = float(c.shocks[k]) + float(v)
+				var x := float(v)
+				if (x > 0.0) == bool(_BAD_UP[k]):    # harmful part scales with difficulty
+					x *= sev * soften
+				c.set(k, float(c.get(k)) + x * 0.5)
+				c.shocks[k] = float(c.shocks[k]) + x
 			"cost":
-				c.treasury -= c.gdp * float(v) / 100.0
+				c.treasury -= c.gdp * float(v) / 100.0 * (sev if float(v) > 0.0 else 1.0)
 			"gdp":
 				c.gdp *= 1.0 + float(v) / 100.0
 			"rate":
@@ -415,6 +611,11 @@ static func apply_effects(fx: Dictionary, other: int) -> void:
 			"sanction_me":
 				if other >= 0:
 					Game.dip.sanctioned_by[str(other)] = Game.months_played
+			"project_delay":
+				for id in c.projects:
+					if str(c.projects[id].state) == "building":
+						c.projects[id].progress = maxf(float(c.projects[id].progress) - float(v), 0.0)
+						break
 			_:
 				if String(k).begins_with("share_"):
 					var key := String(k).trim_prefix("share_")
@@ -448,6 +649,8 @@ static func effect_chips(fx: Dictionary) -> Array:
 					"spending": "Spending"}[k], float(v)], k == "spending" and float(v) > 0.0, absf(float(v))])
 			"deal":
 				out.append(["Trade deal", true, 2.0])
+			"project_delay":
+				out.append(["Project delayed %d mo" % int(v), false, float(v) * 0.3])
 			"sanction_me":
 				out.append(["Sanctions on you", false, 3.0])
 			"gdp":

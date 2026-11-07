@@ -48,7 +48,7 @@ static func headline() -> Dictionary:
 		Game.last_rating = r
 		cands.push_front(_h("rating_%s_%d_%d" % [r, Game.year, Game.month],
 			"Credit rating %s to %s" % ["upgraded" if up else "downgraded", r], "landmark", up))
-	if Game.months_to_election == 6:
+	if Government.has_elections(Game.player) and Game.months_to_election == 6:
 		cands.append(_h("elect6_%d" % Game.year, "Six months until the election", "vote", true))
 	for cand in cands:
 		if not seen.has(cand.key):

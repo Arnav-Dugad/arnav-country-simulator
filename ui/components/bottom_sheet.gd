@@ -12,6 +12,7 @@ enum Snap { HIDDEN, PEEK, HALF, FULL }
 
 const SIDE_INSET := 8.0
 const FLICK_VELOCITY := 700.0
+const DRAG_SLOP := 6.0
 
 @export var peek_height := 132.0
 @export_range(0.2, 0.9) var half_ratio := 0.52
@@ -30,6 +31,8 @@ var _col: VBoxContainer
 var _pad: Control
 var _y := 0.0                 # current top of the panel (viewport coords)
 var _dragging := false
+var _pressing := false        # finger down on the header, not yet moved past the slop
+var _press_y := 0.0
 var _drag_offset := 0.0
 var _last_y := 0.0
 var _last_t := 0.0
@@ -45,6 +48,10 @@ func _init() -> void:
 	_dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_dim.modulate.a = 0.0
 	_dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_dim.gui_input.connect(func(e: InputEvent) -> void:
+		# Tapping the dimmed map closes the sheet (iOS behaviour).
+		if e is InputEventMouseButton and e.button_index == MOUSE_BUTTON_LEFT and not e.pressed and allow_dismiss:
+			close())
 	add_child(_dim)
 	# Refresh the screen copy so the sheet also blurs HUD elements beneath it.
 	var bb := BackBufferCopy.new()
@@ -115,6 +122,8 @@ func top_for(s: int) -> float:
 
 
 func snap_to(s: int, animate: bool = true) -> void:
+	_dragging = false
+	_pressing = false
 	var prev := state
 	state = s
 	var target := top_for(s)
@@ -162,25 +171,33 @@ func _relayout() -> void:
 
 
 func _on_panel_input(e: InputEvent) -> void:
-	# Only the header region (handle + header) drags the sheet.
+	# Only the header region (handle + header) drags the sheet, and only after the
+	# finger moves past a small slop: a plain tap (e.g. on the close button) must
+	# never be turned into a drag that re-snaps the sheet.
 	var in_header := false
 	if e is InputEventMouse:
 		in_header = e.position.y <= header.position.y + header.size.y + DS.S3 + _col.position.y
 	if e is InputEventMouseButton and e.button_index == MOUSE_BUTTON_LEFT:
-		if e.pressed and in_header:
-			_dragging = true
-			_drag_offset = e.global_position.y - _y
+		if e.pressed:
+			_pressing = in_header
+			_press_y = e.global_position.y
 			_last_y = e.global_position.y
 			_last_t = Time.get_ticks_msec() / 1000.0
 			_vel = 0.0
+		else:
+			_pressing = false
+			if _dragging:
+				_dragging = false
+				_release()
+				panel.accept_event()
+	elif e is InputEventMouseMotion:
+		if _pressing and not _dragging and absf(e.global_position.y - _press_y) > DRAG_SLOP:
+			_dragging = true
+			_drag_offset = e.global_position.y - _y
 			if _tween:
 				_tween.kill()
-			panel.accept_event()
-		elif not e.pressed and _dragging:
-			_dragging = false
-			_release()
-			panel.accept_event()
-	elif e is InputEventMouseMotion and _dragging:
+		if not _dragging:
+			return
 		var now := Time.get_ticks_msec() / 1000.0
 		var dt := maxf(now - _last_t, 0.001)
 		_vel = lerpf(_vel, (e.global_position.y - _last_y) / dt, 0.4)

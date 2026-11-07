@@ -16,6 +16,8 @@ var _corp: AppSlider
 var _rate: AppSlider
 var _trade: AppSlider
 var _balance_note: Label
+var _cb: AppToggle
+var _cb_note: Label
 var _strips: Array[ForecastStrip] = []
 const INFO_TEXT := {
 	"Income tax": "The share of people's earnings the government takes. Higher taxes raise money for services but slow the economy a little, and voters dislike them.",
@@ -45,7 +47,7 @@ func _build() -> void:
 	_tiles.unemployment = _tile(g, "Unemployment", SheetPage.fmt_pct, false)
 	_tiles.inflation = _tile(g, "Inflation", SheetPage.fmt_pct, false)
 	_tiles.debt_pct = _tile(g, "Debt / GDP", SheetPage.fmt_pct, false)
-	_tiles.approval = _tile(g, "Approval", SheetPage.fmt_pct, true)
+	_tiles.approval = _tile(g, Government.support_word(Game.player), SheetPage.fmt_pct, true)
 	_tiles.rating = _tile(g, "Credit rating", func(_v: float) -> String: return Game.me().rating(), true)
 	_tiles.balance = _tile(g, "Budget", func(v: float) -> String: return DS.pct(v, 1, true) + " GDP", true)
 	_tiles.rating.make_tappable().tapped.connect(_explain_rating)
@@ -102,6 +104,13 @@ func _build() -> void:
 	_attach_forecast(tax, [_income, _corp])
 
 	var money := section("Central bank")
+	_cb = AppToggle.new().setup("Let the central bank decide", c.cb_auto, "landmark")
+	_cb.toggled.connect(func(v: bool) -> void:
+		Game.me().cb_auto = v
+		Haptics.select()
+		_sync_cb())
+	money.add_child(_cb)
+	_cb_note = note("", money)
 	_rate = _slider(money, "Interest rate", Economy.RATE_MIN, Economy.RATE_MAX, 0.25, c.interest_rate, NAN,
 		"Higher: cools inflation · costs jobs and growth")
 	_rate.formatter = func(v: float) -> String: return String.num(v, 2) + "%"
@@ -227,9 +236,21 @@ func refresh() -> void:
 	_update_balance()
 	_update_chart(false)
 	_health.refresh()
+	if Game.me().cb_auto:
+		_rate.set_value(Game.me().interest_rate, false)
+		_sync_cb()
+
+
+## An independent central bank sets rates itself (AI.central_bank); turn it off to
+## set them by hand.
+func _sync_cb() -> void:
+	var c := Game.me()
+	_rate.visible = not c.cb_auto
+	_cb_note.text = ("Your central bank adjusts the interest rate every few months to keep inflation near 2%%. It's %s now." % (String.num(c.interest_rate, 2) + "%")) 		if c.cb_auto else "You set the interest rate yourself. Raise it when prices climb, cut it when jobs vanish."
 
 
 func on_open() -> void:
+	_sync_cb()
 	for s in _strips:
 		s.commit()
 	var c0 := Game.me()

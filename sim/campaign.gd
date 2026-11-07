@@ -61,3 +61,17 @@ static func launch(c: CountryState, ids: Array) -> float:
 	c.approval = clampf(c.approval + total * 0.5, 0.0, 100.0)
 	c.shocks.approval = float(c.shocks.approval) + total
 	return total
+
+
+## The two themes with the biggest boost (what the cabinet runs on if you don't choose).
+static func best_themes(c: CountryState) -> Array:
+	var ids: Array = THEMES.map(func(t: Dictionary) -> String: return str(t.id))
+	ids.sort_custom(func(a: String, b: String) -> bool: return boost(c, a) > boost(c, b))
+	return ids.slice(0, 2)
+
+
+static func title_of(id: String) -> String:
+	for th in THEMES:
+		if th.id == id:
+			return str(th.title)
+	return id

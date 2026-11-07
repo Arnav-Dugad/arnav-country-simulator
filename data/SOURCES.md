@@ -34,6 +34,24 @@ Snapshot built **2026-11-07**. Each value is the **most recent available year
 | fuel_exports_pct (% of merchandise exports) | World Bank WDI | TX.VAL.FUEL.ZS.UN |
 | debt_pct (% GDP) | IMF World Economic Outlook (DataMapper) | GGXWDG_NGDP |
 | budget_balance_pct (% GDP) | IMF WEO (DataMapper) | GGXCNL_NGDP |
+| health_pct (government health spending, % GDP) | World Bank WDI (WHO) | SH.XPD.GHED.GD.ZS |
+| education_pct (% GDP) | World Bank WDI (UNESCO) | SE.XPD.TOTL.GD.ZS |
+| research_pct (R&D, % GDP) | World Bank WDI (UNESCO) | GB.XPD.RSDV.GD.ZS |
+| gini | World Bank WDI | SI.POV.GINI |
+| age65_pct (% of population) | World Bank WDI | SP.POP.65UP.TO.ZS |
+| urban_pct | World Bank WDI | SP.URB.TOTL.IN.ZS |
+| tourism_pct (% of exports) | World Bank WDI | ST.INT.RCPT.XP.ZS |
+| manufacturing_pct / agriculture_pct (% GDP) | World Bank WDI | NV.IND.MANF.ZS / NV.AGR.TOTL.ZS |
+| internet_pct / electricity_pct (% of people) | World Bank WDI | IT.NET.USER.ZS / EG.ELC.ACCS.ZS |
+| trade_pct (exports + imports, % GDP) | World Bank WDI | NE.TRD.GNFS.ZS |
+| corruption_wgi / voice_wgi (−2.5…2.5) | World Bank WGI | GOV_WGI_CC.EST / GOV_WGI_VA.EST |
+
+The detail fields above (health … voice) shape budgets, projects, events and traits. Missing values use
+regional medians and are listed per country in `estimated_detail`.
+
+Systems of government (sim/government.gd) are hand-curated from national constitutions (term lengths),
+the EIU Democracy Index 2024 and Freedom House 2025 (free vs. managed elections), and news of the
+2020–2025 coups. Landlocked and island lists (autoload/world.gd) follow the UN lists.
 
 IMF series (NGDPD, LP, NGDP_RPCH, PCPIPCH, LUR, GGR_NGDP) fill entities the World Bank
 does not cover (e.g. Taiwan). Natural Earth POP_EST / GDP_MD are a last resort.

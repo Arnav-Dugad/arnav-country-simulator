@@ -45,6 +45,7 @@ var corp_tax := 20.0           # %
 var spending_pct := 30.0       # primary spending, % of GDP
 var budget := {}               # key -> share (0..1), sums to 1
 var trade_openness := 0.5      # 0 protectionist … 1 fully open
+var cb_auto := true            # an independent central bank sets interest rates (AI.central_bank)
 
 # Diplomacy aggregates (maintained by Game)
 var trade_deals := 0
@@ -58,6 +59,8 @@ var estimated: Array = []
 var laws := {}         # id -> {state: active|passing|repealing, months_left}
 var laws_start := {}   # laws in force at the start (baseline; see Laws)
 var laws_ver := 0      # bump when `laws` changes (invalidates the modifier cache)
+var projects := {}     # id -> {state: building|done, progress (months), price (USD), start?}
+var projects_ver := 0
 var lx_cache := {}
 var lx_ver := -1
 
@@ -93,11 +96,9 @@ func init_from_stats(i: int, s: Dictionary) -> CountryState:
 	var interest_pct := debt_pct * debt_rate / 100.0
 	spending_pct = clampf(revenue_pct - interest_pct - s.get("budget_balance_pct", -3.0), 8.0, 65.0)
 
-	var mil_share := clampf(s.get("military_pct", 1.8) / spending_pct, 0.02, 0.4)
-	var rest := {"health": 0.26, "education": 0.2, "infrastructure": 0.14, "welfare": 0.34, "research": 0.06}
-	budget = {"military": mil_share}
-	for k in rest:
-		budget[k] = rest[k] * (1.0 - mil_share)
+	budget = Economy.start_budget(s, spending_pct)
+	trade_openness = Economy.start_trade_openness(s.get("trade_pct", 60.0))
+	trend += Economy.demography_trend(s.get("age65_pct", 10.0))
 
 	happiness = Economy.start_happiness(s)
 	stability = Economy.start_stability(s)
@@ -107,6 +108,7 @@ func init_from_stats(i: int, s: Dictionary) -> CountryState:
 	laws_start = Laws.starting_set(self)
 	for id in laws_start:
 		laws[id] = {"state": "active"}
+	projects = Projects.starting_set(self)
 	Simulation.update_finances(self)
 	treasury = spending / 12.0 * Economy.TREASURY_BUFFER_MONTHS
 	_capture_base()
@@ -211,7 +213,7 @@ const SAVE_FIELDS := ["idx", "population", "gdp", "growth", "growth_anchor", "tr
 	"u_natural", "inflation", "core_inflation", "interest_rate", "debt", "debt_rate", "treasury",
 	"other_rev_pct", "pop_growth", "price_index", "approval", "happiness", "stability", "military", "income_tax",
 	"corp_tax", "spending_pct", "budget", "trade_openness", "trade_deals", "sanctioned_by",
-	"alliances", "base", "shocks", "estimated", "laws", "laws_start"]
+	"alliances", "base", "shocks", "estimated", "laws", "laws_start", "projects", "cb_auto"]
 
 
 func to_dict() -> Dictionary:

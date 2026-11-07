@@ -24,6 +24,8 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 	var gap := clampf(c.interest_rate - neutral, -E.RATE_GAP_CAP, E.RATE_GAP_CAP)
 	var debt_pct := c.debt_pct()
 	var lx := Laws.modifiers(c)
+	var px := Projects.modifiers(c)
+	var autocracy := not Government.has_elections(c.idx)
 
 	# --- Growth ---------------------------------------------------------------
 	c.growth_anchor += (c.trend - c.growth_anchor) * E.TREND_PULL
@@ -43,6 +45,8 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Instability", -E.STABILITY_GROWTH_DRAG * maxf(0.0, minf(float(b.stability), E.STABILITY_FLOOR) - c.stability)],
 		["Recent events", float(c.shocks.growth)],
 		["Laws & reforms", float(lx.get("growth", 0.0))],
+		["Projects you built", float(px.get("growth", 0.0))],
+		["Construction work", float(px.get("build_growth", 0.0))],
 	]
 	var g := clampf(_sum(g_terms), -25.0, 20.0)
 	c.growth += (g - c.growth) * E.GROWTH_ADJUST
@@ -66,6 +70,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Interest rates", -E.RATE_INFLATION_EFFECT * gap],
 		["Recent events", float(c.shocks.inflation)],
 		["Laws & reforms", float(lx.get("inflation", 0.0))],
+		["Projects you built", float(px.get("inflation", 0.0))],
 	]
 	var pi := clampf(_sum(pi_terms), -5.0, 500.0)
 	c.inflation += (pi - c.inflation) * E.INFLATION_ADJUST
@@ -80,6 +85,8 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Interest rates", E.RATE_UNEMP * gap],
 		["Recent events", float(c.shocks.unemployment)],
 		["Laws & reforms", float(lx.get("unemployment", 0.0))],
+		["Projects you built", float(px.get("unemployment", 0.0))],
+		["Construction work", float(px.get("build_jobs", 0.0))],
 	]
 	var u := clampf(_sum(u_terms), E.UNEMP_MIN, E.UNEMP_MAX)
 	c.unemployment += (u - c.unemployment) * E.UNEMP_ADJUST
@@ -112,7 +119,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 	var h_terms := [
 		["Starting mood", float(b.happiness)],
 		["Healthcare", E.HEALTH_HAPPY * _log2_ratio(c.effort("health"), b.get("health_effort", 0.0))],
-		["Welfare", E.WELFARE_HAPPY * _log2_ratio(c.effort("welfare"), b.get("welfare_effort", 0.0))],
+		["Welfare", E.WELFARE_HAPPY * _gini_weight(c.idx) * _log2_ratio(c.effort("welfare"), b.get("welfare_effort", 0.0))],
 		["Education", E.EDUCATION_HAPPY * _log2_ratio(c.effort("education"), b.get("education_effort", 0.0))],
 		["Living standards", E.INCOME_HAPPY * _log2_ratio(real_pc, b.gdp_pc)],
 		["Jobs", -E.UNEMP_HAPPY * (c.unemployment - float(b.unemployment))],
@@ -120,6 +127,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Income tax", -E.TAX_HAPPY * d_inc],
 		["Recent events", float(c.shocks.happiness)],
 		["Laws & reforms", float(lx.get("happiness", 0.0))],
+		["Projects you built", float(px.get("happiness", 0.0))],
 	]
 	b.gdp_pc = float(b.gdp_pc) + (real_pc - float(b.gdp_pc)) * E.INCOME_ADAPTATION
 	var h := clampf(_sum(h_terms), 0.0, E.HAPPY_MAX)
@@ -135,18 +143,22 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Diplomacy", c.alliances * 0.6 + c.trade_deals * 0.3 - c.sanctioned_by * 1.0],
 		["Recent events", float(c.shocks.approval)],
 		["Laws & reforms", float(lx.get("approval", 0.0))],
+		["Projects you built", float(px.get("approval", 0.0))],
 	]
 	var a := clampf(_sum(a_terms), 0.0, 100.0)
 	c.approval += (a - c.approval) * E.APPROVAL_ADJUST
 
 	var st_terms := [
 		["Starting stability", float(b.stability)],
-		["Approval", E.STABILITY_FROM_APPROVAL * (c.approval - float(b.approval))],
+		["Support" if autocracy else "Approval", E.STABILITY_FROM_APPROVAL * (E.AUTOCRACY_APPROVAL_WEIGHT if autocracy else 1.0)
+			* (c.approval - float(b.approval))],
 		["Happiness", E.STABILITY_FROM_HAPPY * (c.happiness - float(b.happiness))],
-		["Military spending", E.STABILITY_MILITARY * c.share_delta("military") / 10.0],
+		["Security forces" if autocracy else "Military spending", E.STABILITY_MILITARY
+			* (E.AUTOCRACY_MILITARY_WEIGHT if autocracy else 1.0) * c.share_delta("military") / 10.0],
 		["Jobs", -0.3 * (c.unemployment - float(b.unemployment))],
 		["Recent events", float(c.shocks.stability)],
 		["Laws & reforms", float(lx.get("stability", 0.0))],
+		["Projects you built", float(px.get("stability", 0.0))],
 	]
 	var st := clampf(_sum(st_terms), 0.0, 100.0)
 	c.stability += (st - c.stability) * E.STABILITY_ADJUST
@@ -199,7 +211,7 @@ static func update_finances(c: CountryState) -> void:
 	var rate := Economy.tax_yield(c.income_tax, Economy.K_INCOME) + Economy.tax_yield(c.corp_tax, Economy.K_CORP)
 	var lx := Laws.modifiers(c)
 	c.revenue = c.gdp * (rate + (c.other_rev_pct + float(lx.get("revenue", 0.0))) / 100.0) * cycle
-	c.spending = c.gdp * (c.spending_pct + float(lx.get("cost", 0.0))) / 100.0
+	c.spending = c.gdp * (c.spending_pct + float(lx.get("cost", 0.0)) + Projects.spending_pct(c)) / 100.0
 	# Inflation above the floor erodes local-currency debt, so only the real
 	# part of the rate is a burden in dollar terms.
 	var real_rate := maxf(c.debt_rate - maxf(0.0, c.inflation - Economy.DEBT_EROSION_FLOOR), 0.25)
@@ -216,6 +228,11 @@ static func project(c: CountryState, months: int) -> CountryState:
 	for _m in months:
 		tick(copy, rng)
 	return copy
+
+
+## Welfare matters more where incomes are unequal.
+static func _gini_weight(i: int) -> float:
+	return clampf(1.0 + (World.stat(i, "gini", 35.0) - 35.0) / E.GINI_SCALE, 0.7, 1.5)
 
 
 static func _log2_ratio(now: float, start: Variant) -> float:

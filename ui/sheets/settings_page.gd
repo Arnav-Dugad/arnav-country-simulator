@@ -53,6 +53,8 @@ func _build() -> void:
 	ng.pressed.connect(func() -> void: new_game_requested.emit())
 	game.add_child(ng)
 
+	_build_notifications()
+
 	_account_box = section("Account & cloud")
 	_account_box.add_child(AccountSection.new())
 
@@ -95,6 +97,8 @@ func _build() -> void:
 	acc.add_child(sp)
 	note("Reduce transparency uses solid panels: easier to read, and faster on older phones.", acc)
 
+	_build_cheats()
+
 	var about := section("About")
 	var ver := ListRow.new().setup("Arnav Country Simulator", "Version %s" % ProjectSettings.get_setting(
 		"application/config/version", "0.0.0"))
@@ -124,6 +128,133 @@ func _build() -> void:
 		"some small states use regional estimates (marked).", about)
 	_refresh_slots()
 	SaveManager.slots_changed.connect(_refresh_slots)
+
+
+const DECISION_MODES := ["inbox", "ask", "cabinet"]
+const DECISION_HINTS := [
+	"Events wait above the dock without stopping time. If you don't answer in 6 months, your cabinet picks the recommended option.",
+	"Every event pauses the game until you decide (the classic way).",
+	"Your cabinet answers routine events for you and you get a short note. Critical ones still ask you.",
+]
+
+
+func _build_notifications() -> void:
+	var box := section("Notifications")
+	var l := Label.new()
+	l.theme_type_variation = &"Body"
+	l.text = "Events"
+	box.add_child(l)
+	var seg := SegmentedControl.new().setup(["Inbox", "Ask me", "Cabinet"], [],
+		maxi(0, DECISION_MODES.find(Settings.decisions)))
+	seg.plain = true
+	seg.compact = false
+	seg.fill = true
+	seg.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	box.add_child(seg)
+	var hint := note(DECISION_HINTS[maxi(0, DECISION_MODES.find(Settings.decisions))], box)
+	seg.changed.connect(func(i: int) -> void:
+		Settings.set_value("decisions", DECISION_MODES[i])
+		hint.text = DECISION_HINTS[i])
+	var l2 := Label.new()
+	l2.theme_type_variation = &"Body"
+	l2.text = "Banners"
+	box.add_child(l2)
+	var ban := SegmentedControl.new().setup(["Calm", "Everything"], [], 0 if Settings.banners == "calm" else 1)
+	ban.plain = true
+	ban.compact = false
+	ban.fill = true
+	ban.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	ban.changed.connect(func(i: int) -> void: Settings.set_value("banners", "calm" if i == 0 else "all"))
+	box.add_child(ban)
+	note("Calm shows only important banners, spaced out. Everything else waits in the Inbox (the bell).", box)
+	var pf := AppToggle.new().setup("Pause while a panel is full screen", Settings.pause_full_sheet, "pause")
+	pf.toggled.connect(func(v: bool) -> void: Settings.set_value("pause_full_sheet", v))
+	box.add_child(pf)
+
+
+# ----------------------------------------------------------------- cheats ---
+var _cheat_box: VBoxContainer
+
+
+func _build_cheats() -> void:
+	_cheat_box = section("Cheats")
+	_fill_cheats()
+
+
+func _fill_cheats() -> void:
+	for ch in _cheat_box.get_children():
+		ch.queue_free()
+	if not Settings.cheats:
+		note("A sandbox for experimenting: money, instant building, never losing power and more. Games where you use cheats don't earn achievements.", _cheat_box)
+		var unlock := AppButton.make("Turn on cheats", &"", "wand-sparkles")
+		unlock.pressed.connect(func() -> void:
+			Settings.set_value("cheats", true)
+			Haptics.success()
+			_fill_cheats())
+		_cheat_box.add_child(unlock)
+		return
+	if Game.me() == null:
+		return
+	var status := note("Cheats used in this game: %s" % ("yes, achievements are off" if Game.cheats_used else "not yet"), _cheat_box)
+	var cheat := func(text: String, icon_: String, fn: Callable) -> void:
+		var b := AppButton.make(text, &"", icon_)
+		b.pressed.connect(func() -> void:
+			Game.cheats_used = true
+			fn.call()
+			Simulation.update_finances(Game.me())
+			Game.me().refresh_explainer()
+			Game.month_passed.emit()   # refresh every panel
+			Haptics.success()
+			status.text = "Done: %s. Achievements are off for this game." % text.to_lower())
+		_cheat_box.add_child(b)
+	cheat.call("Add 10% of GDP to the treasury", "coins", func() -> void:
+		Game.me().treasury += Game.me().gdp * 0.1)
+	cheat.call("Wipe out the national debt", "piggy-bank", func() -> void:
+		Game.me().debt = 0.0)
+	cheat.call("Everyone loves you", "heart", func() -> void:
+		var m := Game.me()
+		m.approval = minf(m.approval + 20.0, 95.0)
+		m.happiness = minf(m.happiness + 15.0, 95.0)
+		m.shocks.approval = float(m.shocks.approval) + 20.0
+		m.shocks.happiness = float(m.shocks.happiness) + 15.0)
+	cheat.call("Restore order", "shield", func() -> void:
+		var m := Game.me()
+		m.stability = minf(m.stability + 25.0, 95.0)
+		m.shocks.stability = float(m.shocks.stability) + 25.0)
+	cheat.call("Finish all construction now", "hammer", func() -> void:
+		var m := Game.me()
+		for id in m.projects.keys():
+			if str(m.projects[id].state) == "building":
+				m.projects[id].progress = float(Projects.by_id(id).months)
+		for id in Projects.monthly(m):
+			Game.project_finished.emit(str(id)))
+	cheat.call("Pass all laws being debated", "gavel", func() -> void:
+		var m := Game.me()
+		for id in m.laws.keys():
+			if str(m.laws[id].get("state", "")) in ["passing", "repealing"]:
+				m.laws[id].months_left = 1
+		for done in Laws.monthly(m):
+			if str(done.id) == "free_elections" and not bool(done.repealed):
+				Game.politics.become_democracy()
+			Game.law_finished.emit(str(done.id), bool(done.repealed)))
+	cheat.call("Make friends with the whole world", "globe", func() -> void:
+		for i in Game.relations.size():
+			if i != Game.player:
+				Game.relations[i] = clampf(Game.relations[i] + 30.0, -100.0, 100.0)
+				Game.dip.baseline[str(i)] = clampf(float(Game.dip.baseline.get(str(i), 0.0)) + 30.0, -100.0, 100.0)
+		Game.relations_changed.emit())
+	var god := AppToggle.new().setup("Never lose power", Game.god_mode, "crown")
+	god.toggled.connect(func(v: bool) -> void:
+		Game.god_mode = v
+		if v:
+			Game.cheats_used = true
+			status.text = "You can't lose power. Achievements are off for this game.")
+	_cheat_box.add_child(god)
+	var off := AppButton.make("Hide cheats", &"GhostButton", "x")
+	off.pressed.connect(func() -> void:
+		Settings.set_value("cheats", false)
+		_fill_cheats())
+	_cheat_box.add_child(off)
 
 
 ## Box that later phases (account, updates) fill in.
@@ -171,6 +302,8 @@ func _flash(text: String) -> void:
 
 func refresh() -> void:
 	_refresh_slots()
+	if Settings.cheats and _cheat_box and _cheat_box.get_child_count() <= 2:
+		_fill_cheats()
 	var ar: ListRow = get_meta(&"ach_row", null)
 	if ar:
 		ar.subtitle_label.text = "%d of %d unlocked" % [Achievements.count(), Achievements.ALL.size()]

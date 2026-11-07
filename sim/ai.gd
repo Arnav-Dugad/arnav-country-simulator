@@ -6,7 +6,13 @@ extends RefCounted
 
 
 static func quarterly(c: CountryState, rng: RandomNumberGenerator) -> void:
-	# Central bank
+	central_bank(c)
+	_treasury(c, rng)
+
+
+## An independent central bank: a Taylor-style rule toward neutral. Also runs the
+## player's rates while CountryState.cb_auto is on (the default).
+static func central_bank(c: CountryState) -> void:
 	var neutral := Economy.neutral_rate(c.core_inflation)
 	var target := neutral + 0.5 * (c.inflation - Economy.INFLATION_TARGET) * 0.5 \
 		- 0.25 * (c.unemployment - c.u_natural)
@@ -15,6 +21,8 @@ static func quarterly(c: CountryState, rng: RandomNumberGenerator) -> void:
 	if absf(step) >= 0.25:
 		c.interest_rate = clampf(snappedf(c.interest_rate + step, 0.25), Economy.RATE_MIN, Economy.RATE_MAX)
 
+
+static func _treasury(c: CountryState, rng: RandomNumberGenerator) -> void:
 	# Treasury: stay near the country's own starting fiscal stance.
 	var deficit := -c.balance_pct()
 	var allowed := maxf(Economy.DEFICIT_SAFE, float(c.base.get("deficit_pct", 3.0)))

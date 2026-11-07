@@ -61,13 +61,36 @@ const ALL := [
 	{"id": "police_reform", "group": "Security & governance", "icon": "users", "title": "Police reform",
 		"desc": "Better training and independent oversight of police.", "months": 9, "politics": 0.5,
 		"fx": {"stability": 2.0, "happiness": 1.5, "cost": 0.15}},
+	# Only where elections aren't free (see Government). One way: it can't be repealed.
+	{"id": "free_elections", "group": "Security & governance", "icon": "vote", "title": "Free elections",
+		"desc": "Hold free, multi-party elections. You'll face the voters in a year.", "months": 18,
+		"politics": 4.0, "gov": "closed", "oneway": true,
+		"fx": {"happiness": 2.0, "approval": 2.0, "stability": -1.5, "growth": 0.1}},
 ]
+
+## Title for the free-elections reform, by the system it replaces.
+const REFORM_TITLES := {"one_party": "Allow multi-party elections", "monarchy": "Constitutional monarchy",
+	"military": "Hand power to elected civilians", "transitional": "Hold national elections",
+	"theocracy": "Open elections to all parties", "managed": "Free and fair elections"}
 
 const FX_LABELS := {"growth": "Growth", "inflation": "Inflation", "unemployment": "Jobless",
 	"happiness": "Happiness", "approval": "Approval", "stability": "Stability", "cost": "Cost", "revenue": "Revenue"}
 ## For each key: does a positive number help the player?
 const FX_GOOD_UP := {"growth": true, "inflation": false, "unemployment": false, "happiness": true,
 	"approval": true, "stability": true, "cost": false, "revenue": true}
+
+
+## Is this law on offer in the player's country?
+static func available(c: CountryState, l: Dictionary) -> bool:
+	if str(l.get("gov", "")) == "closed":
+		return is_active(c, l.id) or pending_months(c, l.id) > 0 or not Government.is_free(c.idx)
+	return true
+
+
+static func title_of(c: CountryState, l: Dictionary) -> String:
+	if l.id == "free_elections":
+		return str(REFORM_TITLES.get(Government.kind(c.idx), l.title))
+	return str(l.title)
 
 
 static func law(id: String) -> Dictionary:
@@ -135,9 +158,11 @@ static func modifiers(c: CountryState) -> Dictionary:
 ## Starts passing (or repealing) a law. Returns months it will take.
 static func start(c: CountryState, id: String) -> int:
 	var l := law(id)
-	if l.is_empty():
+	if l.is_empty() or not available(c, l):
 		return 0
 	var repeal := is_active(c, id)
+	if repeal and bool(l.get("oneway", false)):
+		return 0
 	var months := maxi(3, int(l.months * (0.5 if repeal else 1.0)))
 	c.laws[id] = {"state": "repealing" if repeal else "passing", "months_left": months}
 	c.laws_ver += 1

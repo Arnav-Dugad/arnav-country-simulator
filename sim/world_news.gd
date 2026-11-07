@@ -24,9 +24,13 @@ static func is_notable(i: int) -> bool:
 static func monthly(i: int, c: CountryState, prev_growth: float, rng: RandomNumberGenerator) -> void:
 	if not World.is_playable(i):
 		return
-	var offset := absi(hash(World.map.iso3[i])) % ELECTION_CYCLE
-	if (Game.months_played + offset) % ELECTION_CYCLE == 0 and Game.months_played > 0:
-		_election(i, c, rng)
+	if Government.has_elections(i):
+		var cycle := 12 * Government.term_years(i)
+		var offset := absi(hash(World.map.iso3[i])) % cycle
+		if (Game.months_played + offset) % cycle == 0 and Game.months_played > 0:
+			_election(i, c, rng)
+	elif c.stability < 20.0 and rng.randf() < 0.01:
+		_leader_change(i, c, rng, "%s's government falls" % World.map.names[i])
 	if not is_notable(i):
 		return
 	if prev_growth >= -0.3 and c.growth < -0.3:
@@ -40,7 +44,11 @@ static func _election(i: int, c: CountryState, rng: RandomNumberGenerator) -> vo
 	if rng.randf() < p_keep:
 		c.approval = minf(c.approval + 3.0, 100.0)
 		return
-	# New leader: a fresh start at home and a new attitude abroad.
+	_leader_change(i, c, rng, "%s elects a new leader" % World.map.names[i])
+
+
+## New leader: a fresh start at home and a new attitude abroad.
+static func _leader_change(i: int, c: CountryState, rng: RandomNumberGenerator, headline: String) -> void:
 	c.approval = 55.0
 	c.shocks.stability = float(c.shocks.stability) + 3.0
 	var swing := rng.randf_range(-NEW_LEADER_SWING, NEW_LEADER_SWING)
@@ -49,7 +57,7 @@ static func _election(i: int, c: CountryState, rng: RandomNumberGenerator) -> vo
 	Game.dip.baseline[key] = clampf(float(Game.dip.baseline.get(key, Game.relations[i])) + swing * 0.6, -100.0, 100.0)
 	if is_notable(i):
 		var tone := "warmer toward you" if swing > 5.0 else ("cooler toward you" if swing < -5.0 else "")
-		add(i, "%s elects a new leader%s" % [World.map.names[i], ", " + tone if tone != "" else ""], "vote", swing >= 0.0)
+		add(i, "%s%s" % [headline, ", " + tone if tone != "" else ""], "vote", swing >= 0.0)
 
 
 static func defaulted(i: int) -> void:

@@ -28,6 +28,10 @@ const ALL := [
 	{"id": "all_views", "icon": "layers", "title": "Cartographer", "desc": "Look at the world in all five map views."},
 	{"id": "curious", "icon": "info", "title": "Curious mind", "desc": "Check what's moving a number five times."},
 	{"id": "challenger", "icon": "crown", "title": "Challenger", "desc": "Complete a challenge."},
+	{"id": "ribbon", "icon": "hammer", "title": "Ribbon cutting", "desc": "Finish your first construction project."},
+	{"id": "builder", "icon": "construction", "title": "Master builder", "desc": "Finish five projects in one game."},
+	{"id": "mandate", "icon": "landmark", "title": "Renewed mandate", "desc": "Survive a leadership review."},
+	{"id": "democrat", "icon": "vote", "title": "Power to the people", "desc": "Bring free elections to your country."},
 ]
 
 var _got := {}        # id -> unix time
@@ -47,7 +51,17 @@ func _ready() -> void:
 				unlock("landslide")
 			if Game.elections_won >= 3:
 				unlock("three_terms"))
-	Game.law_finished.connect(func(_id: String, repealed: bool) -> void:
+	Game.project_finished.connect(func(_id: String) -> void:
+		unlock("ribbon")
+		var c := Game.me()
+		var own := c.projects.values().filter(func(p: Dictionary) -> bool:
+			return str(p.state) == "done" and not bool(p.get("start", false))).size()
+		if own >= 5:
+			unlock("builder"))
+	Game.review_held.connect(func(_r: Dictionary) -> void: unlock("mandate"))
+	Game.law_finished.connect(func(id: String, repealed: bool) -> void:
+		if not repealed and id == "free_elections":
+			unlock("democrat")
 		if not repealed:
 			unlock("first_law")
 			var c := Game.me()
@@ -66,7 +80,8 @@ func count() -> int:
 
 
 func unlock(id: String) -> void:
-	if _got.has(id) or not Game.has_game():
+	# Cheated games don't earn achievements.
+	if _got.has(id) or not Game.has_game() or Game.cheats_used:
 		return
 	_got[id] = int(Time.get_unix_time_from_system())
 	_save()

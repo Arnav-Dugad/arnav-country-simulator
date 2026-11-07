@@ -46,6 +46,7 @@ func _rebuild() -> void:
 		_btn("Create account", &"PrimaryButton", "mail", _email_form.bind(true))
 		_btn("Sign in to existing account", &"", "log-out", _email_form.bind(false))
 		_btn("Sync now", &"GhostButton", "refresh-cw", _sync)
+		_btn("Delete guest account", &"GhostButton", "trash-2", _confirm_delete)
 	else:
 		_who.setup(Firebase.email, "Signed in · saves sync across devices")
 		_who.set_leading(ListRow.icon_tile("cloud", DS.GREEN))
@@ -53,7 +54,25 @@ func _rebuild() -> void:
 		_btn("Sign out", &"GhostButton", "log-out", func() -> void:
 			Firebase.sign_out()
 			Haptics.tap())
+		_btn("Delete account", &"DestructiveButton", "trash-2", _confirm_delete)
 	_update_status()
+
+
+func _confirm_delete() -> void:
+	var m := ModalCard.new()
+	get_tree().current_scene.add_child(m)
+	m.header("trash-2", DS.RED, "Delete account", "Delete your account?")
+	m.body("This permanently deletes your account and every cloud save. It can't be undone. Saves on this phone stay.")
+	m.choice("Delete permanently", "", &"DestructiveButton", func() -> void:
+		m.dismiss()
+		_status.text = "Deleting…"
+		var r: Dictionary = await Firebase.delete_account()
+		if r.ok:
+			Haptics.success()
+			_status.text = "Your account and cloud saves were deleted."
+		else:
+			_error(str(r.get("error", "Couldn't delete the account."))))
+	m.choice("Cancel", "", &"GhostButton", m.dismiss)
 
 
 func _btn(text: String, variant: StringName, icon_: String, cb: Callable) -> void:

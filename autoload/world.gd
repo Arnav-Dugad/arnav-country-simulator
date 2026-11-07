@@ -73,3 +73,58 @@ func flag_of(i: int) -> Texture2D:
 func sovereign_of(i: int) -> int:
 	var s: Variant = stats[i].get("sovereign")
 	return index_of(s) if s is String else i
+
+
+func iso(i: int) -> String:
+	return map.iso3[i] if i >= 0 and i < map.iso3.size() else ""
+
+
+## A starting statistic (World Bank/IMF snapshot), or `fallback` if unknown.
+func stat(i: int, key: String, fallback: float = 0.0) -> float:
+	if i < 0 or i >= stats.size():
+		return fallback
+	var v: Variant = stats[i].get(key)
+	return float(v) if v != null else fallback
+
+
+## Countries with no sea coast (UN list; Caspian shores count as landlocked).
+const LANDLOCKED := ["AFG", "AND", "ARM", "AUT", "AZE", "BDI", "BFA", "BLR", "BOL", "BTN", "BWA", "CAF",
+	"CHE", "CZE", "ETH", "HUN", "KAZ", "KGZ", "KOS", "LAO", "LIE", "LSO", "LUX", "MDA", "MKD", "MLI",
+	"MNG", "MWI", "NER", "NPL", "PRY", "RWA", "SDS", "SMR", "SRB", "SSD", "SVK", "SWZ", "TCD", "TJK",
+	"TKM", "UGA", "UZB", "VAT", "ZMB", "ZWE"]
+const ISLANDS := ["ATG", "BHS", "BHR", "BRB", "CPV", "COM", "CUB", "CYP", "DMA", "DOM", "FJI", "FSM",
+	"GRD", "HTI", "IDN", "IRL", "ISL", "JAM", "JPN", "KIR", "KNA", "LCA", "LKA", "MDG", "MDV", "MHL",
+	"MLT", "MUS", "NRU", "NZL", "PHL", "PLW", "PNG", "SGP", "SLB", "STP", "SYC", "TLS", "TON", "TTO",
+	"TUV", "TWN", "VCT", "VUT", "WSM", "GBR", "BRN", "AUS"]
+
+
+func landlocked(i: int) -> bool:
+	return iso(i) in LANDLOCKED
+
+
+func island(i: int) -> bool:
+	return iso(i) in ISLANDS
+
+
+## Short facts that shape how a country plays (shown in the picker and country sheet).
+func traits(i: int) -> Array[String]:
+	var out: Array[String] = []
+	if stat(i, "fuel_exports_pct") >= 30.0:
+		out.append("Oil & gas exporter")
+	if stat(i, "tourism_pct") >= 15.0:
+		out.append("Tourism economy")
+	if stat(i, "manufacturing_pct") >= 20.0:
+		out.append("Manufacturing power")
+	if stat(i, "agriculture_pct") >= 20.0:
+		out.append("Farming economy")
+	if stat(i, "age65_pct") >= 18.0:
+		out.append("Ageing population")
+	elif stat(i, "age65_pct", 10.0) <= 4.0:
+		out.append("Very young population")
+	if stat(i, "gini") >= 45.0:
+		out.append("Very unequal")
+	if landlocked(i):
+		out.append("Landlocked")
+	elif island(i):
+		out.append("Island nation")
+	return out

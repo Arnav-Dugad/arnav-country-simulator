@@ -1,0 +1,178 @@
+class_name Politics
+extends RefCounted
+## The player's hold on power, by system of government (see Government):
+## elections and campaigns in democracies, leadership reviews in one-party states,
+## the army's patience in military governments, and unrest everywhere.
+## Thresholds live in sim/economy.gd (UNREST_*, COUP_*, REVIEW_*).
+
+const E = preload("res://sim/economy.gd")
+
+var kind_override := ""          # set when the player reforms the system (free_elections law)
+var months_to_election := 48     # also used as "months to the next review" without elections
+var campaign_year := 0           # absolute month of the election already campaigned for
+var campaign_open := false       # campaign offered, not yet launched (the cabinet launches it if you don't)
+var elections_won := 0
+var reviews_passed := 0
+var low_stability_months := 0
+var unrest_months := 0
+var army_warned := false
+var start_military_share := 0.0
+
+
+func reset(player: int) -> void:
+	kind_override = ""
+	elections_won = 0
+	reviews_passed = 0
+	campaign_year = 0
+	campaign_open = false
+	low_stability_months = 0
+	unrest_months = 0
+	army_warned = false
+	start_military_share = float(Game.me().budget.get("military", 0.0)) if Game.me() else 0.0
+	months_to_election = _cycle_months(player)
+
+
+func _cycle_months(i: int) -> int:
+	if Government.has_elections(i):
+		return 12 * Government.term_years(i)
+	var r := Government.review_years(i)
+	return 12 * r if r > 0 else 0
+
+
+## Months until the next election or review (0 = none scheduled).
+func months_left() -> int:
+	return months_to_election if _cycle_months(Game.player) > 0 else 0
+
+
+## Absolute year of the next election/review, or 0 when there is none.
+func next_year() -> int:
+	if months_left() <= 0:
+		return 0
+	return Game.year + int((Game.month - 1 + months_to_election) / 12)
+
+
+## Top-bar caption: "Election 2030", "Party Congress 2031", "No elections".
+func milestone_text() -> String:
+	var i := Game.player
+	if Government.has_elections(i):
+		return "Election %d" % next_year() if months_to_election > 0 else "Election this month"
+	if Government.review_years(i) > 0:
+		return "%s %d" % [Government.review_name(i), next_year()]
+	return Government.system_name(i)
+
+
+## Called once a month after the simulation. Returns what happens next:
+##   ""                       nothing
+##   "campaign"               an election is 3 months away
+##   "election"               election day (Game holds it)
+##   "review"                 leadership review today
+##   "army_warning"           the military is unhappy (first time)
+##   "end:<reason>"           the player has lost power
+func monthly() -> String:
+	var i := Game.player
+	var c := Game.me()
+	# Collapse of order ends any government.
+	low_stability_months = low_stability_months + 1 if c.stability < E.COLLAPSE_STABILITY else 0
+	if low_stability_months >= E.COLLAPSE_MONTHS:
+		return "end:collapse"
+	if not Government.has_elections(i):
+		unrest_months = unrest_months + 1 if c.stability < E.UNREST_STABILITY and c.approval < E.UNREST_SUPPORT else 0
+		if unrest_months >= E.UNREST_MONTHS:
+			return "end:revolution"
+		if Government.army_rules(i):
+			var r := coup_risk()
+			if r > 0.0:
+				if not army_warned:
+					army_warned = true
+					return "army_warning"
+				if Game.rng.randf() < r:
+					return "end:coup"
+			elif army_warned and r <= 0.0:
+				army_warned = false
+	if _cycle_months(i) <= 0:
+		return ""
+	months_to_election -= 1
+	if months_to_election <= 0:
+		return "election" if Government.has_elections(i) else "review"
+	if campaign_open and months_to_election <= 1:
+		return "campaign_auto"
+	var election_at := Game.months_played + months_to_election
+	if Government.has_elections(i) and months_to_election == Campaign.MONTHS_BEFORE and campaign_year != election_at:
+		campaign_year = election_at
+		campaign_open = true
+		return "campaign"
+	return ""
+
+
+## Monthly chance that the army removes the player (military governments only).
+func coup_risk() -> float:
+	var c := Game.me()
+	var share := float(c.budget.get("military", 0.0))
+	var cut := maxf(0.0, 1.0 - share / maxf(start_military_share, 0.01))   # 0.3 = budget cut by 30 %
+	var risk := 0.0
+	if cut > E.COUP_BUDGET_CUT:
+		risk += (cut - E.COUP_BUDGET_CUT) * E.COUP_PER_CUT
+	if c.stability < E.COUP_STABILITY:
+		risk += (E.COUP_STABILITY - c.stability) * E.COUP_PER_STABILITY
+	return clampf(risk, 0.0, 0.25)
+
+
+## Election day. Returns {won, share, year, approval, managed}.
+func hold_election() -> Dictionary:
+	var i := Game.player
+	var a := Game.me().approval
+	var won := Game.rng.randf() < Government.win_chance(i, a)
+	var share := Government.vote_share(i, a, Game.rng)
+	share = maxf(share, 50.6) if won else minf(share, 49.4)
+	months_to_election = _cycle_months(i)
+	var managed := Government.elections(i) == "managed"
+	if won:
+		elections_won += 1
+		Game.me().shocks.approval += 3.0     # honeymoon
+		if managed and a < E.DISPUTED_BELOW:
+			# A tilted win with little real support: protests and frowns abroad.
+			Game.me().shocks.stability -= 6.0
+			Diplomacy.democracies_react(-4.0)
+	return {"won": won, "share": share, "year": Game.year, "approval": a, "managed": managed}
+
+
+## Leadership review in systems without elections (Party Congress, …).
+func hold_review() -> Dictionary:
+	var c := Game.me()
+	months_to_election = _cycle_months(Game.player)
+	var kept := c.approval >= E.REVIEW_SUPPORT or c.stability >= E.REVIEW_STABILITY
+	if kept:
+		reviews_passed += 1
+		c.shocks.stability += 3.0
+	return {"kept": kept, "name": Government.review_name(Game.player), "year": Game.year,
+		"approval": c.approval, "stability": c.stability}
+
+
+## The free_elections reform has passed: the country becomes a democracy with a
+## first election in 12 months.
+func become_democracy() -> void:
+	kind_override = Government.REFORM_TO
+	months_to_election = 12
+	campaign_year = 0
+	army_warned = false
+	unrest_months = 0
+
+
+func to_dict() -> Dictionary:
+	return {"kind_override": kind_override, "months_to_election": months_to_election,
+		"campaign_year": campaign_year, "elections_won": elections_won, "reviews_passed": reviews_passed,
+		"low_stability_months": low_stability_months, "unrest_months": unrest_months,
+		"army_warned": army_warned, "start_military_share": start_military_share, "campaign_open": campaign_open}
+
+
+func load_dict(d: Dictionary) -> void:
+	kind_override = str(d.get("kind_override", ""))
+	months_to_election = int(d.get("months_to_election", 48))
+	campaign_year = int(d.get("campaign_year", 0))
+	elections_won = int(d.get("elections_won", 0))
+	reviews_passed = int(d.get("reviews_passed", 0))
+	low_stability_months = int(d.get("low_stability_months", 0))
+	unrest_months = int(d.get("unrest_months", 0))
+	army_warned = bool(d.get("army_warned", false))
+	start_military_share = float(d.get("start_military_share", 0.0))
+	campaign_open = bool(d.get("campaign_open", false))

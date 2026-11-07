@@ -18,6 +18,16 @@ var tutorial_done: bool = false
 var text_scale: float = 1.0          # 0.9 / 1.0 / 1.15 / 1.3
 var colorblind: bool = false         # colour-blind friendly data map palettes
 var solid_panels: bool = false       # "Reduce transparency": no glass blur
+## Events: "inbox" (decisions wait above the dock; the cabinet answers when time
+## runs out), "ask" (every event pauses, classic) or "cabinet" (auto-answer).
+var decisions: String = "inbox"
+## Banners: "calm" (only the important ones, spaced out) or "all".
+var banners: String = "calm"
+var pause_full_sheet: bool = false   # pause while a panel is open at full height
+var cheats: bool = false             # Settings > Cheats unlocked (sandbox)
+var last_difficulty: String = "standard"
+
+const EXTRA_KEYS := ["decisions", "banners", "pause_full_sheet", "cheats", "last_difficulty"]
 
 var _cfg := ConfigFile.new()
 
@@ -37,7 +47,14 @@ func _ready() -> void:
 		text_scale = _cfg.get_value("prefs", "text_scale", 1.0)
 		colorblind = _cfg.get_value("prefs", "colorblind", false)
 		solid_panels = _cfg.get_value("prefs", "solid_panels", false)
+		for k in EXTRA_KEYS:
+			set(k, _cfg.get_value("prefs", k, get(k)))
 	_apply_text_scale()
+
+
+func get_value(key: String, fallback: Variant = null) -> Variant:
+	var v: Variant = get(key)
+	return fallback if v == null else v
 
 
 func set_value(key: String, value: Variant) -> void:

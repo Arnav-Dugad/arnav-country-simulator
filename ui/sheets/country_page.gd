@@ -6,6 +6,8 @@ signal page_requested(page: String)
 
 var country := -1
 var _sub: Label
+var _gov: Label
+var _traits: HFlowContainer
 var _tiles := {}
 var _rel_box: VBoxContainer
 var _rel_bar: Control
@@ -26,12 +28,20 @@ func _build() -> void:
 	_sub.theme_type_variation = &"Subhead"
 	_sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	add_child(_sub)
+	_gov = Label.new()
+	_gov.theme_type_variation = &"Footnote"
+	_gov.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	add_child(_gov)
+	_traits = HFlowContainer.new()
+	_traits.add_theme_constant_override(&"h_separation", 6)
+	_traits.add_theme_constant_override(&"v_separation", 6)
+	add_child(_traits)
 	var g := grid(self, 3)
 	var money := func(v: float) -> String: return DS.money(v)
 	_tiles.gdp = _tile(g, "GDP", money)
 	_tiles.pc = _tile(g, "Per person", func(v: float) -> String: return DS.money(v, 0))
 	_tiles.growth = _tile(g, "Growth", SheetPage.fmt_pct)
-	_tiles.approval = _tile(g, "Approval", SheetPage.fmt_pct)
+	_tiles.approval = _tile(g, "Support", SheetPage.fmt_pct)
 	_tiles.stability = _tile(g, "Stability", func(v: float) -> String: return String.num(v, 0))
 	_tiles.military = _tile(g, "Military", func(v: float) -> String: return String.num(v, 0))
 
@@ -81,6 +91,22 @@ func refresh() -> void:
 		_sub.text = "%s  ·  territory of %s" % [World.map.subregions[i], World.map.names[sov]]
 	else:
 		_sub.text = "%s  ·  %s people" % [World.map.subregions[i], DS.compact(c.population)]
+	_gov.visible = playable
+	if playable:
+		_gov.text = "%s  ·  led by the %s" % [Government.describe(i), Government.leader_title(i).to_lower()]
+	for ch in _traits.get_children():
+		ch.queue_free()
+	if playable:
+		for t in World.traits(i):
+			var p := PanelContainer.new()
+			p.theme_type_variation = &"ForecastChip"
+			var l := Label.new()
+			l.theme_type_variation = &"ChipValue"
+			l.add_theme_font_size_override(&"font_size", 12)
+			l.add_theme_color_override(&"font_color", DS.TEXT_2)
+			l.text = t
+			p.add_child(l)
+			_traits.add_child(p)
 	for t in _tiles.values():
 		t.visible = c != null
 	if c:
@@ -109,12 +135,12 @@ func _build_actions(i: int, is_me: bool, playable: bool) -> void:
 	if is_me:
 		var h := Label.new()
 		h.theme_type_variation = &"Body"
-		h.text = "This is your nation. Shape it from the Economy and Budget panels."
+		h.text = "This is your nation. Shape it from Economy and Budget, build in Build, reform in Laws."
 		h.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		_actions.add_child(h)
 		var row := HBoxContainer.new()
 		_actions.add_child(row)
-		for p in [["Economy", "economy", "chart"], ["Budget", "budget", "wallet"]]:
+		for p in [["Economy", "economy", "chart"], ["Build", "build", "hammer"]]:
 			var b := AppButton.make(p[0], &"", p[2])
 			b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			b.pressed.connect(func() -> void: page_requested.emit(p[1]))

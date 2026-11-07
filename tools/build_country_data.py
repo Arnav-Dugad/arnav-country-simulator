@@ -44,7 +44,26 @@ WB_INDICATORS = {
     "life_expectancy": ("SP.DYN.LE00.IN", None),
     "stability_wgi": ("GOV_WGI_PV.EST", 3),
     "fuel_exports_pct": ("TX.VAL.FUEL.ZS.UN", None),
+    # Detail that shapes each country (filled with regional medians when missing,
+    # listed in "estimated_detail" rather than "estimated").
+    "health_pct": ("SH.XPD.GHED.GD.ZS", None),        # government health spending, % GDP
+    "education_pct": ("SE.XPD.TOTL.GD.ZS", None),     # government education spending, % GDP
+    "research_pct": ("GB.XPD.RSDV.GD.ZS", None),      # R&D spending, % GDP
+    "gini": ("SI.POV.GINI", None),
+    "age65_pct": ("SP.POP.65UP.TO.ZS", None),
+    "urban_pct": ("SP.URB.TOTL.IN.ZS", None),
+    "tourism_pct": ("ST.INT.RCPT.XP.ZS", None),        # tourism receipts, % of exports
+    "manufacturing_pct": ("NV.IND.MANF.ZS", None),
+    "agriculture_pct": ("NV.AGR.TOTL.ZS", None),
+    "internet_pct": ("IT.NET.USER.ZS", None),
+    "electricity_pct": ("EG.ELC.ACCS.ZS", None),
+    "trade_pct": ("NE.TRD.GNFS.ZS", None),             # exports + imports, % GDP
+    "corruption_wgi": ("GOV_WGI_CC.EST", 3),
+    "voice_wgi": ("GOV_WGI_VA.EST", 3),
 }
+DETAIL_KEYS = ["health_pct", "education_pct", "research_pct", "gini", "age65_pct", "urban_pct",
+               "tourism_pct", "manufacturing_pct", "agriculture_pct", "internet_pct", "electricity_pct",
+               "trade_pct", "corruption_wgi", "voice_wgi"]
 IMF_INDICATORS = {
     "debt_pct": "GGXWDG_NGDP",
     "budget_balance_pct": "GGXCNL_NGDP",
@@ -144,6 +163,7 @@ def main():
             "region": wb_region.get(wb_code) or p.get("REGION_WB") or p.get("CONTINENT"),
             "subregion": p.get("SUBREGION"),
             "estimated": [],
+            "estimated_detail": [],
             "years": {},
         }
         for k in WB_INDICATORS:
@@ -197,7 +217,16 @@ def main():
         for k in fill_keys:
             vals = [m[k] for m in members if k in m and k not in m["estimated"]]
             med[k] = statistics.median(vals) if len(vals) >= 3 else world_med[k]
+        dmed = {}
+        for k in DETAIL_KEYS:
+            vals = [m[k] for m in members if k in m and k not in m["estimated_detail"]]
+            allv = [c[k] for c in countries.values() if k in c]
+            dmed[k] = statistics.median(vals) if len(vals) >= 3 else (statistics.median(allv) if allv else 0.0)
         for m in members:
+            for k in DETAIL_KEYS:
+                if k not in m:
+                    m[k] = dmed[k]
+                    m["estimated_detail"].append(k)
             for k in fill_keys:
                 if k not in m:
                     m[k] = med[k]

@@ -41,6 +41,9 @@ func _ready() -> void:
 	sub.text = {
 		"election": "The people of %s chose a new leader." % data.country,
 		"collapse": "Unrest brought down your government in %s." % data.country,
+		"revolution": "Protests in %s swept your government from power." % data.country,
+		"coup": "The army of %s removed you from power." % data.country,
+		"review": "The party leadership of %s replaced you." % data.country,
 	}.get(reason, "You led %s for %.1f years." % [data.country, float(data.years)])
 	col.add_child(sub)
 
@@ -104,7 +107,10 @@ Weakest: %s" % str(worst[0]).to_lower()]
 	g.add_theme_constant_override(&"v_separation", DS.S2)
 	col.add_child(g)
 	_stat(g, "Years in office", String.num(float(data.years), 1))
-	_stat(g, "Elections won", str(int(data.elections_won)))
+	if str(data.get("gov", "")) != "" and not Government.KINDS.get(str(data.gov), {}).get("elections", "free") == "none":
+		_stat(g, "Elections won", str(int(data.elections_won)))
+	else:
+		_stat(g, "Reviews survived", str(int(data.get("reviews_passed", 0))))
 	_stat(g, "GDP", "%s → %s" % [DS.money(float(data.gdp_start)), DS.money(float(data.gdp_end))])
 	_stat(g, "Real growth / yr", DS.pct(float(data.avg_growth), 1))
 	_stat(g, "Debt / GDP", "%s → %s" % [DS.pct(float(data.debt_start), 0), DS.pct(float(data.debt_end), 0)])

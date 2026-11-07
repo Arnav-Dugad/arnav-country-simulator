@@ -263,3 +263,11 @@ static func _pair_hostile(a: int, b: int) -> bool:
 	var kb := "%s-%s" % [World.map.iso3[b], World.map.iso3[a]]
 	var v: int = Game.RELATION_SEEDS.get(ka, Game.RELATION_SEEDS.get(kb, 0))
 	return v <= -40
+
+
+## Free democracies react to something you did (a disputed election, a crackdown…).
+static func democracies_react(delta: float) -> void:
+	for i in Game.relations.size():
+		if i != Game.player and Government.is_free(i):
+			Game.relations[i] = clampf(Game.relations[i] + delta, -100.0, 100.0)
+	Game.relations_changed.emit()

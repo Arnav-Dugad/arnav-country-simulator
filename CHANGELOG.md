@@ -2,6 +2,44 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.13.0] - 2026-11-07
+
+**Calm, not naggy**
+- No more pop-ups every few months. Events now wait in a small pill above the dock with a countdown ring: answer when you're ready, or your cabinet picks the recommended option after six months. Only truly critical moments (elections, a debt crisis) pause the game
+- A new **Inbox** (the bell): decisions, headlines, finished projects, world news and your history, all in one calm place
+- The year in review and election campaigns no longer interrupt you either
+- Banners show one at a time, spaced out. Choose **Calm** or **Everything**, and how events work (Inbox, Ask me, or let the Cabinet decide) in Settings > Notifications
+
+**Much easier to use**
+- New layout, based on research into how great strategy and map apps work: play/pause and speed sit right under your thumb, the "what needs you next" pill is always one tap away, and map views moved into a Layers button (with a legend)
+- Five clear tabs: Economy, Budget, **Build**, Laws, World. Inbox and Settings are in the top bar
+- Tap the date to pause, tap your flag to see your country, tap the map to close the country card
+- Fixed: the close (X) button on panels didn't work
+- Advisor tips: when something needs fixing, the pill tells you what and takes you there
+
+**Every country is different**
+- Real systems of government: presidential and parliamentary democracies, constitutional and absolute monarchies, one-party states, military governments, theocracies. Each with its real leader title and term length (India 5 years, Mexico 6, Australia 3…)
+- No elections where there are none: one-party states face a Party Congress, military rulers must keep the generals happy, and anywhere unrest can bring you down. Dominant-party states hold elections tilted their way
+- A reform to bring free elections to closed systems
+- 14 new events shaped by your country: coalition crises, budget standoffs, court rulings, dissidents, succession questions, the generals' demands, pension crunches, blackouts, young job-seekers and more
+- Real starting budgets (health, education, research), trade, inequality, ageing and infrastructure from World Bank data, plus traits like "Oil & gas exporter", "Ageing population" or "Landlocked"
+
+**Build your country**
+- 23 construction projects: highways, rural roads, high-speed rail, metros, ports, airports, power grids, solar, wind, nuclear, dams, hospitals, schools, universities, housing, clean water, broadband, tech parks, industry, tourism, a space programme, flood defences and forests
+- What you can build depends on your country (no ports when landlocked, power grids where homes still lack electricity…). Projects employ people while built and pay off for decades. A bigger infrastructure budget builds faster; corruption makes them cost more
+
+**Smarter, steadier economy**
+- An independent central bank now sets interest rates for you (switch it off in Economy to do it yourself)
+- Welfare matters more in unequal countries; ageing slows growth, young populations speed it up
+- Choose a difficulty when you start: Relaxed, Standard or Realistic
+
+**Also new**
+- Cheats in Settings: money, debt wipe, instant construction, never losing power and more (cheated games don't earn achievements)
+- Delete your account (and all cloud saves) from Settings
+- Map: double-tap zooms in and two-finger tap zooms out, with haptic ticks; long camera moves glide in a gentle arc
+- Election night: the world dims while your country breathes; a win ends in a gold sweep, a loss fades to grey
+- Four new achievements
+
 ## [0.12.2] - 2026-11-07
 
 - **Fixed for real: menus that wouldn't scroll.** Panels now scroll smoothly wherever your finger starts, including on cards, sliders, buttons, charts and switches, and keep gliding after a flick. Found and verified on an Android emulator
