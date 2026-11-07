@@ -81,6 +81,7 @@ var _mouse_down := false
 var _cam_tween: Tween
 var _sel_tween: Tween
 var _glow_bucket := -999
+var _graticule: Array[Line2D] = []
 # Feel: rubber-band edges, zoom momentum, long-press
 const LONG_PRESS := 0.45
 const ZOOM_SOFT_MIN := 0.82     # pinch may undershoot min zoom by this factor, then springs back
@@ -128,6 +129,7 @@ func _build_nodes() -> void:
 	_fill_mat.set_shader_parameter(&"tex_width", float(_tex_w))
 	_fill_mat.set_shader_parameter(&"player_tint", DS.GOLD)
 	_fill_mat.set_shader_parameter(&"world_half_height", data.world_rect.size.y * 0.5)
+	_build_graticule()
 	_fill = MeshInstance2D.new()
 	_fill.mesh = MapMeshes.fill_mesh(data, PackedInt32Array(draw_order), _tex_w)
 	_fill.material = _fill_mat
@@ -166,6 +168,31 @@ func _build_nodes() -> void:
 	_labels = MapLabels.new()
 	_labels.map = self
 	add_child(_labels)
+
+
+## Faint latitude/longitude lines every 30° (and the equator a touch brighter).
+func _build_graticule() -> void:
+	var lines: Array[PackedVector2Array] = []
+	for lon in range(-180, 181, 30):
+		var pts := PackedVector2Array()
+		for lat in range(-84, 85, 3):
+			pts.append(Geo.equal_earth(float(lon), float(lat)))
+		lines.append(pts)
+	for lat in range(-60, 61, 30):
+		var pts2 := PackedVector2Array()
+		for lon2 in range(-180, 181, 5):
+			pts2.append(Geo.equal_earth(float(lon2), float(lat)))
+		lines.append(pts2)
+	for k in lines.size():
+		var l := Line2D.new()
+		l.points = lines[k]
+		l.antialiased = true
+		l.joint_mode = Line2D.LINE_JOINT_ROUND
+		var equator := k == lines.size() - 3   # lat 0 is the middle parallel
+		l.default_color = Color(0.75, 0.85, 1.0, 0.085 if equator else 0.05)
+		l.set_meta(&"w", 1.2 if equator else 0.9)
+		_world.add_child(l)
+		_graticule.append(l)
 
 
 func _line_material(shader: Shader, color: Color, aa: float) -> ShaderMaterial:
@@ -446,6 +473,8 @@ func _apply_camera(soft: bool = false) -> void:
 
 func _update_line_widths() -> void:
 	var px := 1.0 / zoom
+	for l in _graticule:
+		l.width = float(l.get_meta(&"w")) * px
 	# Thin borders fade out when zoomed far out to avoid a "wireframe" look.
 	var zt := clampf((zoom / min_zoom - 1.0) / 3.0, 0.0, 1.0)
 	_border_mat.set_shader_parameter(&"half_width", (BORDER_PX * 0.5 + 0.5) * px)

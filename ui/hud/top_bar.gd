@@ -20,7 +20,7 @@ func _ready() -> void:
 
 	var left_wrap := HBoxContainer.new()
 	left_wrap.add_theme_constant_override(&"separation", DS.S2)
-	left_wrap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	left_wrap.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	row.add_child(left_wrap)
 	_flag = Flag.new()
 	left_wrap.add_child(_flag)
@@ -30,15 +30,9 @@ func _ready() -> void:
 	left.alignment = BoxContainer.ALIGNMENT_CENTER
 	left_wrap.add_child(left)
 	_date = Label.new()
-	_date.clip_text = true
-	_date.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	_date.custom_minimum_size = Vector2(20, 0)
 	_date.theme_type_variation = &"Headline"
 	left.add_child(_date)
 	_election = Label.new()
-	_election.clip_text = true
-	_election.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	_election.custom_minimum_size = Vector2(20, 0)
 	_election.theme_type_variation = &"Caption"
 	left.add_child(_election)
 

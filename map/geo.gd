@@ -3,6 +3,23 @@ extends RefCounted
 ## Small geometry helpers shared by the map baker and runtime.
 
 
+## Equal Earth projection (same constants as tools/fetch_map.py), 1000 units/rad, y down.
+static func equal_earth(lon_deg: float, lat_deg: float) -> Vector2:
+	const A1 := 1.340264
+	const A2 := -0.081106
+	const A3 := 0.000893
+	const A4 := 0.003796
+	var m := sqrt(3.0) / 2.0
+	var lam := deg_to_rad(lon_deg)
+	var phi := deg_to_rad(clampf(lat_deg, -89.999, 89.999))
+	var th := asin(m * sin(phi))
+	var t2 := th * th
+	var t6 := t2 * t2 * t2
+	var x := lam * cos(th) / (m * (A1 + 3.0 * A2 * t2 + t6 * (7.0 * A3 + 9.0 * A4 * t2)))
+	var y := th * (A1 + A2 * t2 + t6 * (A3 + A4 * t2))
+	return Vector2(x, -y) * 1000.0
+
+
 ## Douglas-Peucker simplification of a closed ring (no repeated end point).
 static func simplify_ring(pts: PackedVector2Array, tol: float) -> PackedVector2Array:
 	var n := pts.size()
