@@ -200,7 +200,8 @@ static func start_stability(s: Dictionary) -> float:
 
 
 static func start_approval(happiness: float, stability: float) -> float:
-	return clampf(42.0 + (happiness - 50.0) * 0.35 + (stability - 50.0) * 0.1, 30.0, 62.0)
+	# Floor of 38: a new leader gets a short honeymoon even in hard countries.
+	return clampf(44.0 + (happiness - 50.0) * 0.35 + (stability - 50.0) * 0.1, 38.0, 64.0)
 
 
 static func military_index(spend_usd: float) -> float:

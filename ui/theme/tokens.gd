@@ -22,14 +22,14 @@ const PURPLE := Color("bf5af2")
 const GOLD := Color("f2c86b")
 
 const TEXT := Color(1, 1, 1, 1)
-const TEXT_2 := Color(0.92, 0.93, 0.97, 0.66)
-const TEXT_3 := Color(0.92, 0.93, 0.97, 0.38)
+const TEXT_2 := Color(0.92, 0.93, 0.97, 0.72)
+const TEXT_3 := Color(0.92, 0.93, 0.97, 0.5)
 const SEPARATOR := Color(1, 1, 1, 0.09)
 const FILL := Color(1, 1, 1, 0.08)
 const FILL_2 := Color(1, 1, 1, 0.13)
 const FILL_3 := Color(1, 1, 1, 0.04)
 
-const GLASS_TINT := Color(0.075, 0.09, 0.13, 0.56)
+const GLASS_TINT := Color(0.075, 0.09, 0.13, 0.62)
 const GLASS_TINT_STRONG := Color(0.06, 0.075, 0.11, 0.74)
 const GLASS_BORDER_OPACITY := 0.15
 const SHADOW := Color(0, 0, 0, 0.38)

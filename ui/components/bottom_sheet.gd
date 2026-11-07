@@ -124,8 +124,13 @@ func snap_to(s: int, animate: bool = true) -> void:
 		_tween = create_tween().set_parallel(true)
 		DS.ease_out(_tween)
 		_tween.tween_method(_set_y, _y, target, Settings.dur(DS.DUR_SLOW))
+		var to_alpha := 0.0 if s == Snap.HIDDEN else 1.0
+		if prev == Snap.HIDDEN and s != Snap.HIDDEN:
+			panel.modulate.a = 0.0
+		_tween.tween_property(panel, "modulate:a", to_alpha, Settings.dur(DS.DUR_FAST if s == Snap.HIDDEN else DS.DUR))
 	else:
 		_set_y(target)
+		panel.modulate.a = 0.0 if s == Snap.HIDDEN else 1.0
 	if s == Snap.HIDDEN and prev != Snap.HIDDEN:
 		dismissed.emit()
 	snapped.emit(s)

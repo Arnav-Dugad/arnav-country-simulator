@@ -15,6 +15,8 @@ var right := 0.0
 
 
 func _ready() -> void:
+	if OS.has_feature("mobile"):
+		Engine.max_fps = 60
 	get_tree().root.size_changed.connect(_recompute)
 	_recompute.call_deferred()
 

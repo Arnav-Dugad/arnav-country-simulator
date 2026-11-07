@@ -80,7 +80,7 @@ static func line_mesh(rings: Array[PackedVector2Array], use_miter: bool = true) 
 				m = n1
 			else:
 				m = m.normalized()
-			var miter := m / maxf(m.dot(n1), 0.5) if use_miter else m  # limit spikes
+			var miter := m / maxf(m.dot(n1), 0.7) if use_miter else m  # limit spikes
 			verts.append(p1)
 			uvs.append(miter)
 			cols.append(side_a)

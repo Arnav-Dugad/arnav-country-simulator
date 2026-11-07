@@ -8,6 +8,7 @@ var map: MapView
 var _font: Font
 var _font_size := 11
 var _order := PackedInt32Array()
+var _width_cache := {}  # (country, size) -> text width
 
 
 func _ready() -> void:
@@ -43,7 +44,10 @@ func _draw() -> void:
 		var box_w := md.bbox_size[i].x * map.zoom
 		var fs := int(clampf(_font_size + (zf - 2.0) * 0.18 - (rank - 2) * 0.5, 9.0, 15.0))
 		var text := md.names[i].to_upper()
-		var tw := _font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+		var key := i * 64 + fs
+		if not _width_cache.has(key):
+			_width_cache[key] = _font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+		var tw: float = _width_cache[key]
 		if box_w < tw * 0.55:
 			continue
 		var r := Rect2(p - Vector2(tw * 0.5, fs * 0.6), Vector2(tw, fs * 1.2)).grow(3)

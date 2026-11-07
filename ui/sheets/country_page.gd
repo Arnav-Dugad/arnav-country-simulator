@@ -94,7 +94,7 @@ func refresh() -> void:
 	_est.text = "Estimated starting data: %s (regional averages)." % ", ".join(est.map(
 		func(k: String) -> String: return k.replace("_pct", "").replace("_", " ")))
 	var is_me := i == Game.player
-	_rel_box.get_parent().visible = playable and not is_me
+	_rel_box.get_parent().get_parent().visible = playable and not is_me
 	_rel_label.text = "%s  %+.0f" % [Diplomacy.relation_text(Game.relations[i]), Game.relations[i]]
 	_rel_label.add_theme_color_override(&"font_color", Diplomacy.relation_color(Game.relations[i]))
 	_rel_bar.queue_redraw()
@@ -104,7 +104,7 @@ func refresh() -> void:
 func _build_actions(i: int, is_me: bool, playable: bool) -> void:
 	for ch in _actions.get_children():
 		ch.queue_free()
-	_actions.get_parent().visible = playable
+	_actions.get_parent().get_parent().visible = playable
 	if is_me:
 		var h := Label.new()
 		h.theme_type_variation = &"Body"

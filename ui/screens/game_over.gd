@@ -5,6 +5,8 @@ var data: Dictionary = {}
 
 
 func _ready() -> void:
+	if not Game.has_game():
+		Game.new_game(World.index_of("IND"))
 	data = Game.summary(Game.get_meta(&"end_reason", "election"))
 	add_child(OceanBackground.new())
 	var map := MapView.new()
