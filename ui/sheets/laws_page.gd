@@ -151,6 +151,16 @@ func _card(c: CountryState, l: Dictionary) -> Control:
 	else:
 		b = AppButton.make("Pass this law", &"", "gavel")
 		b.pressed.connect(_confirm.bind(l, false))
+		if Government.is_free(c.idx) and Blocs.LAW_FX.has(l.id) and not bool(l.get("oneway", false)):
+			var row := HBoxContainer.new()
+			row.add_theme_constant_override(&"separation", DS.S2)
+			b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			row.add_child(b)
+			var r := AppButton.make("Referendum", &"GhostButton", "vote")
+			r.pressed.connect(_referendum.bind(l))
+			row.add_child(r)
+			v.add_child(row)
+			return v
 	v.add_child(b)
 	return v
 
@@ -214,6 +224,62 @@ func _minister_card(post: String) -> void:
 				refresh())
 			m.content.add_child(row)
 	m.choice("Close", "", &"GhostButton", m.dismiss)
+
+
+## Ask the people directly: instant if they say yes, shelved if they say no.
+func _referendum(l: Dictionary) -> void:
+	var c := Game.me()
+	var m := ModalCard.new()
+	get_tree().current_scene.add_child(m)
+	m.content.add_child(Illustration.banner("election", "ballot", DS.GOLD, 96.0))
+	m.header("vote", DS.GOLD, "Referendum", Laws.title_of(c, l))
+	var why := Blocs.can_referendum(l.id)
+	if why != "":
+		m.body(why)
+		m.choice("OK", "", &"PrimaryButton", m.dismiss)
+		return
+	var who := Blocs.law_chips(c, l.id, false)
+	var likes: Array = who.filter(func(x: Array) -> bool: return x[1]).map(func(x: Array) -> String: return str(x[0]).to_lower())
+	var hates: Array = who.filter(func(x: Array) -> bool: return not x[1]).map(func(x: Array) -> String: return str(x[0]).to_lower())
+	m.body("Put it to the people. If they vote yes, it becomes law at once. If they vote no, it's shelved for %d months and you lose a little approval.
+
+Likely for: %s. Likely against: %s." % [
+		Blocs.REFERENDUM_BLOCK, ", ".join(likes) if not likes.is_empty() else "nobody in particular",
+		", ".join(hates) if not hates.is_empty() else "nobody in particular"])
+	m.choice("Call the referendum", "", &"PrimaryButton", func() -> void:
+		var r := Blocs.hold_referendum(l.id)
+		m.dismiss()
+		_referendum_result(r)
+		refresh())
+	m.choice("Not now", "", &"GhostButton", m.dismiss)
+
+
+func _referendum_result(r: Dictionary) -> void:
+	var m := ModalCard.new()
+	get_tree().current_scene.add_child(m)
+	m.header("vote", DS.GOLD, "Referendum result", "Counting…")
+	var title: Label = m.content.get_child(0).get_child(1).get_child(1)
+	var num := AnimatedNumber.new()
+	num.theme_type_variation = &"LargeTitle"
+	num.formatter = func(v: float) -> String: return String.num(v, 1) + "% yes"
+	num.duration = 1.8
+	num.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	m.content.add_child(num)
+	num.set_instant(0.0)
+	num.value = float(r.yes)
+	Audio.play("election", -4.0)
+	await get_tree().create_timer(Settings.dur(1.9)).timeout
+	if not is_instance_valid(m):
+		return
+	title.text = "The people said yes" if r.won else "The people said no"
+	title.add_theme_color_override(&"font_color", DS.GOLD if r.won else DS.TEXT_2)
+	m.body("%s is now law." % str(r.title) if r.won else "%s is shelved for now." % str(r.title))
+	if r.won:
+		Haptics.success()
+		m.sweep(Color(DS.GOLD, 0.25))
+	else:
+		Haptics.warning()
+	m.choice("OK", "", &"PrimaryButton", m.dismiss)
 
 
 func _confirm(l: Dictionary, repeal: bool) -> void:

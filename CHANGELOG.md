@@ -2,6 +2,11 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.36.0] - 2026-11-08
+
+- Fixed: two ministers could share the same name; Chinese, Korean and Vietnamese names now put the family name first
+- **Referendums** (democracies): put a law straight to the people. Your voter groups decide: a yes makes it law at once, a no shelves it for two years and costs a little approval. One referendum a year
+
 ## [0.35.1] - 2026-11-08
 
 - Country names read naturally: "the United States", "the Netherlands", and full names instead of abbreviations (South Korea, North Korea, DR Congo, Dominican Republic, Bosnia and Herzegovina, Solomon Islands…)

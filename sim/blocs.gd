@@ -162,3 +162,55 @@ static func law_chips(c: CountryState, id: String, repeal: bool) -> Array:
 static func color(g: String) -> Color:
 	return {"accent": DS.ACCENT_SOFT, "gold": DS.GOLD, "purple": DS.PURPLE, "teal": DS.TEAL, "green": DS.GREEN}.get(
 		str(INFO[g].color), DS.ACCENT)
+
+
+# ------------------------------------------------------------ referendums ---
+## Put a law to a public vote (free democracies only). The yes share comes from
+## each voter group's reaction to the law (LAW_FX) weighted by its size, plus a
+## little of your overall popularity and some luck. A win enacts it at once;
+## a loss shelves it for REFERENDUM_BLOCK months and costs some approval.
+const REFERENDUM_COOLDOWN := 12
+const REFERENDUM_BLOCK := 24
+
+
+static func can_referendum(id: String) -> String:
+	if not Government.is_free(Game.player):
+		return "Only democracies hold referendums"
+	var last := int(Game.dip.get("last_referendum", -100))
+	var wait := last + REFERENDUM_COOLDOWN - Game.months_played
+	if wait > 0:
+		return "Next referendum possible in %d months" % wait
+	var blocked := int(Game.dip.get("ref_blocked", {}).get(id, -100))
+	if Game.months_played < blocked:
+		return "Voters said no; you can try again in %d months" % (blocked - Game.months_played)
+	return ""
+
+
+static func referendum_yes(id: String) -> float:
+	var c := Game.me()
+	var sz := sizes(c.idx)
+	var yes := 50.0 + (c.approval - 50.0) * 0.35
+	for g in LAW_FX.get(id, {}):
+		yes += float(sz[g]) * float(LAW_FX[id][g]) * 3.5
+	return clampf(yes + Game.rng.randf_range(-3.0, 3.0), 15.0, 85.0)
+
+
+static func hold_referendum(id: String) -> Dictionary:
+	var c := Game.me()
+	var yes := referendum_yes(id)
+	Game.dip["last_referendum"] = Game.months_played
+	var won := yes >= 50.0
+	var title := Laws.title_of(c, Laws.law(id))
+	if won:
+		c.laws[id] = {"state": "active"}
+		c.laws_ver += 1
+		c.shocks.approval = float(c.shocks.approval) + 1.0
+		Game.law_finished.emit(id, false)
+		Game.add_milestone("Referendum: %s approved with %.0f%%" % [title, yes], "vote", "gold")
+	else:
+		if not Game.dip.has("ref_blocked"):
+			Game.dip["ref_blocked"] = {}
+		Game.dip.ref_blocked[id] = Game.months_played + REFERENDUM_BLOCK
+		c.shocks.approval = float(c.shocks.approval) - 2.0
+		Game.add_milestone("Referendum: %s rejected (%.0f%% yes)" % [title, yes], "vote", "red")
+	return {"yes": yes, "won": won, "title": title}

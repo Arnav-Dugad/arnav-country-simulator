@@ -99,10 +99,26 @@ func _pool(r: RandomNumberGenerator) -> Array:
 		var t2: String = GOOD[r.randi() % GOOD.size()] if r.randf() < 0.6 else BAD[r.randi() % BAD.size()]
 		if t2 == t1:
 			t2 = BAD[r.randi() % BAD.size()]
+		# Unique names across the whole cabinet and bench.
 		var fi := r.randi() % nf
-		out.append({"name": Names.full(Game.player, fi, r.randi() % nl), "female": fi % 2 == 0, "group": grp,
-			"traits": [t1, t2]})
+		var nm := Names.full(Game.player, fi, r.randi() % nl)
+		for _try in 12:
+			if not _used_names().has(nm) and not out.any(func(o: Dictionary) -> bool: return str(o.name) == nm):
+				break
+			fi = r.randi() % nf
+			nm = Names.full(Game.player, fi, r.randi() % nl)
+		out.append({"name": nm, "female": fi % 2 == 0, "group": grp, "traits": [t1, t2]})
 	return out
+
+
+func _used_names() -> Dictionary:
+	var u := {}
+	for p in ministers:
+		u[str(ministers[p].get("name", ""))] = true
+	for p in candidates:
+		for cand in candidates[p]:
+			u[str(cand.get("name", ""))] = true
+	return u
 
 
 func can_change(post: String) -> int:

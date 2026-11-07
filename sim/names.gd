@@ -17,7 +17,9 @@ const COUNTRY := {
 	"RUS": [["Anna", "Dmitri", "Elena", "Sergei", "Olga", "Mikhail", "Tatiana", "Andrei", "Irina", "Nikolai"], ["Volkov", "Sokolov", "Morozov", "Lebedev", "Kozlov", "Novikov", "Pavlov", "Orlov", "Belov", "Zaitsev"]],
 	"UKR": [["Oksana", "Taras", "Iryna", "Bohdan", "Olena", "Andriy", "Natalia", "Yuriy", "Kateryna", "Mykola"], ["Kovalenko", "Bondarenko", "Shevchuk", "Tkachenko", "Kravchenko", "Melnyk", "Lysenko", "Savchenko", "Hrytsenko", "Moroz"]],
 	"TUR": [["Elif", "Mehmet", "Zeynep", "Emre", "Ayşe", "Burak", "Selin", "Can", "Derya", "Kerem"], ["Yılmaz", "Kaya", "Demir", "Şahin", "Çelik", "Aydın", "Öztürk", "Arslan", "Doğan", "Koç"]],
-	"CHN": [["Li Na", "Wang Wei", "Zhang Min", "Liu Yang", "Chen Jing", "Zhao Lei", "Yang Fang", "Huang Jun", "Zhou Hui", "Wu Gang"], [""]],
+	# Chinese names are family-name first; built from a family name + a given name.
+	"CHN": [["Na", "Wei", "Min", "Yang", "Jing", "Lei", "Fang", "Jun", "Hui", "Gang", "Xiaomei", "Hao", "Ying", "Tao", "Lan", "Bo"],
+		["Li", "Wang", "Zhang", "Liu", "Chen", "Zhao", "Yang", "Huang", "Zhou", "Wu", "Xu", "Sun", "Ma", "Hu", "Guo", "Lin"]],
 	"JPN": [["Yuki", "Hiroshi", "Aiko", "Kenji", "Haruka", "Takeshi", "Naomi", "Daisuke", "Emi", "Satoshi"], ["Tanaka", "Watanabe", "Yamamoto", "Nakamura", "Kobayashi", "Kato", "Yoshida", "Yamada", "Sasaki", "Inoue"]],
 	"KOR": [["Ji-woo", "Min-jun", "Seo-yeon", "Ji-hoon", "Ha-eun", "Do-hyun", "Su-bin", "Hyun-woo", "Ye-jin", "Sung-min"], ["Kim", "Lee", "Park", "Choi", "Jung", "Kang", "Cho", "Yoon", "Jang", "Lim"]],
 	"IND": [["Priya", "Arjun", "Ananya", "Rahul", "Meera", "Vikram", "Kavya", "Rohan", "Sneha", "Aditya"], ["Sharma", "Iyer", "Reddy", "Nair", "Gupta", "Joshi", "Menon", "Patel", "Rao", "Banerjee"]],
@@ -67,6 +69,10 @@ const SUBREGION := {
 }
 
 
+## Countries where the family name comes first.
+const FAMILY_FIRST := ["CHN", "TWN", "VNM", "KOR", "PRK"]
+
+
 ## [firsts, lasts] for country i.
 static func pool(i: int) -> Array:
 	var iso := World.iso(i)
@@ -85,4 +91,8 @@ static func full(i: int, first_idx: int, last_idx: int) -> String:
 	var lasts: Array = p[1]
 	var f: String = firsts[first_idx % firsts.size()]
 	var l: String = lasts[last_idx % lasts.size()]
-	return f if l == "" else "%s %s" % [f, l]
+	if l == "":
+		return f
+	if World.iso(i) in FAMILY_FIRST:
+		return "%s %s" % [l, f]
+	return "%s %s" % [f, l]
