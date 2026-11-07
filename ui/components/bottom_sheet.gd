@@ -165,7 +165,7 @@ func _set_y(y: float) -> void:
 		# Slide in from the right; y here is just the animated value (hidden..top).
 		var w := side_width()
 		var t := clampf(inverse_lerp(size.y + 40.0, Screen.top + DS.S2, y), 0.0, 1.0)
-		panel.size = Vector2(w, size.y - Screen.top - Screen.bottom - DS.S2 * 2.0 + 40.0)
+		panel.size = Vector2(w, size.y - Screen.top - Screen.bottom - DS.S2 * 2.0)
 		panel.position = Vector2(lerpf(size.x + 10.0, size.x - w - SIDE_INSET - Screen.right, t), Screen.top + DS.S2)
 		_dim.modulate.a = 0.0
 		_dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -187,7 +187,8 @@ func _set_y(y: float) -> void:
 func _relayout() -> void:
 	if not is_inside_tree():
 		return
-	_pad.custom_minimum_size = Vector2(0, Screen.bottom + 40.0)
+	# Bottom sheets overhang the screen edge by 40 pt; side panels don't.
+	_pad.custom_minimum_size = Vector2(0, DS.S2 if side() else Screen.bottom + 40.0)
 	_set_y(top_for(state) if not _dragging else _y)
 
 

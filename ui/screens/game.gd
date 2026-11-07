@@ -289,6 +289,10 @@ func _layout() -> void:
 	strip.size = Vector2(dock_w, ControlStrip.H)
 	strip.position = Vector2((w - dock_w) * 0.5, dock.position.y - DS.S2 - ControlStrip.H)
 	strip.set_meta(&"home_y", strip.position.y)
+	# Turning the phone: bring your country back into view.
+	if get_meta(&"was_landscape", Screen.landscape) != Screen.landscape:
+		map.focus_country.call_deferred(Game.player, 0.4)
+	set_meta(&"was_landscape", Screen.landscape)
 	if sheet.is_open():
 		dock.position.y += 160.0
 		strip.position.y += 160.0
