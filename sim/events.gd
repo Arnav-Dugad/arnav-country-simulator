@@ -418,6 +418,72 @@ const EVENTS := [
 				"effects": {"project_delay": 4.0}},
 			{"label": "Investigate the contract", "detail": "Popular · six months' delay",
 				"effects": {"project_delay": 6.0, "approval": 1.0}}]},
+	# --- Crises in stages: your first answer decides what comes next ------------------
+	{"id": "bank_wobble", "title": "A big bank wobbles", "icon": "landmark", "tint": "orange", "weight": 1.2,
+		"cond": "bank_risk",
+		"body": "One of {country}'s largest banks admits to heavy losses. Savers are nervous.",
+		"choices": [
+			{"label": "Guarantee all deposits", "detail": "Costs 0.3% of GDP · calm returns",
+				"effects": {"cost": 0.3, "stability": 1.0}},
+			{"label": "Order a quiet merger", "detail": "No cost now · may not hold",
+				"effects": {"growth": -0.2}, "next": {"id": "bank_run", "in": 3}},
+			{"label": "Let it fail", "detail": "Discipline · risky",
+				"effects": {"growth": -0.6, "approval": -2.0}, "next": {"id": "bank_run", "in": 2}}]},
+	{"id": "bank_run", "title": "Bank run", "icon": "alert", "tint": "red", "weight": 0.0,
+		"body": "Queues stretch around bank branches across {country}. The panic is spreading to other banks.",
+		"choices": [
+			{"label": "Close the banks for a week", "detail": "Stops the panic · business stalls",
+				"effects": {"growth": -1.2, "stability": 2.0, "approval": -3.0}},
+			{"label": "Central bank lends without limit", "detail": "Panic eases · inflation risk",
+				"effects": {"inflation": 1.5, "growth": -0.4}, "next": {"id": "bailout_vote", "in": 4}},
+			{"label": "Ride it out", "detail": "No cost · could get much worse",
+				"effects": {"growth": -2.0, "unemployment": 1.2, "stability": -4.0, "approval": -5.0}}]},
+	{"id": "bailout_vote", "title": "The bailout bill", "icon": "gavel", "tint": "orange", "weight": 0.0,
+		"body": "Rescuing the banks for good will cost billions. Taxpayers are furious; markets are watching.",
+		"choices": [
+			{"label": "Full bailout", "detail": "Costs 2% of GDP · banks are safe",
+				"effects": {"cost": 2.0, "growth": 0.8, "approval": -4.0, "stability": 2.0}},
+			{"label": "Bail out, but take ownership", "detail": "Costs 1.2% of GDP · popular",
+				"effects": {"cost": 1.2, "growth": 0.5, "approval": 2.0}},
+			{"label": "Make the bondholders pay", "detail": "No cost · investors flee",
+				"effects": {"debt_rate": 1.0, "growth": -0.5, "approval": 3.0}}]},
+	{"id": "currency_slide", "title": "The currency slides", "icon": "trending-down", "tint": "orange", "weight": 1.2,
+		"cond": "currency_risk",
+		"body": "{country}'s currency has lost a tenth of its value in a month. Import prices are rising.",
+		"choices": [
+			{"label": "Raise interest rates sharply", "detail": "Rate +2 pts · defends the currency",
+				"effects": {"rate": 2.0, "growth": -0.6, "inflation": -0.5}},
+			{"label": "Spend reserves to defend it", "detail": "Costs 0.5% of GDP · buys time",
+				"effects": {"cost": 0.5}, "next": {"id": "currency_crisis", "in": 4}},
+			{"label": "Let it fall", "detail": "Exports get cheaper · prices jump",
+				"effects": {"inflation": 2.5, "growth": 0.3}, "next": {"id": "currency_crisis", "in": 6}}]},
+	{"id": "currency_crisis", "title": "Currency crisis", "icon": "flame", "tint": "red", "weight": 0.0,
+		"body": "The currency is in free fall and fuel is running short in {country}. Lenders want guarantees.",
+		"choices": [
+			{"label": "Call in the IMF", "detail": "Tough conditions · stability returns",
+				"effects": {"spending": -2.0, "approval": -5.0, "stability": 2.0, "inflation": -2.0},
+				"next": {"id": "imf_review", "in": 12}},
+			{"label": "Capital controls", "detail": "Stops money leaving · investors angry",
+				"effects": {"growth": -1.0, "inflation": 1.0, "relations_all": -1.5}},
+			{"label": "Print money to pay bills", "detail": "Easy now · prices explode",
+				"effects": {"inflation": 8.0, "approval": -3.0, "stability": -3.0}}]},
+	{"id": "imf_review", "title": "IMF review", "icon": "search", "tint": "accent", "weight": 0.0,
+		"body": "The IMF checks whether {country} kept its promises. A good report unlocks cheaper loans.",
+		"choices": [
+			{"label": "Show the reforms", "detail": "Borrowing gets cheaper",
+				"effects": {"debt_rate": -1.5, "growth": 0.4, "approval": -1.0}},
+			{"label": "Ask for more time", "detail": "Patience has limits",
+				"effects": {"debt_rate": 0.5, "approval": 1.0}}]},
+	{"id": "heat_grid", "title": "Heat strains the grid", "icon": "plug-zap", "tint": "orange", "weight": 1.0,
+		"cond": "hot",
+		"body": "A long heatwave has air conditioners running flat out across {country}. The grid is near its limit.",
+		"choices": [
+			{"label": "Rolling blackouts now", "detail": "Controlled · unpopular",
+				"effects": {"approval": -2.0, "growth": -0.2}},
+			{"label": "Import emergency power", "detail": "Costs 0.2% of GDP",
+				"effects": {"cost": 0.2}},
+			{"label": "Hope it holds", "detail": "No cost · it may not",
+				"effects": {}, "next": {"id": "blackout", "in": 1}}]},
 	{"id": "debt_crisis", "title": "Bond markets panic", "icon": "alert", "tint": "red", "weight": 0.0,
 		"body": "Investors are dumping {country}'s government bonds. Borrowing costs are spiking.",
 		"choices": [
@@ -562,6 +628,17 @@ static func roll(rng: RandomNumberGenerator) -> Dictionary:
 					continue
 			"building":
 				if Projects.count_building(me) == 0:
+					continue
+			"bank_risk":
+				if me.debt_pct() < 80.0 and me.growth > 0.5 and not Profiles.has_strength(Game.player, "finance"):
+					continue
+			"currency_risk":
+				if me.inflation < 8.0 and -me.balance_pct() < 6.0:
+					continue
+			"hot":
+				if Profiles.at_risk(Game.player, "heatwave") == 0:
+					continue
+				if Profiles.at_risk(Game.player, "heatwave") == -1 and not World.map.subregions[Game.player] in ["Southern Asia", "Western Asia", "Northern Africa", "Southern Europe", "South-Eastern Asia"]:
 					continue
 			"hostile":
 				other = _pick_country(rng, func(i: int) -> bool:

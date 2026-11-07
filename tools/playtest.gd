@@ -21,6 +21,7 @@ func _run() -> void:
 	rng.seed = int(args.get("seed", "7"))
 	Game.new_game(World.index_of(args.get("player", "BRA")), rng.seed)
 	Game.event_started.connect(func(_e: Dictionary) -> void: _events += 1)
+	Game.decision_added.connect(func(_e: Dictionary) -> void: _events += 1)
 	Game.campaign_started.connect(func() -> void:
 		var picks := ["economy", "jobs", "health", "prices", "safety", "change"]
 		picks.shuffle()

@@ -2,6 +2,15 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.20.0] - 2026-11-08
+
+**Crises in stages**
+- A wobbling bank can turn into a bank run and then a bailout vote, a sliding currency into a currency crisis and an IMF review, a heatwave into a blackout. What you choose at each step decides whether the next one comes at all
+- They only happen where they make sense: banking crises with heavy debt or weak growth, currency crises with high inflation or big deficits
+
+**Clearer voters**
+- Voter groups now say "Pleased with", "Worried about" or "Angry about", depending on how they really feel
+
 ## [0.19.0] - 2026-11-08
 
 **Who supports you, and why**

@@ -138,6 +138,9 @@ func recommended(ev: Dictionary) -> int:
 	var best_score := -INF
 	for k in ev.choices.size():
 		var s := score(ev.choices[k].effects)
+		# A choice that leads to another, worse stage costs more than it looks.
+		if ev.choices[k].has("next"):
+			s -= 3.0
 		if s > best_score:
 			best_score = s
 			best = k

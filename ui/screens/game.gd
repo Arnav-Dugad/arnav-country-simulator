@@ -745,7 +745,7 @@ func _show_event(ev: Dictionary) -> void:
 			_modal.dismiss()
 			Game.resolve_decision(ev, k)
 			if paused_here:
-				Game.resume_after_modal(), GameEvents.effect_chips(ch.effects))
+				Game.resume_after_modal(), GameEvents.effect_chips(ch.effects) + ([["May escalate", false, 9.0]] if ch.has("next") and str(ch.next.get("id", "")) != "" and not str(ev.id) in ["recession", "scandal"] else []))
 	if not critical and Settings.decisions != "ask":
 		var left := Game.director.months_left(ev)
 		_modal.choice("Decide later", "Your cabinet decides %s if you don't" % ("this month" if left <= 1 else "in %d months" % left),

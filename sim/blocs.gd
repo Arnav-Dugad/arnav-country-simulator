@@ -136,7 +136,16 @@ static func top_reason(c: CountryState, g: String) -> String:
 			best = str(r[0])
 	if best == "":
 		return "No strong feelings"
-	return "%s %s" % ["Likes:" if bv > 0.0 else "Angry about:", best.to_lower()]
+	var mood := "Pleased with"
+	if bv < 0.0:
+		mood = "Angry about" if float(support(c)[g]) < 40.0 else "Worried about"
+	var what := best.to_lower()
+	# "Prices" pleasing someone means prices are calming down.
+	if bv > 0.0 and what == "prices":
+		what = "calmer prices"
+	elif bv > 0.0 and what == "jobs":
+		what = "more jobs"
+	return "%s %s" % [mood, what]
 
 
 ## For law cards: who would like / dislike passing (or repealing) this law.
