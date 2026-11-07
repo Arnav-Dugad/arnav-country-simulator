@@ -723,9 +723,22 @@ func _show_event(ev: Dictionary) -> void:
 	add_child(_modal)
 	var other := int(ev.get("other", -1))
 	if str(ev.get("face", "")) != "":
-		var holder := CenterContainer.new()
-		holder.add_child(Photo.portrait(str(ev.face), 104.0, Color(DS.TEAL, 0.6)))
-		_modal.content.add_child(holder)
+		# Scene with the leader's portrait overlapping its lower edge.
+		var stack := Control.new()
+		stack.custom_minimum_size = Vector2(0, 150)
+		stack.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var sc := Photo.scene("aid", 110.0)
+		sc.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+		sc.offset_bottom = 110.0
+		stack.add_child(sc)
+		var face := Photo.portrait(str(ev.face), 76.0, Color(DS.TEAL, 0.9))
+		face.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+		face.offset_left = -38.0
+		face.offset_right = 38.0
+		face.offset_top = -76.0
+		face.offset_bottom = 0.0
+		stack.add_child(face)
+		_modal.content.add_child(stack)
 	else:
 		_modal.content.add_child(Illustration.banner_for_event(ev, GameEvents.tint(str(ev.tint))))
 	_modal.header(str(ev.icon), GameEvents.tint(str(ev.tint)),

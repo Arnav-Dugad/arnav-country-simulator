@@ -2,6 +2,11 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.31.0] - 2026-11-08
+
+- Four new scene paintings: the press room, a bank run, an aid flight and a town rebuilding after an earthquake. Press conferences, scandals, bank runs, refugees, earthquakes and calls for help now each have their own scene
+- Calls for help show the leader's portrait over an aid-flight scene
+
 ## [0.30.1] - 2026-11-08
 
 - Cabinet decisions read naturally and keep country names capitalised ("Bangladesh asks for help: your cabinet chose to send generous aid")

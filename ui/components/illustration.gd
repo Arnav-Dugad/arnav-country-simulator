@@ -28,18 +28,18 @@ const EVENT_ART := {
 ## Event id -> painted scene (assets/scenes, AI-generated, no real people).
 const EVENT_SCENE := {
 	"summit": "summit", "un_sanctions": "summit", "un_climate": "summit", "un_ceasefire": "summit", "un_rights": "summit",
-	"protests": "protest", "strike": "protest", "democracy_movement": "protest", "dissident": "protest",
+	"protests": "protest", "strike": "protest", "democracy_movement": "protest", "dissident": "press",
 	"floods": "flood", "monsoon": "flood", "un_ocean": "flood", "hurricane": "hurricane",
 	"overrun": "construction", "investment": "construction", "housing": "construction",
 	"recession": "markets", "debt_crisis": "markets", "recovery_boom": "markets",
 	"observers": "election", "coalition_crisis": "parliament", "budget_standoff": "parliament",
-	"court_ruling": "parliament", "scandal": "parliament", "inquiry_result": "parliament", "party_purge": "parliament",
+	"court_ruling": "parliament", "scandal": "press", "inquiry_result": "press", "party_purge": "parliament",
 	"pensions": "parliament", "succession": "parliament", "pandemic": "hospital", "vaccine_race": "hospital",
 	"oil_shock": "oil", "oil_windfall": "oil", "oil_crash": "oil", "resources": "oil", "blackout": "oil",
 	"drought": "drought", "heatwave": "drought", "tech_boom": "tech", "cyberattack": "tech", "automation": "tech",
 	"brain_drain": "tech", "un_ai": "tech", "sports": "celebration", "games_bid": "celebration",
 	"royal_wedding": "celebration", "tourism": "celebration", "trade_offer": "port", "sanction_threat": "port",
-	"press": "parliament", "bank_wobble": "markets", "bank_run": "protest", "bailout_vote": "parliament",
+	"press": "press", "refugees": "aid", "bank_wobble": "markets", "bank_run": "bank_run", "aid_request": "aid", "earthquake": "quake", "bailout_vote": "parliament",
 	"currency_slide": "markets", "currency_crisis": "markets", "imf_review": "summit", "heat_grid": "drought",
 }
 
