@@ -1,0 +1,189 @@
+class_name CountryState
+extends RefCounted
+## Live state of one country: economy, politics and the player's policy levers.
+## `base` holds the real-world starting point every effect is measured against.
+
+const BUDGET_KEYS := ["health", "education", "infrastructure", "military", "welfare", "research"]
+const BUDGET_LABELS := {"health": "Healthcare", "education": "Education", "infrastructure": "Infrastructure",
+	"military": "Military", "welfare": "Welfare", "research": "Research"}
+const BUDGET_ICONS := {"health": "stethoscope", "education": "graduation-cap", "infrastructure": "construction",
+	"military": "shield", "welfare": "hand-coins", "research": "flask-conical"}
+
+var idx := -1
+
+# Economy
+var population := 0.0
+var gdp := 0.0                 # nominal, USD per year
+var growth := 0.0              # real, % per year
+var growth_anchor := 0.0       # underlying growth; drifts toward trend
+var trend := 2.0
+var unemployment := 5.0
+var u_natural := 5.0
+var inflation := 2.0
+var core_inflation := 2.0
+var interest_rate := 3.0
+var debt := 0.0                # USD
+var debt_rate := 3.0           # average interest paid on debt, %
+var treasury := 0.0            # USD cash reserve
+var revenue := 0.0             # USD/yr (derived each tick)
+var spending := 0.0
+var interest_cost := 0.0
+var balance := 0.0
+var other_rev_pct := 10.0      # VAT, tariffs, fees … (% of GDP)
+var pop_growth := 1.0
+var price_index := 1.0         # cumulative USD price level, for real income
+
+# Politics & society (0–100)
+var approval := 50.0
+var happiness := 50.0
+var stability := 50.0
+var military := 30.0
+
+# Policy levers
+var income_tax := 20.0         # %
+var corp_tax := 20.0           # %
+var spending_pct := 30.0       # primary spending, % of GDP
+var budget := {}               # key -> share (0..1), sums to 1
+var trade_openness := 0.5      # 0 protectionist … 1 fully open
+
+# Diplomacy aggregates (maintained by Game)
+var trade_deals := 0
+var sanctioned_by := 0
+var alliances := 0
+
+var base := {}                 # starting values (see init_from_stats)
+var shocks := {"growth": 0.0, "inflation": 0.0, "unemployment": 0.0, "happiness": 0.0,
+	"approval": 0.0, "stability": 0.0}
+var estimated: Array = []
+
+
+func init_from_stats(i: int, s: Dictionary) -> CountryState:
+	idx = i
+	estimated = s.get("estimated", [])
+	population = maxf(s.get("population", 1e6), 1000.0)
+	gdp = maxf(s.get("gdp", 1e9), 1e7)
+	growth = clampf(s.get("gdp_growth", 2.0), -8.0, 12.0)
+	unemployment = clampf(s.get("unemployment", 6.0), 1.0, 40.0)
+	u_natural = unemployment
+	inflation = clampf(s.get("inflation", 3.0), -2.0, 300.0)
+	core_inflation = inflation
+	interest_rate = Economy.start_interest_rate(inflation)
+	var debt_pct := clampf(s.get("debt_pct", 50.0), 0.0, 300.0)
+	debt = gdp * debt_pct / 100.0
+	debt_rate = clampf(interest_rate * 0.7 + 1.0, 0.5, 20.0)
+	var pc := Economy.per_capita(gdp, population)
+	trend = Economy.trend_growth(pc)
+	growth_anchor = clampf(growth, trend - Economy.ANCHOR_BELOW_TREND, trend + Economy.ANCHOR_ABOVE_TREND)
+	pop_growth = Economy.population_growth(pc)
+
+	var revenue_pct := clampf(s.get("revenue_pct", 25.0), 8.0, 55.0)
+	income_tax = Economy.start_income_tax(revenue_pct)
+	corp_tax = Economy.start_corp_tax(revenue_pct)
+	var tax_pct := 100.0 * (Economy.tax_yield(income_tax, Economy.K_INCOME) + Economy.tax_yield(corp_tax, Economy.K_CORP))
+	other_rev_pct = maxf(revenue_pct - tax_pct, 1.0)
+	var interest_pct := debt_pct * debt_rate / 100.0
+	spending_pct = clampf(revenue_pct - interest_pct - s.get("budget_balance_pct", -3.0), 8.0, 65.0)
+
+	var mil_share := clampf(s.get("military_pct", 1.8) / spending_pct, 0.02, 0.4)
+	var rest := {"health": 0.26, "education": 0.2, "infrastructure": 0.14, "welfare": 0.34, "research": 0.06}
+	budget = {"military": mil_share}
+	for k in rest:
+		budget[k] = rest[k] * (1.0 - mil_share)
+
+	happiness = Economy.start_happiness(s)
+	stability = Economy.start_stability(s)
+	approval = Economy.start_approval(happiness, stability)
+	military = Economy.military_index(gdp * s.get("military_pct", 1.8) / 100.0)
+
+	Simulation.update_finances(self)
+	treasury = spending / 12.0 * Economy.TREASURY_BUFFER_MONTHS
+	_capture_base()
+	return self
+
+
+func _capture_base() -> void:
+	base = {
+		"income_tax": income_tax, "corp_tax": corp_tax, "spending_pct": spending_pct,
+		"budget": budget.duplicate(), "trade": trade_openness,
+		"gdp_pc": gdp_per_capita(), "growth": growth, "inflation": inflation,
+		"unemployment": unemployment, "debt_pct": debt_pct(), "deficit_pct": -balance_pct(),
+		"happiness": happiness, "approval": approval, "stability": stability,
+		"health_effort": effort("health"), "education_effort": effort("education"),
+		"welfare_effort": effort("welfare"),
+	}
+
+
+# ----------------------------------------------------------------- derived ---
+func gdp_per_capita() -> float:
+	return gdp / maxf(population, 1.0)
+
+
+func debt_pct() -> float:
+	return debt / maxf(gdp, 1.0) * 100.0
+
+
+func balance_pct() -> float:
+	return balance / maxf(gdp, 1.0) * 100.0
+
+
+func revenue_pct() -> float:
+	return revenue / maxf(gdp, 1.0) * 100.0
+
+
+func real_gdp_per_capita() -> float:
+	return gdp_per_capita() / maxf(price_index, 0.01)
+
+
+## Policy effort for a budget area: spending as % of GDP x share.
+func effort(key: String) -> float:
+	return spending_pct * budget.get(key, 0.0)
+
+
+func spend_per_capita(key: String) -> float:
+	return gdp * spending_pct / 100.0 * budget.get(key, 0.0) / maxf(population, 1.0)
+
+
+func share_delta(key: String) -> float:
+	## Change in budget share vs start, in percentage points.
+	return (budget.get(key, 0.0) - base.get("budget", {}).get(key, 0.0)) * 100.0
+
+
+func set_budget_share(key: String, share: float) -> void:
+	## Sets one share and rescales the others proportionally so the total stays 1.
+	share = clampf(share, 0.0, 0.9)
+	var others := 0.0
+	for k in BUDGET_KEYS:
+		if k != key:
+			others += budget[k]
+	budget[key] = share
+	for k in BUDGET_KEYS:
+		if k != key:
+			budget[k] = (budget[k] / others * (1.0 - share)) if others > 0.0 else (1.0 - share) / 5.0
+
+
+# ----------------------------------------------------------------- persist ---
+const SAVE_FIELDS := ["idx", "population", "gdp", "growth", "growth_anchor", "trend", "unemployment",
+	"u_natural", "inflation", "core_inflation", "interest_rate", "debt", "debt_rate", "treasury",
+	"other_rev_pct", "pop_growth", "price_index", "approval", "happiness", "stability", "military", "income_tax",
+	"corp_tax", "spending_pct", "budget", "trade_openness", "trade_deals", "sanctioned_by",
+	"alliances", "base", "shocks", "estimated"]
+
+
+func to_dict() -> Dictionary:
+	var d := {}
+	for f in SAVE_FIELDS:
+		d[f] = get(f)
+	return d
+
+
+static func from_dict(d: Dictionary) -> CountryState:
+	var c := CountryState.new()
+	for f in SAVE_FIELDS:
+		if d.has(f):
+			c.set(f, d[f])
+	c.idx = int(c.idx)
+	c.trade_deals = int(c.trade_deals)
+	c.sanctioned_by = int(c.sanctioned_by)
+	c.alliances = int(c.alliances)
+	Simulation.update_finances(c)
+	return c

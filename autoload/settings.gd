@@ -10,6 +10,7 @@ var reduce_motion: bool = false
 var onboarding_done: bool = false
 var last_update_check: int = 0
 var skipped_version: String = ""
+var last_slot: int = 1
 
 var _cfg := ConfigFile.new()
 
@@ -21,6 +22,7 @@ func _ready() -> void:
 		onboarding_done = _cfg.get_value("prefs", "onboarding_done", onboarding_done)
 		last_update_check = _cfg.get_value("prefs", "last_update_check", 0)
 		skipped_version = _cfg.get_value("prefs", "skipped_version", "")
+		last_slot = _cfg.get_value("prefs", "last_slot", 1)
 
 
 func set_value(key: String, value: Variant) -> void:

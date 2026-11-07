@@ -23,10 +23,13 @@ const SECONDS_PER_MONTH := 2.0
 ## How fast actual growth chases its target each month (0..1).
 const GROWTH_ADJUST := 0.15
 ## Long-run trend growth by income: poor countries converge faster.
-const TREND_RICH := 1.4          # %/yr at ~$60k per capita
-const TREND_POOR := 4.8          # %/yr at ~$1k per capita
+const TREND_RICH := 1.5          # %/yr at ~$60k per capita
+const TREND_POOR := 6.0          # %/yr at ~$1k per capita
 ## Starting growth is pulled toward trend over the years (business cycles fade).
-const TREND_PULL := 0.004        # per month
+const TREND_PULL := 0.01         # per month (~5-year half-life)
+## Starting underlying growth is clamped to trend -3 … +4 pts (booms/busts fade).
+const ANCHOR_BELOW_TREND := 3.0
+const ANCHOR_ABOVE_TREND := 4.0
 ## Each +1 pt of income tax above the starting level cuts growth by this much.
 const INCOME_TAX_DRAG := 0.045
 const CORP_TAX_DRAG := 0.06
@@ -96,18 +99,28 @@ const TREASURY_BUFFER_MONTHS := 1.0
 ## Debt crisis: monthly probability once debt is above DEBT_CRISIS_START.
 const DEBT_CRISIS_START := 100.0
 const DEBT_CRISIS_PROB := 0.0005  # per pt above start, per month
+const RISK_PREMIUM_CAP := 6.0
+## Sovereign default: above this debt % of GDP debts are restructured.
+const DEFAULT_THRESHOLD := 250.0
+const DEFAULT_HAIRCUT := 0.4      # share of debt written off
+## Inflation above this erodes local-currency debt (interest is paid in real terms).
+const DEBT_EROSION_FLOOR := 3.0
 
 # ----------------------------------------------------- WELL-BEING & POLITICS --
 const HAPPY_ADJUST := 0.06
 const APPROVAL_ADJUST := 0.10
 const STABILITY_ADJUST := 0.05
 ## Happiness inputs (relative to start).
-const HEALTH_HAPPY := 9.0        # per doubling of health spending per person
+## Service effects compare policy effort (spending % of GDP x budget share) with the start.
+const HEALTH_HAPPY := 9.0        # per doubling of health effort
 const WELFARE_HAPPY := 7.0
 const EDUCATION_HAPPY := 4.0
 const UNEMP_HAPPY := 0.9         # per pt above start
 const INFLATION_HAPPY := 0.35    # per pt above start (capped at 60)
-const INCOME_HAPPY := 14.0       # per doubling of GDP per capita
+const INCOME_HAPPY := 10.0       # per doubling of REAL GDP per capita
+## Hedonic adaptation: the income people compare against drifts toward today's.
+const INCOME_ADAPTATION := 0.004 # per month
+const HAPPY_MAX := 96.0
 const TAX_HAPPY := 0.35          # per pt income tax above start
 ## Approval inputs.
 const APPROVAL_FROM_HAPPY := 0.6

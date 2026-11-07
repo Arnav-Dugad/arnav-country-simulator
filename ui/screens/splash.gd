@@ -64,6 +64,6 @@ func _animate_in() -> void:
 func _next_scene() -> String:
 	if not Settings.onboarding_done:
 		return "res://ui/screens/onboarding.tscn"
-	if Game.has_game():
+	if SaveManager.load_slot(Settings.last_slot):
 		return "res://ui/screens/game.tscn"
 	return "res://ui/screens/country_picker.tscn"

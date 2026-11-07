@@ -37,9 +37,11 @@ func _ready() -> void:
 	Screen.insets_changed.connect(_layout)
 	resized.connect(_layout)
 	_layout.call_deferred()
-	var start := Game.player if Game.player >= 0 else map.data.index_of("IND")
-	map.set_player(start)
-	map.focus_country.call_deferred(start, 0.01)
+	if not Game.has_game():  # e.g. launched directly via --scene
+		Game.new_game(map.data.index_of("IND"))
+	map.set_player(Game.player)
+	map.focus_country.call_deferred(Game.player, 0.01)
+	Game.month_passed.connect(_on_month)
 
 
 func _layout() -> void:
@@ -89,30 +91,18 @@ func _hide_info() -> void:
 	t.chain().tween_callback(func() -> void: info.visible = false)
 
 
+func _on_month() -> void:
+	# Data modes follow the simulation; refresh gently once a quarter.
+	if _mode != MapModes.Mode.POLITICAL and Game.month % 3 == 1:
+		map.set_colors(_colors_for(_mode))
+
+
 func _on_mode_changed(m: int) -> void:
 	_mode = m
 	map.set_colors(_colors_for(m))
 
 
-## Phase-2 placeholder values from Natural Earth estimates. Replaced by live
-## simulation values (GameState) in phase 4.
 func _colors_for(m: int) -> PackedColorArray:
-	var md := map.data
 	if m == MapModes.Mode.POLITICAL:
-		return MapModes.political(md)
-	var vals := PackedFloat32Array()
-	vals.resize(md.count())
-	for i in md.count():
-		var pc := md.gdp_md[i] * 1e6 / maxf(md.pop_est[i], 1.0)
-		var wealth := clampf((log(maxf(pc, 1.0)) / log(10.0) - 2.7) / 2.3, 0.0, 1.0)
-		var h := float(absi(hash(md.iso3[i] + str(m))) % 1000) / 1000.0
-		match m:
-			MapModes.Mode.WEALTH:
-				vals[i] = wealth if md.pop_est[i] > 0 else NAN
-			MapModes.Mode.RELATIONS:
-				vals[i] = h
-			_:
-				vals[i] = clampf(wealth * 0.6 + h * 0.4, 0.0, 1.0)
-		if md.iso3[i] == "ATA":
-			vals[i] = NAN
-	return MapModes.data_colors(m, vals)
+		return MapModes.political(map.data)
+	return MapModes.data_colors(m, Game.map_values(m))
