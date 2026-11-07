@@ -2,6 +2,13 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.14.2] - 2026-11-07
+
+- **India's borders now follow India's official map**: all of Jammu & Kashmir and Ladakh, including Gilgit-Baltistan and Aksai Chin, are shown as part of India
+- Following the same official map, Kosovo, Somaliland, Northern Cyprus and Western Sahara are no longer shown as separate countries
+- Sharper map data from a more detailed source, with the same fast loading
+- Fixed: on election night the rest of the world now dims while your country glows
+
 ## [0.14.1] - 2026-11-07
 
 **A living map**

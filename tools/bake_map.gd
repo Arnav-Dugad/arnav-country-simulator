@@ -6,7 +6,9 @@ extends SceneTree
 
 const SRC := "res://tools/.cache/map_projected.json"
 const OUT := "res://data/world_map.res"
-const TOLERANCE := 0.85        # projected units (~2 px at max zoom)
+## Projected units. Tuned for the 1:10m India-worldview source so the output keeps
+## roughly the vertex budget of the old 1:50m map (fast on phones).
+const TOLERANCE := 1.2
 const MIN_RING_AREA := 1.2     # drop islands smaller than this unless they're the main ring
 
 var _stats := {"in": 0, "out": 0, "fallback": 0, "dropped": 0}
@@ -103,11 +105,17 @@ func _init() -> void:
 
 func _simplify_and_triangulate(raw: PackedVector2Array) -> Array:
 	var raw_clean := _dedupe(raw)
-	for tol in [TOLERANCE, TOLERANCE * 0.5, TOLERANCE * 0.25, 0.0]:
+	for tol in [TOLERANCE, TOLERANCE * 0.75, TOLERANCE * 0.5, TOLERANCE * 0.35, TOLERANCE * 0.2, 0.0]:
 		var pts := raw_clean if tol == 0.0 else Geo.simplify_ring(raw_clean, tol)
 		if pts.size() < 3:
 			continue
 		var tris := Geometry2D.triangulate_polygon(pts)
+		if tris.is_empty() and tol > 0.0:
+			# Simplifying can make a ring cross itself: repair it (union with
+			# itself resolves self-intersections) and keep the biggest outline.
+			pts = _repair(pts)
+			if pts.size() >= 3:
+				tris = Geometry2D.triangulate_polygon(pts)
 		if not tris.is_empty():
 			if tol != TOLERANCE:
 				_stats.fallback += 1
@@ -121,6 +129,19 @@ func _simplify_and_triangulate(raw: PackedVector2Array) -> Array:
 		if Geometry2D.is_point_in_polygon(cen, raw_clean):
 			keep.append_array([d[t], d[t + 1], d[t + 2]])
 	return [raw_clean, keep]
+
+
+func _repair(pts: PackedVector2Array) -> PackedVector2Array:
+	var best := PackedVector2Array()
+	var best_a := 0.0
+	for poly in Geometry2D.merge_polygons(pts, PackedVector2Array()):
+		if Geometry2D.is_polygon_clockwise(poly) != Geometry2D.is_polygon_clockwise(pts):
+			continue   # a hole
+		var a := absf(Geo.signed_area(poly))
+		if a > best_a:
+			best_a = a
+			best = poly
+	return _dedupe(best)
 
 
 func _dedupe(pts: PackedVector2Array) -> PackedVector2Array:

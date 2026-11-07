@@ -16,11 +16,16 @@ import os
 import urllib.request
 
 NE_TAG = "v5.1.2"
+# Borders follow India's official point of view (Natural Earth "_ind" worldview):
+# all of Jammu & Kashmir and Ladakh, including Gilgit-Baltistan and Aksai Chin,
+# are shown as part of India. Only the 1:10m set has worldviews; the baker
+# simplifies it to our map detail anyway.
+WORLDVIEW = "ind"
 URL = ("https://raw.githubusercontent.com/nvkelso/natural-earth-vector/"
-       f"{NE_TAG}/geojson/ne_50m_admin_0_countries.geojson")
+       f"{NE_TAG}/geojson/ne_10m_admin_0_countries_{WORLDVIEW}.geojson")
 HERE = os.path.dirname(os.path.abspath(__file__))
 CACHE = os.path.join(HERE, ".cache")
-SRC = os.path.join(CACHE, "ne_50m_admin_0_countries.geojson")
+SRC = os.path.join(CACHE, f"ne_10m_admin_0_countries_{WORLDVIEW}.geojson")
 OUT = os.path.join(CACHE, "map_projected.json")
 PLACES_URL = ("https://raw.githubusercontent.com/nvkelso/natural-earth-vector/"
               f"{NE_TAG}/geojson/ne_50m_populated_places_simple.geojson")

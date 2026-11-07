@@ -10,6 +10,11 @@ python tools/build_country_data.py   # World Bank + IMF -> data/countries.json
 ```
 
 ## Map geometry — `data/world_map.res`
+
+Borders follow **India's official point of view** (Natural Earth v5.1.2 1:10m `admin_0_countries_ind`
+worldview, simplified by tools/bake_map.gd): all of Jammu & Kashmir and Ladakh (including
+Gilgit-Baltistan and Aksai Chin) are part of India. In this worldview Kosovo, Somaliland, Northern
+Cyprus and Western Sahara are not shown as separate countries.
 - **Natural Earth 1:50m Cultural Vectors, Admin 0 – Countries**, release **v5.1.2**
   (`ne_50m_admin_0_countries.geojson` from github.com/nvkelso/natural-earth-vector).
   Public domain. https://www.naturalearthdata.com/about/terms-of-use/
