@@ -2,8 +2,9 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
-## [0.12.1] - 2026-11-07
+## [0.12.2] - 2026-11-07
 
+- **Fixed for real: menus that wouldn't scroll.** Panels now scroll smoothly wherever your finger starts, including on cards, sliders, buttons, charts and switches, and keep gliding after a flick. Found and verified on an Android emulator
 - **Fixed: panels cut off on narrow phones** (like 1080×2400 screens). Every panel now fits, even with the largest text size
 - Slider titles show in full, with the (i) help at the end of the row
 - Long buttons shorten gracefully instead of pushing the layout wider

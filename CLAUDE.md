@@ -51,7 +51,7 @@ DevTools user args (after `--`): `--scene=`, `--shot=`, `--shot-delay=`, `--size
 - Haptics only through the `Haptics` autoload. Safe-area insets only through `Screen`.
 - Simulation constants: only in `sim/economy.gd`, documented.
 - Every phase: run headless import + smoke run, fix all errors/warnings, then commit.
-- **Touch & scrolling:** controls inside scroll views use MOUSE_FILTER_PASS and decide direction after an 8 px slop (vertical = let the ScrollContainer scroll). Never use STOP + accept_event on press. Guarded by tools/scroll_test (CI, xvfb).
+- **Touch & scrolling:** every vertical list is a `TouchScroll` (own drag + fling; the engine's touch-drag is unreliable on device). Inside it, STOP controls are switched to PASS automatically (PanelContainer and plain Control default to STOP in 4.7!). Controls decide direction after an 8 pt slop. Guarded by tools/scroll_test (CI, xvfb).
 - **Laptop resources:** no local APK/Gradle exports; push a tag and let CI build.
 - **Release = draft → emulator smoke test → publish.** CI creates a DRAFT release; download its APK (`gh release download`), install on the emulator, check launch/map/sheets/scroll + logcat, then `gh release edit vX.Y.Z --draft=false`.
 
