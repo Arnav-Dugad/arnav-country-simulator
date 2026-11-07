@@ -2,6 +2,26 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.14.0] - 2026-11-07
+
+**A living map**
+- **Pinch out past the whole world and the map curls into a globe**: it turns to face your country and spins slowly. Drag to spin it, tap a country, pinch in or double-tap to come back
+- **Trade flows**: glowing arcs from your partners to you, thicker for bigger economies, with light travelling along them (gold for allies)
+- **Calm weather**: a slow swirl over a hurricane, a warm haze in a heatwave, rain over floods, ripples after an earthquake. Disasters now also strike other countries in the news
+- Your construction projects appear as small pins around your capital, with progress rings
+- A soft shallow-water glow along every coast, a ripple where you tap, and a pill that slides behind the active tab
+
+**Fairer, more varied games** (tuned with 600 simulated games)
+- Voters tire of long-serving governments: each term you win makes the next election a little harder
+- Relaxed, Standard and Realistic now feel clearly different
+- Fragile countries no longer collapse just because they started unstable
+- Slightly fewer global recessions
+
+**Faster and smoother**
+- Faster start: the map is prepared ahead of time and the first screen loads while the logo animates
+- Panels fade in section by section
+- Games saved before construction existed now get their countries' real starting infrastructure
+
 ## [0.13.0] - 2026-11-07
 
 **Calm, not naggy**
