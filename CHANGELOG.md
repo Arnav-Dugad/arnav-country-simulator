@@ -2,6 +2,11 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.25.0] - 2026-11-08
+
+- **Calls for help**: when a disaster hits a friendly country, its leader asks you for help (with their portrait). Generous aid makes a friend for life; a cold shoulder is remembered
+- Advisor tips no longer suggest cutting interest rates while your central bank is in charge
+
 ## [0.24.1] - 2026-11-08
 
 - Calmer pacing, tuned with 300 simulated games: press conferences about once a year, summits every other year and UN votes in about half of Septembers, so decisions don't pile up

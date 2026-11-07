@@ -80,6 +80,9 @@ static func _maybe_disaster(i: int, rng: RandomNumberGenerator) -> void:
 		"earthquake": "An earthquake strikes %s", "drought": "Drought in %s", "floods": "Floods in %s"}
 	add(i, str(what.get(kind, "Disaster in %s")) % World.map.names[i], "cloud", false)
 	Game.add_weather(kind, i, 2)
+	# Friends and partners ask you for help.
+	if Game.relations[i] >= 10.0 and Game.director.inbox.size() < EventDirector.MAX_OPEN:
+		Game.director.add(GameEvents.aid_request(i, kind))
 
 
 static func defaulted(i: int) -> void:

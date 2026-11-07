@@ -43,7 +43,8 @@ static func advice(c: CountryState) -> Array:
 			"More healthcare, welfare or education spending usually helps.", "budget", "heart"))
 	if c.growth < c.trend - 1.5 and c.inflation < 4.0:
 		out.append(_item(1, "The economy is sluggish (%s growth)" % DS.pct(c.growth),
-			"Cut the interest rate, or invest in infrastructure and research.", "economy", "trending-down"))
+			"Invest in infrastructure and research, or build something: projects put people to work." if auto_cb else
+			"Cut the interest rate, or invest in infrastructure and research.", "build" if auto_cb else "economy", "trending-down"))
 	if Government.army_rules(c.idx) and Game.politics.coup_risk() > 0.0:
 		out.append(_item(2, "The army is restless",
 			"Keep the military budget near where it started and stability up, or the generals may act.", "budget", "shield"))

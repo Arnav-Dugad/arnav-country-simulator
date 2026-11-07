@@ -527,6 +527,27 @@ static func un_vote(rng: RandomNumberGenerator) -> Dictionary:
 	return instance(e)
 
 
+## A disaster abroad: the other country's leader asks you for help.
+static func aid_request(i: int, kind: String) -> Dictionary:
+	var ld := Leaders.leader(i)
+	var them: CountryState = Game.state(i)
+	var big := them != null and them.gdp > Game.me().gdp * 0.5
+	var what: String = {"hurricane": "a hurricane", "monsoon": "monsoon floods", "heatwave": "a deadly heatwave",
+		"earthquake": "an earthquake", "drought": "a drought", "floods": "floods"}.get(kind, "a disaster")
+	var e := {"id": "aid_request", "title": "%s asks for help" % World.map.names[i], "icon": "hand-coins",
+		"tint": "teal", "weight": 0.0, "face": str(ld.portrait), "scene_hint": kind,
+		"body": "%s, %s of %s, calls you after %s: \"Our people need help. Can we count on {country}?\"" % [
+			str(ld.name), str(ld.title).to_lower(), World.map.names[i], what],
+		"choices": [
+			{"label": "Send generous aid", "detail": "Costs 0.08% of GDP · a friend for life",
+				"effects": {"cost": 0.08, "relation": 14.0, "happiness": 0.3}},
+			{"label": "Send rescue teams and supplies", "detail": "Costs 0.02% of GDP",
+				"effects": {"cost": 0.02, "relation": 7.0}},
+			{"label": "Send condolences", "detail": "No cost" + (" · they'll remember" if not big else ""),
+				"effects": {"relation": -3.0 if not big else -1.0}}]}
+	return instance(e, i)
+
+
 ## A yearly summit: pick the agenda you push.
 static func summit(rng: RandomNumberGenerator) -> Dictionary:
 	var name := Treaties.summit_name()
@@ -669,6 +690,7 @@ static func instance(e: Dictionary, other: int = -1) -> Dictionary:
 			continue
 		choices.append(ch)
 	return {"id": e.id, "title": e.title, "icon": e.icon, "tint": e.tint, "other": other, "next": e.get("next", {}),
+		"face": e.get("face", ""), "scene_hint": e.get("scene_hint", ""),
 		"body": String(e.body).format({"country": name, "other": other_name, "project": _building_name()}), "choices": choices}
 
 
@@ -775,7 +797,7 @@ static func effect_chips(fx: Dictionary) -> Array:
 	var c := Game.me()
 	for k in fx:
 		var v: Variant = fx[k]
-		if (v is float or v is int) and absf(float(v)) < 0.05:
+		if (v is float or v is int) and absf(float(v)) < 0.001:
 			continue
 		match k:
 			"cost":

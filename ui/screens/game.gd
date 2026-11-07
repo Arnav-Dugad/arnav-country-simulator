@@ -713,7 +713,12 @@ func _show_event(ev: Dictionary) -> void:
 	_modal = ModalCard.new()
 	add_child(_modal)
 	var other := int(ev.get("other", -1))
-	_modal.content.add_child(Illustration.banner_for_event(ev, GameEvents.tint(str(ev.tint))))
+	if str(ev.get("face", "")) != "":
+		var holder := CenterContainer.new()
+		holder.add_child(Photo.portrait(str(ev.face), 104.0, Color(DS.TEAL, 0.6)))
+		_modal.content.add_child(holder)
+	else:
+		_modal.content.add_child(Illustration.banner_for_event(ev, GameEvents.tint(str(ev.tint))))
 	_modal.header(str(ev.icon), GameEvents.tint(str(ev.tint)),
 		str(ev.get("date", Game.date_text())) + ("  ·  " + World.map.names[other] if other >= 0 else ""), str(ev.title))
 	_modal.body(str(ev.body))
