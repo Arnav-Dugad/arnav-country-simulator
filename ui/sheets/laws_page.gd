@@ -152,14 +152,10 @@ func _card(c: CountryState, l: Dictionary) -> Control:
 		b = AppButton.make("Pass this law", &"", "gavel")
 		b.pressed.connect(_confirm.bind(l, false))
 		if Government.is_free(c.idx) and Blocs.LAW_FX.has(l.id) and not bool(l.get("oneway", false)):
-			var row := HBoxContainer.new()
-			row.add_theme_constant_override(&"separation", DS.S2)
-			b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			row.add_child(b)
-			var r := AppButton.make("Referendum", &"GhostButton", "vote")
+			v.add_child(b)
+			var r := AppButton.make("Or ask the people (referendum)", &"GhostButton", "vote")
 			r.pressed.connect(_referendum.bind(l))
-			row.add_child(r)
-			v.add_child(row)
+			v.add_child(r)
 			return v
 	v.add_child(b)
 	return v
