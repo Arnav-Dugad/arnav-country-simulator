@@ -68,7 +68,20 @@ func _build() -> void:
 		_update_chart(true))
 	chart_box.add_child(_chart_tabs)
 	_chart = LineChart.new()
+	_chart.date_of = func(i: int) -> String:
+		# i indexes the visible window; history ends at the current month.
+		var h: PackedFloat32Array = Game.history.get(CHARTS[_chart_idx][1], PackedFloat32Array())
+		var shown := mini(h.size(), _chart.window)
+		var back := shown - 1 - i
+		var m := Game.month - 1 - back
+		var y := Game.year + floori(m / 12.0)
+		const N := ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+		return "%s %d" % [N[posmod(m, 12)], y]
 	chart_box.add_child(_chart)
+	var scrub_hint := Label.new()
+	scrub_hint.theme_type_variation = &"Caption"
+	scrub_hint.text = "Drag across the chart to see any month."
+	chart_box.add_child(scrub_hint)
 
 	var c := Game.me()
 	var b: Dictionary = c.base

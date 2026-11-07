@@ -2,6 +2,12 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.8.0] - 2026-11-07
+
+- **Your legacy**: when your term ends you get a grade from A+ to F, with your strongest and weakest areas
+- **Scrub the charts**: drag across any history chart to see the exact value for any month
+- Year-on-year changes that round to zero now say "No change"
+
 ## [0.7.0] - 2026-11-07
 
 **For everyone**

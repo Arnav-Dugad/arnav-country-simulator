@@ -4,6 +4,7 @@ extends Node
 ##   --shot=C:/out.png         save a screenshot and quit
 ##   --shot-delay=2.5          seconds to wait before the screenshot
 ##   --size=390x844            resize the window (logical aspect test)
+##   --hold=x,y                press (and keep holding) at a point after the clicks
 ##   --click=x,y;x,y           inject left clicks (window/screenshot pixels) 0.6 s apart, after --click-delay (1 s)
 
 var _args := {}
@@ -20,7 +21,7 @@ func _ready() -> void:
 		get_window().size = Vector2i(int(wh[0]), int(wh[1]))
 	if _args.has("scene"):
 		get_tree().change_scene_to_file.call_deferred(_args["scene"])
-	if _args.has("click"):
+	if _args.has("click") or _args.has("hold"):
 		_clicks()
 	if _args.has("shot"):
 		_shoot()
@@ -41,7 +42,7 @@ func _shoot() -> void:
 
 func _clicks() -> void:
 	await get_tree().create_timer(float(_args.get("click-delay", "1.0"))).timeout
-	for pair in String(_args["click"]).split(";"):
+	for pair in String(_args.get("click", "")).split(";", false):
 		var xy := pair.split(",")
 		var win_pos := Vector2(float(xy[0]), float(xy[1]))
 		for pressed in [true, false]:
@@ -53,3 +54,11 @@ func _clicks() -> void:
 			Input.parse_input_event(e)
 			await get_tree().create_timer(0.05).timeout
 		await get_tree().create_timer(0.6).timeout
+	if _args.has("hold"):
+		var hp := String(_args["hold"]).split(",")
+		var e := InputEventMouseButton.new()
+		e.button_index = MOUSE_BUTTON_LEFT
+		e.pressed = true
+		e.position = Vector2(float(hp[0]), float(hp[1]))
+		e.global_position = e.position
+		Input.parse_input_event(e)

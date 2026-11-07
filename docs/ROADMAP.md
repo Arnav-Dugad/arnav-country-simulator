@@ -96,7 +96,7 @@ The basics should feel finished before anything new is added.
 - [ ] On the open chart, a **dashed ghost line** shows the projected path next to history.
 
 ### Charts 2.0
-- [ ] Scrubbing with a finger shows a crosshair and a value bubble that snaps to months, with haptic ticks at year boundaries.
+- [x] Scrubbing with a finger shows a crosshair and a value bubble that snaps to months, with haptic ticks at year boundaries.
 - [ ] A time-range control (1Y, 5Y, All).
 - [ ] An overlay to compare against the world median or the starting value.
 - [ ] Events on the timeline: small dots on the chart where events happened, tappable to see what you chose.
@@ -160,7 +160,7 @@ The basics should feel finished before anything new is added.
 ### Goals
 - [ ] **Scenarios**, for example: "Tame Argentina's inflation below 10% in 4 years", "Make India a $10T economy by 2040", "Win three terms in Japan", "Balance Italy's budget".
 - [ ] **30 achievements:** quiet glass toasts and a gallery of line-art badges.
-- [ ] **Legacy score** at the end of a term (grade A+ to F) from growth, well-being, stability, debt and elections, with a breakdown.
+- [x] **Legacy score** at the end of a term (grade A+ to F) from growth, well-being, stability, debt and elections, with a breakdown.
 - [ ] **Difficulty:** Relaxed, Standard or Realistic, affecting election thresholds, event severity, AI hostility and political capital income.
 
 **Definition of done:** a full playthrough where at least one event chain, one reform and one treaty happen, and the bot playtest still reports zero errors.

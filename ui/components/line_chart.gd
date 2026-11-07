@@ -13,11 +13,16 @@ var _data := PackedFloat32Array()
 var _progress := 1.0
 var _tween: Tween
 var _font: Font
+## Index (into the visible window) of the point under the finger, or -1.
+var _scrub := -1
+var _pts := PackedVector2Array()
+## Month label for a point: returns e.g. "Mar 2031" for the i-th visible value.
+var date_of: Callable = Callable()
 
 
 func _init() -> void:
 	custom_minimum_size = Vector2(0, 150)
-	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	mouse_filter = Control.MOUSE_FILTER_PASS
 
 
 func _ready() -> void:
@@ -84,6 +89,7 @@ func _draw() -> void:
 		var x := plot.position.x + plot.size.x * (float(i) / float(n - 1))
 		var y := plot.position.y + plot.size.y * (1.0 - (_data[i] - lo) / (hi - lo))
 		pts.append(Vector2(x, y))
+	_pts = pts
 	var curve := _smooth(pts, 6 if n < 40 else 3)
 	var count := maxi(2, int(curve.size() * _progress))
 	curve = curve.slice(0, count)
@@ -100,9 +106,69 @@ func _draw() -> void:
 	draw_polyline(curve, color, line_width, true)
 	draw_circle(curve[0], line_width * 0.5, color, true, -1.0, true)
 	var end := curve[curve.size() - 1]
-	draw_circle(end, 7.0, Color(color, 0.22), true, -1.0, true)
-	draw_circle(end, 3.6, color, true, -1.0, true)
-	draw_circle(end, 1.6, Color(1, 1, 1, 0.9), true, -1.0, true)
+	if _scrub < 0:
+		draw_circle(end, 7.0, Color(color, 0.22), true, -1.0, true)
+		draw_circle(end, 3.6, color, true, -1.0, true)
+		draw_circle(end, 1.6, Color(1, 1, 1, 0.9), true, -1.0, true)
+	else:
+		_draw_scrub(plot)
+
+
+func _draw_scrub(plot: Rect2) -> void:
+	var p := _pts[_scrub]
+	draw_line(Vector2(p.x, plot.position.y - 4), Vector2(p.x, plot.end.y), Color(1, 1, 1, 0.35), 1.0, true)
+	draw_circle(p, 8.0, Color(color, 0.25), true, -1.0, true)
+	draw_circle(p, 4.2, color, true, -1.0, true)
+	draw_circle(p, 1.8, Color(1, 1, 1, 0.95), true, -1.0, true)
+	if _font == null:
+		return
+	var val: String = formatter.call(_data[_scrub])
+	var when: String = date_of.call(_scrub) if date_of.is_valid() else ""
+	var fs_v := 14
+	var fs_d := 11
+	var w := maxf(_font.get_string_size(val, HORIZONTAL_ALIGNMENT_LEFT, -1, fs_v).x,
+		_font.get_string_size(when, HORIZONTAL_ALIGNMENT_LEFT, -1, fs_d).x) + 20.0
+	var h := 40.0 if when != "" else 26.0
+	var bx := clampf(p.x - w * 0.5, 0.0, size.x - w)
+	var by := plot.position.y - 6.0 if p.y > plot.position.y + h + 12.0 else plot.end.y - h
+	by = minf(by, p.y - h - 10.0) if p.y - h - 10.0 > 0.0 else p.y + 12.0
+	var bubble := get_theme_stylebox(&"panel", &"TooltipPanel")
+	draw_style_box(bubble, Rect2(bx, by, w, h))
+	draw_string(_font, Vector2(bx + 10, by + 18), val, HORIZONTAL_ALIGNMENT_LEFT, -1, fs_v, DS.TEXT)
+	if when != "":
+		draw_string(_font, Vector2(bx + 10, by + 33), when, HORIZONTAL_ALIGNMENT_LEFT, -1, fs_d, DS.TEXT_2)
+
+
+func _gui_input(e: InputEvent) -> void:
+	if _pts.size() < 2:
+		return
+	if e is InputEventMouseButton and e.button_index == MOUSE_BUTTON_LEFT:
+		if e.pressed:
+			_scrub_to(e.position.x)
+			accept_event()
+		else:
+			_scrub = -1
+			queue_redraw()
+	elif e is InputEventMouseMotion and _scrub >= 0:
+		_scrub_to(e.position.x)
+		accept_event()
+
+
+func _scrub_to(x: float) -> void:
+	var best := 0
+	var bd := INF
+	for i in _pts.size():
+		var d := absf(_pts[i].x - x)
+		if d < bd:
+			bd = d
+			best = i
+	if best != _scrub:
+		var month_changed := _scrub >= 0
+		_scrub = best
+		if month_changed:
+			if date_of.is_valid() and str(date_of.call(best)).begins_with("Jan"):
+				Haptics.tick()
+		queue_redraw()
 
 
 static func _smooth(p: PackedVector2Array, steps: int) -> PackedVector2Array:

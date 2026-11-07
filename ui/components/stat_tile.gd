@@ -66,9 +66,10 @@ func show_value(v: float, previous: float = NAN, delta_fmt: Callable = Callable(
 	var d := v - previous
 	var good := (d >= 0.0) == higher_is_good
 	var txt: String = delta_fmt.call(d) if delta_fmt.is_valid() else ("%+.1f" % d)
-	delta_label.text = (("↑ " if d >= 0.0 else "↓ ") + txt + " in a year") if absf(d) > 0.0001 else "No change"
-	delta_label.add_theme_color_override(&"font_color",
-		DS.TEXT_3 if absf(d) <= 0.0001 else (DS.GREEN if good else DS.RED))
+	# Anything that rounds to zero at one decimal reads as "No change".
+	var flat := absf(d) < 0.05 or txt.begins_with("0.0 ") or txt == "$0.0" or txt == "0.0"
+	delta_label.text = "No change in a year" if flat else (("↑ " if d >= 0.0 else "↓ ") + txt + " in a year")
+	delta_label.add_theme_color_override(&"font_color", DS.TEXT_3 if flat else (DS.GREEN if good else DS.RED))
 
 
 ## Makes the tile tappable (shows a small info mark). Emits `tapped`.
