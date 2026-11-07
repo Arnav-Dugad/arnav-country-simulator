@@ -1,0 +1,25 @@
+# Godot
+.godot/
+/android/build/
+*.tmp
+export_credentials.cfg
+/build/
+*.apk
+*.aab
+*.idsig
+
+# Secrets — NEVER commit
+*.keystore
+*.jks
+keystore.properties
+secrets/
+services/firebase_config.local.gd
+
+# Tooling caches
+tools/.cache/
+__pycache__/
+android/plugin/**/build/
+android/plugin/.gradle/
+android/plugin/local.properties
+.DS_Store
+Thumbs.db

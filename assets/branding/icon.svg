@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- Arnav Country Simulator — app icon. Original artwork. -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#16376A"/>
+      <stop offset="0.55" stop-color="#0A1A36"/>
+      <stop offset="1" stop-color="#040A18"/>
+    </linearGradient>
+    <radialGradient id="bgGlow" cx="0.5" cy="0.28" r="0.6">
+      <stop offset="0" stop-color="#3D8BFF" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#3D8BFF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="sea" cx="0.36" cy="0.30" r="0.85">
+      <stop offset="0" stop-color="#4FA8FF"/>
+      <stop offset="0.45" stop-color="#1663D6"/>
+      <stop offset="1" stop-color="#062058"/>
+    </radialGradient>
+    <linearGradient id="land" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.34"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0.16"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFE3A1"/>
+      <stop offset="1" stop-color="#F0A63A"/>
+    </linearGradient>
+    <radialGradient id="goldGlow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#FFC861" stop-opacity="0.75"/>
+      <stop offset="1" stop-color="#FFC861" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="rim" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.65"/>
+      <stop offset="0.5" stop-color="#FFFFFF" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0.22"/>
+    </linearGradient>
+    <radialGradient id="spec" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.32"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="dot" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="1"/>
+      <stop offset="0.35" stop-color="#BFE3FF" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#7CC4FF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="shade" cx="0.30" cy="0.26" r="0.95">
+      <stop offset="0.45" stop-color="#020A1E" stop-opacity="0"/>
+      <stop offset="1" stop-color="#020A1E" stop-opacity="0.6"/>
+    </radialGradient>
+    <clipPath id="globeClip"><circle cx="512" cy="530" r="290"/></clipPath>
+  </defs>
+
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <rect width="1024" height="1024" fill="url(#bgGlow)"/>
+
+  <!-- orbit, back half -->
+  <g transform="translate(512 530) rotate(-16)">
+    <path d="M -410 0 A 410 118 0 0 1 410 0" fill="none" stroke="#9CCBFF" stroke-opacity="0.28" stroke-width="7" stroke-linecap="round"/>
+  </g>
+
+  <circle cx="512" cy="530" r="290" fill="url(#sea)"/>
+  <g clip-path="url(#globeClip)">
+    <!-- graticule -->
+    <g fill="none" stroke="#FFFFFF" stroke-opacity="0.13" stroke-width="5">
+      <ellipse cx="512" cy="530" rx="100" ry="290"/>
+      <ellipse cx="512" cy="530" rx="200" ry="290"/>
+      <line x1="512" y1="240" x2="512" y2="820"/>
+      <line x1="212" y1="530" x2="812" y2="530"/>
+      <line x1="232" y1="410" x2="792" y2="410"/>
+      <line x1="232" y1="650" x2="792" y2="650"/>
+    </g>
+    <!-- continents (abstract) -->
+    <path fill="url(#land)" d="M 300 372 C 345 325 425 338 436 398 C 446 452 404 478 412 530 C 421 590 474 622 452 692 C 431 760 380 772 368 720 C 357 662 330 642 320 590 C 309 538 258 500 268 448 C 274 418 284 392 300 372 Z"/>
+    <path fill="url(#land)" d="M 560 352 C 622 322 724 344 764 396 C 794 438 744 468 702 470 C 662 472 642 500 652 542 C 663 592 702 612 692 672 C 682 732 630 764 600 722 C 575 690 590 640 560 600 C 530 560 520 520 540 480 C 556 448 520 398 560 352 Z"/>
+    <path fill="url(#land)" d="M 720 600 C 750 590 790 600 800 630 C 806 652 780 668 752 664 C 728 660 712 640 720 600 Z"/>
+    <!-- your country -->
+    <circle cx="624" cy="418" r="92" fill="url(#goldGlow)"/>
+    <path fill="url(#gold)" d="M 586 392 C 612 376 652 381 668 402 C 682 422 664 444 638 448 C 612 452 591 440 583 425 C 578 412 578 399 586 392 Z"/>
+    <!-- terminator shading -->
+    <circle cx="512" cy="530" r="290" fill="url(#shade)"/>
+  </g>
+  <circle cx="512" cy="530" r="288" fill="none" stroke="url(#rim)" stroke-width="5"/>
+  <ellipse cx="420" cy="380" rx="150" ry="90" fill="url(#spec)" transform="rotate(-28 420 380)"/>
+
+  <!-- orbit, front half + satellite -->
+  <g transform="translate(512 530) rotate(-16)">
+    <path d="M 410 0 A 410 118 0 0 1 -410 0" fill="none" stroke="#CFE6FF" stroke-opacity="0.75" stroke-width="7" stroke-linecap="round"/>
+    <circle cx="-300" cy="80" r="34" fill="url(#dot)"/>
+    <circle cx="-300" cy="80" r="11" fill="#FFFFFF"/>
+  </g>
+</svg>

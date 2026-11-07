@@ -1,0 +1,51 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+
+config_version=5
+
+[application]
+
+config/name="Arnav Country Simulator"
+config/description="Lead any real country. A calm, realistic country simulator on a living world map."
+config/version="0.1.0"
+run/main_scene="res://ui/screens/splash.tscn"
+config/features=PackedStringArray("4.7", "GL Compatibility")
+boot_splash/bg_color=Color(0.0156863, 0.0392157, 0.0784314, 1)
+boot_splash/show_image=false
+config/icon="res://assets/branding/icon.svg"
+
+[display]
+
+window/size/viewport_width=390
+window/size/viewport_height=844
+window/size/window_width_override=420
+window/size/window_height_override=880
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=1
+
+[gui]
+
+theme/custom="res://ui/theme/main_theme.tres"
+common/drop_mouse_on_gui_input_disabled=true
+
+[input_devices]
+
+pointing/emulate_mouse_from_touch=true
+pointing/emulate_touch_from_mouse=false
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/vram_compression/import_etc2_astc=true
+environment/defaults/default_clear_color=Color(0.0156863, 0.0392157, 0.0784314, 1)
+
+[autoload]
+
+Settings="*res://autoload/settings.gd"
+Haptics="*res://autoload/haptics.gd"
+Screen="*res://autoload/screen.gd"
+Router="*res://autoload/router.gd"
+DevTools="*res://autoload/dev_tools.gd"
