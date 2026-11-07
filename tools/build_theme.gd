@@ -158,6 +158,8 @@ func _panels() -> void:
 	th.set_stylebox(&"panel", &"TilePanel", _box(DS.FILL, DS.R_BUTTON, DS.S3, DS.S3))
 	th.set_type_variation(&"SegmentIndicator", &"Panel")
 	th.set_stylebox(&"panel", &"SegmentIndicator", _box(Color(1, 1, 1, 0.16), DS.R_PILL, 0, 0))
+	th.set_type_variation(&"Badge", &"Panel")
+	th.set_stylebox(&"panel", &"Badge", _box(DS.RED, DS.R_PILL, 0, 0))
 	th.set_type_variation(&"SheetHandle", &"Panel")
 	th.set_stylebox(&"panel", &"SheetHandle", _box(Color(1, 1, 1, 0.28), DS.R_PILL, 0, 0))
 	for v in [&"ListRow", &"ListRowSelected", &"IconTile"]:
@@ -168,6 +170,17 @@ func _panels() -> void:
 	sel.set_border_width_all(1)
 	th.set_stylebox(&"panel", &"ListRowSelected", sel)
 	th.set_stylebox(&"panel", &"IconTile", _box(Color(1, 1, 1, 0.9), 10, 8, 8))
+	# Custom-drawn controls read their pieces from the theme too.
+	th.set_stylebox(&"track", &"AppSlider", _box(Color(1, 1, 1, 0.14), DS.R_PILL, 0, 0))
+	th.set_stylebox(&"fill", &"AppSlider", _box(DS.ACCENT, DS.R_PILL, 0, 0))
+	var knob := _box(Color(1, 1, 1, 1), DS.R_PILL, 0, 0)
+	knob.shadow_color = Color(0, 0, 0, 0.35)
+	knob.shadow_size = 6
+	knob.shadow_offset = Vector2(0, 2)
+	th.set_stylebox(&"knob", &"AppSlider", knob)
+	th.set_stylebox(&"off", &"AppToggle", _box(Color(1, 1, 1, 0.16), DS.R_PILL, 0, 0))
+	th.set_stylebox(&"on", &"AppToggle", _box(DS.GREEN, DS.R_PILL, 0, 0))
+	th.set_stylebox(&"knob", &"AppToggle", knob)
 	th.set_stylebox(&"panel", &"PanelContainer", StyleBoxEmpty.new())
 	th.set_stylebox(&"panel", &"Panel", StyleBoxEmpty.new())
 

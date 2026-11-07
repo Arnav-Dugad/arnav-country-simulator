@@ -10,6 +10,10 @@ var icons: PackedStringArray = []
 var selected := 0
 ## When false, every segment shows its label (use for short label sets).
 var compact := true
+## Plain = no glass of its own (for use inside another glass surface).
+var plain := false
+## Minimum width of each segment.
+var segment_width := 40.0
 
 var _stack: Control
 var _indicator: Panel
@@ -26,8 +30,9 @@ func setup(labels_: PackedStringArray, icons_: PackedStringArray = [], selected_
 
 
 func _ready() -> void:
-	theme_type_variation = &"GlassPill"
+	theme_type_variation = &"PanelContainer" if plain else &"GlassPill"
 	super._ready()
+	_glass.visible = not plain
 	_stack = Control.new()
 	_stack.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_stack)
@@ -42,9 +47,9 @@ func _ready() -> void:
 	for i in labels.size():
 		var b := AppButton.new()
 		b.theme_type_variation = &"Segment"
-		if i < icons.size():
+		if i < icons.size() and icons[i] != "":
 			b.icon_name = icons[i]
-		b.custom_minimum_size = Vector2(40, 36)
+		b.custom_minimum_size = Vector2(segment_width, 36)
 		b.pressed.connect(_on_pressed.bind(i))
 		b.tooltip_text = labels[i]
 		_row.add_child(b)
@@ -72,7 +77,8 @@ func _refresh(animate: bool) -> void:
 	for i in _buttons.size():
 		var on := i == selected
 		_buttons[i].theme_type_variation = &"SegmentSelected" if on else &"Segment"
-		_buttons[i].text = labels[i] if (on or not compact or icons.is_empty()) else ""
+		var has_icon := i < icons.size() and icons[i] != ""
+		_buttons[i].text = labels[i] if (on or not compact or not has_icon) else ""
 	_sync_size()
 	if not animate:
 		_move_indicator.call_deferred(false)

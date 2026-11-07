@@ -7,6 +7,10 @@ signal month_passed
 signal speed_changed(speed: int)
 signal relations_changed
 signal debt_crisis(country: int)
+signal event_started(event: Dictionary)
+signal event_resolved(event: Dictionary, choice: int)
+signal election_held(result: Dictionary)
+signal game_over(summary: Dictionary)
 
 const START_YEAR := 2026
 const HISTORY_MAX := 1200
@@ -38,6 +42,15 @@ var running := false
 var months_to_election := 12 * Economy.ELECTION_YEARS
 var history := {}
 var relations := PackedFloat32Array()   # with the player, -100..100
+var dip: Dictionary = Diplomacy.fresh_state()
+var pending_event: Dictionary = {}
+var event_log: Array = []           # [{date, title, choice, id}]
+var elections_won := 0
+var start_snapshot: Dictionary = {}
+
+var _last_event_month := -10
+var _speed_before_pause := 1
+var _low_stability_months := 0
 var rng := RandomNumberGenerator.new()
 
 var _acc := 0.0
@@ -66,6 +79,17 @@ func new_game(country_index: int, seed_value: int = -1) -> void:
 	for k in HISTORY_KEYS:
 		history[k] = PackedFloat32Array()
 	_init_relations()
+	dip = Diplomacy.fresh_state()
+	for i in relations.size():
+		dip.baseline[str(i)] = relations[i]
+	pending_event = {}
+	event_log.clear()
+	elections_won = 0
+	_last_event_month = 0  # a few quiet months to settle in
+	_low_stability_months = 0
+	var c := me()
+	start_snapshot = {"year": year, "gdp": c.gdp, "debt_pct": c.debt_pct(), "approval": c.approval,
+		"happiness": c.happiness}
 	_record_history()
 	running = true
 	started.emit()
@@ -131,6 +155,7 @@ func month_progress() -> float:
 
 func advance_month() -> void:
 	var quarter := month % 3 == 0
+	var my_crisis := false
 	for i in countries.size():
 		var c: CountryState = countries[i]
 		if c == null:
@@ -140,6 +165,7 @@ func advance_month() -> void:
 			AI.quarterly(c, rng)
 		if crisis:
 			debt_crisis.emit(i)
+			my_crisis = my_crisis or i == player
 	_drift_relations()
 	months_played += 1
 	months_to_election -= 1
@@ -149,11 +175,108 @@ func advance_month() -> void:
 		year += 1
 	_record_history()
 	month_passed.emit()
+	_after_month(my_crisis)
+
+
+# ------------------------------------------------------- events & elections ---
+func _after_month(my_crisis: bool) -> void:
+	if not running:
+		return
+	var c := me()
+	_low_stability_months = _low_stability_months + 1 if c.stability < 8.0 else 0
+	if _low_stability_months >= 6:
+		finish("collapse")
+		return
+	if months_to_election <= 0:
+		hold_election()
+		return
+	if not pending_event.is_empty():
+		return
+	if my_crisis:
+		trigger_event(GameEvents.instance(GameEvents.by_id("debt_crisis")))
+	elif months_played - _last_event_month >= GameEvents.MIN_GAP_MONTHS and rng.randf() < GameEvents.MONTHLY_CHANCE:
+		var ev: Dictionary = GameEvents.roll(rng)
+		if not ev.is_empty():
+			trigger_event(ev)
+
+
+func trigger_event(ev: Dictionary) -> void:
+	pending_event = ev
+	_last_event_month = months_played
+	_pause_for_modal()
+	event_started.emit(ev)
+
+
+func resolve_event(choice: int) -> void:
+	if pending_event.is_empty():
+		return
+	var ev := pending_event
+	var ch: Dictionary = ev.choices[choice]
+	GameEvents.apply_effects(ch.effects, int(ev.other))
+	event_log.push_front({"date": date_text(), "title": ev.title, "choice": ch.label, "id": ev.id})
+	if event_log.size() > 60:
+		event_log.pop_back()
+	pending_event = {}
+	_resume_after_modal()
+	event_resolved.emit(ev, choice)
+
+
+func hold_election() -> void:
+	var a := me().approval
+	var p := clampf((a - Economy.WIN_NONE) / (Economy.WIN_SAFE - Economy.WIN_NONE), 0.0, 1.0)
+	var won := rng.randf() < p
+	var share := clampf(50.0 + (a - 42.5) * 0.9 + rng.randf_range(-2.5, 2.5), 22.0, 78.0)
+	share = maxf(share, 50.6) if won else minf(share, 49.4)
+	months_to_election = 12 * Economy.ELECTION_YEARS
+	if won:
+		elections_won += 1
+		me().shocks.approval += 3.0  # post-election honeymoon
+	event_log.push_front({"date": date_text(), "title": "Election " + ("won" if won else "lost"),
+		"choice": "%.1f%% of the vote" % share, "id": "election"})
+	_pause_for_modal()
+	election_held.emit({"won": won, "share": share, "year": year, "approval": a})
+
+
+## Call after the election card is dismissed.
+func continue_after_election(won: bool) -> void:
+	if won:
+		_resume_after_modal()
+	else:
+		finish("election")
+
+
+func finish(reason: String) -> void:
+	running = false
+	game_over.emit(summary(reason))
+
+
+func summary(reason: String = "") -> Dictionary:
+	var c := me()
+	var years := months_played / 12.0
+	var g0 := float(start_snapshot.get("gdp", c.gdp))
+	var avg_growth := (pow(c.real_gdp_per_capita() * c.population / maxf(g0, 1.0), 1.0 / maxf(years, 0.1)) - 1.0) * 100.0 \
+		if years >= 1.0 else c.growth
+	return {"reason": reason, "country": World.map.names_long[player], "years": years,
+		"from": int(start_snapshot.get("year", START_YEAR)), "to": year, "elections_won": elections_won,
+		"gdp_start": g0, "gdp_end": c.gdp, "avg_growth": avg_growth,
+		"debt_start": float(start_snapshot.get("debt_pct", 0.0)), "debt_end": c.debt_pct(),
+		"approval": c.approval, "happiness_start": float(start_snapshot.get("happiness", 0.0)),
+		"happiness_end": c.happiness, "events": event_log.size()}
+
+
+func _pause_for_modal() -> void:
+	if speed != 0:
+		_speed_before_pause = speed
+	set_speed(0)
+
+
+func _resume_after_modal() -> void:
+	set_speed(maxi(_speed_before_pause, 1))
 
 
 func _drift_relations() -> void:
-	# Relations slowly relax toward their seed; gives actions lasting but fading weight.
-	pass
+	Diplomacy.monthly()
+	relations_changed.emit()
 
 
 func _record_history() -> void:
@@ -223,6 +346,8 @@ func to_dict() -> Dictionary:
 		"version": SAVE_VERSION, "player": World.map.iso3[player], "year": year, "month": month,
 		"months_played": months_played, "months_to_election": months_to_election,
 		"countries": cs, "relations": rel, "history": hist, "rng_state": str(rng.state),
+		"dip": dip, "event_log": event_log, "elections_won": elections_won,
+		"start": start_snapshot, "pending_event": pending_event,
 	}
 
 
@@ -257,6 +382,15 @@ func load_dict(d: Dictionary) -> bool:
 	for k in HISTORY_KEYS:
 		history[k] = PackedFloat32Array(hist.get(k, []))
 	rng.state = int(str(d.get("rng_state", "0")))
+	dip = Diplomacy.fresh_state()
+	var saved_dip: Dictionary = d.get("dip", {})
+	for k in saved_dip:
+		dip[k] = saved_dip[k]
+	event_log = d.get("event_log", [])
+	elections_won = int(d.get("elections_won", 0))
+	start_snapshot = d.get("start", {})
+	pending_event = d.get("pending_event", {})
+	_low_stability_months = 0
 	speed = 1
 	_acc = 0.0
 	running = true

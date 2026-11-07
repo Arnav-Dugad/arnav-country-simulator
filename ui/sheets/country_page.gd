@@ -1,0 +1,201 @@
+class_name CountryPage
+extends SheetPage
+## Details for a tapped country: key stats, relation with you and diplomacy actions.
+
+signal page_requested(page: String)
+
+var country := -1
+var _sub: Label
+var _tiles := {}
+var _rel_box: VBoxContainer
+var _rel_bar: Control
+var _rel_label: Label
+var _actions: VBoxContainer
+var _status: Label
+var _est: Label
+
+
+func _init() -> void:
+	super._init()
+	title = "Country"
+	open_at = BottomSheet.Snap.PEEK
+
+
+func _build() -> void:
+	_sub = Label.new()
+	_sub.theme_type_variation = &"Subhead"
+	_sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	add_child(_sub)
+	var g := grid(self, 3)
+	var money := func(v: float) -> String: return DS.money(v)
+	_tiles.gdp = _tile(g, "GDP", money)
+	_tiles.pc = _tile(g, "Per person", func(v: float) -> String: return DS.money(v, 0))
+	_tiles.growth = _tile(g, "Growth", SheetPage.fmt_pct)
+	_tiles.approval = _tile(g, "Approval", SheetPage.fmt_pct)
+	_tiles.stability = _tile(g, "Stability", func(v: float) -> String: return String.num(v, 0))
+	_tiles.military = _tile(g, "Military", func(v: float) -> String: return String.num(v, 0))
+
+	_rel_box = section("Relations with you")
+	var rel_row := HBoxContainer.new()
+	_rel_box.add_child(rel_row)
+	_rel_label = Label.new()
+	_rel_label.theme_type_variation = &"Headline"
+	_rel_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	rel_row.add_child(_rel_label)
+	_rel_bar = Control.new()
+	_rel_bar.custom_minimum_size = Vector2(0, 10)
+	_rel_bar.draw.connect(_draw_rel_bar)
+	_rel_box.add_child(_rel_bar)
+
+	_actions = section("Diplomacy")
+	_status = note("")
+	_est = note("")
+	_est.add_theme_color_override(&"font_color", DS.ORANGE)
+
+
+func _tile(parent: Control, t: String, fmt: Callable) -> StatTile:
+	var tile := StatTile.new().setup(t, fmt, true)
+	tile.delta_label.visible = false
+	parent.add_child(tile)
+	return tile
+
+
+func show_country(i: int) -> void:
+	country = i
+	_status.text = ""
+	refresh()
+
+
+func refresh() -> void:
+	if country < 0 or not Game.has_game():
+		return
+	var i := country
+	title = World.map.names_long[i]
+	var c: CountryState = Game.state(i)
+	var sov := World.sovereign_of(i)
+	var playable := World.is_playable(i)
+	if c == null:
+		_sub.text = "Uninhabited" if World.map.iso3[i] == "ATA" else "Territory"
+	elif not playable and sov >= 0 and sov != i:
+		_sub.text = "%s  ·  territory of %s" % [World.map.subregions[i], World.map.names[sov]]
+	else:
+		_sub.text = "%s  ·  %s people" % [World.map.subregions[i], DS.compact(c.population)]
+	for t in _tiles.values():
+		t.visible = c != null
+	if c:
+		_tiles.gdp.show_value(c.gdp)
+		_tiles.pc.show_value(c.gdp_per_capita())
+		_tiles.growth.show_value(c.growth)
+		_tiles.approval.show_value(c.approval)
+		_tiles.stability.show_value(c.stability)
+		_tiles.military.show_value(c.military)
+	var est: Array = World.stats[i].get("estimated", [])
+	_est.visible = not est.is_empty()
+	_est.text = "Estimated starting data: %s (regional averages)." % ", ".join(est.map(
+		func(k: String) -> String: return k.replace("_pct", "").replace("_", " ")))
+	var is_me := i == Game.player
+	_rel_box.get_parent().visible = playable and not is_me
+	_rel_label.text = "%s  %+.0f" % [Diplomacy.relation_text(Game.relations[i]), Game.relations[i]]
+	_rel_label.add_theme_color_override(&"font_color", Diplomacy.relation_color(Game.relations[i]))
+	_rel_bar.queue_redraw()
+	_build_actions(i, is_me, playable)
+
+
+func _build_actions(i: int, is_me: bool, playable: bool) -> void:
+	for ch in _actions.get_children():
+		ch.queue_free()
+	_actions.get_parent().visible = playable
+	if is_me:
+		var h := Label.new()
+		h.theme_type_variation = &"Body"
+		h.text = "This is your nation. Shape it from the Economy and Budget panels."
+		h.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_actions.add_child(h)
+		var row := HBoxContainer.new()
+		_actions.add_child(row)
+		for p in [["Economy", "economy", "chart"], ["Budget", "budget", "wallet"]]:
+			var b := AppButton.make(p[0], &"", p[2])
+			b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			b.pressed.connect(func() -> void: page_requested.emit(p[1]))
+			row.add_child(b)
+		return
+	if not playable:
+		return
+	# Trade
+	if Diplomacy.has_deal(i):
+		_action("Cancel trade deal", &"", "x", func() -> void:
+			Diplomacy.cancel_deal(i)
+			_done("Trade deal cancelled.", false))
+	else:
+		var ok := Diplomacy.can_propose_deal(i)
+		_action("Propose trade deal", &"PrimaryButton" if ok else &"", "handshake", func() -> void:
+			var acc := Diplomacy.propose_deal(i)
+			_done("%s signed the deal." % World.map.names[i] if acc else "%s declined." % World.map.names[i], acc),
+			not ok, "Needs relations of %d+" % int(Diplomacy.DEAL_MIN_RELATION) if not ok
+				else "Likely to accept: %d%%" % int(Diplomacy.acceptance(i, "deal") * 100.0))
+	# Alliance
+	if Diplomacy.has_alliance(i):
+		_action("Leave alliance", &"", "log-out", func() -> void:
+			Diplomacy.break_alliance(i)
+			_done("Alliance ended.", false))
+	else:
+		var ok2 := Diplomacy.can_propose_alliance(i)
+		_action("Propose alliance", &"", "shield", func() -> void:
+			var acc := Diplomacy.propose_alliance(i)
+			_done("Alliance formed with %s." % World.map.names[i] if acc else "%s declined." % World.map.names[i], acc),
+			not ok2, "Needs relations of %d+" % int(Diplomacy.ALLIANCE_MIN_RELATION) if not ok2
+				else "Likely to accept: %d%%" % int(Diplomacy.acceptance(i, "alliance") * 100.0))
+	# Aid
+	var cd := Diplomacy.aid_cooldown(i)
+	_action("Send aid  ·  %s" % DS.money(Diplomacy.aid_amount()), &"", "hand-coins", func() -> void:
+		var gain := Diplomacy.send_aid(i)
+		_done("Aid delivered. Relations %+.0f." % gain, true),
+		not Diplomacy.can_send_aid(i), "Available again in %d months" % cd if cd > 0 else "Paid from the treasury")
+	# Sanctions
+	if Diplomacy.is_sanctioning(i):
+		_action("Lift sanctions", &"", "check", func() -> void:
+			Diplomacy.lift_sanction(i)
+			_done("Sanctions lifted.", true))
+	else:
+		_action("Impose sanctions", &"DestructiveButton", "ban", func() -> void:
+			Diplomacy.sanction(i)
+			_done("Sanctions imposed on %s." % World.map.names[i], false),
+			false, "Hurts their economy, and yours a little")
+
+
+func _action(text: String, variant: StringName, icon_: String, cb: Callable, disabled: bool = false,
+		hint: String = "") -> void:
+	var b := AppButton.make(text, variant, icon_)
+	b.disabled = disabled
+	b.pressed.connect(cb)
+	_actions.add_child(b)
+	if hint != "":
+		var l := Label.new()
+		l.theme_type_variation = &"Caption"
+		l.text = hint
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_actions.add_child(l)
+
+
+func _done(msg: String, good: bool) -> void:
+	if good:
+		Haptics.success()
+	else:
+		Haptics.warning()
+	refresh()
+	_status.text = msg
+	_status.add_theme_color_override(&"font_color", DS.GREEN if good else DS.TEXT_2)
+
+
+func _draw_rel_bar() -> void:
+	var w := _rel_bar.size.x
+	var h := _rel_bar.size.y
+	var track := get_theme_stylebox(&"track", &"AppSlider")
+	_rel_bar.draw_style_box(track, Rect2(0, h * 0.5 - 3, w, 6))
+	var r := Game.relations[country] if country >= 0 else 0.0
+	var mid := w * 0.5
+	var x := mid + w * 0.5 * r / 100.0
+	var col := Diplomacy.relation_color(r)
+	_rel_bar.draw_rect(Rect2(minf(mid, x), h * 0.5 - 3, absf(x - mid), 6), col)
+	_rel_bar.draw_rect(Rect2(mid - 1, 0, 2, h), Color(1, 1, 1, 0.3))
+	_rel_bar.draw_circle(Vector2(x, h * 0.5), 5.0, col, true, -1.0, true)
