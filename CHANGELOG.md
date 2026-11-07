@@ -2,6 +2,10 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.17.1] - 2026-11-08
+
+- **Fixed: researched country details were missing on phones.** Taglines, main exports, trading partners, friends and rivals, natural risks, strengths and challenges now appear on every country card on Android too (and shape the game as intended)
+
 ## [0.17.0] - 2026-11-08
 
 **Face the press**

@@ -41,6 +41,14 @@ jobs:
           ~/godot/godot --headless --path . --import 2>&1 | tee import.log || true
           if grep -E "SCRIPT ERROR|Parse Error|Compile Error" import.log; then exit 1; fi
 
+      - name: Every data file the game reads is exported
+        run: |
+          # Non-resource files (JSON) only reach the APK through include_filter.
+          for f in $(grep -rhoE 'res://data/[A-Za-z0-9_]+\.json' --include=*.gd autoload sim ui services map | sort -u); do
+            p=${f#res://}
+            grep -E '^include_filter=' export_presets.cfg | grep -qE "data/\*\.json|$p" || { echo "::error::$p is not in include_filter"; exit 1; }
+          done
+
       - name: Economy sanity (25 years, whole world)
         run: |
           ~/godot/godot --headless --path . res://tools/sim_test.tscn -- --years=25 2>&1 | tee sim.log
