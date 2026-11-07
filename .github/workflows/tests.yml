@@ -61,3 +61,8 @@ jobs:
           grep -q "STORE TEST OK" store.log
           ~/godot/godot --headless --path . res://tools/gesture_test.tscn 2>&1 | tee gesture.log
           grep -q "GESTURE TEST OK" gesture.log
+
+      - name: Challenges are winnable
+        run: |
+          ~/godot/godot --headless --path . res://tools/challenge_test.tscn 2>&1 | tee chall.log
+          grep -q "CHALLENGE TEST OK" chall.log

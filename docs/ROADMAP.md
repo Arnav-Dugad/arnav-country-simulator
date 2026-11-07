@@ -158,7 +158,7 @@ The basics should feel finished before anything new is added.
 - [ ] **Security stays abstract and calm:** readiness and deterrence reduce hostile events. No combat simulation.
 
 ### Goals
-- [ ] **Scenarios**, for example: "Tame Argentina's inflation below 10% in 4 years", "Make India a $10T economy by 2040", "Win three terms in Japan", "Balance Italy's budget".
+- [x] (7 challenges in v0.11.0) **Scenarios**, for example: "Tame Argentina's inflation below 10% in 4 years", "Make India a $10T economy by 2040", "Win three terms in Japan", "Balance Italy's budget".
 - [x] (22 achievements in v0.9.0) **30 achievements:** quiet glass toasts and a gallery of line-art badges.
 - [x] **Legacy score** at the end of a term (grade A+ to F) from growth, well-being, stability, debt and elections, with a breakdown.
 - [ ] **Difficulty:** Relaxed, Standard or Realistic, affecting election thresholds, event severity, AI hostility and political capital income.

@@ -71,8 +71,9 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 	c.inflation += (pi - c.inflation) * E.INFLATION_ADJUST
 
 	# --- Jobs -----------------------------------------------------------------
-	c.u_natural = clampf(c.u_natural - E.EDUCATION_UNEMP * c.share_delta("education") / 10.0 * 0.01,
-		E.UNEMP_MIN, E.UNEMP_MAX)
+	c.u_natural -= E.EDUCATION_UNEMP * c.share_delta("education") / 10.0 / 12.0
+	c.u_natural += (c.unemployment - c.u_natural) * E.UNEMP_HYSTERESIS
+	c.u_natural = clampf(c.u_natural, E.UNEMP_MIN, E.UNEMP_MAX)
 	var u_terms := [
 		["Normal level for your country", c.u_natural],
 		["Economic momentum", -E.OKUN * (c.growth - c.growth_anchor)],

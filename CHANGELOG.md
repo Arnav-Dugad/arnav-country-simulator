@@ -2,6 +2,16 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.11.0] - 2026-11-07
+
+**Challenges**
+- Seven challenges with a real country, a clear goal and a deadline: tame Argentina's inflation, grow India to $10 trillion, bring jobs to South Africa, balance Italy's budget, get Greece out of debt, win three terms in Japan, calm Nigeria
+- Your progress shows at the top of Nation health; finishing one earns the new "Challenger" achievement
+- Find them under Challenges in the country picker
+
+**Smarter economy**
+- Unemployment now responds properly to good policy: education lowers it over time, and long stretches of low unemployment become the new normal
+
 ## [0.10.0] - 2026-11-07
 
 - **Share your legacy**: share your end-of-term grade, or any Year in Review, as an image through Android's share sheet

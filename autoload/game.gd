@@ -14,6 +14,7 @@ signal game_over(summary: Dictionary)
 signal law_finished(id: String, repealed: bool)
 signal campaign_started
 signal world_news(item: Dictionary)
+signal challenge_ended(won: bool)
 
 const START_YEAR := 2026
 const HISTORY_MAX := 1200
@@ -53,7 +54,9 @@ var start_snapshot: Dictionary = {}
 var headlines_seen: Dictionary = {}
 var scheduled: Array = []   # follow-up events: [{id, due (months_played), other}]
 var last_rating := ""
-var news: Array = []          # world news feed, newest first (see WorldNews)        # for upgrade/downgrade headlines
+var news: Array = []
+## Active challenge: {id, deadline (months_played), state: active|won|lost}
+var challenge: Dictionary = {}          # world news feed, newest first (see WorldNews)        # for upgrade/downgrade headlines
 var campaign_year := 0      # absolute month (months_played) of the election already campaigned for
 
 var _last_event_month := -10
@@ -74,6 +77,13 @@ func _ready() -> void:
 
 
 # ------------------------------------------------------------------ setup ----
+## Starts a challenge game (see Challenges).
+func new_challenge(id: String, seed_value: int = -1) -> void:
+	var ch := Challenges.get_by_id(id)
+	new_game(World.index_of(str(ch.country)), seed_value)
+	challenge = {"id": id, "deadline": int(ch.years) * 12, "state": "active"}
+
+
 func new_game(country_index: int, seed_value: int = -1) -> void:
 	rng.seed = seed_value if seed_value >= 0 else int(Time.get_unix_time_from_system())
 	countries.clear()
@@ -102,6 +112,7 @@ func new_game(country_index: int, seed_value: int = -1) -> void:
 	campaign_year = 0
 	last_rating = ""
 	news = []
+	challenge = {}
 	event_log.clear()
 	elections_won = 0
 	_last_event_month = 0  # a few quiet months to settle in
@@ -239,6 +250,7 @@ func advance_month() -> void:
 func _after_month(my_crisis: bool) -> void:
 	if not running:
 		return
+	_check_challenge()
 	var c := me()
 	_low_stability_months = _low_stability_months + 1 if c.stability < 8.0 else 0
 	if _low_stability_months >= 6:
@@ -269,6 +281,22 @@ func _after_month(my_crisis: bool) -> void:
 		var ev: Dictionary = GameEvents.roll(rng)
 		if not ev.is_empty():
 			trigger_event(ev)
+
+
+func _check_challenge() -> void:
+	if challenge.get("state", "") != "active":
+		return
+	var ch := Challenges.get_by_id(str(challenge.id))
+	if ch.is_empty():
+		return
+	if Challenges.met(ch):
+		challenge.state = "won"
+		event_log.push_front({"date": date_text(), "title": "Challenge complete", "choice": str(ch.title), "id": "election"})
+		challenge_ended.emit(true)
+	elif months_played >= int(challenge.deadline):
+		challenge.state = "lost"
+		event_log.push_front({"date": date_text(), "title": "Challenge missed", "choice": str(ch.title), "id": "election"})
+		challenge_ended.emit(false)
 
 
 func trigger_event(ev: Dictionary) -> void:
@@ -437,7 +465,7 @@ func to_dict() -> Dictionary:
 		"countries": cs, "relations": rel, "history": hist, "rng_state": str(rng.state),
 		"dip": dip, "event_log": event_log, "elections_won": elections_won,
 		"start": start_snapshot, "pending_event": pending_event, "headlines_seen": headlines_seen, "scheduled": scheduled,
-		"campaign_year": campaign_year, "last_rating": last_rating, "news": news,
+		"campaign_year": campaign_year, "last_rating": last_rating, "news": news, "challenge": challenge,
 	}
 
 
@@ -485,6 +513,7 @@ func load_dict(d: Dictionary) -> bool:
 	campaign_year = int(d.get("campaign_year", 0))
 	last_rating = str(d.get("last_rating", ""))
 	news = d.get("news", [])
+	challenge = d.get("challenge", {})
 	_low_stability_months = 0
 	speed = 1
 	_acc = 0.0

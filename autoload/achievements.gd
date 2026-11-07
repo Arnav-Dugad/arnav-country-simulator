@@ -27,6 +27,7 @@ const ALL := [
 	{"id": "decade", "icon": "calendar", "title": "A decade in power", "desc": "Lead for ten years."},
 	{"id": "all_views", "icon": "layers", "title": "Cartographer", "desc": "Look at the world in all five map views."},
 	{"id": "curious", "icon": "info", "title": "Curious mind", "desc": "Check what's moving a number five times."},
+	{"id": "challenger", "icon": "crown", "title": "Challenger", "desc": "Complete a challenge."},
 ]
 
 var _got := {}        # id -> unix time

@@ -66,6 +66,9 @@ func _build_header() -> void:
 	var chips := HBoxContainer.new()
 	chips.add_theme_constant_override(&"separation", DS.S2)
 	chip_scroll.add_child(chips)
+	var chall := AppButton.make("Challenges", &"Chip", "crown")
+	chall.pressed.connect(_show_challenges)
+	chips.add_child(chall)
 	var surprise := AppButton.make("Surprise me", &"Chip", "sparkles")
 	surprise.pressed.connect(_surprise)
 	chips.add_child(surprise)
@@ -223,6 +226,35 @@ func _apply_sort(mode: int) -> void:
 	_list.move_child(_empty, _list.get_child_count() - 1)
 	_scroll.scroll_vertical = 0
 	Haptics.tap()
+
+
+func _show_challenges() -> void:
+	Haptics.tap()
+	var m := ModalCard.new()
+	add_child(m)
+	m.header("crown", DS.GOLD, "Challenges", "A real country, one goal")
+	m.body("Pick a challenge. You can keep governing after you win or run out of time.")
+	var scroll := ScrollContainer.new()
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.custom_minimum_size = Vector2(0, minf(size.y * 0.5, 420.0))
+	m.content.add_child(scroll)
+	var list := VBoxContainer.new()
+	list.add_theme_constant_override(&"separation", 2)
+	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(list)
+	for ch in Challenges.ALL:
+		var i := World.index_of(str(ch.country))
+		var row := ListRow.new().setup(str(ch.title), str(ch.desc))
+		row.subtitle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		row.subtitle_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+		row.set_leading(Flag.new().show_country(i, 22.0))
+		row.tapped.connect(func() -> void:
+			Haptics.success()
+			Game.new_challenge(str(ch.id))
+			m.dismiss()
+			Router.goto(NEXT))
+		list.add_child(row)
+	m.choice("Not now", "", &"GhostButton", m.dismiss)
 
 
 func _surprise() -> void:

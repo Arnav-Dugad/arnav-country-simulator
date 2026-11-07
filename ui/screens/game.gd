@@ -68,6 +68,7 @@ func _ready() -> void:
 	Game.election_held.connect(_show_election)
 	Game.campaign_started.connect(_show_campaign)
 	Game.world_news.connect(_on_world_news)
+	Game.challenge_ended.connect(_on_challenge_ended)
 	Achievements.unlocked.connect(func(id: String) -> void:
 		var a := Achievements.info(id)
 		Toast.show_headline(self, "Achievement: " + str(a.title), "crown", DS.GOLD, modes.position.y + 52.0)
@@ -91,7 +92,7 @@ func _ready() -> void:
 	get_tree().root.go_back_requested.connect(_on_back)
 	_dev_open.call_deferred()
 	if not Settings.tutorial_done and Game.months_played == 0 and DevTools.arg("open") == null 			and DevTools.arg("advance") == null and DevTools.arg("event") == null \
-			and DevTools.arg("campaign") == null and DevTools.arg("election") == null:
+			and DevTools.arg("campaign") == null and DevTools.arg("election") == null 			and DevTools.arg("challenge") == null:
 		get_tree().create_timer(0.9).timeout.connect(start_tour)
 
 
@@ -155,6 +156,12 @@ func _dev_open() -> void:
 		Settings.tutorial_done = true
 		Game.months_to_election = 1
 		Game.advance_month()
+	var chal: Variant = DevTools.arg("challenge")
+	if chal != null:
+		Settings.tutorial_done = true
+		Game.new_challenge(str(chal))
+		map.set_player(Game.player)
+		map.focus_country(Game.player, 0.01)
 	var ev_id: Variant = DevTools.arg("event")
 	if ev_id != null:
 		Settings.tutorial_done = true
@@ -378,6 +385,26 @@ func _show_year_review(r: Dictionary) -> void:
 			get_tree().create_timer(0.4).timeout.connect(func() -> void: _show_event(Game.pending_event))))
 	Haptics.success(false)
 	Audio.play("success", -4.0)
+
+
+func _on_challenge_ended(won: bool) -> void:
+	var ch := Challenges.get_by_id(str(Game.challenge.get("id", "")))
+	if ch.is_empty() or is_instance_valid(_modal):
+		return
+	var prev := Game.speed
+	Game.set_speed(0)
+	_modal = ModalCard.new()
+	add_child(_modal)
+	_modal.header(str(ch.icon), DS.GOLD if won else DS.ORANGE, "Challenge", ("Complete! " if won else "Missed: ") + str(ch.title))
+	_modal.body(("You did it: %s Your nation is yours to keep leading." if won else
+		"Time ran out on the goal: %s But the country still needs you.") % str(ch.desc))
+	if won:
+		Audio.play("success")
+		Haptics.success(false)
+		Achievements.unlock("challenger")
+	_modal.choice("Keep governing", "", &"PrimaryButton", func() -> void:
+		_modal.dismiss()
+		Game.set_speed(maxi(prev, 1)))
 
 
 ## Big world stories (friends, neighbours, giants) get a gentle toast.

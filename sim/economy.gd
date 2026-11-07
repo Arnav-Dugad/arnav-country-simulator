@@ -79,7 +79,10 @@ const RATE_MAX := 40.0
 const UNEMP_ADJUST := 0.08
 const OKUN := 0.45               # pts of unemployment per pt growth gap
 const RATE_UNEMP := 0.12         # per pt rate above neutral (capped)
-const EDUCATION_UNEMP := 0.25    # per +10 pts share, lowers natural rate (slowly)
+const EDUCATION_UNEMP := 1.5     # per +10 pts education share: natural rate falls this many pts/yr
+## Hysteresis: the "normal" unemployment rate slowly follows actual unemployment
+## (long spells of high or low joblessness become structural).
+const UNEMP_HYSTERESIS := 0.012  # per month
 const UNEMP_MIN := 1.0
 const UNEMP_MAX := 45.0
 
