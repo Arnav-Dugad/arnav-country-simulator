@@ -19,6 +19,7 @@ var _sel_flag: Flag
 var _sel_meta: Label
 var _lead: AppButton
 var _empty: Label
+var _sort: SegmentedControl
 
 
 func _ready() -> void:
@@ -65,11 +66,20 @@ func _build_header() -> void:
 	var chips := HBoxContainer.new()
 	chips.add_theme_constant_override(&"separation", DS.S2)
 	chip_scroll.add_child(chips)
+	var surprise := AppButton.make("Surprise me", &"Chip", "sparkles")
+	surprise.pressed.connect(_surprise)
+	chips.add_child(surprise)
 	for g in GROUPS:
 		var c := AppButton.make(g, &"ChipSelected" if g == _group else &"Chip")
 		c.pressed.connect(_on_chip.bind(g))
 		chips.add_child(c)
 		_chips.append(c)
+	_sort = SegmentedControl.new().setup(["A–Z", "Biggest", "Richest", "Hardest"], [], 0)
+	_sort.plain = true
+	_sort.fill = true
+	_sort.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_sort.changed.connect(_apply_sort)
+	_sheet.header.add_child(_sort)
 
 
 func _build_list() -> void:
@@ -189,6 +199,40 @@ func _apply_filter() -> void:
 		shown += 1 if ok else 0
 	_empty.visible = shown == 0
 	_scroll.scroll_vertical = 0
+
+
+## Re-orders the list: 0 A–Z, 1 biggest economy, 2 richest per person, 3 hardest.
+func _apply_sort(mode: int) -> void:
+	var idx: Array = _rows.keys()
+	var key := func(i: int) -> float:
+		var s: Dictionary = World.stats[i]
+		match mode:
+			1:
+				return -float(s.get("gdp", 0.0))
+			2:
+				return -Economy.per_capita(s.get("gdp", 0.0), s.get("population", 1.0))
+			3:
+				return -float(Economy.difficulty(s)) * 1e9 - float(s.get("inflation", 0.0))
+		return 0.0
+	if mode == 0:
+		idx.sort_custom(func(a: int, b: int) -> bool: return World.name_of(a).naturalnocasecmp_to(World.name_of(b)) < 0)
+	else:
+		idx.sort_custom(func(a: int, b: int) -> bool: return key.call(a) < key.call(b))
+	for k in idx.size():
+		_list.move_child(_rows[idx[k]], k)
+	_list.move_child(_empty, _list.get_child_count() - 1)
+	_scroll.scroll_vertical = 0
+	Haptics.tap()
+
+
+func _surprise() -> void:
+	var visible_rows: Array = _rows.keys().filter(func(i: int) -> bool: return _rows[i].visible and i != _selected)
+	if visible_rows.is_empty():
+		return
+	var i: int = visible_rows[randi() % visible_rows.size()]
+	_select(i, true)
+	await get_tree().process_frame
+	_scroll.ensure_control_visible(_rows[i])
 
 
 func _start() -> void:
