@@ -34,7 +34,7 @@ const MULT := {
 	"trade_growth": [["manufacturing", 1.3], ["shipping", 1.3]],
 	"deal_growth": [["shipping", 1.5], ["manufacturing", 1.2]],
 	"instability_drag": [["stable_institutions", 0.7], ["conflict_nearby", 1.2]],
-	"core_inflation_decay": [["inflation", 0.7]],
+	"core_inflation_decay": [["inflation", 0.85]],
 	"risk_premium": [["debt", 1.3], ["finance", 0.8]],
 	"oil_import_exposure": [["renewables", 0.6]],
 	"food_exposure": [["agriculture", 0.6]],
