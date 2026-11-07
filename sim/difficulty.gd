@@ -15,7 +15,7 @@ const BLURBS := {
 }
 
 ## Chance per month that a random event starts (when nothing else is pending).
-const EVENT_CHANCE := {"relaxed": 0.10, "standard": 0.14, "realistic": 0.19}
+const EVENT_CHANCE := {"relaxed": 0.08, "standard": 0.115, "realistic": 0.16}
 ## Multiplier on the harmful part of event effects (negative shocks and costs).
 const SEVERITY := {"relaxed": 0.7, "standard": 1.0, "realistic": 1.25}
 ## Added to the approval needed to win a free election (Economy.WIN_*).

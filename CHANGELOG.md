@@ -2,6 +2,10 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.24.1] - 2026-11-08
+
+- Calmer pacing, tuned with 300 simulated games: press conferences about once a year, summits every other year and UN votes in about half of Septembers, so decisions don't pile up
+
 ## [0.24.0] - 2026-11-08
 
 - Five new achievements: Goal getter, Straight talker, Hotline, Weathered the storm and Joiner

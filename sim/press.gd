@@ -10,7 +10,8 @@ extends RefCounted
 ## honest answers count more. Free elections only? No: every leader faces the
 ## press, but in closed systems the reporters are fewer and gentler.
 
-const EVERY_MONTHS := 5
+## Tuned with tools/balance_report: about one press conference a year.
+const EVERY_MONTHS := 9
 ## topic id -> [question, honest line, spin line, deflect line, stat getter key]
 const TOPICS := {
 	"inflation": ["Prices are up %s this year. What do you say to families who can't keep up?",

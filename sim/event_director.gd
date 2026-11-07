@@ -40,15 +40,17 @@ func monthly(my_crisis: bool) -> void:
 	if inbox.size() >= MAX_OPEN:
 		return
 	# The world's calendar: UN General Assembly votes in September, summits in November.
-	if Game.month == 9 and Game.rng.randf() < 0.7:
+	# Spaced out (balance report: decisions were piling up): a UN vote in about
+	# half of Septembers, a summit every other November, press about once a year.
+	if Game.month == 9 and Game.rng.randf() < 0.45:
 		var un := GameEvents.un_vote(Game.rng)
 		if not un.is_empty():
 			add(un)
 			return
-	if Game.month == 11 and Game.months_played > 6:
+	if Game.month == 11 and Game.months_played > 6 and Game.year % 2 == 0:
 		add(GameEvents.summit(Game.rng))
 		return
-	if Press.due() and Game.rng.randf() < 0.5:
+	if Press.due() and Game.rng.randf() < 0.4 and Game.months_played - last_event_month >= 2:
 		Press.held()
 		add(Press.make_event())
 		return
