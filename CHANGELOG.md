@@ -2,6 +2,10 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.34.1] - 2026-11-08
+
+- Elections are a real contest again on Standard and Realistic (tuned with simulated games): voters tire a little faster of long-serving governments. Relaxed stays forgiving
+
 ## [0.34.0] - 2026-11-08
 
 - **Your first 100 days**: new leaders get a honeymoon. For your first four months, laws pass 30% faster and voters forgive unpopular reforms more easily. The Laws page reminds you, and your story records what you did with it

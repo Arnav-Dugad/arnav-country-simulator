@@ -154,7 +154,7 @@ const WIN_NONE := 35.0           # approval below this always loses
 ## Voters tire of long-serving governments: each election already won counts as
 ## this many approval points against you at the next one (x Difficulty.severity).
 ## Tuned with tools/balance_report: without it a sensible player won ~99 % of elections.
-const ELECTION_FATIGUE := 3.0
+const ELECTION_FATIGUE := 4.5
 ## A tilted ("managed") election won below this approval is disputed: protests.
 const DISPUTED_BELOW := 35.0
 
