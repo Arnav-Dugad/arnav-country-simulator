@@ -47,7 +47,24 @@ func _build() -> void:
 		"application/config/version", "0.0.0"))
 	ver.set_leading(ListRow.icon_tile("globe", DS.ACCENT))
 	about.add_child(ver)
-	about.set_meta(&"updates_slot", true)
+	var upd := AppButton.make("Check for updates", &"", "refresh-cw")
+	var upd_note := Label.new()
+	upd_note.theme_type_variation = &"Caption"
+	upd_note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	upd.pressed.connect(func() -> void:
+		upd.disabled = true
+		upd_note.text = "Checking…"
+		var r: Dictionary = await Updater.check()
+		upd.disabled = false
+		if r.get("update", false):
+			upd_note.text = "Version %s is available." % r.version
+			Updater.show_sheet()
+		elif r.get("ok", false):
+			upd_note.text = str(r.get("error", "")) if str(r.get("error", "")) != "" else "You're on the latest version."
+		else:
+			upd_note.text = str(r.get("error", "Could not check.")))
+	about.add_child(upd)
+	about.add_child(upd_note)
 	set_meta(&"about_box", about)
 	note("Map: Natural Earth (public domain). Data: World Bank (CC BY 4.0), IMF. " +
 		"Font: Inter (SIL OFL). Icons: Lucide (ISC). Starting values are real; " +

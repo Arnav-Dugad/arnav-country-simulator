@@ -1,0 +1,17 @@
+// Arnav Country Simulator — AcsUpdater Android plugin (Godot v2 plugin format).
+// Build: android/plugin/build_plugin.sh  (outputs addons/acs_updater/bin/*.aar)
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+rootProject.name = "acs-updater-plugin"
+include ":acsupdater"

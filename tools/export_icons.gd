@@ -39,7 +39,11 @@ func _init() -> void:
 
 	_save(full, 512, OUT + "icon_512.png")
 	_save(full, 192, OUT + "icon_192.png")
-	_save(full, 256, OUT + "logo.png")
+	# Splash logo: same art clipped to app-icon corners (launchers mask their own).
+	var clip := "<clipPath id='squircle'><rect width='1024' height='1024' rx='232'/></clipPath>"
+	var rounded := full.replace("<defs>", "<defs>" + clip).replace("</defs>", "</defs><g clip-path='url(#squircle)'>")
+	rounded = rounded.replace("</svg>", "</g></svg>")
+	_save(rounded, 256, OUT + "logo.png")
 	_save(fg, 432, OUT + "adaptive_foreground_432.png")
 	_save(bg, 432, OUT + "adaptive_background_432.png")
 	_save(mono, 432, OUT + "adaptive_monochrome_432.png")

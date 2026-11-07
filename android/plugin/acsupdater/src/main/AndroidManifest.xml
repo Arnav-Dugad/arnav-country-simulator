@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Lets the app hand a downloaded update APK to the system installer. -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
+    <application>
+        <!-- Godot v2 plugin registration: name = singleton name, value = class. -->
+        <meta-data
+            android:name="org.godotengine.plugin.v2.AcsUpdater"
+            android:value="com.arnavdugad.acsupdater.AcsUpdater" />
+        <!-- The APK is shared through Godot's own FileProvider
+             (${applicationId}.fileprovider, files-path "/"), so no extra provider. -->
+    </application>
+</manifest>

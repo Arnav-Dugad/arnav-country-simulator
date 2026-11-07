@@ -1,0 +1,26 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+}
+
+android {
+    namespace 'com.arnavdugad.acsupdater'
+    compileSdk 36
+    defaultConfig {
+        minSdk 24
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+}
+
+dependencies {
+    // Godot API is provided by the app at runtime. Compiled against the godot-lib
+    // shipped in the installed Android build template (android/build/libs).
+    compileOnly files('../../build/libs/release/godot-lib.template_release.aar')
+    compileOnly 'androidx.core:core:1.13.1'
+}
