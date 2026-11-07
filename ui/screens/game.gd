@@ -56,6 +56,7 @@ func _ready() -> void:
 	top_bar.inbox_requested.connect(func() -> void: open_page("events"))
 	top_bar.settings_requested.connect(func() -> void: open_page("settings"))
 	top_bar.nation_requested.connect(func() -> void: _open_country(Game.player, true))
+	top_bar.budget_requested.connect(func() -> void: open_page("budget"))
 	add_child(top_bar)
 	strip = ControlStrip.new()
 	strip.next_tapped.connect(_on_next)

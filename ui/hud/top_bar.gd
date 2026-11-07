@@ -7,6 +7,7 @@ extends GlassPanel
 signal inbox_requested
 signal settings_requested
 signal nation_requested
+signal budget_requested
 
 var _date: Label
 var _flag: Flag
@@ -73,7 +74,11 @@ func _ready() -> void:
 	right.add_theme_constant_override(&"separation", 0)
 	right.alignment = BoxContainer.ALIGNMENT_CENTER
 	right.size_flags_horizontal = Control.SIZE_SHRINK_END
-	right.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	right.mouse_filter = Control.MOUSE_FILTER_STOP
+	right.gui_input.connect(func(e: InputEvent) -> void:
+		if e is InputEventMouseButton and e.button_index == MOUSE_BUTTON_LEFT and not e.pressed:
+			Haptics.tap()
+			budget_requested.emit())
 	row.add_child(right)
 	var cap := Label.new()
 	cap.theme_type_variation = &"Overline"

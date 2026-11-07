@@ -2,6 +2,11 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.36.1] - 2026-11-08
+
+- Tap the treasury in the top bar to open your Budget
+- The country list shows each country's tagline ("The world's largest democracy", "Europe's industrial powerhouse"…)
+
 ## [0.36.0] - 2026-11-08
 
 - Fixed: two ministers could share the same name; Chinese, Korean and Vietnamese names now put the family name first

@@ -106,7 +106,7 @@ func _build_list() -> void:
 		var diff := Economy.difficulty(s)
 		var row := ListRow.new()
 		row.setup(World.map.names[i],
-			"%s  ·  %s people" % [World.group_of(i), DS.compact(s.get("population", 0.0))],
+			Profiles.tagline(i) if Profiles.tagline(i) != "" else "%s  ·  %s people" % [World.group_of(i), DS.compact(s.get("population", 0.0))],
 			DS.money(s.get("gdp", 0.0)),
 			Economy.DIFFICULTY_LABELS[diff])
 		row.trailing_sub_label.add_theme_color_override(&"font_color", [DS.GREEN, DS.TEXT_2, DS.ORANGE][diff])
