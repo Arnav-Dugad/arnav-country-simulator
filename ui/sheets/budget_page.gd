@@ -10,6 +10,7 @@ var _total: AppSlider
 var _shares := {}
 var _interest_note: Label
 var _syncing := false
+var _strips: Array[ForecastStrip] = []
 
 
 func _init() -> void:
@@ -37,6 +38,10 @@ func _build() -> void:
 		_after_change())
 	total.add_child(_total)
 	note("More spending boosts services and short-term growth, but widens the deficit.", total)
+	var s1 := ForecastStrip.new()
+	total.add_child(s1)
+	_strips.append(s1)
+	_total.value_changed.connect(func(_v: float) -> void: s1.request())
 
 	var split := section("Where the money goes")
 	for k in CountryState.BUDGET_KEYS:
@@ -53,6 +58,11 @@ func _build() -> void:
 		s.value_changed.connect(_on_share.bind(k))
 		row.add_child(s)
 		_shares[k] = s
+	var s2 := ForecastStrip.new()
+	_strips.append(s2)
+	for k in _shares:
+		(_shares[k] as AppSlider).value_changed.connect(func(_v: float) -> void: s2.request())
+	split.add_child(s2)
 	note("Healthcare, welfare and education lift happiness. Infrastructure, research and " +
 		"education lift long-run growth. Military strengthens stability and security.", split)
 
@@ -99,5 +109,7 @@ func refresh() -> void:
 
 
 func on_open() -> void:
+	for s in _strips:
+		s.commit()
 	_total.set_value(Game.me().spending_pct, false)
 	refresh()

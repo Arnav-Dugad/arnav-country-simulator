@@ -91,6 +91,7 @@ func new_game(country_index: int, seed_value: int = -1) -> void:
 	start_snapshot = {"year": year, "gdp": c.gdp, "debt_pct": c.debt_pct(), "approval": c.approval,
 		"happiness": c.happiness}
 	_record_history()
+	me().refresh_explainer()
 	running = true
 	started.emit()
 
@@ -160,7 +161,7 @@ func advance_month() -> void:
 		var c: CountryState = countries[i]
 		if c == null:
 			continue
-		var crisis := Simulation.tick(c, rng)
+		var crisis := Simulation.tick(c, rng, i == player)
 		if i != player and quarter:
 			AI.quarterly(c, rng)
 		if crisis:
@@ -393,6 +394,7 @@ func load_dict(d: Dictionary) -> bool:
 	_low_stability_months = 0
 	speed = 1
 	_acc = 0.0
+	me().refresh_explainer()
 	running = true
 	started.emit()
 	return true

@@ -2,13 +2,19 @@ class_name Simulation
 extends RefCounted
 ## One monthly tick of a country. Pure functions over CountryState; all numbers
 ## and their meaning live in sim/economy.gd (constants prefixed E.).
+##
+## Each target (growth, inflation, …) is built as a list of named terms and then
+## summed, so the "Why?" explainer can show the player exactly the maths that ran.
+## Terms are stored in CountryState.why[metric] = [[label, value], …] and
+## CountryState.targets[metric] = the value the metric is moving toward.
 
 const E = preload("res://sim/economy.gd")
 const M := 1.0 / 12.0
 
 
 ## Advances a country by one month. Returns true if a debt crisis was triggered.
-static func tick(c: CountryState, rng: RandomNumberGenerator) -> bool:
+## `record` keeps the per-term breakdown (only needed for the player).
+static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = false) -> bool:
 	var b: Dictionary = c.base
 	var d_inc := c.income_tax - float(b.income_tax)
 	var d_corp := c.corp_tax - float(b.corp_tax)
@@ -20,19 +26,24 @@ static func tick(c: CountryState, rng: RandomNumberGenerator) -> bool:
 
 	# --- Growth ---------------------------------------------------------------
 	c.growth_anchor += (c.trend - c.growth_anchor) * E.TREND_PULL
-	var g := c.growth_anchor
-	g -= E.INCOME_TAX_DRAG * d_inc + E.CORP_TAX_DRAG * d_corp
-	g -= E.RATE_GROWTH_DRAG * gap
-	g += E.FISCAL_MULTIPLIER * d_spend
-	g += E.INFRA_GROWTH * c.share_delta("infrastructure") / 10.0
-	g += E.RESEARCH_GROWTH * c.share_delta("research") / 10.0
-	g += E.EDUCATION_GROWTH * c.share_delta("education") / 10.0
-	g += E.TRADE_GROWTH * d_trade * 2.0 * 0.5
-	g += E.TRADE_DEAL_GROWTH * c.trade_deals - E.SANCTION_GROWTH * c.sanctioned_by
-	g -= E.DEBT_GROWTH_DRAG * maxf(0.0, debt_pct - maxf(E.DEBT_SAFE, float(b.debt_pct)))
-	g -= E.STABILITY_GROWTH_DRAG * maxf(0.0, minf(float(b.stability), E.STABILITY_FLOOR) - c.stability)
-	g += c.shocks.growth
-	c.growth += (clampf(g, -25.0, 20.0) - c.growth) * E.GROWTH_ADJUST
+	var g_terms := [
+		["Underlying growth", c.growth_anchor],
+		["Income tax", -E.INCOME_TAX_DRAG * d_inc],
+		["Business tax", -E.CORP_TAX_DRAG * d_corp],
+		["Interest rates", -E.RATE_GROWTH_DRAG * gap],
+		["Government spending", E.FISCAL_MULTIPLIER * d_spend],
+		["Infrastructure", E.INFRA_GROWTH * c.share_delta("infrastructure") / 10.0],
+		["Research", E.RESEARCH_GROWTH * c.share_delta("research") / 10.0],
+		["Education", E.EDUCATION_GROWTH * c.share_delta("education") / 10.0],
+		["Trade openness", E.TRADE_GROWTH * d_trade * 2.0 * 0.5],
+		["Trade deals", E.TRADE_DEAL_GROWTH * c.trade_deals],
+		["Sanctions on you", -E.SANCTION_GROWTH * c.sanctioned_by],
+		["Debt burden", -E.DEBT_GROWTH_DRAG * maxf(0.0, debt_pct - maxf(E.DEBT_SAFE, float(b.debt_pct)))],
+		["Instability", -E.STABILITY_GROWTH_DRAG * maxf(0.0, minf(float(b.stability), E.STABILITY_FLOOR) - c.stability)],
+		["Recent events", float(c.shocks.growth)],
+	]
+	var g := clampf(_sum(g_terms), -25.0, 20.0)
+	c.growth += (g - c.growth) * E.GROWTH_ADJUST
 	# Fiscal stimulus fades: the economy gets used to the new spending level.
 	b.spending_pct = float(b.spending_pct) + d_spend * 0.01
 
@@ -44,19 +55,29 @@ static func tick(c: CountryState, rng: RandomNumberGenerator) -> bool:
 		c.core_inflation += E.CORE_LOOSE_RISE * -gap
 	c.core_inflation = clampf(c.core_inflation, -3.0, 400.0)
 	var deficit := -c.balance_pct()
-	var pi := c.core_inflation
-	pi += E.DEMAND_INFLATION * (c.growth - c.growth_anchor)
-	pi += E.DEFICIT_INFLATION * maxf(0.0, deficit - maxf(E.DEFICIT_SAFE, float(b.deficit_pct)))
-	pi += E.PROTECTION_INFLATION * maxf(0.0, -d_trade) * 2.0
-	pi -= E.RATE_INFLATION_EFFECT * gap
-	pi += c.shocks.inflation
-	c.inflation += (clampf(pi, -5.0, 500.0) - c.inflation) * E.INFLATION_ADJUST
+	var pi_terms := [
+		["Expected inflation", c.core_inflation],
+		["Economy running hot" if c.growth >= c.growth_anchor else "Economy running cool",
+			E.DEMAND_INFLATION * (c.growth - c.growth_anchor)],
+		["Budget deficit", E.DEFICIT_INFLATION * maxf(0.0, deficit - maxf(E.DEFICIT_SAFE, float(b.deficit_pct)))],
+		["Trade barriers", E.PROTECTION_INFLATION * maxf(0.0, -d_trade) * 2.0],
+		["Interest rates", -E.RATE_INFLATION_EFFECT * gap],
+		["Recent events", float(c.shocks.inflation)],
+	]
+	var pi := clampf(_sum(pi_terms), -5.0, 500.0)
+	c.inflation += (pi - c.inflation) * E.INFLATION_ADJUST
 
 	# --- Jobs -----------------------------------------------------------------
 	c.u_natural = clampf(c.u_natural - E.EDUCATION_UNEMP * c.share_delta("education") / 10.0 * 0.01,
 		E.UNEMP_MIN, E.UNEMP_MAX)
-	var u: float = c.u_natural - E.OKUN * (c.growth - c.growth_anchor) + E.RATE_UNEMP * gap + c.shocks.unemployment
-	c.unemployment += (clampf(u, E.UNEMP_MIN, E.UNEMP_MAX) - c.unemployment) * E.UNEMP_ADJUST
+	var u_terms := [
+		["Normal level for your country", c.u_natural],
+		["Economic momentum", -E.OKUN * (c.growth - c.growth_anchor)],
+		["Interest rates", E.RATE_UNEMP * gap],
+		["Recent events", float(c.shocks.unemployment)],
+	]
+	var u := clampf(_sum(u_terms), E.UNEMP_MIN, E.UNEMP_MAX)
+	c.unemployment += (u - c.unemployment) * E.UNEMP_ADJUST
 
 	# --- Output & people ------------------------------------------------------
 	# USD GDP grows with real growth plus up to 3 % inflation (beyond that the
@@ -82,38 +103,54 @@ static func tick(c: CountryState, rng: RandomNumberGenerator) -> bool:
 		c.treasury -= repay
 
 	# --- Society & politics ---------------------------------------------------
-	var h := float(b.happiness)
-	h += E.HEALTH_HAPPY * _log2_ratio(c.effort("health"), b.get("health_effort", 0.0))
-	h += E.WELFARE_HAPPY * _log2_ratio(c.effort("welfare"), b.get("welfare_effort", 0.0))
-	h += E.EDUCATION_HAPPY * _log2_ratio(c.effort("education"), b.get("education_effort", 0.0))
 	var real_pc := c.real_gdp_per_capita()
-	h += E.INCOME_HAPPY * _log2_ratio(real_pc, b.gdp_pc)
+	var h_terms := [
+		["Starting mood", float(b.happiness)],
+		["Healthcare", E.HEALTH_HAPPY * _log2_ratio(c.effort("health"), b.get("health_effort", 0.0))],
+		["Welfare", E.WELFARE_HAPPY * _log2_ratio(c.effort("welfare"), b.get("welfare_effort", 0.0))],
+		["Education", E.EDUCATION_HAPPY * _log2_ratio(c.effort("education"), b.get("education_effort", 0.0))],
+		["Living standards", E.INCOME_HAPPY * _log2_ratio(real_pc, b.gdp_pc)],
+		["Jobs", -E.UNEMP_HAPPY * (c.unemployment - float(b.unemployment))],
+		["Prices", -E.INFLATION_HAPPY * (minf(c.inflation, 60.0) - minf(float(b.inflation), 60.0))],
+		["Income tax", -E.TAX_HAPPY * d_inc],
+		["Recent events", float(c.shocks.happiness)],
+	]
 	b.gdp_pc = float(b.gdp_pc) + (real_pc - float(b.gdp_pc)) * E.INCOME_ADAPTATION
-	h -= E.UNEMP_HAPPY * (c.unemployment - float(b.unemployment))
-	h -= E.INFLATION_HAPPY * (minf(c.inflation, 60.0) - minf(float(b.inflation), 60.0))
-	h -= E.TAX_HAPPY * d_inc
-	h += c.shocks.happiness
-	c.happiness += (clampf(h, 0.0, E.HAPPY_MAX) - c.happiness) * E.HAPPY_ADJUST
+	var h := clampf(_sum(h_terms), 0.0, E.HAPPY_MAX)
+	c.happiness += (h - c.happiness) * E.HAPPY_ADJUST
 
-	var a := float(b.approval)
-	a += E.APPROVAL_FROM_HAPPY * (c.happiness - float(b.happiness))
-	a += E.APPROVAL_GROWTH * (c.growth - c.growth_anchor)
-	a -= E.APPROVAL_INCOME_TAX * d_inc + E.APPROVAL_CORP_TAX * d_corp
-	a -= E.APPROVAL_INFLATION * clampf(c.inflation - float(b.inflation), -10.0, 40.0)
-	a += c.alliances * 0.6 + c.trade_deals * 0.3 - c.sanctioned_by * 1.0
-	a += c.shocks.approval
-	c.approval += (clampf(a, 0.0, 100.0) - c.approval) * E.APPROVAL_ADJUST
+	var a_terms := [
+		["Starting support", float(b.approval)],
+		["Happiness", E.APPROVAL_FROM_HAPPY * (c.happiness - float(b.happiness))],
+		["Economic momentum", E.APPROVAL_GROWTH * (c.growth - c.growth_anchor)],
+		["Income tax", -E.APPROVAL_INCOME_TAX * d_inc],
+		["Business tax", -E.APPROVAL_CORP_TAX * d_corp],
+		["Prices", -E.APPROVAL_INFLATION * clampf(c.inflation - float(b.inflation), -10.0, 40.0)],
+		["Diplomacy", c.alliances * 0.6 + c.trade_deals * 0.3 - c.sanctioned_by * 1.0],
+		["Recent events", float(c.shocks.approval)],
+	]
+	var a := clampf(_sum(a_terms), 0.0, 100.0)
+	c.approval += (a - c.approval) * E.APPROVAL_ADJUST
 
-	var st := float(b.stability)
-	st += E.STABILITY_FROM_APPROVAL * (c.approval - float(b.approval))
-	st += E.STABILITY_FROM_HAPPY * (c.happiness - float(b.happiness))
-	st += E.STABILITY_MILITARY * c.share_delta("military") / 10.0
-	st -= 0.3 * (c.unemployment - float(b.unemployment))
-	st += c.shocks.stability
-	c.stability += (clampf(st, 0.0, 100.0) - c.stability) * E.STABILITY_ADJUST
+	var st_terms := [
+		["Starting stability", float(b.stability)],
+		["Approval", E.STABILITY_FROM_APPROVAL * (c.approval - float(b.approval))],
+		["Happiness", E.STABILITY_FROM_HAPPY * (c.happiness - float(b.happiness))],
+		["Military spending", E.STABILITY_MILITARY * c.share_delta("military") / 10.0],
+		["Jobs", -0.3 * (c.unemployment - float(b.unemployment))],
+		["Recent events", float(c.shocks.stability)],
+	]
+	var st := clampf(_sum(st_terms), 0.0, 100.0)
+	c.stability += (st - c.stability) * E.STABILITY_ADJUST
 
 	var mil := E.military_index(c.spending * c.budget.get("military", 0.0))
 	c.military += (mil - c.military) * E.MILITARY_ADJUST
+
+	if record:
+		c.why = {"growth": g_terms, "inflation": pi_terms, "unemployment": u_terms,
+			"happiness": h_terms, "approval": a_terms, "stability": st_terms}
+		c.targets = {"growth": g, "inflation": pi, "unemployment": u, "happiness": h,
+			"approval": a, "stability": st}
 
 	for k in c.shocks:
 		c.shocks[k] *= 1.0 - E.SHOCK_DECAY
@@ -130,6 +167,13 @@ static func tick(c: CountryState, rng: RandomNumberGenerator) -> bool:
 		return true
 	var over := debt_pct - maxf(E.DEBT_CRISIS_START, float(b.debt_pct) + 15.0)
 	return over > 0.0 and rng.randf() < over * E.DEBT_CRISIS_PROB
+
+
+static func _sum(terms: Array) -> float:
+	var s := 0.0
+	for t in terms:
+		s += float(t[1])
+	return s
 
 
 ## Last line of defence against numeric blow-ups from extreme data.
@@ -152,6 +196,17 @@ static func update_finances(c: CountryState) -> void:
 	var real_rate := maxf(c.debt_rate - maxf(0.0, c.inflation - Economy.DEBT_EROSION_FLOOR), 0.25)
 	c.interest_cost = c.debt * real_rate / 100.0
 	c.balance = c.revenue - c.spending - c.interest_cost
+
+
+## Projects a country `months` ahead on a deep copy (no events, no AI) — used by
+## the live forecast while the player drags a slider. Returns the projected copy.
+static func project(c: CountryState, months: int) -> CountryState:
+	var copy := c.clone()
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 1
+	for _m in months:
+		tick(copy, rng)
+	return copy
 
 
 static func _log2_ratio(now: float, start: Variant) -> float:

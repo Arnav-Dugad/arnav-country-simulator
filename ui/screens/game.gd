@@ -68,6 +68,19 @@ func _ready() -> void:
 	if not Game.pending_event.is_empty():
 		_show_event.call_deferred(Game.pending_event)
 	get_tree().root.go_back_requested.connect(_on_back)
+	_dev_open.call_deferred()
+
+
+## DevTools: --open=<page> [--scroll=<px>] opens a sheet page at full height.
+func _dev_open() -> void:
+	var page: Variant = DevTools.arg("open")
+	if page == null or not PAGES.has(str(page)):
+		return
+	open_page(str(page))
+	sheet.snap_to(BottomSheet.Snap.FULL, false)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	_scroll.scroll_vertical = int(str(DevTools.arg("scroll", "0")))
 
 
 func _build_sheet_header() -> void:

@@ -56,6 +56,10 @@ var shocks := {"growth": 0.0, "inflation": 0.0, "unemployment": 0.0, "happiness"
 	"approval": 0.0, "stability": 0.0}
 var estimated: Array = []
 
+# Explainer data from the latest tick (player only, not saved): see Simulation.tick.
+var why := {}
+var targets := {}
+
 
 func init_from_stats(i: int, s: Dictionary) -> CountryState:
 	idx = i
@@ -159,6 +163,23 @@ func set_budget_share(key: String, share: float) -> void:
 	for k in BUDGET_KEYS:
 		if k != key:
 			budget[k] = (budget[k] / others * (1.0 - share)) if others > 0.0 else (1.0 - share) / 5.0
+
+
+## Deep copy (dictionaries included) — safe to simulate forward without
+## touching the original.
+func clone() -> CountryState:
+	var c := CountryState.from_dict(to_dict().duplicate(true))
+	c.idx = idx
+	return c
+
+
+## Fills `why`/`targets` without advancing time (used right after a new game or load).
+func refresh_explainer() -> void:
+	var probe := clone()
+	var rng := RandomNumberGenerator.new()
+	Simulation.tick(probe, rng, true)
+	why = probe.why
+	targets = probe.targets
 
 
 # ----------------------------------------------------------------- persist ---

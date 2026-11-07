@@ -16,6 +16,7 @@ var _corp: AppSlider
 var _rate: AppSlider
 var _trade: AppSlider
 var _balance_note: Label
+var _strips: Array[ForecastStrip] = []
 
 
 func _init() -> void:
@@ -31,6 +32,16 @@ func _build() -> void:
 	_tiles.inflation = _tile(g, "Inflation", SheetPage.fmt_pct, false)
 	_tiles.debt_pct = _tile(g, "Debt / GDP", SheetPage.fmt_pct, false)
 	_tiles.approval = _tile(g, "Approval", SheetPage.fmt_pct, true)
+	# Tap a tile to see why it is moving.
+	for pair in [["gdp", "growth"], ["growth", "growth"], ["unemployment", "unemployment"],
+			["inflation", "inflation"], ["approval", "approval"]]:
+		(_tiles[pair[0]] as StatTile).make_tappable().tapped.connect(
+			func() -> void: Explainer.open(get_tree().current_scene, pair[1]))
+	var hint := Label.new()
+	hint.theme_type_variation = &"Caption"
+	hint.text = "Tap a number to see what's moving it."
+	add_child(hint)
+	move_child(hint, g.get_index() + 1)
 
 	var chart_box := section("History")
 	var labels: PackedStringArray = []
@@ -55,12 +66,14 @@ func _build() -> void:
 	_corp = _slider(tax, "Corporate tax", 0, 50, 0.5, c.corp_tax, b.corp_tax, "Raises revenue · deters investment")
 	_corp.value_changed.connect(func(v: float) -> void: _apply("corp_tax", v))
 	_balance_note = note("", tax)
+	_attach_forecast(tax, [_income, _corp])
 
 	var money := section("Central bank")
 	_rate = _slider(money, "Interest rate", Economy.RATE_MIN, Economy.RATE_MAX, 0.25, c.interest_rate, NAN,
 		"Higher: cools inflation · costs jobs and growth")
 	_rate.formatter = func(v: float) -> String: return String.num(v, 2) + "%"
 	_rate.value_changed.connect(func(v: float) -> void: _apply("interest_rate", v))
+	_attach_forecast(money, [_rate])
 
 	var trade := section("Trade policy")
 	_trade = _slider(trade, "Openness", 0, 100, 5, c.trade_openness * 100.0, float(b.trade) * 100.0, "",
@@ -69,6 +82,16 @@ func _build() -> void:
 		return "Open" if v >= 70 else ("Balanced" if v >= 35 else "Protectionist")
 	_trade.value_changed.connect(func(v: float) -> void: _apply("trade_openness", v / 100.0))
 	note("Openness lifts growth and lowers prices but exposes industry to competition.", trade)
+	_attach_forecast(trade, [_trade])
+
+
+## A live 12-month forecast under a group of sliders.
+func _attach_forecast(box: Control, sliders: Array) -> void:
+	var strip := ForecastStrip.new()
+	box.add_child(strip)
+	_strips.append(strip)
+	for s in sliders:
+		(s as AppSlider).value_changed.connect(func(_v: float) -> void: strip.request())
 
 
 func _tile(parent: Control, title_: String, fmt: Callable, good_up: bool) -> StatTile:
@@ -123,6 +146,8 @@ func refresh() -> void:
 
 
 func on_open() -> void:
+	for s in _strips:
+		s.commit()
 	var c := Game.me()
 	_income.set_value(c.income_tax, false)
 	_corp.set_value(c.corp_tax, false)
