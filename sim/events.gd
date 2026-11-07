@@ -593,6 +593,8 @@ static func roll(rng: RandomNumberGenerator) -> Dictionary:
 		if risk_known != 1 and e.has("where") and not World.map.subregions[Game.player] in e.where:
 			continue
 		w *= Profiles.event_weight(Game.player, str(e.id))
+		if str(e.id) in Climate.WEATHER:
+			w *= Climate.disaster_mult()
 		match e.get("cond", ""):
 			"oil_exporter":
 				if float(World.stats[Game.player].get("fuel_exports_pct", 0.0)) < 30.0:
@@ -779,6 +781,8 @@ static func apply_effects(fx: Dictionary, other: int, ev_id: String = "") -> voi
 				Game.relations_changed.emit()
 			"press_cred":
 				Press.apply_cred(float(v))
+			"pledge":
+				Climate.make_pledge(float(v))
 			"project_delay":
 				for id in c.projects:
 					if str(c.projects[id].state) == "building":
@@ -830,6 +834,8 @@ static func effect_chips(fx: Dictionary) -> Array:
 					out.append(["%s %+d" % [names.get(camp_name, camp_name), roundi(d)], d > 0.0, absf(d) * 0.8])
 			"sanction_me":
 				out.append(["Sanctions on you", false, 3.0])
+			"pledge":
+				out.append(["Pledge: cut CO₂ %d%%" % roundi(float(v) * 100.0), true, 10.0])
 			"gdp":
 				out.append(["Economy +%s%%" % String.num(float(v), 1), true, absf(float(v)) * 2.0])
 			_:

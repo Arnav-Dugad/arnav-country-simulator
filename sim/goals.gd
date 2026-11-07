@@ -22,6 +22,7 @@ const SPECS := {
 	"builder": {"icon": "hammer", "title": "Build the nation", "fmt": "count", "metric": "projects", "dir": 1},
 	"friends": {"icon": "handshake", "title": "Open for business", "fmt": "count", "metric": "deals", "dir": 1},
 	"rating": {"icon": "landmark", "title": "Win the markets' trust", "fmt": "rating", "metric": "rating", "dir": 1},
+	"greener": {"icon": "leaf", "title": "Cut emissions", "fmt": "co2", "metric": "co2_pc", "dir": -1},
 }
 
 
@@ -41,6 +42,8 @@ static func value(metric: String) -> float:
 			return float(c.trade_deals)
 		"rating":
 			return c.rating_score()
+		"co2_pc":
+			return Climate.co2_pc(c)
 	return float(c.get(metric))
 
 
@@ -67,6 +70,8 @@ static func candidates() -> Array:
 		out.append([4.0, "growth", c.trend + 1.0])
 	if c.rating_score() < 80.0:
 		out.append([3.0, "rating", c.rating_score() + 12.0])
+	if World.stat(c.idx, "co2_pc", 0.0) > 6.0:
+		out.append([3.5, "greener", Climate.co2_pc(c) * 0.85])
 	# Always-available ambitions.
 	out.append([2.0, "builder", value("projects") + 3.0])
 	out.append([1.5, "friends", value("deals") + 3.0])
@@ -157,6 +162,8 @@ static func fmt(g: Dictionary, v: float) -> String:
 			return str(roundi(v))
 		"rating":
 			return Economy.rating_grade(v)
+		"co2":
+			return "%s t" % String.num(v, 1)
 	return String.num(v, 0)
 
 

@@ -398,3 +398,31 @@ static func rating_grade(score: float) -> String:
 static func tax_yield(rate: float, k: float) -> float:
 	var r := rate / 100.0
 	return r * k * (1.0 - LAFFER * r * r)
+
+
+# ----------------------------------------------------------------- climate ---
+# Used by sim/climate.gd. Starting CO2 per person and the renewable share are
+# real (World Bank EN.GHG.CO2.PC.CE.AR5 and EG.FEC.RNEW.ZS, see data/SOURCES.md).
+
+## Emissions per person rise with real income. Cross-country studies put the
+## income elasticity of CO2 per person around 0.5-0.8; we use the low end
+## because richer countries also clean up faster.
+const CO2_INCOME_ELASTICITY := 0.6
+## Carbon intensity falls on its own as technology improves: world CO2 per
+## dollar of GDP fell about 2 % a year in 2010-2023 (Global Carbon Budget).
+const CO2_DECARB_PER_YEAR := 0.02
+## The renewable share creeps up by itself (world: about +0.4 pts a year, IEA).
+const RENEWABLES_DRIFT_PER_YEAR := 0.4
+## Human-made warming above pre-industrial: 1.36 C in 2024, rising 0.27 C a
+## decade at today's emissions (Forster et al., Indicators of Global Climate
+## Change 2024). The yearly rise scales with the world's total emissions.
+const WARMING_2024 := 1.36
+const WARMING_PER_YEAR := 0.027
+## Weather disasters (floods, storms, heat, drought) get this much more likely
+## per degree of warming beyond the start. IPCC AR6: hot extremes are already
+## several times more frequent; we stay gentle so the game remains calm.
+const CLIMATE_DISASTER_PER_DEG := 1.0
+## Climate pledges made at a COP: years until judged, and the two sizes offered.
+const PLEDGE_YEARS := 6
+const PLEDGE_BOLD := 0.25
+const PLEDGE_MODEST := 0.10

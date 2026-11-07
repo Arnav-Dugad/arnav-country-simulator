@@ -34,7 +34,8 @@ func _run() -> void:
 	Game.new_game(World.index_of("JPN"), 5)
 	for m in 14:
 		Game.advance_month()
-	var data := Game.to_dict()
+	# Deep copy: to_dict shares some live dictionaries, and the game keeps ticking while we wait.
+	var data := Game.to_dict().duplicate(true)
 	data["saved_at"] = int(Time.get_unix_time_from_system())
 	data["summary"] = SaveManager.summary_of(data)
 	var raw_size := JSON.stringify(data).length()

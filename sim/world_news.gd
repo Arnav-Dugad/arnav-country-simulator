@@ -66,7 +66,7 @@ static func _leader_change(i: int, c: CountryState, rng: RandomNumberGenerator, 
 ## Natural disasters strike notable countries now and then (news + map weather),
 ## only where they really happen (the same regions as the player's disaster events).
 static func _maybe_disaster(i: int, rng: RandomNumberGenerator) -> void:
-	if rng.randf() > 0.004:
+	if rng.randf() > 0.004 * Climate.disaster_mult():     # a warmer world: more of them
 		return
 	var sub := World.map.subregions[i]
 	var kinds: Array = []

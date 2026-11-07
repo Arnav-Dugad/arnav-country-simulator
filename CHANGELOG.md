@@ -2,6 +2,14 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.37.0] - 2026-11-08
+
+- **Climate.** Every country starts at its real CO₂ emissions per person and renewable energy share (World Bank). Emissions follow your economy and fall with solar, wind, nuclear, hydro, a coal phase-out, a carbon tax, electric-car subsidies, rail and new forests (cards now show "CO₂ −7%")
+- **A warming world:** the world's total emissions set how fast the planet warms (starting from today's real +1.4 °C). A warmer world brings more floods, storms, heatwaves and droughts, at home and abroad
+- **COP climate conferences** every other November: pledge a bold cut, a modest one, or nothing. Six years later you're judged. Keep it and partners cheer; miss it and they remember
+- New **Climate** card on the World page, an **Emissions** map layer, CO₂ in Compare and on every country page, a "Cut emissions" goal for big emitters, and the "Promise kept" achievement
+- New AI-generated scene for climate events
+
 ## [0.36.1] - 2026-11-08
 
 - Tap the treasury in the top bar to open your Budget

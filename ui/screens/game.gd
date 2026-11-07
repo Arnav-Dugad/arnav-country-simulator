@@ -241,7 +241,8 @@ func _dev_open() -> void:
 	var ev_id: Variant = DevTools.arg("event")
 	if ev_id != null:
 		Settings.tutorial_done = true
-		Game.trigger_event(GameEvents.instance(GameEvents.by_id(str(ev_id)), World.index_of("CHN")))
+		Game.trigger_event(Climate.cop_event(Game.rng) if str(ev_id) == "cop"
+			else GameEvents.instance(GameEvents.by_id(str(ev_id)), World.index_of("CHN")))
 		_show_event(Game.director.first())
 	var page: Variant = DevTools.arg("open")
 	if page == null or not PAGES.has(str(page)):

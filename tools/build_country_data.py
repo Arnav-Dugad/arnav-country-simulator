@@ -60,10 +60,12 @@ WB_INDICATORS = {
     "trade_pct": ("NE.TRD.GNFS.ZS", None),             # exports + imports, % GDP
     "corruption_wgi": ("GOV_WGI_CC.EST", 3),
     "voice_wgi": ("GOV_WGI_VA.EST", 3),
+    "co2_pc": ("EN.GHG.CO2.PC.CE.AR5", None),          # CO2 excl. land use, tonnes per person
+    "renewables_pct": ("EG.FEC.RNEW.ZS", None),        # renewables, % of final energy use
 }
 DETAIL_KEYS = ["health_pct", "education_pct", "research_pct", "gini", "age65_pct", "urban_pct",
                "tourism_pct", "manufacturing_pct", "agriculture_pct", "internet_pct", "electricity_pct",
-               "trade_pct", "corruption_wgi", "voice_wgi"]
+               "trade_pct", "corruption_wgi", "voice_wgi", "co2_pc", "renewables_pct"]
 IMF_INDICATORS = {
     "debt_pct": "GGXWDG_NGDP",
     "budget_balance_pct": "GGXCNL_NGDP",

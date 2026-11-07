@@ -135,6 +135,8 @@ func _card(c: CountryState, p: Dictionary) -> Control:
 			var val := float(p.fx[k])
 			var good: bool = (val > 0.0) == bool(Laws.FX_GOOD_UP[k])
 			chips.add_child(_chip("%s %s" % [Laws.FX_LABELS[k], _num(val)], DS.GREEN if good else DS.RED))
+		if Climate.CUTS.has(p.id):
+			chips.add_child(_chip("CO₂ −%d%%" % roundi(float(Climate.CUTS[p.id]) * 100.0), DS.GREEN))
 		if float(p.upkeep) > 0.0:
 			chips.add_child(_chip("Upkeep %s/yr" % DS.money(c.gdp * float(p.upkeep) / 100.0), DS.TEXT_2))
 	if done:

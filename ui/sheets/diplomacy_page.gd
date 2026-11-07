@@ -25,6 +25,7 @@ func _build() -> void:
 	_ranks = grid(self, 2)
 	_rival = section("Your rival")
 	_markets = section("World markets")
+	_climate = section("Climate")
 	_treaties = section("Treaties & blocs")
 	_summary = note("")
 	_filter = SegmentedControl.new().setup(["Friends", "Rivals", "Neighbours", "Partners"], [], 0)
@@ -42,6 +43,7 @@ func _build() -> void:
 
 
 var _markets: VBoxContainer
+var _climate: VBoxContainer
 var _rival: VBoxContainer
 var _treaties: VBoxContainer
 
@@ -52,6 +54,7 @@ func refresh() -> void:
 	_fill_ranks()
 	_fill_rival()
 	_fill_markets()
+	_fill_climate()
 	_fill_treaties()
 	var d := Diplomacy.summary()
 	var parts: PackedStringArray = ["%d %s" % [d.alliances, "ally" if d.alliances == 1 else "allies"],
@@ -176,6 +179,58 @@ func _fill_markets() -> void:
 	var wc := Game.markets.world_cycle
 	how += " The world economy is %s." % ("booming" if wc > 0.6 else ("slowing" if wc < -0.6 else "steady"))
 	note(how, _markets)
+
+
+## A line with an icon tile, a headline, a caption and an optional sparkline.
+func _stat_line(parent: Control, icon: String, color: Color, head: String, caption: String,
+		data: PackedFloat32Array = PackedFloat32Array()) -> void:
+	var line := HBoxContainer.new()
+	line.add_theme_constant_override(&"separation", DS.S3)
+	parent.add_child(line)
+	line.add_child(ListRow.icon_tile(icon, color))
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override(&"separation", 0)
+	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	line.add_child(col)
+	for k in 2:
+		var l := Label.new()
+		l.theme_type_variation = &"Headline" if k == 0 else &"Caption"
+		l.text = head if k == 0 else caption
+		l.clip_text = true
+		l.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		l.custom_minimum_size = Vector2(20, 0)
+		col.add_child(l)
+	if data.size() >= 2:
+		var ch := LineChart.new()
+		ch.custom_minimum_size = Vector2(72, 40)
+		ch.line_width = 1.8
+		ch.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		ch.minimal = true
+		ch.set_color(color)
+		line.add_child(ch)
+		ch.set_data(data)
+
+
+func _fill_climate() -> void:
+	for ch in _climate.get_children():
+		ch.queue_free()
+	var me := Game.me()
+	var hist := PackedFloat32Array(Climate.state().get("hist", []))
+	_stat_line(_climate, "thermometer-sun", DS.ORANGE, "World  +%s °C" % String.num(Climate.warming(), 2),
+		"Warmer than before factories", hist)
+	var chg := Climate.change(me)
+	_stat_line(_climate, "leaf", DS.GREEN, "You  %s t CO₂ a person" % String.num(Climate.co2_pc(me), 1),
+		"World average %s t  ·  %d%% renewable" % [String.num(Climate.world_average(), 1), roundi(Climate.renewables(me))])
+	var p := Climate.pledge()
+	var how := ("Your emissions since %d: %s. " % [Calendar.START_YEAR, Climate._pct(chg)]) if absf(chg) >= 0.005 else ""
+	if not p.is_empty():
+		how += "Your pledge: cut emissions %d%% by %d. So far: %s. " % [roundi(float(p.cut) * 100.0), int(p.year),
+			Climate._pct(-Climate.pledge_done())]
+	how += "Solar, wind, nuclear, a coal phase-out and a carbon tax cut emissions."
+	var more := Climate.disaster_mult() - 1.0
+	if more >= 0.05:
+		how += " Floods, storms and heatwaves are now %d%% more likely than in %d." % [roundi(more * 100.0), Calendar.START_YEAR]
+	note(how, _climate)
 
 
 func _fill_treaties() -> void:

@@ -120,6 +120,8 @@ func _card(c: CountryState, l: Dictionary) -> Control:
 		else:
 			text = "%s %+.1f" % [Laws.FX_LABELS[k], val]
 		chips.add_child(_chip(text, DS.GREEN if good else DS.RED))
+	if Climate.CUTS.has(l.id) and not c.laws_start.has(l.id):
+		chips.add_child(_chip("CO₂ −%d%%" % roundi(float(Climate.CUTS[l.id]) * 100.0), DS.GREEN))
 	# Who would cheer or boo (voter groups)
 	var who := Blocs.law_chips(c, l.id, on and pend == 0)
 	if not who.is_empty():

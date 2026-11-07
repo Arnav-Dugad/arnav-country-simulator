@@ -16,6 +16,7 @@ const LEGEND := {
 	MapModes.Mode.GROWTH: ["Economic growth this year", "Shrinking", "Booming"],
 	MapModes.Mode.DEBT: ["Government debt vs. economy size", "Low debt", "Heavy debt"],
 	MapModes.Mode.BLOCS: ["Alliances and trade blocs", "", ""],
+	MapModes.Mode.EMISSIONS: ["CO₂ emissions per person", "Low", "High"],
 }
 
 var _card: GlassPanel

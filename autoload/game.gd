@@ -280,6 +280,7 @@ func advance_month() -> void:
 		treaty_joined.emit(str(id))
 	cabinet.monthly()
 	Rivalry.monthly()
+	Climate.monthly()
 	if months_played == Mandate.MONTHS:
 		var did := Mandate.summary()
 		add_milestone("First 100 days: %s" % (", ".join(did.slice(0, 3)).to_lower() if not did.is_empty() else "a quiet start"),
@@ -497,6 +498,8 @@ func map_values(mode: int) -> PackedFloat32Array:
 				out[i] = clampf((c.growth + 4.0) / 12.0, 0.0, 1.0)     # -4 % .. +8 %
 			MapModes.Mode.DEBT:
 				out[i] = clampf(c.debt_pct() / 160.0, 0.0, 1.0)
+			MapModes.Mode.EMISSIONS:     # log scale, 0.1 .. 30 t per person
+				out[i] = clampf((log(maxf(Climate.co2_pc(c), 0.1)) / log(10.0) + 1.0) / 2.5, 0.0, 1.0)
 			_:
 				out[i] = NAN
 	return out

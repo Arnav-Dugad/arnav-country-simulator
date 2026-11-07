@@ -119,6 +119,10 @@ func refresh() -> void:
 			lines.append("Sells: " + ", ".join(Profiles.exports(i)).to_lower())
 		if Profiles.fact(i) != "":
 			lines.append(Profiles.fact(i))
+		var st: CountryState = Game.state(i)
+		if st != null:
+			lines.append("Emits %s t of CO₂ a person  ·  %d%% renewable energy" % [String.num(Climate.co2_pc(st), 1),
+				roundi(Climate.renewables(st))])
 		_gov.text = "\n".join(lines)
 	for ch in _traits.get_children():
 		ch.queue_free()
@@ -281,6 +285,7 @@ func _compare(i: int) -> void:
 		["Happiness", me.happiness, them.happiness, true, func(v: float) -> String: return String.num(v, 0)],
 		["Stability", me.stability, them.stability, true, func(v: float) -> String: return String.num(v, 0)],
 		["Military", me.military, them.military, true, func(v: float) -> String: return String.num(v, 0)],
+		["CO₂ a person", Climate.co2_pc(me), Climate.co2_pc(them), false, func(v: float) -> String: return "%s t" % String.num(v, 1)],
 		["People", me.population, them.population, true, func(v: float) -> String: return DS.compact(v)],
 	]
 	var head := HBoxContainer.new()

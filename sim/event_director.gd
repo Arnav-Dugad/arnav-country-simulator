@@ -50,6 +50,10 @@ func monthly(my_crisis: bool) -> void:
 	if Game.month == 11 and Game.months_played > 6 and Game.year % 2 == 0:
 		add(GameEvents.summit(Game.rng))
 		return
+	# UN climate conferences (COP) every other November, unless a pledge is still running.
+	if Game.month == 11 and Game.months_played > 6 and Game.year % 2 == 1 and Climate.pledge().is_empty():
+		add(Climate.cop_event(Game.rng))
+		return
 	if Press.due() and Game.rng.randf() < 0.4 and Game.months_played - last_event_month >= 2:
 		Press.held()
 		add(Press.make_event())
@@ -143,6 +147,8 @@ func recommended(ev: Dictionary) -> int:
 		# A choice that leads to another, worse stage costs more than it looks.
 		if ev.choices[k].has("next"):
 			s -= 3.0
+		# The cabinet is wary of promises you'd have to keep for years.
+		s -= float(ev.choices[k].effects.get("pledge", 0.0)) * 8.0
 		if s > best_score:
 			best_score = s
 			best = k
@@ -170,6 +176,9 @@ static func score(fx: Dictionary) -> float:
 			s += v * (0.12 + 0.25 * (1.0 - Press.credibility() / 100.0))
 		elif k == "deal":
 			s += 1.5
+		elif k == "bloc_relations":
+			for camp_name in (fx[k] as Dictionary):
+				s += float(fx[k][camp_name]) * 0.1
 	return s
 
 
