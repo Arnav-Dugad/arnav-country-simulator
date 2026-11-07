@@ -1,0 +1,57 @@
+name: Balance report
+
+# Plays many bot games per difficulty (tools/balance_report) and publishes the
+# summary on the run page. Start it from the Actions tab (or `gh workflow run`).
+on:
+  workflow_dispatch:
+    inputs:
+      games:
+        description: "Games per difficulty"
+        default: "100"
+      months:
+        description: "Months per game"
+        default: "96"
+
+env:
+  GODOT_VERSION: "4.7.2"
+  GODOT_STATUS: "stable"
+
+jobs:
+  balance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Godot
+        id: cache-godot
+        uses: actions/cache@v4
+        with:
+          path: ~/godot
+          key: godot-editor-${{ env.GODOT_VERSION }}-${{ env.GODOT_STATUS }}-v1
+
+      - name: Download Godot
+        if: steps.cache-godot.outputs.cache-hit != 'true'
+        run: |
+          BASE="https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}-${GODOT_STATUS}"
+          mkdir -p ~/godot
+          curl -fsSL -o /tmp/godot.zip "$BASE/Godot_v${GODOT_VERSION}-${GODOT_STATUS}_linux.x86_64.zip"
+          unzip -q /tmp/godot.zip -d ~/godot
+          mv ~/godot/Godot_v${GODOT_VERSION}-${GODOT_STATUS}_linux.x86_64 ~/godot/godot
+
+      - name: Import
+        run: |
+          ~/godot/godot --headless --path . --import > /dev/null 2>&1 || true
+          ~/godot/godot --headless --path . --import > /dev/null 2>&1 || true
+
+      - name: Play bot games
+        run: |
+          ~/godot/godot --headless --path . res://tools/balance_report.tscn -- \
+            --games=${{ github.event.inputs.games }} --months=${{ github.event.inputs.months }} --out=$PWD/balance.md 2>&1 | tee balance.log
+          grep -q "BALANCE REPORT OK" balance.log
+          cat balance.md >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: balance-report
+          path: balance.md

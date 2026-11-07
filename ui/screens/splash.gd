@@ -57,9 +57,19 @@ func _animate_in() -> void:
 	t.tween_property(_title, "modulate:a", 1.0, 0.5).set_delay(0.25)
 	t.tween_property(_subtitle, "modulate:a", 1.0, 0.5).set_delay(0.4)
 	Audio.music_start()
-	await get_tree().create_timer(1.6).timeout
+	# Load the next screen in the background while the logo animates, and move on
+	# as soon as it's ready (after a short minimum so the brand registers).
+	var next := _next_scene()
+	ResourceLoader.load_threaded_request(next)
+	await get_tree().create_timer(0.9).timeout
+	var waited := 0.0
+	while ResourceLoader.load_threaded_get_status(next) == ResourceLoader.THREAD_LOAD_IN_PROGRESS and waited < 3.0:
+		await get_tree().process_frame
+		waited += get_process_delta_time()
+	if ResourceLoader.load_threaded_get_status(next) == ResourceLoader.THREAD_LOAD_LOADED:
+		ResourceLoader.load_threaded_get(next)   # now cached: the scene change is instant
 	if is_inside_tree():
-		Router.goto(_next_scene())
+		Router.goto(next)
 
 
 func _next_scene() -> String:

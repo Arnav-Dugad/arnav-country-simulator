@@ -50,6 +50,7 @@ var _sel_shadow: MeshInstance2D
 var _sel_fill: MeshInstance2D
 var _sel_line: MeshInstance2D
 var _labels: MapLabels
+var _overlays: MapOverlays
 
 var _fill_mat: ShaderMaterial
 var _border_mat: ShaderMaterial
@@ -115,6 +116,9 @@ func _build_nodes() -> void:
 	_world = Node2D.new()
 	_world.name = "World"
 	add_child(_world)
+	_globe_bg = Node2D.new()
+	_globe_bg.draw.connect(_draw_globe_bg)
+	_world.add_child(_globe_bg)
 
 	var draw_order := range(data.count())
 	draw_order.sort_custom(func(a: int, b: int) -> bool: return data.area[a] > data.area[b])
@@ -135,13 +139,15 @@ func _build_nodes() -> void:
 	_fill_mat.set_shader_parameter(&"world_half_height", data.world_rect.size.y * 0.5)
 	_build_graticule()
 	_fill = MeshInstance2D.new()
-	_fill.mesh = MapMeshes.fill_mesh(data, PackedInt32Array(draw_order), _tex_w)
+	_fill.mesh = _baked("res://data/map_fill.res", func() -> ArrayMesh:
+		return MapMeshes.fill_mesh(data, PackedInt32Array(draw_order), _tex_w))
 	_fill.material = _fill_mat
 	_world.add_child(_fill)
 
 	_border_mat = _line_material(LINE_SHADER, DS.BORDER, 0.6)
 	_borders = MeshInstance2D.new()
-	_borders.mesh = MapMeshes.line_mesh(data.ring_points)
+	_borders.mesh = _baked("res://data/map_borders.res", func() -> ArrayMesh:
+		return MapMeshes.line_mesh(data.ring_points))
 	_borders.material = _border_mat
 	_world.add_child(_borders)
 
@@ -169,6 +175,9 @@ func _build_nodes() -> void:
 	_sel_line.material = _sel_line_mat
 	_sel_root.add_child(_sel_line)
 
+	_overlays = MapOverlays.new()
+	_overlays.map = self
+	add_child(_overlays)
 	_labels = MapLabels.new()
 	_labels.map = self
 	add_child(_labels)
@@ -187,8 +196,11 @@ func _build_graticule() -> void:
 		for lon2 in range(-180, 181, 5):
 			pts2.append(Geo.equal_earth(float(lon2), float(lat)))
 		lines.append(pts2)
+	_grat_mat = ShaderMaterial.new()
+	_grat_mat.shader = GRATICULE_SHADER
 	for k in lines.size():
 		var l := Line2D.new()
+		l.material = _grat_mat
 		l.points = lines[k]
 		l.antialiased = true
 		l.joint_mode = Line2D.LINE_JOINT_ROUND
@@ -197,6 +209,16 @@ func _build_graticule() -> void:
 		l.set_meta(&"w", 1.2 if equator else 0.9)
 		_world.add_child(l)
 		_graticule.append(l)
+
+
+## A mesh baked offline by tools/bake_meshes.gd (faster startup on phones), or
+## built now if the baked file is missing or doesn't match the map data.
+func _baked(path: String, build: Callable) -> ArrayMesh:
+	if ResourceLoader.exists(path):
+		var m: ArrayMesh = load(path)
+		if m and int(m.get_meta(&"count", -1)) == data.count():
+			return m
+	return build.call()
 
 
 func _line_material(shader: Shader, color: Color, aa: float) -> ShaderMaterial:
@@ -519,16 +541,186 @@ func _update_line_widths() -> void:
 		_sel_shadow.position = -_sel_root.position + Vector2(0, 5.0 * px / s)
 
 
+
+# ------------------------------------------------------------------ globe ----
+## Pinch out past the whole world and the flat map curls into a slowly turning
+## globe. Drag to spin it, tap a country, pinch in or double-tap to come back.
+const GRATICULE_SHADER := preload("res://map/shaders/map_graticule.gdshader")
+const GLOBE_ENTER := 0.9        # release a pinch below min_zoom x this to form the globe
+const GLOBE_SPIN := 0.05        # rad per second of idle rotation
+var globe := 0.0
+var globe_rot := Vector2.ZERO   # lon, lat (radians) facing the viewer
+var globe_on := false
+var _globe_tween: Tween
+var _globe_bg: Node2D
+var _grat_mat: ShaderMaterial
+var _globe_pinch := 1.0
+
+
+func _globe_materials() -> Array:
+	return [_fill_mat, _border_mat, _glow_mat, _player_line_mat, _sel_line_mat, _grat_mat]
+
+
+## Points the globe at the current view and sizes it to the screen.
+func _globe_frame() -> void:
+	var ll := Geo.equal_earth_inverse(center)
+	if not globe_on:
+		globe_rot = Vector2(ll.x, clampf(ll.y, -1.1, 1.1))
+	for m in _globe_materials():
+		m.set_shader_parameter(&"globe_center", center)
+		m.set_shader_parameter(&"globe_radius", minf(size.x, size.y) * 0.44 / zoom)
+		m.set_shader_parameter(&"globe_rot", globe_rot)
+
+
+func _set_globe(v: float) -> void:
+	globe = v
+	_globe_frame()
+	for m in _globe_materials():
+		m.set_shader_parameter(&"globe", v)
+	var flat := v < 0.04
+	_labels.visible = flat
+	_overlays.visible = flat
+	if not flat:
+		_sel_root.visible = false
+	elif selected >= 0:
+		_sel_root.visible = true
+	_globe_bg.queue_redraw()
+
+
+func _animate_globe(to: float, dur: float) -> void:
+	if _globe_tween:
+		_globe_tween.kill()
+	_globe_tween = create_tween()
+	_globe_tween.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+	_globe_tween.tween_method(_set_globe, globe, to, Settings.dur(dur))
+
+
+func enter_globe() -> void:
+	if globe_on:
+		return
+	_stop_motion()
+	_globe_frame()
+	globe_on = true
+	select(-1)
+	Haptics.success(false)
+	# Turn to face your own country while the globe forms.
+	var from_rot := globe_rot
+	var to_rot := from_rot
+	if player >= 0:
+		var ll := Geo.equal_earth_inverse(focus_rect(player).get_center())
+		to_rot = Vector2(from_rot.x + wrapf(ll.x - from_rot.x, -PI, PI), clampf(ll.y * 0.8, -1.0, 1.0))
+	if _globe_tween:
+		_globe_tween.kill()
+	_globe_tween = create_tween()
+	_globe_tween.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+	_globe_tween.tween_method(func(t: float) -> void:
+		globe_rot = from_rot.lerp(to_rot, smoothstep(0.2, 1.0, t))
+		_set_globe(t), globe, 1.0, Settings.dur(1.2))
+
+
+## Back to the flat map, looking at what faced you on the globe.
+func exit_globe(focus_lonlat: Vector2 = Vector2.INF) -> void:
+	if not globe_on:
+		return
+	globe_on = false
+	var ll := globe_rot if focus_lonlat == Vector2.INF else focus_lonlat
+	ll.x = wrapf(ll.x, -PI, PI)
+	var target := Geo.equal_earth(rad_to_deg(ll.x), rad_to_deg(ll.y))
+	var from_c := center
+	var from_z := zoom
+	var to_z := clampf(min_zoom * 1.8, min_zoom, max_zoom)
+	if _globe_tween:
+		_globe_tween.kill()
+	Haptics.tap()
+	_globe_tween = create_tween()
+	_globe_tween.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+	_globe_tween.tween_method(func(t: float) -> void:
+		zoom = exp(lerpf(log(from_z), log(to_z), t))
+		center = from_c.lerp(target, t)
+		_raw_center = center
+		_set_globe(1.0 - t)
+		_apply_camera(true), 0.0, 1.0, Settings.dur(0.85))
+	_globe_tween.tween_callback(func() -> void:
+		_set_globe(0.0)
+		_apply_camera())
+
+
+## Country under a screen point on the globe (-1 = ocean / space).
+func globe_country_at(screen_pos: Vector2) -> int:
+	var w := screen_to_world(screen_pos)
+	var r := minf(size.x, size.y) * 0.44 / zoom
+	var v := (w - center) / r
+	var x := v.x
+	var y := -v.y
+	var r2 := x * x + y * y
+	if r2 > 1.0:
+		return -1
+	var z := sqrt(1.0 - r2)
+	var p0 := globe_rot.y
+	var lat := asin(clampf(z * sin(p0) + y * cos(p0), -1.0, 1.0))
+	var lon := wrapf(globe_rot.x + atan2(x, z * cos(p0) - y * sin(p0)), -PI, PI)
+	return _country_at_world(Geo.equal_earth(rad_to_deg(lon), rad_to_deg(lat)))
+
+
+func _globe_lonlat_at(screen_pos: Vector2) -> Vector2:
+	var w := screen_to_world(screen_pos)
+	var r := minf(size.x, size.y) * 0.44 / zoom
+	var v := (w - center) / r
+	var x := clampf(v.x, -1.0, 1.0)
+	var y := clampf(-v.y, -1.0, 1.0)
+	var z := sqrt(maxf(1.0 - x * x - y * y, 0.0))
+	var p0 := globe_rot.y
+	return Vector2(globe_rot.x + atan2(x, z * cos(p0) - y * sin(p0)), asin(clampf(z * sin(p0) + y * cos(p0), -1.0, 1.0)))
+
+
+func _globe_drag(delta: Vector2) -> void:
+	var r_px := minf(size.x, size.y) * 0.44
+	globe_rot.x -= delta.x / r_px
+	globe_rot.y = clampf(globe_rot.y + delta.y / r_px, -1.25, 1.25)
+	_globe_frame()
+
+
+## Ocean sphere + soft atmosphere, drawn behind the countries while in globe mode.
+func _draw_globe_bg() -> void:
+	if globe <= 0.0:
+		return
+	var r := minf(size.x, size.y) * 0.44 / zoom
+	var c := center
+	var a := smoothstep(0.15, 0.9, globe)
+	for k in 8:
+		var f := 1.0 + 0.012 * (8 - k)
+		_globe_bg.draw_circle(c, r * f, Color(0.35, 0.6, 1.0, 0.035 * a), true, -1.0, true)
+	_globe_bg.draw_circle(c, r, Color(DS.OCEAN_TOP.lightened(0.04), a), true, -1.0, true)
+	# Gentle light from the upper left.
+	for k in 6:
+		var f := 1.0 - k * 0.14
+		_globe_bg.draw_circle(c + Vector2(-0.22, -0.26) * r * (1.0 - f), r * f, Color(0.3, 0.5, 0.85, 0.05 * a), true, -1.0, true)
+	_globe_bg.draw_arc(c, r, 0.0, TAU, 96, Color(0.6, 0.8, 1.0, 0.35 * a), 1.5 / zoom, true)
+
+
 # --------------------------------------------------------------- hit test ----
 func country_at(screen_pos: Vector2) -> int:
+	if globe_on:
+		return globe_country_at(screen_pos)
 	var w := screen_to_world(screen_pos)
+	var hit := _country_at_world(w)
+	if hit >= 0:
+		return hit
+	return _tiny_near(screen_pos)
+
+
+func _country_at_world(w: Vector2) -> int:
 	for c in _hit_order:
 		if not data.bbox(c).grow(0.5).has_point(w):
 			continue
 		for r in _by_country[c]:
 			if Geometry2D.is_point_in_polygon(w, data.ring_points[r]):
 				return c
-	# Tiny states: accept taps near their label point.
+	return -1
+
+
+## Tiny states: accept taps near their label point.
+func _tiny_near(screen_pos: Vector2) -> int:
 	var best := -1
 	var best_d := 22.0
 	for c in _hit_order:
@@ -544,6 +736,11 @@ func country_at(screen_pos: Vector2) -> int:
 # ------------------------------------------------------------------ input ----
 func _process(delta: float) -> void:
 	var gesturing := not _touches.is_empty() or _mouse_down
+	if globe_on or globe > 0.0:
+		if globe_on and not gesturing and globe >= 1.0:
+			globe_rot.x += GLOBE_SPIN * delta * (0.3 if Settings.reduce_motion else 1.0)
+			_globe_frame()
+		return
 	if not gesturing:
 		var flying := _cam_tween != null and _cam_tween.is_running()
 		if _velocity.length_squared() > 4.0:
@@ -590,7 +787,11 @@ func _gui_input(event: InputEvent) -> void:
 	elif event is InputEventMouseButton and event.device != InputEvent.DEVICE_ID_EMULATION:
 		_on_mouse_button(event)
 	elif event is InputEventMouseMotion and event.device != InputEvent.DEVICE_ID_EMULATION:
-		if _mouse_down:
+		if _mouse_down and globe_on:
+			_globe_drag(event.relative)
+			if event.position.distance_to(_tap_start_pos) > TAP_SLOP:
+				_tap_candidate = false
+		elif _mouse_down:
 			_drag_pan(event.relative)
 			if event.position.distance_to(_tap_start_pos) > TAP_SLOP:
 				_tap_candidate = false
@@ -604,6 +805,9 @@ func _gui_input(event: InputEvent) -> void:
 
 
 func _on_touch(e: InputEventScreenTouch) -> void:
+	if globe_on:
+		_globe_touch(e)
+		return
 	if e.pressed:
 		_touches[e.index] = e.position
 		_stop_motion()
@@ -630,10 +834,16 @@ func _on_touch(e: InputEventScreenTouch) -> void:
 				_zoom_step(lifted_mid, 0.5)
 				return
 			_two_tap = false
+			if zoom < min_zoom * GLOBE_ENTER and interactive:
+				enter_globe()
+				return
 			_end_tap(e.position)
 
 
 func _on_drag(e: InputEventScreenDrag) -> void:
+	if globe_on:
+		_globe_drag_event(e)
+		return
 	if not _touches.has(e.index):
 		_touches[e.index] = e.position
 	var prev: Vector2 = _touches[e.index]
@@ -665,15 +875,30 @@ func _on_drag(e: InputEventScreenDrag) -> void:
 func _on_mouse_button(e: InputEventMouseButton) -> void:
 	match e.button_index:
 		MOUSE_BUTTON_WHEEL_UP:
-			if e.pressed:
+			if e.pressed and globe_on:
+				exit_globe()
+			elif e.pressed:
 				_stop_motion()
 				zoom_at(e.position, 1.0 + 0.12 * e.factor if e.factor > 0 else 1.12)
 		MOUSE_BUTTON_WHEEL_DOWN:
-			if e.pressed:
+			if e.pressed and not globe_on and zoom <= min_zoom * 1.001 and interactive:
+				enter_globe()
+			elif e.pressed and not globe_on:
 				_stop_motion()
 				zoom_at(e.position, 1.0 / (1.0 + 0.12 * e.factor if e.factor > 0 else 1.12))
 		MOUSE_BUTTON_LEFT:
-			if e.pressed:
+			if e.pressed and globe_on:
+				_mouse_down = true
+				if e.double_click:
+					exit_globe(_globe_lonlat_at(e.position))
+				else:
+					_begin_tap(e.position)
+			elif not e.pressed and globe_on:
+				_mouse_down = false
+				if _tap_candidate and Time.get_ticks_msec() / 1000.0 - _tap_start_time < TAP_TIME:
+					_tap_candidate = false
+					country_tapped.emit(globe_country_at(e.position))
+			elif e.pressed:
 				_mouse_down = true
 				_stop_motion()
 				if e.double_click:
@@ -684,6 +909,48 @@ func _on_mouse_button(e: InputEventMouseButton) -> void:
 			else:
 				_mouse_down = false
 				_end_tap(e.position, false)
+
+
+func _globe_touch(e: InputEventScreenTouch) -> void:
+	if e.pressed:
+		_touches[e.index] = e.position
+		if _touches.size() == 1:
+			_begin_tap(e.position)
+			_globe_pinch = 1.0
+		else:
+			_tap_candidate = false
+		return
+	_touches.erase(e.index)
+	if not _touches.is_empty():
+		return
+	if _globe_pinch > 1.25:
+		exit_globe()
+		return
+	var now := Time.get_ticks_msec() / 1000.0
+	if _tap_candidate and now - _tap_start_time < TAP_TIME:
+		_tap_candidate = false
+		if now - _last_tap_time < DOUBLE_TAP_TIME and e.position.distance_to(_last_tap_pos) < 40.0:
+			_last_tap_time = -10.0
+			exit_globe(_globe_lonlat_at(e.position))
+			return
+		_last_tap_time = now
+		_last_tap_pos = e.position
+		country_tapped.emit(globe_country_at(e.position))
+
+
+func _globe_drag_event(e: InputEventScreenDrag) -> void:
+	var prev: Vector2 = _touches.get(e.index, e.position)
+	if _touches.size() >= 2:
+		var keys := _touches.keys()
+		var other: Vector2 = _touches[keys[1] if keys[0] == e.index else keys[0]]
+		var old_d := prev.distance_to(other)
+		if old_d > 1.0:
+			_globe_pinch *= e.position.distance_to(other) / old_d
+	else:
+		_globe_drag(e.position - prev)
+	_touches[e.index] = e.position
+	if e.position.distance_to(_tap_start_pos) > TAP_SLOP:
+		_tap_candidate = false
 
 
 func _drag_pan(delta: Vector2) -> void:

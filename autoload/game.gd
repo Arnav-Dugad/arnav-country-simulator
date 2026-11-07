@@ -68,6 +68,8 @@ var news: Array = []                # world news feed, newest first (see WorldNe
 var feed: Array = []
 ## Active challenge: {id, deadline (months_played), state: active|won|lost}
 var challenge: Dictionary = {}
+## Calm weather shown on the map: [{kind, country (iso3), until (months_played), len}]
+var weather: Array = []
 var cheats_used := false
 var god_mode := false               # cheat: you never lose power
 var rng := RandomNumberGenerator.new()
@@ -136,6 +138,7 @@ func new_game(country_index: int, seed_value: int = -1, level: String = "") -> v
 	news = []
 	feed = []
 	challenge = {}
+	weather = []
 	cheats_used = false
 	god_mode = false
 	var c := me()
@@ -241,6 +244,7 @@ func advance_month() -> void:
 	Diplomacy.monthly()
 	relations_changed.emit()
 	calendar.next_month()
+	weather = weather.filter(func(w: Dictionary) -> bool: return int(w.until) > months_played)
 	for done in Laws.monthly(me()):
 		if str(done.id) == "free_elections" and not bool(done.repealed):
 			politics.become_democracy()
@@ -381,6 +385,11 @@ func add_feed(text: String, icon: String, tint: String = "accent") -> void:
 	feed_added.emit(item)
 
 
+## Shows a disaster on the map for a few months (purely visual).
+func add_weather(kind: String, i: int, months: int = 3) -> void:
+	weather.append({"kind": kind, "country": World.iso(i), "until": months_played + months, "len": months})
+
+
 func unread_count() -> int:
 	var n := 0
 	for f in feed:
@@ -458,7 +467,7 @@ func to_dict() -> Dictionary:
 		"months_played": months_played, "countries": cs, "relations": rel, "history": hist,
 		"rng_state": str(rng.state), "dip": dip, "start": start_snapshot, "headlines_seen": headlines_seen,
 		"last_rating": last_rating, "news": news, "challenge": challenge, "feed": feed,
-		"difficulty": difficulty, "cheats_used": cheats_used, "god_mode": god_mode,
+		"difficulty": difficulty, "weather": weather, "cheats_used": cheats_used, "god_mode": god_mode,
 		"director": director.to_dict(), "politics": politics.to_dict(),
 	}
 
@@ -506,8 +515,14 @@ func load_dict(d: Dictionary) -> bool:
 	challenge = d.get("challenge", {})
 	feed = d.get("feed", [])
 	difficulty = str(d.get("difficulty", "standard"))
+	weather = d.get("weather", [])
 	cheats_used = bool(d.get("cheats_used", false))
 	god_mode = bool(d.get("god_mode", false))
+	# Saves from before projects existed (v1, and v2 files written by 0.13.0 from
+	# them): give each country its real starting infrastructure.
+	for c in countries:
+		if c != null and (c as CountryState).projects.is_empty():
+			c.projects = Projects.starting_set(c)
 	if ver == 1:
 		# v1 kept these at the top level.
 		politics.load_dict({"months_to_election": d.get("months_to_election", 48),

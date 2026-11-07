@@ -60,6 +60,8 @@ func add(ev: Dictionary, critical: bool = false) -> void:
 	ev["critical"] = critical or str(ev.get("id", "")) in CRITICAL
 	ev["date"] = Game.date_text()
 	last_event_month = Game.months_played
+	if str(ev.get("id", "")) in GameEvents.DISASTERS:
+		Game.add_weather(str(ev.id), Game.player, 3)
 	var mode := str(Settings.get_value("decisions", "inbox"))
 	if not ev.critical and mode == "cabinet":
 		inbox.append(ev)

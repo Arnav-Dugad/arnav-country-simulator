@@ -110,3 +110,26 @@ static func bounds(pts: PackedVector2Array) -> Rect2:
 	for p in pts:
 		r = r.expand(p)
 	return r
+
+
+## Equal Earth inverse: world point -> Vector2(lon, lat) in radians.
+static func equal_earth_inverse(p: Vector2) -> Vector2:
+	const A1 := 1.340264
+	const A2 := -0.081106
+	const A3 := 0.000893
+	const A4 := 0.003796
+	var m := sqrt(3.0) / 2.0
+	var x := p.x / 1000.0
+	var y := -p.y / 1000.0
+	var th := y / A1
+	for _i in 6:
+		var t2 := th * th
+		var t6 := t2 * t2 * t2
+		var f := th * (A1 + A2 * t2 + t6 * (A3 + A4 * t2)) - y
+		var fp := A1 + 3.0 * A2 * t2 + t6 * (7.0 * A3 + 9.0 * A4 * t2)
+		th -= f / fp
+	var t2 := th * th
+	var t6 := t2 * t2 * t2
+	var lam := x * m * (A1 + 3.0 * A2 * t2 + t6 * (7.0 * A3 + 9.0 * A4 * t2)) / maxf(cos(th), 1e-4)
+	var phi := asin(clampf(sin(th) / m, -1.0, 1.0))
+	return Vector2(lam, phi)

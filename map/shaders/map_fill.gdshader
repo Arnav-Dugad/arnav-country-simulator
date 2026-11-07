@@ -3,6 +3,8 @@ render_mode unshaded;
 // All country fills in one mesh. UV.x encodes the country index; colours come
 // from two 1-row palette textures and cross-fade with `blend` (map-mode change).
 
+#include "res://map/shaders/globe.gdshaderinc"
+
 uniform sampler2D colors_from : filter_nearest;
 uniform sampler2D colors_to : filter_nearest;
 uniform float blend = 1.0;
@@ -17,10 +19,21 @@ uniform vec4 spot_color : source_color = vec4(0.95, 0.78, 0.42, 1.0);
 
 varying float v_idx;
 varying float v_lat;
+varying float v_vis;
+varying float v_shade;
 
 void vertex() {
 	v_idx = floor(UV.x * tex_width);
 	v_lat = -VERTEX.y / world_half_height;
+	v_vis = 1.0;
+	v_shade = 1.0;
+	if (globe > 0.0) {
+		vec3 g = globe_project(VERTEX);
+		VERTEX = mix(VERTEX, g.xy, globe);
+		v_vis = mix(1.0, smoothstep(-0.02, 0.06, g.z), smoothstep(0.0, 0.45, globe));
+		// Soft sphere shading: brighter toward you, darker at the edge.
+		v_shade = mix(1.0, 0.5 + 0.6 * clamp(g.z, 0.0, 1.0), globe);
+	}
 }
 
 void fragment() {
@@ -43,5 +56,7 @@ void fragment() {
 	if (abs(v_idx - selected_index) < 0.5) {
 		c.rgb = mix(c.rgb, vec3(1.0), 0.10);
 	}
+	c.rgb *= v_shade;
+	c.a *= v_vis;
 	COLOR = c;
 }

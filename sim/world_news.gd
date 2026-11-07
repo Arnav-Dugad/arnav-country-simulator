@@ -33,6 +33,7 @@ static func monthly(i: int, c: CountryState, prev_growth: float, rng: RandomNumb
 		_leader_change(i, c, rng, "%s's government falls" % World.map.names[i])
 	if not is_notable(i):
 		return
+	_maybe_disaster(i, rng)
 	if prev_growth >= -0.3 and c.growth < -0.3:
 		add(i, "%s slips into recession" % World.map.names[i], "trending-down", false)
 	elif prev_growth <= 5.5 and c.growth > 5.5 and c.gdp > 2e11:
@@ -58,6 +59,25 @@ static func _leader_change(i: int, c: CountryState, rng: RandomNumberGenerator, 
 	if is_notable(i):
 		var tone := "warmer toward you" if swing > 5.0 else ("cooler toward you" if swing < -5.0 else "")
 		add(i, "%s%s" % [headline, ", " + tone if tone != "" else ""], "vote", swing >= 0.0)
+
+
+## Natural disasters strike notable countries now and then (news + map weather),
+## only where they really happen (the same regions as the player's disaster events).
+static func _maybe_disaster(i: int, rng: RandomNumberGenerator) -> void:
+	if rng.randf() > 0.004:
+		return
+	var sub := World.map.subregions[i]
+	var kinds: Array = []
+	for e in GameEvents.EVENTS:
+		if str(e.id) in GameEvents.DISASTERS and e.has("where") and sub in e.where:
+			kinds.append(str(e.id))
+	if kinds.is_empty():
+		return
+	var kind: String = kinds[rng.randi() % kinds.size()]
+	var what := {"hurricane": "A hurricane hits %s", "monsoon": "Monsoon floods in %s", "heatwave": "A heatwave grips %s",
+		"earthquake": "An earthquake strikes %s", "drought": "Drought in %s", "floods": "Floods in %s"}
+	add(i, str(what.get(kind, "Disaster in %s")) % World.map.names[i], "cloud", false)
+	Game.add_weather(kind, i, 2)
 
 
 static func defaulted(i: int) -> void:
