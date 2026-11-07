@@ -23,6 +23,7 @@ func _build() -> void:
 	rank_head.text = "YOUR WORLD RANK"
 	add_child(rank_head)
 	_ranks = grid(self, 2)
+	_rival = section("Your rival")
 	_markets = section("World markets")
 	_treaties = section("Treaties & blocs")
 	_summary = note("")
@@ -41,6 +42,7 @@ func _build() -> void:
 
 
 var _markets: VBoxContainer
+var _rival: VBoxContainer
 var _treaties: VBoxContainer
 
 
@@ -48,6 +50,7 @@ func refresh() -> void:
 	if not Game.has_game():
 		return
 	_fill_ranks()
+	_fill_rival()
 	_fill_markets()
 	_fill_treaties()
 	var d := Diplomacy.summary()
@@ -90,6 +93,41 @@ func refresh() -> void:
 		_list.add_child(row)
 	if idx.is_empty():
 		note("Nobody here yet.", _list)
+
+
+func _fill_rival() -> void:
+	for ch in _rival.get_children():
+		ch.queue_free()
+	var r := Rivalry.rival()
+	if r < 0:
+		return
+	var ld := Leaders.leader(r)
+	var head := ListRow.new().setup(World.map.names[r], "%s %s  ·  %s" % [str(ld.title), str(ld.name),
+		Diplomacy.relation_text(Game.relations[r])])
+	head.set_leading(Flag.new().show_country(r, 26.0))
+	head.tapped.connect(func() -> void: country_requested.emit(r))
+	_rival.add_child(head)
+	var wins := 0
+	for race in Rivalry.RACES:
+		var a := Rivalry.value(Game.player, str(race[0]))
+		var b := Rivalry.value(r, str(race[0]))
+		var me_ahead := a > b
+		wins += 1 if me_ahead else 0
+		var row := HBoxContainer.new()
+		_rival.add_child(row)
+		var l := Label.new()
+		l.theme_type_variation = &"Body"
+		l.text = str(race[1])
+		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		l.clip_text = true
+		l.custom_minimum_size = Vector2(20, 0)
+		row.add_child(l)
+		var v := Label.new()
+		v.theme_type_variation = &"StatSmall"
+		v.text = "%s  vs  %s" % [Rivalry.fmt(str(race[2]), a), Rivalry.fmt(str(race[2]), b)]
+		v.add_theme_color_override(&"font_color", DS.GREEN if me_ahead else DS.ORANGE)
+		row.add_child(v)
+	note("You lead in %d of %d. Tap them to talk." % [wins, Rivalry.RACES.size()], _rival)
 
 
 func _fill_markets() -> void:

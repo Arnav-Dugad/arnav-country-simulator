@@ -2,6 +2,10 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.35.0] - 2026-11-08
+
+- **Your rival**: every game has a rival nation (your country's real rival, or the closest economy in your region). The World page tracks the race in economy size, income per person, happiness and growth, and headlines celebrate when you overtake them
+
 ## [0.34.2] - 2026-11-08
 
 - Landscape: panels use their full height and skip the header pictures, so more of what matters fits on screen

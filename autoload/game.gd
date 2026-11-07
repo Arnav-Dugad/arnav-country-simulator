@@ -279,6 +279,7 @@ func advance_month() -> void:
 		Leaders.react("treaty_join")
 		treaty_joined.emit(str(id))
 	cabinet.monthly()
+	Rivalry.monthly()
 	if months_played == Mandate.MONTHS:
 		var did := Mandate.summary()
 		add_milestone("First 100 days: %s" % (", ".join(did.slice(0, 3)).to_lower() if not did.is_empty() else "a quiet start"),
