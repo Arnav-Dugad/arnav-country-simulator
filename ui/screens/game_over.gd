@@ -44,6 +44,7 @@ func _ready() -> void:
 		"revolution": "Protests in %s swept your government from power." % data.country,
 		"coup": "The army of %s removed you from power." % data.country,
 		"review": "The party leadership of %s replaced you." % data.country,
+		"daily": "Your four years in today's challenge are up.",
 	}.get(reason, "You led %s for %.1f years." % [data.country, float(data.years)])
 	col.add_child(sub)
 
@@ -56,6 +57,14 @@ func _ready() -> void:
 	if not has_meta(&"recorded"):
 		set_meta(&"recorded", true)
 		Career.record(data, grade)
+		if str(data.get("daily", "")) != "":
+			var improved := Daily.record(str(data.daily), grade)
+			var dl := Label.new()
+			dl.theme_type_variation = &"Subhead"
+			dl.add_theme_color_override(&"font_color", DS.GOLD)
+			dl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			dl.text = "New best for today's challenge!" if improved else "Today's best: %s. Try again tomorrow for a new one." % Daily.best(str(data.daily))
+			col.add_child(dl)
 	var grade_row := HBoxContainer.new()
 	grade_row.add_theme_constant_override(&"separation", DS.S4)
 	col.add_child(grade_row)

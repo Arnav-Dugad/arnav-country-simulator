@@ -66,6 +66,9 @@ func _build_header() -> void:
 	var chips := HBoxContainer.new()
 	chips.add_theme_constant_override(&"separation", DS.S2)
 	chip_scroll.add_child(chips)
+	var daily := AppButton.make("Daily", &"Chip", "calendar")
+	daily.pressed.connect(_show_daily)
+	chips.add_child(daily)
 	var chall := AppButton.make("Challenges", &"Chip", "crown")
 	chall.pressed.connect(_show_challenges)
 	chips.add_child(chall)
@@ -235,6 +238,33 @@ func _apply_sort(mode: int) -> void:
 	_list.move_child(_empty, _list.get_child_count() - 1)
 	_scroll.scroll_vertical = 0
 	Haptics.tap()
+
+
+func _show_daily() -> void:
+	if is_instance_valid(_ask):
+		return
+	Haptics.tap()
+	var sc := Daily.scenario()
+	var i: int = sc.country
+	_ask = ModalCard.new()
+	add_child(_ask)
+	_ask.content.add_child(Illustration.banner("markets", "calendar", DS.GOLD, 96.0))
+	_ask.header("calendar", DS.GOLD, "Daily challenge · %s" % str(sc.date), World.map.names[i])
+	_ask.body("%s: %s You have %d years. Your legacy grade is your score; everyone gets the same country and twist today." % [
+		str(sc.twist.title), str(sc.twist.desc), Daily.YEARS])
+	var b := Daily.best()
+	if b != "":
+		var bl := Label.new()
+		bl.theme_type_variation = &"Subhead"
+		bl.text = "Your best today: %s" % b
+		bl.add_theme_color_override(&"font_color", DS.GOLD)
+		_ask.content.add_child(bl)
+	_ask.choice("Play today's challenge", "", &"PrimaryButton", func() -> void:
+		Haptics.success()
+		_ask.dismiss()
+		Daily.start()
+		Router.goto(NEXT))
+	_ask.choice("Not now", "", &"GhostButton", func() -> void: _ask.dismiss())
 
 
 func _show_challenges() -> void:

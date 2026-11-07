@@ -77,6 +77,7 @@ var weather: Array = []
 var cheats_used := false
 var god_mode := false               # cheat: you never lose power
 var sandbox := false                # started from the sandbox editor
+var daily := ""                     # daily challenge date ("" = normal game)
 var no_events := false              # sandbox option: no random events
 var rng := RandomNumberGenerator.new()
 
@@ -151,6 +152,7 @@ func new_game(country_index: int, seed_value: int = -1, level: String = "") -> v
 	god_mode = false
 	sandbox = false
 	no_events = false
+	daily = ""
 	var c := me()
 	c.treasury *= Difficulty.treasury_mult()
 	start_snapshot = {"year": year, "gdp": c.gdp, "debt_pct": c.debt_pct(), "approval": c.approval,
@@ -289,6 +291,9 @@ func _after_month(my_crisis: bool) -> void:
 	if not running:
 		return
 	_check_challenge()
+	if Daily.over():
+		finish("daily")
+		return
 	var what := politics.monthly()
 	if what.begins_with("end:") and god_mode:
 		what = ""
@@ -404,7 +409,7 @@ func summary(reason: String = "") -> Dictionary:
 		"happiness_end": c.happiness, "events": director.log.size(), "trend": c.trend,
 		"projects": Projects.count_done(c) - c.projects.values().filter(func(p: Dictionary) -> bool:
 			return bool(p.get("start", false))).size(),
-		"cheats": cheats_used, "goals_done": Goals.done_count(),
+		"cheats": cheats_used, "goals_done": Goals.done_count(), "daily": daily,
 		"laws": c.laws.keys().filter(func(k: String) -> bool:
 			return Laws.is_active(c, k) and not c.laws_start.has(k)).size()}
 
@@ -513,7 +518,7 @@ func to_dict() -> Dictionary:
 		"months_played": months_played, "countries": cs, "relations": rel, "history": hist,
 		"rng_state": str(rng.state), "dip": dip, "start": start_snapshot, "headlines_seen": headlines_seen,
 		"last_rating": last_rating, "news": news, "challenge": challenge, "feed": feed,
-		"difficulty": difficulty, "weather": weather, "cheats_used": cheats_used, "god_mode": god_mode, "sandbox": sandbox, "no_events": no_events,
+		"difficulty": difficulty, "weather": weather, "cheats_used": cheats_used, "god_mode": god_mode, "sandbox": sandbox, "no_events": no_events, "daily": daily,
 		"director": director.to_dict(), "politics": politics.to_dict(), "markets": markets.to_dict(), "cabinet": cabinet.to_dict(),
 	}
 
@@ -568,6 +573,7 @@ func load_dict(d: Dictionary) -> bool:
 	god_mode = bool(d.get("god_mode", false))
 	sandbox = bool(d.get("sandbox", false))
 	no_events = bool(d.get("no_events", false))
+	daily = str(d.get("daily", ""))
 	# Saves from before projects existed (v1, and v2 files written by 0.13.0 from
 	# them): give each country its real starting infrastructure.
 	for c in countries:
