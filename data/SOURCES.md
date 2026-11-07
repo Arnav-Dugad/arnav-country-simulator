@@ -54,6 +54,11 @@ Snapshot built **2026-11-07**. Each value is the **most recent available year
 The detail fields above (health … voice) shape budgets, projects, events and traits. Missing values use
 regional medians and are listed per country in `estimated_detail`.
 
+Country profiles (`data/country_profiles.json`, 125 countries: tagline, exports, partners, friends,
+rivals, natural risks, strengths, challenges, food imports, one fact) were researched in November 2026
+from the CIA World Factbook, OEC, WTO / UN Comtrade summaries and World Bank country pages, with
+recent geopolitics checked by web search. Rivalries and alliances reflect late 2026 and will date.
+
 Systems of government (sim/government.gd) are hand-curated from national constitutions (term lengths),
 the EIU Democracy Index 2024 and Freedom House 2025 (free vs. managed elections), and news of the
 2020–2025 coups. Landlocked and island lists (autoload/world.gd) follow the UN lists.

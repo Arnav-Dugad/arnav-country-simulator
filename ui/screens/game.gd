@@ -535,7 +535,10 @@ func _show_tip(t: Dictionary) -> void:
 		return
 	_modal = ModalCard.new()
 	add_child(_modal)
-	_modal.header(str(t.icon), DS.RED if int(t.level) == 2 else DS.ORANGE, "Advisor", str(t.title))
+	var mn: Dictionary = Game.cabinet.minister_for_page(str(t.page))
+	var who := "%s minister %s" % [Cabinet.POST_TITLES.get(str(mn.post), ""), str(mn.m.get("name", ""))] if not mn.m.is_empty() else "Advisor"
+	_modal.content.add_child(Illustration.make(str(Illustration.ICON_ART.get(str(t.icon), "city")), DS.RED if int(t.level) == 2 else DS.ORANGE, 92.0))
+	_modal.header(str(t.icon), DS.RED if int(t.level) == 2 else DS.ORANGE, who, str(t.title))
 	_modal.body(str(t.detail))
 	var page := str(t.page)
 	var names := {"economy": "Open Economy", "budget": "Open Budget", "build": "Open Build", "diplomacy": "Open World", "laws": "Open Laws"}
@@ -570,8 +573,14 @@ func _on_month() -> void:
 		_sheet_title.text = _pages[_current].title
 	if _mode != MapModes.Mode.POLITICAL and Game.month % 3 == 1:
 		map.set_colors(_colors_for(_mode))
-	dock.set_badge(Advisor.health(Game.me()) == 0, "economy")
+	var health := Advisor.health(Game.me())
+	dock.set_badge(health == 0, "economy")
 	_refresh_next()
+	# Music follows the mood of the nation.
+	var tension: float = [0.85, 0.35, 0.0][health]
+	if Game.me().stability < 25.0 or Game.director.inbox.any(func(e: Dictionary) -> bool: return bool(e.get("critical", false))):
+		tension = 1.0
+	Audio.mood(tension)
 
 
 ## Headlines and the yearly review: quiet by default (Inbox + pill).
@@ -602,6 +611,7 @@ func _show_year_review(r: Dictionary) -> void:
 	_refresh_next()
 	_modal = ModalCard.new()
 	add_child(_modal)
+	_modal.content.add_child(Illustration.make("city", DS.GOLD, 96.0))
 	_modal.header("calendar", DS.GOLD, "%d in review" % int(r.year), str(r.title))
 	for row in r.rows:
 		var line := HBoxContainer.new()
@@ -709,6 +719,7 @@ func _show_event(ev: Dictionary) -> void:
 	_modal = ModalCard.new()
 	add_child(_modal)
 	var other := int(ev.get("other", -1))
+	_modal.content.add_child(Illustration.make(Illustration.for_event(ev), GameEvents.tint(str(ev.tint)), 104.0))
 	_modal.header(str(ev.icon), GameEvents.tint(str(ev.tint)),
 		str(ev.get("date", Game.date_text())) + ("  ·  " + World.map.names[other] if other >= 0 else ""), str(ev.title))
 	_modal.body(str(ev.body))
@@ -742,6 +753,7 @@ func _show_campaign() -> void:
 	Haptics.select(false)
 	_modal = ModalCard.new()
 	add_child(_modal)
+	_modal.content.add_child(Illustration.make("ballot", DS.GOLD, 96.0))
 	_modal.header("vote", DS.GOLD, "Election in %d months" % Game.politics.months_to_election, "Plan your campaign")
 	_modal.body("Pick two themes. Campaigning on your strengths wins votes; a weak record can backfire.")
 	var c := Game.me()
@@ -800,8 +812,9 @@ func _show_election(r: Dictionary) -> void:
 	_modal = ModalCard.new()
 	add_child(_modal)
 	_modal.set_dim(0.25)
+	_modal.content.add_child(Illustration.make("ballot", DS.GOLD, 96.0))
 	_modal.header("vote", DS.GOLD, "Election night %d" % int(r.year), "Counting the votes…")
-	var title: Label = _modal.content.get_child(0).get_child(1).get_child(1)
+	var title: Label = _modal.content.get_child(1).get_child(1).get_child(1)
 	var share := AnimatedNumber.new()
 	share.theme_type_variation = &"LargeTitle"
 	share.formatter = func(v: float) -> String: return String.num(v, 1) + "%"
@@ -869,6 +882,7 @@ func _show_army_warning() -> void:
 	Haptics.warning(false)
 	_modal = ModalCard.new()
 	add_child(_modal)
+	_modal.content.add_child(Illustration.make("shield", DS.RED, 96.0))
 	_modal.header("shield", DS.RED, "Critical", "The generals are restless")
 	_modal.body("Officers grumble about budget cuts and disorder. If nothing changes, they may remove you.")
 	var c := Game.me()

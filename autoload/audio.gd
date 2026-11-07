@@ -14,6 +14,11 @@ var _pool: Array[AudioStreamPlayer] = []
 var _next := 0
 var _last := {}
 var _music: AudioStreamPlayer
+## Adaptive music: a tense loop of the same length plays in sync and crossfades in
+## when your country is in trouble (see mood()).
+var _tense: AudioStreamPlayer
+var _mood := 0.0          # 0 calm .. 1 tense
+var _mood_tween: Tween
 var _duck_tween: Tween
 var _sfx_bus := -1
 var _music_bus := -1
@@ -37,6 +42,12 @@ func _ready() -> void:
 	_music.stream = load("res://assets/audio/music_calm.wav")
 	_music.volume_db = -60.0
 	add_child(_music)
+	_tense = AudioStreamPlayer.new()
+	_tense.bus = &"Music"
+	if ResourceLoader.exists("res://assets/audio/music_tense.wav"):
+		_tense.stream = load("res://assets/audio/music_tense.wav")
+	_tense.volume_db = -60.0
+	add_child(_tense)
 	Settings.changed.connect(_on_setting)
 
 
@@ -72,15 +83,43 @@ func music_start() -> void:
 		return
 	_music.volume_db = -40.0
 	_music.play()
-	create_tween().tween_property(_music, "volume_db", MUSIC_DB, 3.0).set_trans(Tween.TRANS_SINE)
+	if _tense.stream:
+		_tense.volume_db = -60.0
+		_tense.play()
+	create_tween().tween_property(_music, "volume_db", _calm_db(), 3.0).set_trans(Tween.TRANS_SINE)
 
 
 func music_stop() -> void:
 	if not _music.playing:
 		return
-	var t := create_tween()
+	var t := create_tween().set_parallel(true)
 	t.tween_property(_music, "volume_db", -50.0, 1.2)
-	t.tween_callback(_music.stop)
+	t.tween_property(_tense, "volume_db", -60.0, 1.2)
+	t.chain().tween_callback(func() -> void:
+		_music.stop()
+		_tense.stop())
+
+
+## 0 = all is well, 1 = crisis. The two loops crossfade over a few seconds.
+func mood(tension: float) -> void:
+	tension = clampf(tension, 0.0, 1.0)
+	if absf(tension - _mood) < 0.05 or not _music.playing:
+		_mood = tension
+		return
+	_mood = tension
+	if _mood_tween:
+		_mood_tween.kill()
+	_mood_tween = create_tween().set_parallel(true).set_trans(Tween.TRANS_SINE)
+	_mood_tween.tween_property(_music, "volume_db", _calm_db(), 5.0)
+	_mood_tween.tween_property(_tense, "volume_db", _tense_db(), 5.0)
+
+
+func _calm_db() -> float:
+	return MUSIC_DB + linear_to_db(maxf(1.0 - _mood, 0.02))
+
+
+func _tense_db() -> float:
+	return MUSIC_DB + linear_to_db(maxf(_mood, 0.02)) if _tense.stream else -60.0
 
 
 ## Lowers the music while something important is on screen (events, elections).

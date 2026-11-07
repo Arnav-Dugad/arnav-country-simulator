@@ -75,6 +75,8 @@ var challenge: Dictionary = {}
 var weather: Array = []
 var cheats_used := false
 var god_mode := false               # cheat: you never lose power
+var sandbox := false                # started from the sandbox editor
+var no_events := false              # sandbox option: no random events
 var rng := RandomNumberGenerator.new()
 
 # --- Compatibility properties (the flat API the UI and tools use) ------------
@@ -146,6 +148,8 @@ func new_game(country_index: int, seed_value: int = -1, level: String = "") -> v
 	weather = []
 	cheats_used = false
 	god_mode = false
+	sandbox = false
+	no_events = false
 	var c := me()
 	c.treasury *= Difficulty.treasury_mult()
 	start_snapshot = {"year": year, "gdp": c.gdp, "debt_pct": c.debt_pct(), "approval": c.approval,
@@ -478,7 +482,7 @@ func to_dict() -> Dictionary:
 		"months_played": months_played, "countries": cs, "relations": rel, "history": hist,
 		"rng_state": str(rng.state), "dip": dip, "start": start_snapshot, "headlines_seen": headlines_seen,
 		"last_rating": last_rating, "news": news, "challenge": challenge, "feed": feed,
-		"difficulty": difficulty, "weather": weather, "cheats_used": cheats_used, "god_mode": god_mode,
+		"difficulty": difficulty, "weather": weather, "cheats_used": cheats_used, "god_mode": god_mode, "sandbox": sandbox, "no_events": no_events,
 		"director": director.to_dict(), "politics": politics.to_dict(), "markets": markets.to_dict(), "cabinet": cabinet.to_dict(),
 	}
 
@@ -531,6 +535,8 @@ func load_dict(d: Dictionary) -> bool:
 	cabinet.load_dict(d.get("cabinet", {}), rng)
 	cheats_used = bool(d.get("cheats_used", false))
 	god_mode = bool(d.get("god_mode", false))
+	sandbox = bool(d.get("sandbox", false))
+	no_events = bool(d.get("no_events", false))
 	# Saves from before projects existed (v1, and v2 files written by 0.13.0 from
 	# them): give each country its real starting infrastructure.
 	for c in countries:

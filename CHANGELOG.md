@@ -2,6 +2,34 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.15.0] - 2026-11-07
+
+**A world that works together**
+- **World markets**: oil and food prices rise and fall. Oil exporters gain when prices jump, importers pay more, and food spikes hit poorer countries hardest. See them on the World page
+- **Booms and busts spread**: when the world economy or your region slows down, open economies feel it, and your trade partners pass on their good and bad times
+- **Treaties & blocs**: the Paris climate agreement, the EU, NATO, ASEAN, Mercosur, the African Free Trade Area, USMCA, the Gulf council, BRICS and more, with their real members. Apply to join or leave; members react. Blocs grow over time
+- **UN votes and summits**: each September a UN vote, each November a summit. How you vote warms or cools whole camps of countries
+
+**Your government**
+- **A cabinet** of four ministers with traits (Technocrat, Reformer, Diplomat, Builder, Hawk…). Reshuffle them; their advice now comes in their name
+- **Your profile**: add your name, party and colour. They appear in headlines, on election night and on your legacy card
+
+**Every country, deeper** (researched for 125 countries)
+- A tagline, main exports, trading partners, friends and rivals, natural risks, strengths and challenges, plus one key fact on every country card
+- Strengths and challenges change how things work: tech hubs get more from research, red tape slows laws and building, stable institutions soften shocks, and events follow each country's real risks
+
+**See more, understand more**
+- **Compare** any country with yours, side by side
+- Charts: pick 1 year, 5 years or all; see your decisions as dots on the line; and a dashed 12-month forecast
+- **Illustrations**: calm animated scenes on events, decisions, elections, tips and page headers
+- **Adaptive music** that turns tense when your country is in trouble and calm when it thrives
+
+**Easier to use**
+- A clean new Settings: your profile on top, then short groups that open their own pages
+- **Landscape mode**: turn your phone sideways for a wide map with panels on the side (Settings > Display)
+- **Sandbox**: start any country from any situation (growth, inflation, debt, approval, system of government, no random events)
+- **Save conflicts**: if this phone and the cloud both changed a save, you choose which to keep (or keep both)
+
 ## [0.14.2] - 2026-11-07
 
 - **India's borders now follow India's official map**: all of Jammu & Kashmir and Ladakh, including Gilgit-Baltistan and Aksai Chin, are shown as part of India

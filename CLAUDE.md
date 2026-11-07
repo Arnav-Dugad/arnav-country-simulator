@@ -16,7 +16,9 @@ autoload/      Global singletons (Settings, Haptics, Screen, Router, DevTools, G
 sim/           Simulation. ALL formulas + tweakable constants live in sim/economy.gd.
                Session modules owned by the Game autoload: calendar.gd, world_ai.gd,
                event_director.gd (decision inbox), politics.gd (elections/reviews/unrest/coups).
-               government.gd (system per country), projects.gd (Build), difficulty.gd, laws.gd, events.gd …
+               government.gd (system per country), projects.gd (Build), difficulty.gd, laws.gd, events.gd,
+               world_markets.gd (oil/food, contagion), treaties.gd (blocs, UN camps), cabinet.gd,
+               profiles.gd (data/country_profiles.json: researched depth; multipliers, never baseline shifts)
 map/           World map rendering, camera/gestures (globe morph: shaders/globe.gdshaderinc), map modes,
                labels, overlays (trade arcs, weather, project pins)
 ui/theme/      tokens.gd (DS class: colors, radii, spacing, type, motion) + generated main_theme.tres

@@ -17,6 +17,7 @@ var _cabinet: VBoxContainer
 
 
 func _build() -> void:
+	add_child(Illustration.make("gavel", DS.ACCENT, 92.0))
 	_cabinet = section("Your cabinet")
 	_summary = note("")
 	_filter = SegmentedControl.new().setup(["All", "In force", "Not yet"], [], 0)

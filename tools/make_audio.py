@@ -213,10 +213,64 @@ def music():
     write("music_calm", out, sr=sr, peak=0.55)
 
 
+def music_tense():
+    """64-second tense loop, same length as music_calm so they crossfade in sync:
+    minor pads (Am, F, Dm, E), a slow low pulse like a heartbeat, few high notes."""
+    random.seed(7)
+    sr = 22050
+    length = 64.0
+    n = int(sr * length)
+    out = [0.0] * n
+    chords = [(45, 52, 57, 60, 64), (41, 48, 53, 57, 60), (38, 45, 50, 53, 57), (40, 47, 52, 56, 59)]
+    seg = length / len(chords)
+    for ci, chord in enumerate(chords):
+        start = ci * seg
+        for k, m in enumerate(chord):
+            f = note(m)
+            det = (1.0 + 0.004 * (k % 2 * 2 - 1))
+            s0 = int((start - 2.0) * sr)
+            for i in range(int((seg + 4.0) * sr)):
+                t = i / sr
+                p = t / (seg + 4.0)
+                e = math.sin(math.pi * p) ** 2 * 0.085
+                v = (math.sin(TAU * f * t) + 0.55 * math.sin(TAU * f * det * t + 0.4)
+                     + 0.08 * math.sin(TAU * f * 3 * t)) * e
+                out[(s0 + i) % n] += v
+    # Heartbeat-like low pulse every 1.6 s (two soft thumps).
+    beat = 1.6
+    t = 0.0
+    while t < length:
+        for off, amp in ((0.0, 0.32), (0.22, 0.2)):
+            s0 = int((t + off) * sr)
+            for i in range(int(0.35 * sr)):
+                tt = i / sr
+                e = math.exp(-tt / 0.07) * amp
+                out[(s0 + i) % n] += math.sin(TAU * (55.0 - 25.0 * tt) * tt) * e
+        t += beat
+    scale = [69, 72, 74, 76, 79]
+    t = 3.0
+    while t < length - 1.0:
+        f = note(random.choice(scale))
+        s0 = int(t * sr)
+        for i in range(int(3.0 * sr)):
+            tt = i / sr
+            e = min(1.0, tt / 0.004) * math.exp(-tt / 1.2) * 0.14
+            out[(s0 + i) % n] += math.sin(TAU * f * tt) * e
+        t += random.choice([4.0, 5.0, 6.0])
+    out = lowpass(out, 2400, sr)
+    out = reverb(out, sr, mix=0.4, room=0.88)
+    write("music_tense", out, sr=sr, peak=0.5)
+
+
 if __name__ == "__main__":
+    import sys
     os.makedirs(OUT, exist_ok=True)
+    if "--tense-only" in sys.argv:
+        music_tense()
+        raise SystemExit
     sfx()
     music()
+    music_tense()
     with open(os.path.join(OUT, "LICENSE.txt"), "w", encoding="utf-8") as f:
         f.write("All audio in this folder is original, synthesized by tools/make_audio.py for\n"
                 "Arnav Country Simulator. Same license as the game's code.\n")

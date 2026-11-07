@@ -72,6 +72,9 @@ func _build_header() -> void:
 	var surprise := AppButton.make("Surprise me", &"Chip", "sparkles")
 	surprise.pressed.connect(_surprise)
 	chips.add_child(surprise)
+	var sandbox := AppButton.make("Sandbox", &"Chip", "wand-sparkles")
+	sandbox.pressed.connect(_sandbox)
+	chips.add_child(sandbox)
 	for g in GROUPS:
 		var c := AppButton.make(g, &"ChipSelected" if g == _group else &"Chip")
 		c.pressed.connect(_on_chip.bind(g))
@@ -271,6 +274,86 @@ func _surprise() -> void:
 	_select(i, true)
 	await get_tree().process_frame
 	_scroll.ensure_control_visible(_rows[i])
+
+
+## Sandbox: start the selected country from any situation you like.
+func _sandbox() -> void:
+	if _selected < 0 or is_instance_valid(_ask):
+		return
+	var i := _selected
+	var s: Dictionary = World.stats[i]
+	Haptics.tap()
+	_ask = ModalCard.new()
+	add_child(_ask)
+	_ask.content.add_child(Illustration.make("tech", DS.PURPLE, 84.0))
+	_ask.header("wand-sparkles", DS.PURPLE, "Sandbox · %s" % World.map.names[i], "Set the scene")
+	_ask.body("Start from any situation. Sandbox games don't earn achievements.")
+	var sl := {}
+	var add := func(key: String, t: String, lo: float, hi: float, st: float, v: float, fmt: Callable) -> void:
+		var a := AppSlider.new().setup(t, lo, hi, st, v)
+		a.formatter = fmt
+		_ask.content.add_child(a)
+		sl[key] = a
+	var pct := func(v: float) -> String: return String.num(v, 1) + "%"
+	add.call("growth", "Growth", -8.0, 12.0, 0.5, snappedf(float(s.get("gdp_growth", 2.0)), 0.5), pct)
+	add.call("inflation", "Inflation", -2.0, 80.0, 0.5, snappedf(float(s.get("inflation", 3.0)), 0.5), pct)
+	add.call("unemployment", "Unemployment", 1.0, 40.0, 0.5, snappedf(float(s.get("unemployment", 6.0)), 0.5), pct)
+	add.call("debt", "Debt (% of GDP)", 0.0, 250.0, 5.0, snappedf(float(s.get("debt_pct", 50.0)), 5.0), func(v: float) -> String: return String.num(v, 0) + "%")
+	add.call("approval", "Approval", 5.0, 95.0, 1.0, 50.0, func(v: float) -> String: return String.num(v, 0) + "%")
+	add.call("stability", "Stability", 5.0, 95.0, 1.0, 50.0, func(v: float) -> String: return String.num(v, 0))
+	add.call("treasury", "Cash in the treasury (months of spending)", 0.0, 24.0, 1.0, 1.0, func(v: float) -> String: return String.num(v, 0) + " mo")
+	var gov_kinds := ["", "presidential", "parliamentary", "one_party", "monarchy", "military"]
+	var gov_names := ["Real", "Presidential", "Parliament", "One-party", "Monarchy", "Military"]
+	var gl := Label.new()
+	gl.theme_type_variation = &"Footnote"
+	gl.text = "System of government"
+	_ask.content.add_child(gl)
+	var gov := SegmentedControl.new().setup(gov_names.slice(0, 3), [], 0)
+	gov.plain = true
+	gov.fill = true
+	gov.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_ask.content.add_child(gov)
+	var gov2 := SegmentedControl.new().setup(gov_names.slice(3), [], 0)
+	gov2.plain = true
+	gov2.fill = true
+	gov2.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_ask.content.add_child(gov2)
+	var pick := {"k": 0}
+	gov.changed.connect(func(k: int) -> void: pick.k = k)
+	gov2.changed.connect(func(k: int) -> void: pick.k = 3 + k)
+	var calm := AppToggle.new().setup("No random events", false, "sparkles")
+	_ask.content.add_child(calm)
+	var god := AppToggle.new().setup("Never lose power", false, "crown")
+	_ask.content.add_child(god)
+	_ask.choice("Start sandbox", "", &"PrimaryButton", func() -> void:
+		Haptics.success()
+		_ask.dismiss()
+		Game.new_game(i, -1, "relaxed")
+		Game.cheats_used = true
+		Game.sandbox = true
+		Game.god_mode = god.on
+		Game.no_events = calm.on
+		var kind: String = gov_kinds[int(pick.k)]
+		if kind != "":
+			Game.politics.kind_override = kind
+			Game.politics.reset(Game.player)
+			Game.politics.kind_override = kind
+		var c := Game.me()
+		c.growth = float(sl.growth.value)
+		c.growth_anchor = c.growth
+		c.inflation = float(sl.inflation.value)
+		c.core_inflation = c.inflation
+		c.unemployment = float(sl.unemployment.value)
+		c.u_natural = c.unemployment
+		c.debt = c.gdp * float(sl.debt.value) / 100.0
+		c.approval = float(sl.approval.value)
+		c.stability = float(sl.stability.value)
+		Simulation.update_finances(c)
+		c.treasury = c.spending / 12.0 * float(sl.treasury.value)
+		c.call(&"_capture_base")    # the new situation is the starting point
+		c.refresh_explainer()
+		Router.goto(NEXT))
+	_ask.choice("Back", "", &"GhostButton", func() -> void: _ask.dismiss())
 
 
 ## Lead: one calm question first, how hard should it be?

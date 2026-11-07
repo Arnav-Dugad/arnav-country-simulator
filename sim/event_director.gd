@@ -55,6 +55,8 @@ func monthly(my_crisis: bool) -> void:
 			if not e.is_empty():
 				add(GameEvents.instance(e, int(item.get("other", -1))))
 			return
+	if Game.no_events:
+		return
 	var gap := GameEvents.MIN_GAP_MONTHS
 	if Game.months_played - last_event_month >= gap and Game.rng.randf() < Difficulty.event_chance():
 		var ev := GameEvents.roll(Game.rng)

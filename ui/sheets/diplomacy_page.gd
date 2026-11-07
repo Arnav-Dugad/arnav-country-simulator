@@ -17,6 +17,7 @@ func _init() -> void:
 
 
 func _build() -> void:
+	add_child(Illustration.make("globe", DS.TEAL, 92.0))
 	var rank_head := Label.new()
 	rank_head.theme_type_variation = &"Overline"
 	rank_head.text = "YOUR WORLD RANK"
@@ -109,14 +110,20 @@ func _fill_markets() -> void:
 		var t := Label.new()
 		t.theme_type_variation = &"Headline"
 		t.text = "%s  %s" % [r[0], r[2]]
+		t.clip_text = true
+		t.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		t.custom_minimum_size = Vector2(20, 0)
 		col.add_child(t)
 		var gap := float(r[3])
 		var sub := Label.new()
 		sub.theme_type_variation = &"Caption"
+		sub.clip_text = true
+		sub.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		sub.custom_minimum_size = Vector2(20, 0)
 		sub.text = "Normal" if absf(gap) < 0.05 else ("%d%% above normal" % roundi(gap * 100.0) if gap > 0 else "%d%% below normal" % roundi(-gap * 100.0))
 		col.add_child(sub)
 		var ch := LineChart.new()
-		ch.custom_minimum_size = Vector2(96, 40)
+		ch.custom_minimum_size = Vector2(72, 40)
 		ch.line_width = 1.8
 		ch.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		ch.minimal = true
