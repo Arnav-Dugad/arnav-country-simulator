@@ -35,6 +35,9 @@ jobs:
 
       - name: Import (fails on script errors)
         run: |
+          # First pass builds the import cache (a cold cache logs harmless load-order
+          # errors for the theme font); the second pass must be clean.
+          ~/godot/godot --headless --path . --import > /dev/null 2>&1 || true
           ~/godot/godot --headless --path . --import 2>&1 | tee import.log || true
           if grep -E "SCRIPT ERROR|Parse Error|Compile Error" import.log; then exit 1; fi
 
