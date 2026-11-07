@@ -2,6 +2,11 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.41.1] - 2026-11-08
+
+- Cleaner map outlines: the white selection outline and your country's gold border no longer fray into "hairs" and specks along ragged coasts (Baja California, the Gulf coast, Alaska)
+- During a state visit the country panel steps aside so you can watch the flight
+
 ## [0.41.0] - 2026-11-08
 
 - **State visits.** Once a year, fly to another country and meet its leader: a business delegation, security talks, or culture and people. Their personality decides how it lands (traders love business, hawks want security, peacemakers warm to culture). A business trip can end with a trade deal signed on the spot

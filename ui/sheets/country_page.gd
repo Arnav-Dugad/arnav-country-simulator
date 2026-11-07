@@ -293,6 +293,8 @@ func _visit(i: int) -> void:
 			m.dismiss()
 			var gs := get_tree().current_scene
 			if gs and "map" in gs and gs.map != null:
+				if "sheet" in gs and gs.sheet != null:
+					gs.sheet.snap_to(BottomSheet.Snap.PEEK)     # step aside so the flight shows
 				gs.map.show_flight(Game.player, i)
 			_status.text = str(r.line)
 			_status.add_theme_color_override(&"font_color", DS.GREEN if float(r.taste) >= 1.0 else DS.ORANGE)

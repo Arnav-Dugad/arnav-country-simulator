@@ -283,13 +283,30 @@ func _set_blend(v: float) -> void:
 func set_player(i: int) -> void:
 	player = i
 	_fill_mat.set_shader_parameter(&"player_index", float(i))
-	var rings: Array[PackedVector2Array] = []
-	if i >= 0:
-		for r in _by_country[i]:
-			rings.append(data.ring_points[r])
-	_player_line.mesh = MapMeshes.line_mesh(rings) if not rings.is_empty() else null
-	_glow_bucket = -999
+	_glow_bucket = -999       # _rebuild_glow also rebuilds the player outline
 	_update_line_widths()
+
+
+## A crisp outline for one country, simplified to the current zoom: sub-pixel
+## zig-zags and hairpin inlets would otherwise fan the stroke into bright
+## "hairs" along ragged coasts (Baja California, fjords, the Gulf coast).
+const OUTLINE_SIMPLIFY_PX := 0.6
+const OUTLINE_SPIKE_PX := 2.5
+const OUTLINE_MIN_ISLAND_PX := 3.0
+
+
+func _outline_mesh(i: int) -> ArrayMesh:
+	if i < 0:
+		return null
+	var px := 1.0 / pow(2.0, round(log(zoom) / log(2.0) * 2.0) * 0.5)   # world units per pixel, half-octave steps
+	var rings: Array[PackedVector2Array] = []
+	for r in _by_country[i]:
+		var pts := Geo.remove_spikes(Geo.simplify_ring(data.ring_points[r], OUTLINE_SIMPLIFY_PX * px),
+			OUTLINE_SPIKE_PX * px, -0.5)
+		# Islets smaller than a few pixels keep their fill but get no outline (no specks).
+		if pts.size() >= 3 and absf(Geo.signed_area(pts)) > OUTLINE_MIN_ISLAND_PX * OUTLINE_MIN_ISLAND_PX * px * px:
+			rings.append(pts)
+	return MapMeshes.line_mesh(rings) if not rings.is_empty() else null
 
 
 ## The glow is wide, so it is built from an outline simplified to the current
@@ -299,6 +316,9 @@ func _rebuild_glow() -> void:
 	if bucket == _glow_bucket:
 		return
 	_glow_bucket = bucket
+	_player_line.mesh = _outline_mesh(player)
+	if _sel_root.visible and selected >= 0:
+		_sel_line.mesh = _outline_mesh(selected)
 	if player < 0:
 		_glow.mesh = null
 		return
@@ -348,13 +368,10 @@ func select(i: int, focus: bool = false) -> void:
 		selection_changed.emit(i)
 		return
 	var fill := MapMeshes.country_fill_mesh(data, i)
-	var rings: Array[PackedVector2Array] = []
-	for r in _by_country[i]:
-		rings.append(data.ring_points[r])
 	_sel_shadow.mesh = fill
 	_sel_fill.mesh = fill
 	_sel_fill.modulate = country_color(i).lightened(0.12)
-	_sel_line.mesh = MapMeshes.line_mesh(rings)
+	_sel_line.mesh = _outline_mesh(i)
 	# Raise around the country's visual centre.
 	var c := data.bbox(i).get_center()
 	_sel_root.position = c
