@@ -2,6 +2,10 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.33.1] - 2026-11-08
+
+- New headlines for record lows in unemployment and record highs in happiness during your time in office
+
 ## [0.33.0] - 2026-11-08
 
 **Fairer public finances** (found by playing 15-year games)

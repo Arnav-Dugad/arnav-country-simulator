@@ -48,6 +48,21 @@ static func headline() -> Dictionary:
 		Game.last_rating = r
 		cands.push_front(_h("rating_%s_%d_%d" % [r, Game.year, Game.month],
 			"Credit rating %s to %s" % ["upgraded" if up else "downgraded", r], "landmark", up))
+	# Records against the real world: the best this country has done in modern data.
+	# (Starting values are close to records for most; beating them means a lot.)
+	var happy: PackedFloat32Array = h.get("happiness", PackedFloat32Array())
+	if happy.size() > 24:
+		var best_h := -INF
+		for k in happy.size() - 1:
+			best_h = maxf(best_h, happy[k])
+		if c.happiness > best_h + 0.3 and c.happiness > float(c.base.happiness) + 4.0:
+			cands.append(_h("happy_rec_%d" % int(c.happiness), "People are the happiest they've been in your time in office", "heart", true))
+	if u.size() > 24 and c.unemployment < float(c.base.unemployment) - 1.0:
+		var low_u := INF
+		for k in u.size() - 1:
+			low_u = minf(low_u, u[k])
+		if c.unemployment < low_u - 0.05:
+			cands.append(_h("u_rec_%d" % int(c.unemployment * 4.0), "Unemployment at a record low: %s" % DS.pct(c.unemployment), "users", true))
 	if Government.has_elections(Game.player) and Game.months_to_election == 6:
 		cands.append(_h("elect6_%d" % Game.year, "Six months until the election", "vote", true))
 	for cand in cands:
