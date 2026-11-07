@@ -149,7 +149,7 @@ The basics should feel finished before anything new is added.
 
 ### A world that lives
 - [ ] **AI-to-AI relations and blocs**, a trade network built from neighbours and real trade-partner seeds, and **recessions that spread** through trade links.
-- [ ] **AI elections and leader changes**, which shift that country's relations with you, plus a world news feed of notable AI moves.
+- [x] **AI elections and leader changes**, which shift that country's relations with you, plus a world news feed of notable AI moves.
 - [ ] **Diplomacy 2.0:**
   - **treaties:** climate accord, free-trade bloc, defence pact;
   - **UN votes:** quick yes, no or abstain cards with consequences;
@@ -159,7 +159,7 @@ The basics should feel finished before anything new is added.
 
 ### Goals
 - [ ] **Scenarios**, for example: "Tame Argentina's inflation below 10% in 4 years", "Make India a $10T economy by 2040", "Win three terms in Japan", "Balance Italy's budget".
-- [ ] **30 achievements:** quiet glass toasts and a gallery of line-art badges.
+- [x] (22 achievements in v0.9.0) **30 achievements:** quiet glass toasts and a gallery of line-art badges.
 - [x] **Legacy score** at the end of a term (grade A+ to F) from growth, well-being, stability, debt and elections, with a breakdown.
 - [ ] **Difficulty:** Relaxed, Standard or Realistic, affecting election thresholds, event severity, AI hostility and political capital income.
 

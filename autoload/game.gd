@@ -108,7 +108,8 @@ func new_game(country_index: int, seed_value: int = -1) -> void:
 	_low_stability_months = 0
 	var c := me()
 	start_snapshot = {"year": year, "gdp": c.gdp, "debt_pct": c.debt_pct(), "approval": c.approval,
-		"happiness": c.happiness}
+		"happiness": c.happiness, "inflation": c.inflation, "growth": c.growth,
+		"unemployment": c.unemployment, "balance": c.balance, "rating": c.rating()}
 	_record_history()
 	me().refresh_explainer()
 	running = true

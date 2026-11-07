@@ -2,6 +2,17 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.9.0] - 2026-11-07
+
+**A world that lives**
+- Other countries hold their own elections. New leaders can warm to you or turn cold
+- World news: recessions, booms, defaults and new leaders among your partners, neighbours and the big economies, in the Events tab with flags (big stories pop up)
+
+**Achievements**
+- 22 achievements to earn across all your games, from "Lawmaker" to "Dynasty" and "Triple A"
+- Each must be earned by improving on where your country started: no free trophies
+- Find them in Settings > Achievements
+
 ## [0.8.0] - 2026-11-07
 
 - **Your legacy**: when your term ends you get a grade from A+ to F, with your strongest and weakest areas

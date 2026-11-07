@@ -214,6 +214,7 @@ static func send_aid(i: int) -> float:
 	change_relation(i, gain)
 	_d().last_aid[str(i)] = Game.months_played
 	_d().aid_total = float(_d().aid_total) + amount
+	Achievements.bump("aid")
 	return gain
 
 

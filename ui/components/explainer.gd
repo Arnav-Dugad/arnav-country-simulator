@@ -42,6 +42,7 @@ static func open(parent: Node, metric_: String) -> ModalCard:
 
 
 func _ready() -> void:
+	Achievements.bump("explainer")
 	var c := Game.me()
 	var info: Dictionary = INFO[metric]
 	var now := float(c.get(metric))

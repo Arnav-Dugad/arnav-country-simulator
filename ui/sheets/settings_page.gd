@@ -5,6 +5,7 @@ extends SheetPage
 signal new_game_requested
 signal store_requested
 signal tour_requested
+signal achievements_requested
 
 var _slots_box: VBoxContainer
 var _account_box: VBoxContainer
@@ -23,7 +24,13 @@ func _build() -> void:
 	store_row.set_leading(ListRow.icon_tile("crown", DS.GOLD))
 	store_row.trailing_label.add_theme_color_override(&"font_color", DS.ORANGE)
 	store_row.tapped.connect(func() -> void: store_requested.emit())
-	section("").add_child(store_row)
+	var top := section("")
+	top.add_child(store_row)
+	var ach_row := ListRow.new().setup("Achievements", "%d of %d unlocked" % [Achievements.count(), Achievements.ALL.size()])
+	ach_row.set_leading(ListRow.icon_tile("crown", DS.ACCENT))
+	ach_row.tapped.connect(func() -> void: achievements_requested.emit())
+	top.add_child(ach_row)
+	set_meta(&"ach_row", ach_row)
 
 	var game := section("Game")
 	var save := AppButton.make("Save now", &"PrimaryButton", "download")
@@ -164,3 +171,6 @@ func _flash(text: String) -> void:
 
 func refresh() -> void:
 	_refresh_slots()
+	var ar: ListRow = get_meta(&"ach_row", null)
+	if ar:
+		ar.subtitle_label.text = "%d of %d unlocked" % [Achievements.count(), Achievements.ALL.size()]

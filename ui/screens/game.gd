@@ -7,6 +7,7 @@ const PAGES := {
 	"diplomacy": "res://ui/sheets/diplomacy_page.gd", "events": "res://ui/sheets/events_page.gd",
 	"settings": "res://ui/sheets/settings_page.gd", "country": "res://ui/sheets/country_page.gd",
 	"store": "res://ui/sheets/store_page.gd", "laws": "res://ui/sheets/laws_page.gd",
+	"achievements": "res://ui/sheets/achievements_page.gd",
 }
 
 var map: MapView
@@ -67,6 +68,11 @@ func _ready() -> void:
 	Game.election_held.connect(_show_election)
 	Game.campaign_started.connect(_show_campaign)
 	Game.world_news.connect(_on_world_news)
+	Achievements.unlocked.connect(func(id: String) -> void:
+		var a := Achievements.info(id)
+		Toast.show_headline(self, "Achievement: " + str(a.title), "crown", DS.GOLD, modes.position.y + 52.0)
+		Audio.play("success", -6.0))
+	Achievements.bump("map_view", 0)
 	Game.game_over.connect(_on_game_over)
 	Game.law_finished.connect(func(id: String, repealed: bool) -> void:
 		var l := Laws.law(id)
@@ -257,6 +263,7 @@ func _wire_page(page: String, p: SheetPage) -> void:
 		"settings":
 			p.new_game_requested.connect(_confirm_new_game)
 			p.store_requested.connect(func() -> void: open_page("store"))
+			p.achievements_requested.connect(func() -> void: open_page("achievements"))
 			p.tour_requested.connect(func() -> void:
 				sheet.close()
 				start_tour())
@@ -385,6 +392,7 @@ func _on_relations_changed() -> void:
 
 func _on_mode_changed(m: int) -> void:
 	_mode = m
+	Achievements.bump("map_view", m)
 	map.set_colors(_colors_for(m))
 
 
