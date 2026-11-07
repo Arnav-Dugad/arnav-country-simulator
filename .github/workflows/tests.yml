@@ -55,6 +55,11 @@ jobs:
             ! grep -E "SCRIPT ERROR" play.log
           done
 
+      - name: Every panel fits a 390 pt phone (100% and 130% text)
+        run: |
+          ~/godot/godot --headless --path . res://tools/layout_test.tscn 2>&1 | tee layout.log
+          grep -q "LAYOUT TEST OK" layout.log
+
       - name: Store and gesture tests
         run: |
           ~/godot/godot --headless --path . res://tools/store_test.tscn 2>&1 | tee store.log

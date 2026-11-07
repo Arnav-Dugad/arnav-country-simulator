@@ -28,6 +28,9 @@ func _ready() -> void:
 		_clicks()
 	if _args.has("shot"):
 		_shoot()
+	if _args.has("probe"):
+		var n: Node = load(String(_args["probe"])).new()
+		add_child.call_deferred(n)
 
 
 func arg(key: String, default: Variant = null) -> Variant:

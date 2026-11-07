@@ -21,6 +21,8 @@ func setup(title: String, value: bool, icon_name: String = "") -> AppToggle:
 	_title.theme_type_variation = &"Body"
 	_title.text = title
 	_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART   # wrap, never widen the page
+	_title.custom_minimum_size = Vector2(60, 0)
 	add_child(_title)
 	_switch = Control.new()
 	_switch.custom_minimum_size = Vector2(51, 31)

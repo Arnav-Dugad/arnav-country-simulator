@@ -23,6 +23,11 @@ func _init() -> void:
 
 
 func _ready() -> void:
+	# Full-width buttons (in a vertical stack) may shorten with "…" on narrow
+	# phones / large text instead of widening the page. Chips in rows keep their text.
+	if get_parent() is VBoxContainer:
+		clip_text = true
+		text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	button_down.connect(_on_down)
 	button_up.connect(_on_up)
 	pressed.connect(_on_pressed)

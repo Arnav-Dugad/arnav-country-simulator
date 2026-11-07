@@ -96,7 +96,8 @@ func _tint(k: String) -> Color:
 
 func _share_fmt(v: float, k: String) -> String:
 	var c := Game.me()
-	return "%s%%  ·  %s" % [String.num(v, 1), DS.money(c.gdp * c.spending_pct / 100.0 * v / 100.0)]
+	var amount := c.gdp * c.spending_pct / 100.0 * v / 100.0
+	return "%s%% · %s" % [String.num(v, 1), DS.money(amount, 0 if absf(amount) < 1e12 else 1)]
 
 
 func _on_share(v: float, k: String) -> void:

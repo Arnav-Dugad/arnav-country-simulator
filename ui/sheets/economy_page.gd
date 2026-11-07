@@ -57,6 +57,7 @@ func _build() -> void:
 	var hint := Label.new()
 	hint.theme_type_variation = &"Caption"
 	hint.text = "Tap a number to see what's moving it."
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	add_child(hint)
 	move_child(hint, g.get_index() + 1)
 
@@ -87,6 +88,7 @@ func _build() -> void:
 	var scrub_hint := Label.new()
 	scrub_hint.theme_type_variation = &"Caption"
 	scrub_hint.text = "Drag across the chart to see any month."
+	scrub_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	chart_box.add_child(scrub_hint)
 
 	var c := Game.me()
@@ -186,6 +188,7 @@ func _slider(parent: Control, t: String, lo: float, hi: float, step: float, v: f
 		var l := Label.new()
 		l.theme_type_variation = &"Caption"
 		l.text = hint
+		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		parent.add_child(l)
 	return s
 

@@ -46,23 +46,24 @@ func _ready() -> void:
 	_title_label.theme_type_variation = &"Subhead"
 	_title_label.text = title
 	_title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	# Titles shorten with "…" on narrow phones instead of widening the page.
+	_title_label.clip_text = true
+	_title_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	_title_label.custom_minimum_size = Vector2(48, 0)
 	head.add_child(_title_label)
+	var info: Button = null
 	if info_text != "":
-		_title_label.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-		var info := Button.new()
+		info = Button.new()
 		info.theme_type_variation = &"InfoButton"
 		info.icon = DS.icon("info")
 		info.focus_mode = Control.FOCUS_NONE
 		info.custom_minimum_size = Vector2(30, 24)
 		info.pressed.connect(_show_info)
-		head.add_child(info)
-		var spacer := Control.new()
-		spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		head.add_child(spacer)
 	_value_label = Label.new()
 	_value_label.theme_type_variation = &"StatSmall"
 	head.add_child(_value_label)
+	if info:
+		head.add_child(info)   # (i) at the far right; the title keeps the spare width
 	_track = Control.new()
 	_track.custom_minimum_size = Vector2(0, 34)
 	# PASS: touches also reach the parent ScrollContainer, so a vertical swipe that

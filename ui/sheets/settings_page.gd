@@ -43,7 +43,7 @@ func _build() -> void:
 	_slots_box.add_theme_constant_override(&"separation", 2)
 	game.add_child(_slots_box)
 	_status = note("", game)
-	var home := AppButton.make("Save and go to the main menu", &"", "chevron-left")
+	var home := AppButton.make("Main menu (saves first)", &"", "chevron-left")
 	home.pressed.connect(func() -> void:
 		SaveManager.save_slot(SaveManager.active_slot, false)
 		Game.end_session()

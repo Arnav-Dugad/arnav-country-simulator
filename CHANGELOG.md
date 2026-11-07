@@ -2,6 +2,13 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.12.1] - 2026-11-07
+
+- **Fixed: panels cut off on narrow phones** (like 1080×2400 screens). Every panel now fits, even with the largest text size
+- Slider titles show in full, with the (i) help at the end of the row
+- Long buttons shorten gracefully instead of pushing the layout wider
+- Releases are now tested on an Android emulator before they're published
+
 ## [0.12.0] - 2026-11-07
 
 - **Fixed: menus that wouldn't scroll.** Swiping up or down now scrolls every panel, even when your finger starts on a slider, button, chart or switch. Sideways drags still move sliders and scrub charts, and taps still work as before
