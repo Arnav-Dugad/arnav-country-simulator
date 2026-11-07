@@ -2,6 +2,11 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.27.0] - 2026-11-08
+
+- **Your career**: every finished game adds to your record (countries led, years in power, elections, goals reached and your best legacy grade), shown on the home screen. Sandbox and cheat games don't count
+- The "next" pill now always fits when several decisions are waiting
+
 ## [0.26.0] - 2026-11-08
 
 - **Learn as you play**: a five-step first-game checklist in the "next" pill (open Economy, adjust the budget, start a project, pass a law, sign a trade deal), with a small celebration for each step

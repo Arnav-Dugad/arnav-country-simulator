@@ -92,6 +92,13 @@ func _build() -> void:
 		_col.add_child(others)
 	else:
 		others.free()
+	var career := Career.line()
+	if career != "":
+		var cl := ListRow.new().setup("Your career", career)
+		cl.subtitle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		cl.subtitle_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+		cl.set_leading(ListRow.icon_tile("crown", DS.GOLD))
+		_col.add_child(cl)
 	var new_game := AppButton.make("Lead a new nation", &"" if not sm.is_empty() else &"PrimaryButton", "globe")
 	new_game.custom_minimum_size = Vector2(0, 50)
 	new_game.pressed.connect(func() -> void:

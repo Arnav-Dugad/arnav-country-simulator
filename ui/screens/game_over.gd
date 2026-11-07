@@ -53,6 +53,9 @@ func _ready() -> void:
 	for p in parts:
 		score += float(p[1])
 	var grade := Economy.legacy_grade(score)
+	if not has_meta(&"recorded"):
+		set_meta(&"recorded", true)
+		Career.record(data, grade)
 	var grade_row := HBoxContainer.new()
 	grade_row.add_theme_constant_override(&"separation", DS.S4)
 	col.add_child(grade_row)

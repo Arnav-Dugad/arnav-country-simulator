@@ -512,8 +512,8 @@ func _refresh_next() -> void:
 		item = {"kind": "decision", "key": str(ev.uid), "ev": ev, "title": str(ev.title), "icon": str(ev.icon),
 			"tint": GameEvents.tint(str(ev.tint)), "due": int(ev.due), "count": open.size(),
 			"sub": ("Decide now" if bool(ev.get("critical", false)) else
-				("Decide · %s" % ("cabinet decides soon" if left <= 1 else "%d months left" % left)))
-				+ ("  ·  +%d more" % (open.size() - 1) if open.size() > 1 else "")}
+				("%s · %s" % ["Decide" if open.size() == 1 else "+%d more" % (open.size() - 1),
+					"cabinet decides soon" if left <= 1 else "%d months left" % left]))}
 	elif Game.politics.campaign_open:
 		item = {"kind": "campaign", "key": "campaign", "title": "Plan your campaign", "icon": "vote", "tint": DS.GOLD,
 			"sub": "Election in %d months" % Game.politics.months_to_election}
