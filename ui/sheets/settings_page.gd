@@ -32,6 +32,7 @@ func _build() -> void:
 	game.add_child(ng)
 
 	_account_box = section("Account & cloud")
+	_account_box.add_child(AccountSection.new())
 
 	var prefs := section("Preferences")
 	var hap := AppToggle.new().setup("Haptic feedback", Settings.haptics, "vibrate")
