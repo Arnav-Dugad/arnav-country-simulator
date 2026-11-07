@@ -130,7 +130,9 @@ func _refresh_profile() -> void:
 	if str(Settings.party_name).strip_edges() != "":
 		sub += "  ·  " + str(Settings.party_name)
 	_profile.setup(name if name != "" else "Add your name", sub, "›")
-	_profile.set_leading(Avatar.make(name if name != "" else "?", Settings.PARTY_COLORS[clampi(Settings.party_color, 0, 5)], 44.0))
+	var pk := Leaders.player_portrait()
+	_profile.set_leading(Photo.portrait(pk, 48.0, Color(DS.GOLD, 0.6)) if pk != "" else
+		Avatar.make(name if name != "" else "?", Settings.PARTY_COLORS[clampi(Settings.party_color, 0, 5)], 44.0))
 
 
 func _build_profile() -> void:
@@ -156,6 +158,32 @@ func _build_profile() -> void:
 	party_edit.max_length = 28
 	party_edit.text_changed.connect(func(t: String) -> void: Settings.set_value("party_name", t.strip_edges()))
 	box.add_child(party_edit)
+	var pt := Label.new()
+	pt.theme_type_variation = &"Footnote"
+	pt.text = "Your portrait"
+	box.add_child(pt)
+	var faces := GridContainer.new()
+	faces.columns = 5
+	faces.add_theme_constant_override(&"h_separation", DS.S2)
+	faces.add_theme_constant_override(&"v_separation", DS.S2)
+	box.add_child(faces)
+	var keys: Array = [""] + Leaders.all_portraits()
+	for key in keys:
+		var b := Button.new()
+		b.flat = true
+		b.focus_mode = Control.FOCUS_NONE
+		b.mouse_filter = Control.MOUSE_FILTER_PASS
+		b.custom_minimum_size = Vector2(54, 54)
+		var face: Control = Photo.portrait(str(key), 50.0, Color(DS.GOLD, 0.9) if str(key) == Leaders.player_portrait() else Color(1, 1, 1, 0.15)) \
+			if str(key) != "" else Avatar.make(str(Settings.leader_name) if str(Settings.leader_name) != "" else "?", Settings.PARTY_COLORS[clampi(Settings.party_color, 0, 5)], 50.0)
+		face.position = Vector2(2, 2)
+		b.add_child(face)
+		b.pressed.connect(func() -> void:
+			Settings.set_value("leader_portrait", str(key))
+			Haptics.select()
+			_open("Your profile", _build_profile))
+		faces.add_child(b)
+	note("Portraits are AI-generated, original fictional people.", box)
 	var cl := Label.new()
 	cl.theme_type_variation = &"Footnote"
 	cl.text = "Party colour"
@@ -435,7 +463,8 @@ func _build_about() -> void:
 			upd_note.text = str(r.get("error", "Could not check.")))
 	_about_box.add_child(upd)
 	_about_box.add_child(upd_note)
-	note("Map: Natural Earth (public domain), borders as on India's official map. Data: World Bank (CC BY 4.0), IMF. " +
+	note("Portraits and scene paintings are AI-generated images of fictional people and places. " +
+		"Map: Natural Earth (public domain), borders as on India's official map. Data: World Bank (CC BY 4.0), IMF. " +
 		"Font: Inter (SIL OFL). Icons: Lucide (ISC). Starting values are real; " +
 		"some small states use regional estimates (marked).", _about_box)
 

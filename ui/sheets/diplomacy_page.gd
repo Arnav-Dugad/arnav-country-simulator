@@ -17,7 +17,7 @@ func _init() -> void:
 
 
 func _build() -> void:
-	add_child(Illustration.make("globe", DS.TEAL, 92.0))
+	add_child(Illustration.banner("summit", "globe", DS.TEAL, 124.0))
 	var rank_head := Label.new()
 	rank_head.theme_type_variation = &"Overline"
 	rank_head.text = "YOUR WORLD RANK"

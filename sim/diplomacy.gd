@@ -106,6 +106,7 @@ static func acceptance(i: int, kind: String) -> float:
 			size_bonus += 0.08
 			break
 	size_bonus += Cabinet.bonus("deal_acceptance")
+	size_bonus += Leaders.bonus(i, kind)   # the other leader's personality
 	match kind:
 		"deal":
 			return clampf((r - 5.0) / 55.0 + size_bonus, 0.0, 0.95)
@@ -238,7 +239,7 @@ static func monthly() -> void:
 			continue
 		var b := float(base.get(str(i), Game.relations[i]))
 		var r := Game.relations[i]
-		r += (b - r) * RELATION_DRIFT
+		r += (b - r) * RELATION_DRIFT + Leaders.drift(i)
 		if d.deals.has(str(i)):
 			r += DEAL_MONTHLY_GAIN
 		if d.alliances.has(str(i)):

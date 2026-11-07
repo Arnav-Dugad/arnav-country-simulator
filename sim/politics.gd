@@ -55,10 +55,22 @@ func next_year() -> int:
 func milestone_text() -> String:
 	var i := Game.player
 	if Government.has_elections(i):
-		return "Election %d" % next_year() if months_to_election > 0 else "Election this month"
+		var e := "Election %d" % next_year() if months_to_election > 0 else "Election this month"
+		if months_to_election <= 24:
+			e += "  ·  polling %d%%" % roundi(poll())
+		return e
 	if Government.review_years(i) > 0:
 		return "%s %d" % [Government.review_name(i), next_year()]
 	return Government.system_name(i)
+
+
+## Today's opinion poll: the vote share you'd get now (no luck, with voter fatigue).
+func poll() -> float:
+	var i := Game.player
+	var a := Game.me().approval - E.ELECTION_FATIGUE * Difficulty.severity() * elections_won
+	if Government.elections(i) == "managed":
+		return clampf(30.0 + a * 0.65, 20.0, 88.0)
+	return clampf(50.0 + (a - 42.5) * 0.9, 22.0, 78.0)
 
 
 ## Called once a month after the simulation. Returns what happens next:

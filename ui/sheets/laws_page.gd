@@ -17,7 +17,7 @@ var _cabinet: VBoxContainer
 
 
 func _build() -> void:
-	add_child(Illustration.make("gavel", DS.ACCENT, 92.0))
+	add_child(Illustration.banner("parliament", "gavel", DS.ACCENT, 124.0))
 	_cabinet = section("Your cabinet")
 	_summary = note("")
 	_filter = SegmentedControl.new().setup(["All", "In force", "Not yet"], [], 0)
@@ -137,13 +137,14 @@ func _card(c: CountryState, l: Dictionary) -> Control:
 func _fill_cabinet() -> void:
 	for ch in _cabinet.get_children():
 		ch.queue_free()
+	var faces := Leaders.cabinet_portraits()
 	for post in Cabinet.POSTS:
 		var mn: Dictionary = Game.cabinet.ministers.get(post, {})
 		if mn.is_empty():
 			continue
 		var row := ListRow.new().setup(str(mn.name), "%s · %s" % [Cabinet.POST_TITLES[post],
 			" & ".join(mn.traits.map(func(t: String) -> String: return str(Cabinet.TRAITS[t].label)))])
-		row.set_leading(_avatar(str(mn.name), post))
+		row.set_leading(Photo.portrait(str(faces.get(post, "")), 40.0) if faces.has(post) else _avatar(str(mn.name), post))
 		row.tapped.connect(_minister_card.bind(post))
 		_cabinet.add_child(row)
 
@@ -158,6 +159,11 @@ func _minister_card(post: String) -> void:
 	var mn: Dictionary = cab.ministers[post]
 	var m := ModalCard.new()
 	get_tree().current_scene.add_child(m)
+	var face := str(Leaders.cabinet_portraits().get(post, ""))
+	if face != "":
+		var holder := CenterContainer.new()
+		holder.add_child(Photo.portrait(face, 112.0, Color(DS.ACCENT, 0.6)))
+		m.content.add_child(holder)
 	m.header(str(Cabinet.POST_ICONS[post]), DS.ACCENT, "%s minister" % Cabinet.POST_TITLES[post], str(mn.name))
 	m.body("
 ".join(mn.traits.map(func(t: String) -> String:
@@ -177,7 +183,8 @@ func _minister_card(post: String) -> void:
 				return "%s (%s)" % [Cabinet.TRAITS[t].label, Cabinet.TRAITS[t].desc])))
 			row.subtitle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 			row.subtitle_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
-			row.set_leading(_avatar(str(cand.name), post))
+			var cf := Leaders.portrait_for_name(str(cand.name))
+			row.set_leading(Photo.portrait(cf, 36.0) if cf != "" else _avatar(str(cand.name), post))
 			row.tapped.connect(func() -> void:
 				cab.appoint(post, k)
 				Simulation.update_finances(Game.me())

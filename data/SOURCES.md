@@ -54,6 +54,12 @@ Snapshot built **2026-11-07**. Each value is the **most recent available year
 The detail fields above (health … voice) shape budgets, projects, events and traits. Missing values use
 regional medians and are listed per country in `estimated_detail`.
 
+Art: portraits (`assets/portraits`) and scene paintings (`assets/scenes`) were generated with Figma AI
+(gpt-image) in November 2026 from text prompts describing original, fictional people and generic places;
+no real or identifiable people are depicted. Raw files live in tools/.cache/art_raw; tools/process_art.py
+makes the app-sized WebP files. World leaders and ministers in the game are fictional (sim/leaders.gd,
+sim/cabinet.gd).
+
 Country profiles (`data/country_profiles.json`, 125 countries: tagline, exports, partners, friends,
 rivals, natural risks, strengths, challenges, food imports, one fact) were researched in November 2026
 from the CIA World Factbook, OEC, WTO / UN Comtrade summaries and World Bank country pages, with

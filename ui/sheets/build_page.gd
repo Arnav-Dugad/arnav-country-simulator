@@ -16,7 +16,7 @@ func _init() -> void:
 
 
 func _build() -> void:
-	add_child(Illustration.make("crane", DS.ORANGE, 92.0))
+	add_child(Illustration.banner("construction", "crane", DS.ORANGE, 124.0))
 	_summary = Label.new()
 	_summary.theme_type_variation = &"Subhead"
 	_summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

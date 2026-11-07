@@ -8,6 +8,7 @@ var country := -1
 var _sub: Label
 var _gov: Label
 var _traits: HFlowContainer
+var _leader_row: ListRow
 var _tiles := {}
 var _rel_box: VBoxContainer
 var _rel_bar: Control
@@ -32,6 +33,8 @@ func _build() -> void:
 	_gov.theme_type_variation = &"Footnote"
 	_gov.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	add_child(_gov)
+	_leader_row = ListRow.new()
+	add_child(_leader_row)
 	_traits = HFlowContainer.new()
 	_traits.add_theme_constant_override(&"h_separation", 6)
 	_traits.add_theme_constant_override(&"v_separation", 6)
@@ -91,6 +94,20 @@ func refresh() -> void:
 		_sub.text = "%s  ·  territory of %s" % [World.map.subregions[i], World.map.names[sov]]
 	else:
 		_sub.text = "%s  ·  %s people" % [World.map.subregions[i], DS.compact(c.population)]
+	_leader_row.visible = playable and c != null
+	if _leader_row.visible:
+		if i == Game.player:
+			var me_name := str(Settings.leader_name).strip_edges()
+			_leader_row.setup(me_name if me_name != "" else "You", Government.leader_title(i), "")
+			var pk := Leaders.player_portrait()
+			_leader_row.set_leading(Photo.portrait(pk, 44.0, Color(DS.GOLD, 0.6)) if pk != "" else
+				Avatar.make(me_name if me_name != "" else "?", Settings.PARTY_COLORS[clampi(Settings.party_color, 0, 5)], 44.0))
+		else:
+			var ld := Leaders.leader(i)
+			var per: Dictionary = Leaders.PERSONALITIES[ld.personality]
+			_leader_row.setup(str(ld.name), "%s  ·  %s" % [str(ld.title), str(per.desc)], str(per.label))
+			_leader_row.trailing_label.add_theme_color_override(&"font_color", DS.ACCENT_SOFT)
+			_leader_row.set_leading(Photo.portrait(str(ld.portrait), 44.0))
 	_gov.visible = playable
 	if playable:
 		var lines: PackedStringArray = []
@@ -168,6 +185,10 @@ func _build_actions(i: int, is_me: bool, playable: bool) -> void:
 	if not playable:
 		return
 	_action("Compare with you", &"", "scale", _compare.bind(i))
+	var wait := Leaders.call_wait(i)
+	var ld := Leaders.leader(i)
+	_action("Call %s" % str(ld.name).split(" ")[0], &"", "message-circle", _call.bind(i), wait > 0,
+		"You can call again in %d months" % wait if wait > 0 else "Leaders react to tone by personality")
 	# Trade
 	if Diplomacy.has_deal(i):
 		_action("Cancel trade deal", &"", "x", func() -> void:
@@ -208,6 +229,33 @@ func _build_actions(i: int, is_me: bool, playable: bool) -> void:
 			Diplomacy.sanction(i)
 			_done("Sanctions imposed on %s." % World.map.names[i], false),
 			false, "Hurts their economy, and yours a little")
+
+
+## A phone call with another leader: pick a tone; their personality decides.
+func _call(i: int) -> void:
+	var ld := Leaders.leader(i)
+	var per: Dictionary = Leaders.PERSONALITIES[ld.personality]
+	var m := ModalCard.new()
+	get_tree().current_scene.add_child(m)
+	var holder := CenterContainer.new()
+	holder.add_child(Photo.portrait(str(ld.portrait), 120.0, Color(DS.ACCENT, 0.6)))
+	m.content.add_child(holder)
+	m.header("message-circle", DS.ACCENT, "%s of %s" % [str(ld.title), World.map.names[i]], str(ld.name))
+	m.body("%s: %s. What do you want from this call?" % [str(per.label), str(per.desc).to_lower()])
+	for tone in ["warm", "firm", "ask"]:
+		var info: Dictionary = Leaders.CALLS[tone]
+		m.choice(str(info.label), str(info.desc), &"PrimaryButton" if tone == "warm" else &"", func() -> void:
+			var r := Leaders.make_call(i, tone)
+			if float(r.relation) >= 0.0:
+				Haptics.success()
+			else:
+				Haptics.warning()
+			m.dismiss()
+			_status.text = str(r.line)
+			_status.add_theme_color_override(&"font_color", DS.GREEN if float(r.relation) >= 0.0 else DS.ORANGE)
+			Game.add_feed("Call with %s: %s" % [str(ld.name), str(r.line)], "message-circle", "green" if float(r.relation) >= 0.0 else "orange")
+			refresh())
+	m.choice("Not now", "", &"GhostButton", m.dismiss)
 
 
 ## Side by side: you and another country.

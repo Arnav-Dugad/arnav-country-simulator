@@ -25,6 +25,37 @@ const EVENT_ART := {
 	"overrun": "crane", "summit": "handshake", "un_sanctions": "globe", "un_climate": "globe", "un_ceasefire": "globe",
 	"un_rights": "globe", "un_ocean": "flood", "un_ai": "tech",
 }
+## Event id -> painted scene (assets/scenes, AI-generated, no real people).
+const EVENT_SCENE := {
+	"summit": "summit", "un_sanctions": "summit", "un_climate": "summit", "un_ceasefire": "summit", "un_rights": "summit",
+	"protests": "protest", "strike": "protest", "democracy_movement": "protest", "dissident": "protest",
+	"floods": "flood", "monsoon": "flood", "un_ocean": "flood", "hurricane": "hurricane",
+	"overrun": "construction", "investment": "construction", "housing": "construction",
+	"recession": "markets", "debt_crisis": "markets", "recovery_boom": "markets",
+	"observers": "election", "coalition_crisis": "parliament", "budget_standoff": "parliament",
+	"court_ruling": "parliament", "scandal": "parliament", "inquiry_result": "parliament", "party_purge": "parliament",
+	"pensions": "parliament", "succession": "parliament", "pandemic": "hospital", "vaccine_race": "hospital",
+	"oil_shock": "oil", "oil_windfall": "oil", "oil_crash": "oil", "resources": "oil", "blackout": "oil",
+	"drought": "drought", "heatwave": "drought", "tech_boom": "tech", "cyberattack": "tech", "automation": "tech",
+	"brain_drain": "tech", "un_ai": "tech", "sports": "celebration", "games_bid": "celebration",
+	"royal_wedding": "celebration", "tourism": "celebration", "trade_offer": "port", "sanction_threat": "port",
+}
+
+
+## A scene banner for an event (photo if we have one, else the line-art scene).
+static func banner_for_event(ev: Dictionary, tint: Color, height: float = 116.0) -> Control:
+	var key := str(EVENT_SCENE.get(str(ev.get("id", "")), ""))
+	if Photo.has_scene(key):
+		return Photo.scene(key, height)
+	return make(for_event(ev), tint, height - 12.0)
+
+
+static func banner(scene_key: String, fallback: String, tint: Color, height: float = 104.0) -> Control:
+	if Photo.has_scene(scene_key):
+		return Photo.scene(scene_key, height)
+	return make(fallback, tint, height)
+
+
 const ICON_ART := {"vote": "ballot", "construction": "crane", "hammer": "crane", "globe": "globe", "handshake": "handshake",
 	"trending-up": "chart_up", "trending-down": "chart_down", "flame": "oil", "users": "people", "crown": "crown",
 	"gavel": "gavel", "shield": "shield", "stethoscope": "health", "zap": "tech", "calendar": "city", "heart": "people"}

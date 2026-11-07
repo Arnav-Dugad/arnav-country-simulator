@@ -52,6 +52,8 @@ static func _election(i: int, c: CountryState, rng: RandomNumberGenerator) -> vo
 static func _leader_change(i: int, c: CountryState, rng: RandomNumberGenerator, headline: String) -> void:
 	c.approval = 55.0
 	c.shocks.stability = float(c.shocks.stability) + 3.0
+	var ld := Leaders.new_leader(i)
+	headline = headline.replace("a new leader", "%s, a %s" % [str(ld.name), str(Leaders.PERSONALITIES[ld.personality].label).to_lower()])
 	var swing := rng.randf_range(-NEW_LEADER_SWING, NEW_LEADER_SWING)
 	Game.relations[i] = clampf(Game.relations[i] + swing, -100.0, 100.0)
 	var key := str(i)

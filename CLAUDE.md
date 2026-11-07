@@ -75,6 +75,9 @@ DevTools user args (after `--`): `--scene=`, `--shot=`, `--shot-delay=`, `--size
   text white / 66 % / 38 %.
 - **Icons**: Lucide (ISC), recolored white, imported as **DPITexture** (crisp at any density); tint via theme icon colors.
   No emojis anywhere.
+- **Art**: AI-generated (Figma AI) portraits/scenes of ORIGINAL FICTIONAL people and generic places only:
+  never real, identifiable people. `Photo.portrait()/Photo.scene()` (rounded mask + slow drift);
+  `Illustration` = code-drawn animated line art (fallback). New art: raw -> tools/.cache/art_raw, then tools/process_art.py.
 - **Layout**: full-screen map; floating glass top bar (flag, date = tap to pause, treasury, Inbox bell, Settings gear);
   thumb-zone strip above the dock (play/pause + speed · "next" pill · map Layers button); dock with 5 tabs
   (Economy, Budget, Build, Laws, World); bottom sheets with handle + snap (peek/half/full).

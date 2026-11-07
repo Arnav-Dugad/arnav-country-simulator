@@ -2,6 +2,22 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.16.0] - 2026-11-07
+
+**A world full of people**
+- **Every country has a leader**: an original, fictional president, prime minister or monarch with a portrait and a personality (Trader, Nationalist, Hawk, Peacemaker, Reformer, Pragmatist). Personalities change how they react to your deals and alliances, and drift relations over time. New leaders take over after elections and upheavals, and the news names them
+- **Call another leader** from their country card: talk about shared history, press them on a dispute, or ask them to invest. How it lands depends on who they are
+- **Your cabinet has faces**: portraits for your four ministers, distinct for each post
+- **Your portrait**: pick one of 14 portraits (or keep your initials) in Settings > Your profile
+
+**Painted scenes**
+- 14 cinematic scene paintings (summits, protests, floods, hurricanes, markets, parliament, hospitals, oil, drought, tech, celebrations, ports, construction, election night) on event cards, elections, the year in review, advisor tips and the Build, Laws and World pages, with a slow, gentle camera drift
+
+**Elections**
+- Opinion polls: in the two years before an election, the top bar shows how you'd do if the vote were today
+
+All portraits and scenes are AI-generated art of original, fictional people and places. No real people are depicted.
+
 ## [0.15.2] - 2026-11-07
 
 - Landscape: cards and the map layers menu now always fit the screen
