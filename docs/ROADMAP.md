@@ -171,7 +171,7 @@ The basics should feel finished before anything new is added.
 
 - [x] **Home screen:** a resume card ("Continue as India · Mar 2031") over the slowly drifting map, with save slots showing **map thumbnails** captured at save time.
 - [ ] **Year in review** every January: a full-screen glass card with 4 tiny sparklines, the headline of the year, best and worst decisions, and a **Share** button.
-- [ ] **Share cards:** render a 1080×1350 summary image (map crop, flag, key stats) and share it through the Android share sheet (new method in the Kotlin plugin).
+- [x] **Share cards:** render a 1080×1350 summary image (map crop, flag, key stats) and share it through the Android share sheet (new method in the Kotlin plugin).
 - [ ] **Milestone toasts:** "GDP passed $5T", "Inflation under 2%", "First trade deal".
 - [ ] **Election night sequence:**
   - the map dims and the player's country pulses;
@@ -179,7 +179,7 @@ The basics should feel finished before anything new is added.
   - a gold glow appears on a win.
 
   It stays tasteful, with no confetti.
-- [ ] **Picker 2.0:**
+- [x] (sort + Surprise me in v0.10.0) **Picker 2.0:**
   - **sorting:** by population, GDP or difficulty;
   - **featured nations:** "Tough starts" and "Rising powers";
   - **Surprise me**;

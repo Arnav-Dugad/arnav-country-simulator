@@ -56,6 +56,7 @@ func _ready() -> void:
 	var badge := PanelContainer.new()
 	badge.theme_type_variation = &"GradeBadge"
 	badge.custom_minimum_size = Vector2(76, 76)
+	badge.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	grade_row.add_child(badge)
 	var gl := Label.new()
 	gl.theme_type_variation = &"LargeTitle"
@@ -109,6 +110,9 @@ Weakest: %s" % str(worst[0]).to_lower()]
 	_stat(g, "Debt / GDP", "%s → %s" % [DS.pct(float(data.debt_start), 0), DS.pct(float(data.debt_end), 0)])
 	_stat(g, "Final approval", DS.pct(float(data.approval), 0))
 
+	var share := AppButton.make("Share my legacy", &"", "arrow-up-right")
+	share.custom_minimum_size = Vector2(0, 48)
+	col.add_child(share)
 	var again := AppButton.make("Lead another nation", &"PrimaryButton", "globe")
 	again.custom_minimum_size = Vector2(0, 52)
 	again.pressed.connect(func() -> void:
@@ -116,6 +120,12 @@ Weakest: %s" % str(worst[0]).to_lower()]
 		Game.end_session()
 		Router.goto("res://ui/screens/country_picker.tscn"))
 	col.add_child(again)
+	share.pressed.connect(func() -> void:
+		Haptics.tap()
+		var msg: String = await Share.share_screen(get_tree(), "I led %s for %.1f years and earned a %s legacy." % [
+			str(data.country), float(data.years), grade], [share, again])
+		if msg != "":
+			Toast.show_headline(self, msg, "info", DS.ACCENT, Screen.top + DS.S4))
 
 	resized.connect(func() -> void: _place(card))
 	_place.call_deferred(card)

@@ -2,6 +2,11 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.10.0] - 2026-11-07
+
+- **Share your legacy**: share your end-of-term grade, or any Year in Review, as an image through Android's share sheet
+- **Country picker**: sort by name, biggest economy, richest per person or hardest start, and a "Surprise me" button
+
 ## [0.9.0] - 2026-11-07
 
 **A world that lives**

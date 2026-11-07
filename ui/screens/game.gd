@@ -363,11 +363,19 @@ func _show_year_review(r: Dictionary) -> void:
 		v.text = "%s  %s  %s" % [fmt.call(a), "→", fmt.call(b)]
 		v.add_theme_color_override(&"font_color", DS.TEXT_2 if absf(b - a) < 0.05 else (DS.GREEN if up == bool(row.good_up) else DS.RED))
 		line.add_child(v)
-	_modal.choice("On to %d" % (int(r.year) + 1), "", &"PrimaryButton", func() -> void:
+	var yr_share := AppButton.make("Share", &"GhostButton", "arrow-up-right")
+	_modal.content.add_child(yr_share)
+	var hide_list: Array = [yr_share]
+	yr_share.pressed.connect(func() -> void:
+		var msg: String = await Share.share_screen(get_tree(), "%s's %d: %s." % [
+			World.map.names[Game.player], int(r.year), str(r.title).to_lower()], hide_list)
+		if msg != "":
+			Toast.show_headline(self, msg, "info", DS.ACCENT, modes.position.y + 52.0))
+	hide_list.append(_modal.choice("On to %d" % (int(r.year) + 1), "", &"PrimaryButton", func() -> void:
 		_modal.dismiss()
 		Game.set_speed(maxi(prev, 1))
 		if not Game.pending_event.is_empty():
-			get_tree().create_timer(0.4).timeout.connect(func() -> void: _show_event(Game.pending_event)))
+			get_tree().create_timer(0.4).timeout.connect(func() -> void: _show_event(Game.pending_event))))
 	Haptics.success(false)
 	Audio.play("success", -4.0)
 

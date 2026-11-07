@@ -72,6 +72,32 @@ class AcsUpdater(godot: Godot) : GodotPlugin(godot) {
         }
     }
 
+    /**
+     * Opens the Android share sheet with an image (stored in the app's files dir,
+     * i.e. Godot user://) and a caption. Returns "ok" or an error string.
+     */
+    @UsedByGodot
+    fun shareImage(path: String, text: String): String {
+        val act = activity ?: return "no_activity"
+        val file = File(path)
+        if (!file.exists()) return "missing_file"
+        return try {
+            val uri = FileProvider.getUriForFile(act, act.packageName + ".fileprovider", file)
+            val send = Intent(Intent.ACTION_SEND).apply {
+                type = "image/png"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                putExtra(Intent.EXTRA_TEXT, text)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            val chooser = Intent.createChooser(send, null).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
+            act.startActivity(chooser)
+            "ok"
+        } catch (e: Exception) {
+            Log.w(TAG, "shareImage failed", e)
+            "error: " + (e.message ?: e.javaClass.simpleName)
+        }
+    }
+
     /** The installed versionCode (helps the updater avoid offering the same build). */
     @UsedByGodot
     fun getVersionCode(): Long {

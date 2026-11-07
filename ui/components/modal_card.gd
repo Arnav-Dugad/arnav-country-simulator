@@ -112,7 +112,7 @@ func body(text: String) -> Label:
 
 
 ## A choice button with a caption underneath describing the tradeoff.
-func choice(label: String, detail: String, variant: StringName, cb: Callable, chips: Array = []) -> void:
+func choice(label: String, detail: String, variant: StringName, cb: Callable, chips: Array = []) -> Control:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override(&"separation", 2)
 	content.add_child(box)
@@ -143,3 +143,4 @@ func choice(label: String, detail: String, variant: StringName, cb: Callable, ch
 			l.text = str(ch[0])
 			p.add_child(l)
 			flow.add_child(p)
+	return box
