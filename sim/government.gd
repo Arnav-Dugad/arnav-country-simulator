@@ -106,6 +106,20 @@ const COUNTRIES := {
 	"WSM": ["parliamentary", 5, ""],
 }
 
+## Presidential term limits in force (2025): the most terms in a row a leader may
+## serve. Countries not listed have no limit, or their head of government is a
+## prime minister. Sources: national constitutions via the Comparative
+## Constitutions Project (constituteproject.org). Where a leader may return after
+## sitting out a term (Chile, Peru, Uruguay, Costa Rica, Panama) the limit is 1.
+const TERM_LIMITS := {
+	"USA": 2, "MEX": 1, "BRA": 2, "ARG": 2, "CHL": 1, "COL": 1, "PER": 1, "ECU": 2, "BOL": 2, "PRY": 1,
+	"URY": 1, "CRI": 1, "PAN": 1, "DOM": 2, "GTM": 1, "GUY": 2,
+	"FRA": 2, "LTU": 2, "ROU": 2, "UKR": 2, "CYP": 2,
+	"SEN": 2, "GHA": 2, "NGA": 2, "BEN": 2, "LBR": 2, "SLE": 2, "KEN": 2, "MWI": 2, "ZMB": 2, "NAM": 2,
+	"MRT": 2, "ZAF": 2, "BWA": 2,
+	"KOR": 1, "TWN": 2, "PHL": 1, "IDN": 2, "LKA": 2,
+}
+
 ## The reform that opens a closed system up to free elections (see Laws "free_elections").
 const REFORM_TO := "presidential"
 
@@ -173,6 +187,16 @@ static func is_free(i: int) -> bool:
 
 static func is_democracy(i: int) -> bool:
 	return is_free(i)
+
+
+## Most terms in a row (0 = no limit). Only free elections enforce one; a system
+## the player reformed into a democracy gets the common two-term rule.
+static func term_limit(i: int) -> int:
+	if elections(i) != "free":
+		return 0
+	if i == Game.player and Game.has_game() and Game.politics.kind_override != "":
+		return 2
+	return int(TERM_LIMITS.get(World.iso(i), 0))
 
 
 ## Years between leadership reviews for systems without elections (0 = none).

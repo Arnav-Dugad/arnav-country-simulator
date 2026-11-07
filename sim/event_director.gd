@@ -176,6 +176,8 @@ static func score(fx: Dictionary) -> float:
 			s += v * (0.12 + 0.25 * (1.0 - Press.credibility() / 100.0))
 		elif k == "deal":
 			s += 1.5
+		elif k == "term" and str(fx[k]) == "successor":
+			s += 2.0      # the cabinet's advice: keep the party in power, within the rules
 		elif k == "bloc_relations":
 			for camp_name in (fx[k] as Dictionary):
 				s += float(fx[k][camp_name]) * 0.1

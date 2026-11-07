@@ -2,6 +2,14 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.38.0] - 2026-11-08
+
+- **Term limits.** Presidents now face their country's real limit: two terms in the United States, Brazil, France, Kenya, Indonesia and more; a single term in Mexico, South Korea, the Philippines, Colombia and others. A year before your last election you choose:
+  - **Step down with honour:** your game ends at the election with a legacy bonus (and the "Peaceful handover" achievement)
+  - **Back a successor:** a new candidate from your party runs; win and you keep playing
+  - **Change the constitution:** a gamble that depends on your approval. Democracies object, and if the courts block it your party must find a successor anyway
+- The top bar shows "You step down 2034" or "Successor vote 2034" when it applies
+
 ## [0.37.1] - 2026-11-08
 
 - **Energy security:** if you import energy, the clean power and transport you build (nuclear, solar, wind, hydro, electric cars, rail, metro) also soften the blow when oil prices spike. The World page shows by how much

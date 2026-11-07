@@ -548,6 +548,24 @@ static func aid_request(i: int, kind: String) -> Dictionary:
 	return instance(e, i)
 
 
+## The constitution's term limit: this is your last term. (Politics.term_choice)
+static func term_limit_event() -> Dictionary:
+	var p := Game.politics
+	var l := p.term_limit()
+	var y := p.next_year()
+	var e := {"id": "term_limit", "title": "Your last term", "icon": "landmark", "tint": "gold", "weight": 0.0,
+		"body": ("The constitution allows a leader %s. The %d election will choose who comes next." % [
+			"a single term" if l == 1 else "%d terms in a row" % l, y]),
+		"choices": [
+			{"label": "Step down with honour", "detail": "Your game ends at the election · legacy bonus",
+				"effects": {"term": "retire"}},
+			{"label": "Back a successor", "detail": "Keep playing if your party wins",
+				"effects": {"term": "successor"}},
+			{"label": "Change the constitution", "detail": "%d%% chance it passes · democracies object" % roundi(p.amend_chance() * 100.0),
+				"effects": {"term": "amend", "stability": -5.0, "press_cred": -6.0, "bloc_relations": {"west": -5.0}}}]}
+	return instance(e)
+
+
 ## A yearly summit: pick the agenda you push.
 static func summit(rng: RandomNumberGenerator) -> Dictionary:
 	var name := Treaties.summit_name()
@@ -783,6 +801,8 @@ static func apply_effects(fx: Dictionary, other: int, ev_id: String = "") -> voi
 				Press.apply_cred(float(v))
 			"pledge":
 				Climate.make_pledge(float(v))
+			"term":
+				Game.politics.term_choice(str(v))
 			"project_delay":
 				for id in c.projects:
 					if str(c.projects[id].state) == "building":
@@ -836,6 +856,11 @@ static func effect_chips(fx: Dictionary) -> Array:
 				out.append(["Sanctions on you", false, 3.0])
 			"pledge":
 				out.append(["Pledge: cut CO₂ %d%%" % roundi(float(v) * 100.0), true, 10.0])
+			"term":
+				var t: Array = {"retire": ["Legacy +%d" % roundi(Economy.HANDOVER_LEGACY), true],
+					"successor": ["New candidate: approval −%d at the vote" % roundi(Economy.SUCCESSOR_PENALTY), false],
+					"amend": ["%d%% chance it passes" % roundi(Game.politics.amend_chance() * 100.0), true]}.get(str(v), ["", true])
+				out.append([t[0], t[1], 10.0])
 			"gdp":
 				out.append(["Economy +%s%%" % String.num(float(v), 1), true, absf(float(v)) * 2.0])
 			_:

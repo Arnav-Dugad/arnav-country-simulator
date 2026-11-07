@@ -37,6 +37,7 @@ const ALL := [
 	{"id": "hotline", "icon": "message-circle", "title": "Hotline", "desc": "Call five different world leaders."},
 	{"id": "storm", "icon": "shield", "title": "Weathered the storm", "desc": "See a bank run or currency crisis through to the end."},
 	{"id": "bloc_member", "icon": "handshake", "title": "Joiner", "desc": "Join a treaty or bloc."},
+	{"id": "handover", "icon": "flag", "title": "Peaceful handover", "desc": "Step down when your term limit comes."},
 	{"id": "promise_kept", "icon": "leaf", "title": "Promise kept", "desc": "Meet a climate pledge made at a COP."},
 ]
 

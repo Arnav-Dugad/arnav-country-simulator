@@ -330,6 +330,9 @@ func _after_month(my_crisis: bool) -> void:
 			pause_for_modal()
 			army_warning.emit()
 			return
+		"term_limit":
+			director.add(GameEvents.term_limit_event(), true)
+			return
 	director.monthly(my_crisis)
 
 

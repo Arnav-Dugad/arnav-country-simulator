@@ -17,6 +17,12 @@ var low_stability_months := 0
 var unrest_months := 0
 var army_warned := false
 var start_military_share := 0.0
+# Term limits (see Government.TERM_LIMITS).
+var leader_from := 0             # elections_won when the current leader took office
+var limit_asked := false         # the "last term" choice was offered this term
+var limit_lifted := false        # the constitution was changed: no limit any more
+var successor := false           # your party runs a new candidate at the next election
+var retiring := false            # you step down at the next election
 
 
 func reset(player: int) -> void:
@@ -29,6 +35,11 @@ func reset(player: int) -> void:
 	unrest_months = 0
 	army_warned = false
 	start_military_share = float(Game.me().budget.get("military", 0.0)) if Game.me() else 0.0
+	leader_from = 0
+	limit_asked = false
+	limit_lifted = false
+	successor = false
+	retiring = false
 	months_to_election = _cycle_months(player)
 
 
@@ -51,12 +62,55 @@ func next_year() -> int:
 	return Game.year + int((Game.month - 1 + months_to_election) / 12)
 
 
+## Terms the current leader has won since taking office (fatigue, term limits).
+func terms_served() -> int:
+	return maxi(elections_won - leader_from, 0)
+
+
+func term_limit() -> int:
+	return 0 if limit_lifted else Government.term_limit(Game.player)
+
+
+## The current term is the last one the constitution allows.
+func last_term() -> bool:
+	var l := term_limit()
+	return l > 0 and terms_served() + 1 >= l
+
+
+func amend_chance() -> float:
+	return clampf((Game.me().approval - E.AMEND_BASE) / E.AMEND_SPAN, E.AMEND_MIN, E.AMEND_MAX)
+
+
+## The player's answer to the term-limit question: "retire", "successor" or "amend".
+func term_choice(what: String) -> void:
+	match what:
+		"retire":
+			retiring = true
+			Game.add_feed("You will step down at the %d election" % next_year(), "flag", "gold")
+		"successor":
+			successor = true
+			Game.add_feed("Your party will run a new candidate in %d" % next_year(), "users", "accent")
+		"amend":
+			if Game.rng.randf() < amend_chance():
+				limit_lifted = true
+				Game.add_feed("Term limits scrapped: you can run again", "landmark", "orange")
+				Game.add_milestone("Changed the constitution to run again", "landmark", "orange")
+			else:
+				successor = true
+				Game.me().shocks.approval = float(Game.me().shocks.approval) - 3.0
+				Game.add_feed("The courts block your bid for another term. Your party will run a new candidate.", "landmark", "red")
+
+
 ## Top-bar caption: "Election 2030", "Party Congress 2031", "No elections".
 func milestone_text() -> String:
 	var i := Game.player
 	if Government.has_elections(i):
 		if months_to_election <= 0:
 			return "Election this month"
+		if retiring:
+			return "You step down %d" % next_year()
+		if successor:
+			return "Successor vote %d" % next_year()
 		if months_to_election <= 24:
 			return "Vote %d · polls %d%%" % [next_year(), roundi(poll())]
 		return "Election %d" % next_year()
@@ -68,7 +122,9 @@ func milestone_text() -> String:
 ## Today's opinion poll: the vote share you'd get now (no luck, with voter fatigue).
 func poll() -> float:
 	var i := Game.player
-	var a := Game.me().approval - E.ELECTION_FATIGUE * Difficulty.severity() * elections_won
+	var a := Game.me().approval - E.ELECTION_FATIGUE * Difficulty.severity() * terms_served()
+	if successor:
+		a = Game.me().approval - E.SUCCESSOR_PENALTY
 	if Government.elections(i) == "managed":
 		return clampf(30.0 + a * 0.65, 20.0, 88.0)
 	return clampf(50.0 + (a - 42.5) * 0.9, 22.0, 78.0)
@@ -108,7 +164,14 @@ func monthly() -> String:
 		return ""
 	months_to_election -= 1
 	if months_to_election <= 0:
+		if retiring and not Game.god_mode:
+			Achievements.unlock("handover")
+			return "end:retired"
 		return "election" if Government.has_elections(i) else "review"
+	if Government.has_elections(i) and not limit_asked and not successor and not retiring \
+			and months_to_election <= E.TERM_LIMIT_NOTICE and last_term():
+		limit_asked = true
+		return "term_limit"
 	if campaign_open and months_to_election <= 1:
 		return "campaign_auto"
 	var election_at := Game.months_played + months_to_election
@@ -138,22 +201,30 @@ func coup_risk() -> float:
 func hold_election() -> Dictionary:
 	var i := Game.player
 	var a := Game.me().approval
-	# Voters tire of long-serving governments.
-	var fatigue := E.ELECTION_FATIGUE * Difficulty.severity() * elections_won
+	# Voters tire of long-serving leaders; a new candidate is fresh but less known.
+	var fatigue := E.ELECTION_FATIGUE * Difficulty.severity() * terms_served()
+	var was_successor := successor
+	if successor:
+		fatigue = E.SUCCESSOR_PENALTY
 	var won := Game.rng.randf() < Government.win_chance(i, a - fatigue)
 	var share := Government.vote_share(i, a - fatigue, Game.rng)
 	share = maxf(share, 50.6) if won else minf(share, 49.4)
 	months_to_election = _cycle_months(i)
 	var managed := Government.elections(i) == "managed"
+	successor = false
+	retiring = false
+	limit_asked = false
 	if won:
 		elections_won += 1
+		if was_successor:
+			leader_from = elections_won       # the new leader's first term starts now
 		Game.me().shocks.approval += 3.0     # honeymoon
 		if managed and a < E.DISPUTED_BELOW:
 			# A tilted win with little real support: protests and frowns abroad.
 			Game.me().shocks.stability -= 6.0
 			Diplomacy.democracies_react(-4.0)
 	return {"won": won, "share": share, "year": Game.year, "approval": a, "managed": managed,
-		"terms": elections_won - (1 if won else 0)}
+		"terms": maxi(terms_served() - (1 if won else 0), 0), "successor": was_successor}
 
 
 ## Leadership review in systems without elections (Party Congress, …).
@@ -182,7 +253,9 @@ func to_dict() -> Dictionary:
 	return {"kind_override": kind_override, "months_to_election": months_to_election,
 		"campaign_year": campaign_year, "elections_won": elections_won, "reviews_passed": reviews_passed,
 		"low_stability_months": low_stability_months, "unrest_months": unrest_months,
-		"army_warned": army_warned, "start_military_share": start_military_share, "campaign_open": campaign_open}
+		"army_warned": army_warned, "start_military_share": start_military_share, "campaign_open": campaign_open,
+		"leader_from": leader_from, "limit_asked": limit_asked, "limit_lifted": limit_lifted,
+		"successor": successor, "retiring": retiring}
 
 
 func load_dict(d: Dictionary) -> void:
@@ -196,3 +269,8 @@ func load_dict(d: Dictionary) -> void:
 	army_warned = bool(d.get("army_warned", false))
 	start_military_share = float(d.get("start_military_share", 0.0))
 	campaign_open = bool(d.get("campaign_open", false))
+	leader_from = int(d.get("leader_from", 0))
+	limit_asked = bool(d.get("limit_asked", false))
+	limit_lifted = bool(d.get("limit_lifted", false))
+	successor = bool(d.get("successor", false))
+	retiring = bool(d.get("retiring", false))

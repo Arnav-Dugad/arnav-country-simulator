@@ -241,8 +241,15 @@ func _dev_open() -> void:
 	var ev_id: Variant = DevTools.arg("event")
 	if ev_id != null:
 		Settings.tutorial_done = true
-		Game.trigger_event(Climate.cop_event(Game.rng) if str(ev_id) == "cop"
-			else GameEvents.instance(GameEvents.by_id(str(ev_id)), World.index_of("CHN")))
+		var dev_ev: Dictionary
+		match str(ev_id):
+			"cop":
+				dev_ev = Climate.cop_event(Game.rng)
+			"term_limit":
+				dev_ev = GameEvents.term_limit_event()
+			_:
+				dev_ev = GameEvents.instance(GameEvents.by_id(str(ev_id)), World.index_of("CHN"))
+		Game.trigger_event(dev_ev, str(ev_id) == "term_limit")
 		_show_event(Game.director.first())
 	var page: Variant = DevTools.arg("open")
 	if page == null or not PAGES.has(str(page)):
@@ -888,10 +895,12 @@ func _show_election(r: Dictionary) -> void:
 		return
 	var who := str(Settings.leader_name).strip_edges()
 	title.text = ("%s wins again" % who if who != "" else "You won re-election") if won else ("%s loses" % who if who != "" else "You lost the election")
+	if bool(r.get("successor", false)):
+		title.text = "Your party's candidate wins" if won else "Your party's candidate loses"
 	title.add_theme_color_override(&"font_color", DS.GOLD if won else DS.TEXT_2)
 	var managed := bool(r.get("managed", false))
 	msg.text = "Your approval stood at %s. %s" % [DS.pct(float(r.approval), 0),
-		("Another term to shape the nation." + (" Observers call the vote unfair." if managed and float(r.approval) < Economy.DISPUTED_BELOW else ""))
+		(("A new leader from your party takes office, and your work goes on." if bool(r.get("successor", false)) else "Another term to shape the nation.") + (" Observers call the vote unfair." if managed and float(r.approval) < Economy.DISPUTED_BELOW else ""))
 		if won else ((("After %d terms, many voters wanted a change. " % int(r.terms)) if int(r.get("terms", 0)) >= 2 else "")
 			+ ("The opposition takes office." if not Game.god_mode else "Somehow, you stay in office anyway."))]
 	_election_groups(r)

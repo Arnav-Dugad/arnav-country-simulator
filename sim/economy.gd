@@ -349,7 +349,7 @@ static func legacy_parts(s: Dictionary) -> Array:
 		["National goals reached", minf(float(s.get("goals_done", 0)) * 3.0, 15.0)],
 		["Final approval", clampf((float(s.approval) - 45.0) * 0.4, -8.0, 8.0)],
 		["Short term", -12.0 * (1.0 - w)],
-	]
+	] + ([["Peaceful handover", HANDOVER_LEGACY]] if str(s.get("reason", "")) == "retired" else [])
 
 
 static func legacy_grade(score: float) -> String:
@@ -398,6 +398,21 @@ static func rating_grade(score: float) -> String:
 static func tax_yield(rate: float, k: float) -> float:
 	var r := rate / 100.0
 	return r * k * (1.0 - LAFFER * r * r)
+
+
+# ------------------------------------------------------------- term limits ---
+# See Government.TERM_LIMITS and Politics.
+## Months before the last allowed election when the player must choose.
+const TERM_LIMIT_NOTICE := 12
+## A new candidate is less known: approval counts this much less at their first vote.
+const SUCCESSOR_PENALTY := 3.0
+## Changing the constitution to run again: chance = (approval - BASE) / SPAN, clamped.
+const AMEND_BASE := 30.0
+const AMEND_SPAN := 40.0
+const AMEND_MIN := 0.1
+const AMEND_MAX := 0.8
+## Legacy bonus for stepping down when the constitution says so.
+const HANDOVER_LEGACY := 6.0
 
 
 # ----------------------------------------------------------------- climate ---
