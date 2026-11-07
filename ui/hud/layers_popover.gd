@@ -24,6 +24,7 @@ var _hi: Label
 var _mode := 0
 var _anchor := Rect2()
 var _globe_btn: AppButton
+var _grid: GridContainer
 
 
 func set_globe_state(on: bool) -> void:
@@ -51,6 +52,7 @@ func _ready() -> void:
 	h.text = "MAP"
 	v.add_child(h)
 	var g := GridContainer.new()
+	_grid = g
 	g.columns = 3
 	g.add_theme_constant_override(&"h_separation", DS.S2)
 	g.add_theme_constant_override(&"v_separation", DS.S2)
@@ -99,18 +101,24 @@ func _gui_input(e: InputEvent) -> void:
 
 func open(anchor: Rect2) -> void:
 	_anchor = anchor
+	_grid.columns = 5 if Screen.landscape else 3   # wide screens: one short row
 	visible = true
 	await get_tree().process_frame
+	_card.size = Vector2.ZERO
 	var s := _card.get_combined_minimum_size()
 	_card.size = s
-	var x := clampf(anchor.end.x - s.x, DS.S3, size.x - s.x - DS.S3)
-	_card.position = Vector2(x, anchor.position.y - s.y - DS.S2)
-	_card.pivot_offset = Vector2(s.x - anchor.size.x * 0.5, s.y)
-	_card.scale = Vector2.ONE * 0.85
+	# Fit above the button; shrink if the screen is too short (landscape).
+	var room := anchor.position.y - DS.S2 - Screen.top - DS.S2
+	var fit := clampf(room / maxf(s.y, 1.0), 0.6, 1.0)
+	var x := clampf(anchor.end.x - s.x * fit, DS.S3, size.x - s.x * fit - DS.S3)
+	_card.position = Vector2(x, anchor.position.y - s.y * fit - DS.S2)
+	_card.pivot_offset = Vector2.ZERO
+	set_meta(&"fit", fit)
+	_card.scale = Vector2.ONE * 0.85 * fit
 	_card.modulate.a = 0.0
 	var t := create_tween().set_parallel(true)
 	DS.spring(t)
-	t.tween_property(_card, "scale", Vector2.ONE, Settings.dur(DS.DUR_SLOW))
+	t.tween_property(_card, "scale", Vector2.ONE * float(get_meta(&"fit", 1.0)), Settings.dur(DS.DUR_SLOW))
 	DS.ease_out(t)
 	t.tween_property(_card, "modulate:a", 1.0, Settings.dur(DS.DUR_FAST))
 	Haptics.tap()

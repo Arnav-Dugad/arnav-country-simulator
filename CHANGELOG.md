@@ -2,6 +2,11 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.15.2] - 2026-11-07
+
+- Landscape: cards and the map layers menu now always fit the screen
+- Landscape: side panels use the full height, and turning your phone brings your country back into view
+
 ## [0.15.1] - 2026-11-07
 
 - Landscape: side panels now use the full height of the screen

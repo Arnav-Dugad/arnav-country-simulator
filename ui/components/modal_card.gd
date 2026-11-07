@@ -31,23 +31,31 @@ func _init() -> void:
 
 func _ready() -> void:
 	resized.connect(_layout)
+	# Content added later (election results…) must re-fit the card.
+	card.minimum_size_changed.connect(func() -> void: _layout.call_deferred())
 	_layout.call_deferred()
 	_pop_in.call_deferred()
 
 
 func _layout() -> void:
+	# Landscape is short: drop decorative illustrations to save height.
+	for ch in content.get_children():
+		if ch is Illustration:
+			(ch as Control).visible = not Screen.landscape
 	var w := minf(size.x - DS.S4 * 2.0, 420.0)
 	card.size = Vector2(w, 0)
 	card.size = Vector2(w, card.get_combined_minimum_size().y)
 	# Short screens (landscape): shrink the card to fit rather than overflow.
 	var avail := size.y - Screen.top - Screen.bottom - DS.S4 * 2.0
-	var s := clampf(avail / maxf(card.size.y, 1.0), 0.62, 1.0)
+	var s := clampf(avail / maxf(card.size.y, 1.0), 0.45, 1.0)
 	card.position = Vector2((size.x - w) * 0.5,
 		clampf((size.y - card.size.y) * 0.5, Screen.top + DS.S4, maxf(size.y - card.size.y - Screen.bottom - DS.S4, Screen.top)))
 	card.pivot_offset = card.size * 0.5
 	if s < 1.0:
 		card.position.y = (size.y - card.size.y) * 0.5
 	set_meta(&"fit", s)
+	if has_meta(&"popped"):
+		card.scale = Vector2.ONE * s
 
 
 func _enter_tree() -> void:
@@ -70,6 +78,7 @@ func _pop_in() -> void:
 	t.tween_property(card, "modulate:a", 1.0, Settings.dur(DS.DUR_FAST))
 	DS.spring(t)
 	t.tween_property(card, "scale", Vector2.ONE * float(get_meta(&"fit", 1.0)), Settings.dur(DS.DUR_SLOW))
+	t.chain().tween_callback(func() -> void: set_meta(&"popped", true))
 
 
 func dismiss() -> void:
