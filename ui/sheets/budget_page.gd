@@ -121,6 +121,9 @@ func _on_share(v: float, k: String) -> void:
 
 func _after_change() -> void:
 	var c := Game.me()
+	var gs := get_tree().current_scene
+	if gs and gs.has_method("learned"):
+		gs.learned("budget")
 	_undo.visible = true
 	Simulation.update_finances(c)
 	_syncing = true

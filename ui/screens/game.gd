@@ -363,6 +363,8 @@ func open_page(page: String) -> void:
 	_hide_chrome(true)
 	if page == "events":
 		top_bar.refresh_badge()
+	if page == "economy":
+		learned("economy")
 	Haptics.tap()
 
 
@@ -518,6 +520,11 @@ func _refresh_next() -> void:
 	elif not _review.is_empty() and Game.months_played <= _review_until:
 		item = {"kind": "review", "key": "review%d" % int(_review.year), "title": "%d in review" % int(_review.year),
 			"icon": "calendar", "tint": DS.GOLD, "sub": str(_review.title)}
+	elif not Learn.finished() and Game.months_played < 48:
+		var st := Learn.next_step()
+		var n := Learn.STEPS.find(st) + 1
+		item = {"kind": "learn", "key": "learn" + str(st.id), "title": str(st.title), "icon": str(st.icon),
+			"tint": DS.ACCENT, "sub": "Step %d of %d · tap to start" % [n, Learn.STEPS.size()], "step": st}
 	elif Game.months_played >= _tip_snooze_until:
 		var tips := Advisor.advice(Game.me())
 		if not tips.is_empty() and int(tips[0].level) >= 1:
@@ -537,6 +544,8 @@ func _on_next(item: Dictionary) -> void:
 			_show_year_review(_review)
 		"tip":
 			_show_tip(item.tip)
+		"learn":
+			open_page(str(item.step.page))
 
 
 func _show_tip(t: Dictionary) -> void:
@@ -879,6 +888,20 @@ func _show_election(r: Dictionary) -> void:
 		map.spotlight(-1, false)
 		_modal.dismiss()
 		Game.continue_after_election(won))
+
+
+## A first-game checklist step is done (see Learn).
+func learned(id: String) -> void:
+	if not Learn.complete(id):
+		return
+	Haptics.success()
+	if Learn.finished():
+		_notify("You know the basics. Enjoy leading!", "crown", DS.GOLD, true)
+		_confetti()
+	else:
+		var st := Learn.next_step()
+		_notify("Done! Next: %s" % str(st.title).to_lower(), "circle-check", DS.GREEN, true, false)
+	_refresh_next()
 
 
 ## A short, tasteful burst of gold sparks from the top bar (goals, big wins).

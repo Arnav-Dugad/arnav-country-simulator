@@ -225,6 +225,9 @@ func _confirm(l: Dictionary, repeal: bool) -> void:
 		func() -> void:
 			Laws.start(c, l.id)
 			Haptics.success()
+			var gs := get_tree().current_scene
+			if gs and gs.has_method("learned") and not repeal:
+				gs.learned("law")
 			m.dismiss()
 			refresh())
 	m.choice("Not now", "", &"GhostButton", m.dismiss)

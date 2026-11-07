@@ -2,6 +2,10 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.26.0] - 2026-11-08
+
+- **Learn as you play**: a five-step first-game checklist in the "next" pill (open Economy, adjust the budget, start a project, pass a law, sign a trade deal), with a small celebration for each step
+
 ## [0.25.0] - 2026-11-08
 
 - **Calls for help**: when a disaster hits a friendly country, its leader asks you for help (with their portrait). Generous aid makes a friend for life; a cold shoulder is remembered

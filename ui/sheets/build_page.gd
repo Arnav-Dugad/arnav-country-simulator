@@ -166,6 +166,9 @@ func _confirm_build(p: Dictionary) -> void:
 	m.choice("Start building", "", &"PrimaryButton", func() -> void:
 		if Projects.start(c, p.id):
 			Simulation.update_finances(c)
+			var gs := get_tree().current_scene
+			if gs and gs.has_method("learned"):
+				gs.learned("build")
 			Haptics.success()
 			Audio.play("success", -6.0)
 		m.dismiss()

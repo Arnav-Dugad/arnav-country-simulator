@@ -198,6 +198,10 @@ func _build_actions(i: int, is_me: bool, playable: bool) -> void:
 		var ok := Diplomacy.can_propose_deal(i)
 		_action("Propose trade deal", &"PrimaryButton" if ok else &"", "handshake", func() -> void:
 			var acc := Diplomacy.propose_deal(i)
+			if acc:
+				var gs := get_tree().current_scene
+				if gs and gs.has_method("learned"):
+					gs.learned("deal")
 			_done("%s signed the deal." % World.map.names[i] if acc else "%s declined." % World.map.names[i], acc),
 			not ok, "Needs relations of %d+" % int(Diplomacy.DEAL_MIN_RELATION) if not ok
 				else "Likely to accept: %d%%" % int(Diplomacy.acceptance(i, "deal") * 100.0))
