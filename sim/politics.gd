@@ -72,7 +72,8 @@ func monthly() -> String:
 	var i := Game.player
 	var c := Game.me()
 	# Collapse of order ends any government.
-	low_stability_months = low_stability_months + 1 if c.stability < E.COLLAPSE_STABILITY else 0
+	var floor_st := minf(E.COLLAPSE_STABILITY, float(c.base.get("stability", 50.0)) - E.COLLAPSE_HEADROOM)
+	low_stability_months = low_stability_months + 1 if c.stability < floor_st else 0
 	if low_stability_months >= E.COLLAPSE_MONTHS:
 		return "end:collapse"
 	if not Government.has_elections(i):
@@ -121,8 +122,10 @@ func coup_risk() -> float:
 func hold_election() -> Dictionary:
 	var i := Game.player
 	var a := Game.me().approval
-	var won := Game.rng.randf() < Government.win_chance(i, a)
-	var share := Government.vote_share(i, a, Game.rng)
+	# Voters tire of long-serving governments.
+	var fatigue := E.ELECTION_FATIGUE * Difficulty.severity() * elections_won
+	var won := Game.rng.randf() < Government.win_chance(i, a - fatigue)
+	var share := Government.vote_share(i, a - fatigue, Game.rng)
 	share = maxf(share, 50.6) if won else minf(share, 49.4)
 	months_to_election = _cycle_months(i)
 	var managed := Government.elections(i) == "managed"
@@ -133,7 +136,8 @@ func hold_election() -> Dictionary:
 			# A tilted win with little real support: protests and frowns abroad.
 			Game.me().shocks.stability -= 6.0
 			Diplomacy.democracies_react(-4.0)
-	return {"won": won, "share": share, "year": Game.year, "approval": a, "managed": managed}
+	return {"won": won, "share": share, "year": Game.year, "approval": a, "managed": managed,
+		"terms": elections_won - (1 if won else 0)}
 
 
 ## Leadership review in systems without elections (Party Congress, …).

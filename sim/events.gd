@@ -17,7 +17,7 @@ const MONTHLY_CHANCE := 0.16
 const MIN_GAP_MONTHS := 3
 
 const EVENTS := [
-	{"id": "recession", "title": "Global slowdown", "icon": "trending-down", "tint": "orange", "weight": 3.0,
+	{"id": "recession", "title": "Global slowdown", "icon": "trending-down", "tint": "orange", "weight": 2.3,
 		"body": "Demand is falling across the world and {country}'s exporters are cutting jobs. Economists warn of a recession.",
 		"choices": [
 			{"label": "Stimulus package", "detail": "Costs 2% of GDP · supports growth and jobs",

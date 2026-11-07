@@ -14,6 +14,8 @@ const ITEMS := [
 ]
 
 var _buttons := {}
+var _pill: Panel
+var _pill_tween: Tween
 var _badges := {}
 var active := ""
 
@@ -21,6 +23,12 @@ var active := ""
 func _ready() -> void:
 	theme_type_variation = &"GlassBar"
 	super._ready()
+	# A soft pill slides behind the active tab.
+	_pill = Panel.new()
+	_pill.theme_type_variation = &"SegmentIndicator"
+	_pill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_pill.modulate.a = 0.0
+	add_child(_pill, false, Node.INTERNAL_MODE_FRONT)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override(&"separation", 0)
 	add_child(row)
@@ -53,6 +61,23 @@ func button_rect(page: String) -> Rect2:
 
 func set_active(page: String) -> void:
 	active = page
+	if _pill_tween:
+		_pill_tween.kill()
+	_pill_tween = create_tween().set_parallel(true)
+	if _buttons.has(page):
+		var b: Control = _buttons[page]
+		var r := Rect2(b.global_position - global_position, b.size).grow(-3)
+		if _pill.modulate.a < 0.05:
+			_pill.position = r.position
+			_pill.size = r.size
+		DS.spring(_pill_tween)
+		_pill_tween.tween_property(_pill, "position", r.position, Settings.dur(DS.DUR_SLOW))
+		_pill_tween.tween_property(_pill, "size", r.size, Settings.dur(DS.DUR_SLOW))
+		DS.ease_out(_pill_tween)
+		_pill_tween.tween_property(_pill, "modulate:a", 1.0, Settings.dur(DS.DUR_FAST))
+	else:
+		DS.ease_out(_pill_tween)
+		_pill_tween.tween_property(_pill, "modulate:a", 0.0, Settings.dur(DS.DUR_FAST))
 	for k in _buttons:
 		var b: AppButton = _buttons[k]
 		var on: bool = k == page

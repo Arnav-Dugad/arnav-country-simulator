@@ -45,8 +45,9 @@ func _run() -> void:
 	var event_counts := {}
 	var t0 := Time.get_ticks_msec()
 	for level in Difficulty.LEVELS:
+		# Same countries and seeds at every level, so levels compare like for like.
 		var rng := RandomNumberGenerator.new()
-		rng.seed = 1000 + Difficulty.LEVELS.find(level)
+		rng.seed = 1000
 		var survived := 0
 		var reasons := {}
 		var growth_sum := 0.0

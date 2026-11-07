@@ -176,7 +176,7 @@ func start_tour() -> void:
 		{"target": top_bar.inbox_rect, "title": "Your inbox",
 			"text": "Headlines, world news and everything you decided collect here, so nothing needs to pop up."},
 		{"target": strip.layers_rect, "title": "Map views",
-			"text": "Colour the world by wealth, relations with you, happiness or stability."},
+			"text": "Colour the world by wealth, relations with you, happiness or stability. Tip: pinch out past the whole world to spin a globe."},
 		{"title": "Your goal", "text": goal + " Good luck!"},
 	]
 	add_child(g)
@@ -318,6 +318,7 @@ func open_page(page: String) -> void:
 	_current = page
 	_sheet_flag.visible = false
 	p.on_open()
+	_stagger(p)
 	_sheet_title.text = p.title
 	_scroll.scroll_vertical = 0
 	dock.set_active(page)
@@ -329,6 +330,23 @@ func open_page(page: String) -> void:
 	if page == "events":
 		top_bar.refresh_badge()
 	Haptics.tap()
+
+
+## Sections fade in one after another (25 ms apart) when a panel opens.
+func _stagger(p: Control) -> void:
+	if Settings.reduce_motion:
+		return
+	var k := 0
+	for ch in p.get_children():
+		if not (ch is CanvasItem) or not (ch as CanvasItem).visible:
+			continue
+		var c := ch as CanvasItem
+		c.modulate.a = 0.0
+		var t := create_tween()
+		t.tween_interval(0.025 * mini(k, 10))
+		DS.ease_out(t)
+		t.tween_property(c, "modulate:a", 1.0, 0.28)
+		k += 1
 
 
 func _wire_page(page: String, p: SheetPage) -> void:
@@ -801,7 +819,8 @@ func _show_election(r: Dictionary) -> void:
 	var managed := bool(r.get("managed", false))
 	msg.text = "Your approval stood at %s. %s" % [DS.pct(float(r.approval), 0),
 		("Another term to shape the nation." + (" Observers call the vote unfair." if managed and float(r.approval) < Economy.DISPUTED_BELOW else ""))
-		if won else ("The opposition takes office." if not Game.god_mode else "Somehow, you stay in office anyway.")]
+		if won else ((("After %d terms, many voters wanted a change. " % int(r.terms)) if int(r.get("terms", 0)) >= 2 else "")
+			+ ("The opposition takes office." if not Game.god_mode else "Somehow, you stay in office anyway."))]
 	if won:
 		Haptics.success()
 		_modal.sweep(Color(DS.GOLD, 0.28))

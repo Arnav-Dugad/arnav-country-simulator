@@ -148,12 +148,19 @@ const MIL_LOG_MAX := 11.95
 const ELECTION_YEARS := 4
 const WIN_SAFE := 50.0           # approval at/above this always wins
 const WIN_NONE := 35.0           # approval below this always loses
+## Voters tire of long-serving governments: each election already won counts as
+## this many approval points against you at the next one (x Difficulty.severity).
+## Tuned with tools/balance_report: without it a sensible player won ~99 % of elections.
+const ELECTION_FATIGUE := 3.0
 ## A tilted ("managed") election won below this approval is disputed: protests.
 const DISPUTED_BELOW := 35.0
 
 # --------------------------------------------------- HOLD ON POWER (Politics) ---
 ## Any system: stability below COLLAPSE_STABILITY for COLLAPSE_MONTHS ends your rule.
+## Fragile countries that start near it get headroom: the line is at most
+## (starting stability - COLLAPSE_HEADROOM).
 const COLLAPSE_STABILITY := 8.0
+const COLLAPSE_HEADROOM := 10.0
 const COLLAPSE_MONTHS := 6
 ## Without elections: low stability AND low support for UNREST_MONTHS = revolution.
 const UNREST_STABILITY := 18.0

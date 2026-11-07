@@ -46,7 +46,7 @@ The basics should feel finished before anything new is added.
 - [x] **Rubber-band edges:** panning past the world gives soft resistance (0.35× drag) and springs back on release, instead of a hard stop.
 - [x] **Zoom inertia:** a pinch-release carries a little zoom momentum (decays in about 180 ms), anchored at the pinch midpoint.
 - [ ] **Two-finger tap** zooms out one level, and **long-press** on a country opens its sheet at half height with a haptic "select".
-- [ ] **Smart framing:** `focus_country` avoids the top bar, mode control and open sheet using real measured insets.
+- [x] **Smart framing:** `focus_country` avoids the top bar, mode control and open sheet using real measured insets.
 - [ ] **120 Hz aware:** inertia uses real frame delta; tested at 60, 90 and 120 Hz.
 
 ### Map beauty
@@ -56,8 +56,8 @@ The basics should feel finished before anything new is added.
 - [x] **Flags:** country flags from `flag-icons` 7.6.0 (MIT) as SVG DPITextures with rounded corners and a hairline edge, in the picker rows and footer, the country sheet header, the top bar (player) and the diplomacy list.
 - [ ] **Distance-field player glow:** bake a signed-distance texture per country so the halo is perfectly smooth (replaces the outline-extruded glow, which still shows faint flares in very narrow inlets).
 - [ ] **Label system v2:** keep labels clear of HUD rectangles, cross-fade between zoom bands (no popping), letter-spacing scaled to zoom, and two lines for long names ("United States / of America").
-- [ ] **Selection feel:** a tap ripple at the touch point (expanding ring, 300 ms), and the raised country gets a soft 8 pt drop shadow tied to the zoom level.
-- [ ] **Mode transitions:** a 450 ms colour crossfade with a legend that slides in under the mode control (gradient bar, min/max labels and the player's marker).
+- [x] **Selection feel:** a tap ripple at the touch point (expanding ring, 300 ms), and the raised country gets a soft 8 pt drop shadow tied to the zoom level.
+- [x] **Mode transitions:** a 450 ms colour crossfade with a legend that slides in under the mode control (gradient bar, min/max labels and the player's marker).
 
 ### Sound (new)
 - [x] **Audio system** (`Audio` autoload) with a UI bus, an ambience bus and a music bus, Settings sliders, and auto-ducking when an event card opens.
@@ -75,7 +75,7 @@ The basics should feel finished before anything new is added.
 - [ ] Prevent haptic spam during fast slider drags with a 40 ms minimum gap.
 
 ### Startup and performance
-- [ ] **Bake render meshes offline** (fill, border and glow ArrayMeshes in `world_map.res`), aiming for at least 40% faster cold start, measured with `Time.get_ticks_msec()` in the splash.
+- [x] **Bake render meshes offline** (fill, border and glow ArrayMeshes in `world_map.res`), aiming for at least 40% faster cold start, measured with `Time.get_ticks_msec()` in the splash.
 - [ ] **Two map levels of detail:** a world-scale mesh (about 8k points) for low zoom and the current mesh for close zoom, crossfaded around ×3.
 - [ ] **Idle redraw off:** when paused with no animation running, enter low-processor mode for battery.
 - [ ] **Glass quality tiers:** 12 / 8 / 4 blur samples chosen from a measured frame time in the first 120 frames.
@@ -161,7 +161,7 @@ The basics should feel finished before anything new is added.
 - [x] (7 challenges in v0.11.0) **Scenarios**, for example: "Tame Argentina's inflation below 10% in 4 years", "Make India a $10T economy by 2040", "Win three terms in Japan", "Balance Italy's budget".
 - [x] (22 achievements in v0.9.0) **30 achievements:** quiet glass toasts and a gallery of line-art badges.
 - [x] **Legacy score** at the end of a term (grade A+ to F) from growth, well-being, stability, debt and elections, with a breakdown.
-- [ ] **Difficulty:** Relaxed, Standard or Realistic, affecting election thresholds, event severity, AI hostility and political capital income.
+- [x] **Difficulty:** Relaxed, Standard or Realistic, affecting election thresholds, event severity, AI hostility and political capital income.
 
 **Definition of done:** a full playthrough where at least one event chain, one reform and one treaty happen, and the bot playtest still reports zero errors.
 
@@ -173,7 +173,7 @@ The basics should feel finished before anything new is added.
 - [ ] **Year in review** every January: a full-screen glass card with 4 tiny sparklines, the headline of the year, best and worst decisions, and a **Share** button.
 - [x] **Share cards:** render a 1080×1350 summary image (map crop, flag, key stats) and share it through the Android share sheet (new method in the Kotlin plugin).
 - [ ] **Milestone toasts:** "GDP passed $5T", "Inflation under 2%", "First trade deal".
-- [ ] **Election night sequence:**
+- [x] **Election night sequence:**
   - the map dims and the player's country pulses;
   - bloc bars fill and the vote share counts up;
   - a gold glow appears on a win.
@@ -206,7 +206,7 @@ The basics should feel finished before anything new is added.
 ## v0.7 "Cloud and community"  *(priority: medium, effort: M)*
 
 - [ ] **Save conflict sheet** ("This device · Mar 2031" vs "Cloud · Jan 2032"), letting the player pick and keep both.
-- [ ] **In-app account deletion** (good practice): deletes Firestore data then the Auth user.
+- [x] **In-app account deletion** (good practice): deletes Firestore data then the Auth user.
 - [ ] **Privacy policy** on GitHub Pages, linked in Settings and the README.
 - [ ] **Leaderboards** (Spark-safe):
   - best legacy score per scenario;
@@ -234,8 +234,8 @@ The basics should feel finished before anything new is added.
 - [ ] **CI on every push:** headless import, `sim_test`, `playtest` (3 countries) and theme/icon regeneration checks. Tags still release.
 - [ ] **Visual regression tests:** DevTools screenshots of 8 key screens compared against golden images (per-pixel tolerance) on a Linux runner using software OpenGL.
 - [ ] **Save schema versioning and migrations** (`SAVE_VERSION` 2+), with a migration test that loads old fixture saves.
-- [ ] **Refactor `game.gd`** into `Calendar`, `EventDirector`, `Elections` and `WorldAI` modules. Keep `sim/economy.gd` as the single home for constants.
-- [ ] **Balance tooling:** `tools/balance_report` runs 100 seeded games per difficulty and outputs win rates, average approval paths and how often each event fires, so tuning is driven by data.
+- [x] **Refactor `game.gd`** into `Calendar`, `EventDirector`, `Elections` and `WorldAI` modules. Keep `sim/economy.gd` as the single home for constants.
+- [x] **Balance tooling:** `tools/balance_report` runs 100 seeded games per difficulty and outputs win rates, average approval paths and how often each event fires, so tuning is driven by data.
 - [ ] **Performance HUD** (dev only): frame time graph, draw calls and memory, toggled by a three-finger tap.
 
 ---
@@ -249,6 +249,14 @@ The basics should feel finished before anything new is added.
 5. **v0.6 Reach**, then **v0.7 Cloud**, then **v1.0 Ship.**
 
 ---
+
+## Shipped in v0.13–v0.14 (beyond the original plan)
+- [x] Calm notifications: decision pill + Inbox, cabinet auto-decides, one banner at a time (research-based)
+- [x] Thumb-zone layout: play/speed + next pill + Layers button; 5-tab dock; tap date to pause
+- [x] Real systems of government per country (elections, reviews, coups, unrest) + free-elections reform
+- [x] Build: 23 construction projects shaped by each country
+- [x] Independent central bank (default), cheats, in-app account deletion
+- [x] Map: trade-flow arcs, calm weather, project pins, pinch-to-globe, coast halo, tap ripple, two-finger tap
 
 ## Decisions (2026-11-07)
 
@@ -274,7 +282,7 @@ and Firebase Spark can't verify purchases server-side, so:
       "Debt / GDP" becomes "Debt (vs. economy size)"; jargon moves into an info sheet.
 - [x] **(i) button on every control,** opening a 2-line explanation plus a tiny illustration.
 - [x] **Guided first game:** coach marks for the first three months, one task at a time, with checkmarks.
-- [ ] **"What should I do?" button:** shows the single most impactful suggestion right now.
+- [x] **"What should I do?" button:** shows the single most impactful suggestion right now.
 - [ ] **Health summary:** one colour ring (Thriving, Okay, Struggling) on the top bar, tappable for the top 3 problems.
-- [ ] **Bigger, fewer targets:** every tap target at least 44 pt, max 5 items per row, no hidden gestures without a visible alternative.
+- [x] **Bigger, fewer targets:** every tap target at least 44 pt, max 5 items per row, no hidden gestures without a visible alternative.
 - [x] **Undo:** the last policy change can be undone within the same month.

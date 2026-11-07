@@ -14,6 +14,13 @@ const PARTICLES := 3
 
 var map: MapView
 var _t := 0.0
+var _ripples: Array = []    # [position, start time, on land]
+
+
+## A soft ring expanding from a tap (300 ms).
+func ripple(pos: Vector2, land: bool) -> void:
+	if not Settings.reduce_motion:
+		_ripples.append([pos, Time.get_ticks_msec() / 1000.0, land])
 var _icons := {}
 
 
@@ -34,6 +41,20 @@ func _draw() -> void:
 	_draw_weather()
 	_draw_trade()
 	_draw_projects()
+	_draw_ripples()
+
+
+func _draw_ripples() -> void:
+	var now := Time.get_ticks_msec() / 1000.0
+	for k in range(_ripples.size() - 1, -1, -1):
+		var r: Array = _ripples[k]
+		var u := (now - float(r[1])) / 0.45
+		if u >= 1.0:
+			_ripples.remove_at(k)
+			continue
+		var e := 1.0 - pow(1.0 - u, 3.0)
+		var col := Color(1, 1, 1) if r[2] else DS.TEAL
+		draw_arc(r[0], 6.0 + 30.0 * e, 0.0, TAU, 40, Color(col, 0.45 * (1.0 - u)), 2.0, true)
 
 
 # ------------------------------------------------------------------ trade ----

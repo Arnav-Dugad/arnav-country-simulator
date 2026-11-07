@@ -17,7 +17,8 @@ sim/           Simulation. ALL formulas + tweakable constants live in sim/econom
                Session modules owned by the Game autoload: calendar.gd, world_ai.gd,
                event_director.gd (decision inbox), politics.gd (elections/reviews/unrest/coups).
                government.gd (system per country), projects.gd (Build), difficulty.gd, laws.gd, events.gd …
-map/           World map rendering, camera/gestures, map modes, labels
+map/           World map rendering, camera/gestures (globe morph: shaders/globe.gdshaderinc), map modes,
+               labels, overlays (trade arcs, weather, project pins)
 ui/theme/      tokens.gd (DS class: colors, radii, spacing, type, motion) + generated main_theme.tres
 ui/shaders/    glass.gdshader, ocean.gdshader, map shaders
 ui/components/ Reusable widgets: GlassPanel, AppButton, BottomSheet, LineChart, AnimatedNumber …
@@ -37,6 +38,8 @@ G=/c/Godot/Godot_v4.7.2-stable_win64_console.exe
 $G --headless --path . --import                                   # import + check
 $G --headless --path . --script res://tools/build_theme.gd        # regenerate theme
 $G --headless --path . --script res://tools/export_icons.gd       # regenerate app icons
+$G --headless --path . --script res://tools/bake_meshes.gd        # re-bake map meshes after bake_map
+python tools/fetch_icons.py <lucide-name> ...                      # add Lucide icons (white, DPITexture)
 $G --headless --path . --quit-after 400                           # smoke-run main scene
 $G --path . -- --scene=res://ui/screens/x.tscn --shot=C:/tmp/x.png --shot-delay=2   # screenshot
 ```
@@ -54,6 +57,7 @@ DevTools user args (after `--`): `--scene=`, `--shot=`, `--shot-delay=`, `--size
 - Haptics only through the `Haptics` autoload. Safe-area insets only through `Screen`.
 - Simulation constants: only in `sim/economy.gd`, documented.
 - Every phase: run headless import + smoke run, fix all errors/warnings, then commit.
+- Balance changes: run the "Balance report" workflow (`gh workflow run balance.yml`) and read the run summary.
 - **Touch & scrolling:** every vertical list is a `TouchScroll` (own drag + fling; the engine's touch-drag is unreliable on device). Inside it, STOP controls are switched to PASS automatically (PanelContainer and plain Control default to STOP in 4.7!). Controls decide direction after an 8 pt slop. Guarded by tools/scroll_test (CI, xvfb).
 - **Laptop resources:** no local APK/Gradle exports; push a tag and let CI build.
 - **Release = draft → emulator smoke test → publish.** CI creates a DRAFT release; download its APK (`gh release download`), install on the emulator, check launch/map/sheets/scroll + logcat, then `gh release edit vX.Y.Z --draft=false`.
