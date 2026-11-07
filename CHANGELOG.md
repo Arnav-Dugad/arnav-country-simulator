@@ -2,6 +2,19 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.4.0] - 2026-11-07
+
+**Events 2.0**
+- 20 new events, for 36 in total: monsoon floods, hurricanes, heatwaves, earthquakes and droughts where they really happen
+- Oil-rich countries (using real export data) face oil windfalls and price crashes
+- Story chains: a pandemic leads to a vaccine race, a scandal inquiry reports back, recessions end in recovery booms
+- Every choice now shows its effects up front (costs in real money, growth, approval and more)
+- Housing crises, automation, brain drain, tourism booms and the chance to host the world games
+
+**Smoother**
+- No more stutter at the start of each month or during the yearly autosave
+- Settings opens instantly, even with several long games saved
+
 ## [0.3.0] - 2026-11-07
 
 **Laws & reforms**

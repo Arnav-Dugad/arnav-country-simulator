@@ -49,6 +49,7 @@ var event_log: Array = []           # [{date, title, choice, id}]
 var elections_won := 0
 var start_snapshot: Dictionary = {}
 var headlines_seen: Dictionary = {}
+var scheduled: Array = []   # follow-up events: [{id, due (months_played), other}]
 
 var _last_event_month := -10
 var _speed_before_pause := 1
@@ -92,6 +93,7 @@ func new_game(country_index: int, seed_value: int = -1) -> void:
 		dip.baseline[str(i)] = relations[i]
 	pending_event = {}
 	headlines_seen = {}
+	scheduled = []
 	event_log.clear()
 	elections_won = 0
 	_last_event_month = 0  # a few quiet months to settle in
@@ -235,8 +237,16 @@ func _after_month(my_crisis: bool) -> void:
 		return
 	if not pending_event.is_empty():
 		return
+	var due := -1
+	for k in scheduled.size():
+		if int(scheduled[k].due) <= months_played:
+			due = k
+			break
 	if my_crisis:
 		trigger_event(GameEvents.instance(GameEvents.by_id("debt_crisis")))
+	elif due >= 0:
+		var item: Dictionary = scheduled.pop_at(due)
+		trigger_event(GameEvents.instance(GameEvents.by_id(str(item.id)), int(item.get("other", -1))))
 	elif months_played - _last_event_month >= GameEvents.MIN_GAP_MONTHS and rng.randf() < GameEvents.MONTHLY_CHANCE:
 		var ev: Dictionary = GameEvents.roll(rng)
 		if not ev.is_empty():
@@ -256,6 +266,9 @@ func resolve_event(choice: int) -> void:
 	var ev := pending_event
 	var ch: Dictionary = ev.choices[choice]
 	GameEvents.apply_effects(ch.effects, int(ev.other))
+	var nxt: Dictionary = ch.get("next", ev.get("next", {}))
+	if not nxt.is_empty():
+		scheduled.append({"id": str(nxt.id), "due": months_played + int(nxt.get("in", 6)), "other": int(ev.other)})
 	event_log.push_front({"date": date_text(), "title": ev.title, "choice": ch.label, "id": ev.id})
 	if event_log.size() > 60:
 		event_log.pop_back()
@@ -390,7 +403,7 @@ func to_dict() -> Dictionary:
 		"months_played": months_played, "months_to_election": months_to_election,
 		"countries": cs, "relations": rel, "history": hist, "rng_state": str(rng.state),
 		"dip": dip, "event_log": event_log, "elections_won": elections_won,
-		"start": start_snapshot, "pending_event": pending_event, "headlines_seen": headlines_seen,
+		"start": start_snapshot, "pending_event": pending_event, "headlines_seen": headlines_seen, "scheduled": scheduled,
 	}
 
 
@@ -434,6 +447,7 @@ func load_dict(d: Dictionary) -> bool:
 	start_snapshot = d.get("start", {})
 	pending_event = d.get("pending_event", {})
 	headlines_seen = d.get("headlines_seen", {})
+	scheduled = d.get("scheduled", [])
 	_low_stability_months = 0
 	speed = 1
 	_acc = 0.0

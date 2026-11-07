@@ -80,7 +80,7 @@ func _ready() -> void:
 		_show_event.call_deferred(Game.pending_event)
 	get_tree().root.go_back_requested.connect(_on_back)
 	_dev_open.call_deferred()
-	if not Settings.tutorial_done and Game.months_played == 0 and DevTools.arg("open") == null 			and DevTools.arg("advance") == null:
+	if not Settings.tutorial_done and Game.months_played == 0 and DevTools.arg("open") == null 			and DevTools.arg("advance") == null and DevTools.arg("event") == null:
 		get_tree().create_timer(0.9).timeout.connect(start_tour)
 
 
@@ -137,6 +137,10 @@ func _dev_open() -> void:
 				Game.resolve_event(0)
 		_dev_fast = false
 		_narrate()
+	var ev_id: Variant = DevTools.arg("event")
+	if ev_id != null:
+		Settings.tutorial_done = true
+		Game.trigger_event(GameEvents.instance(GameEvents.by_id(str(ev_id)), World.index_of("CHN")))
 	var page: Variant = DevTools.arg("open")
 	if page == null or not PAGES.has(str(page)):
 		return
@@ -379,13 +383,13 @@ func _show_event(ev: Dictionary) -> void:
 	_modal.body(str(ev.body))
 	for k in ev.choices.size():
 		var ch: Dictionary = ev.choices[k]
-		_modal.choice(str(ch.label), str(ch.detail), &"PrimaryButton" if k == 0 else &"", func() -> void:
+		_modal.choice(str(ch.label), "", &"PrimaryButton" if k == 0 else &"", func() -> void:
 			Game.resolve_event(k)
 			Haptics.success()
 			dock.set_badge(false)
 			_modal.dismiss()
 			if _current != "":
-				_pages[_current].refresh())
+				_pages[_current].refresh(), GameEvents.effect_chips(ch.effects))
 
 
 func _show_election(r: Dictionary) -> void:

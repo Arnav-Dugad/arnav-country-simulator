@@ -43,6 +43,7 @@ WB_INDICATORS = {
     "military_pct": ("MS.MIL.XPND.GD.ZS", None),
     "life_expectancy": ("SP.DYN.LE00.IN", None),
     "stability_wgi": ("GOV_WGI_PV.EST", 3),
+    "fuel_exports_pct": ("TX.VAL.FUEL.ZS.UN", None),
 }
 IMF_INDICATORS = {
     "debt_pct": "GGXWDG_NGDP",

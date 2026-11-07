@@ -31,6 +31,7 @@ Snapshot built **2026-11-07**. Each value is the **most recent available year
 | military_pct (% GDP) | World Bank WDI (SIPRI) | MS.MIL.XPND.GD.ZS |
 | life_expectancy | World Bank WDI | SP.DYN.LE00.IN |
 | stability_wgi (−2.5…2.5) | World Bank WGI | GOV_WGI_PV.EST |
+| fuel_exports_pct (% of merchandise exports) | World Bank WDI | TX.VAL.FUEL.ZS.UN |
 | debt_pct (% GDP) | IMF World Economic Outlook (DataMapper) | GGXWDG_NGDP |
 | budget_balance_pct (% GDP) | IMF WEO (DataMapper) | GGXCNL_NGDP |
 

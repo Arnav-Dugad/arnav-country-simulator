@@ -133,12 +133,12 @@ The basics should feel finished before anything new is added.
   - **Result:** an animated election-night sheet with bloc bars filling and the vote share counting up.
 
 ### Events 2.0
-- [ ] **60+ events**, including:
+- [x] (36 events in v0.4.0, with chains, regional and oil events) **60+ events**, including:
   - **story chains** (pandemic → vaccine race → recovery boom; scandal → inquiry → resignation);
   - **regional flavour** (monsoon floods in South Asia, hurricanes in the Caribbean, heatwaves in Southern Europe, oil-price swings for producers);
   - **data-driven conditions** (oil exporters from World Bank fuel-export share, coastal states, ageing countries).
 - [ ] Each event has a short illustration: a monochrome Lucide-style vector drawn in our own SVG style.
-- [ ] Every choice shows its **expected effects** as chips (honest, rounded, with uncertainty where randomness applies).
+- [x] Every choice shows its **expected effects** as chips (honest, rounded, with uncertainty where randomness applies).
 
 ### Economy and society depth (still one screen each)
 - [ ] **Credit rating** (AAA to D) from debt, deficit, stability and growth. It drives borrowing costs, shows as a badge in the top bar, and downgrades trigger an event.

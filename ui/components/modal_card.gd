@@ -112,7 +112,7 @@ func body(text: String) -> Label:
 
 
 ## A choice button with a caption underneath describing the tradeoff.
-func choice(label: String, detail: String, variant: StringName, cb: Callable) -> void:
+func choice(label: String, detail: String, variant: StringName, cb: Callable, chips: Array = []) -> void:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override(&"separation", 2)
 	content.add_child(box)
@@ -127,3 +127,19 @@ func choice(label: String, detail: String, variant: StringName, cb: Callable) ->
 		d.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		box.add_child(d)
+	if not chips.is_empty():
+		var flow := HFlowContainer.new()
+		flow.alignment = FlowContainer.ALIGNMENT_CENTER
+		flow.add_theme_constant_override(&"h_separation", 5)
+		flow.add_theme_constant_override(&"v_separation", 5)
+		box.add_child(flow)
+		for ch in chips:
+			var p := PanelContainer.new()
+			p.theme_type_variation = &"ForecastChip"
+			var l := Label.new()
+			l.theme_type_variation = &"ChipValue"
+			l.add_theme_font_size_override(&"font_size", 12)
+			l.add_theme_color_override(&"font_color", DS.GREEN if ch[1] else DS.RED)
+			l.text = str(ch[0])
+			p.add_child(l)
+			flow.add_child(p)
