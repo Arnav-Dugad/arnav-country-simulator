@@ -281,6 +281,7 @@ func advance_month() -> void:
 	cabinet.monthly()
 	Rivalry.monthly()
 	Climate.monthly()
+	Opposition.monthly()
 	if months_played == Mandate.MONTHS:
 		var did := Mandate.summary()
 		add_milestone("First 100 days: %s" % (", ".join(did.slice(0, 3)).to_lower() if not did.is_empty() else "a quiet start"),
@@ -370,6 +371,9 @@ func resolve_decision(ev: Dictionary, choice: int) -> void:
 
 func hold_election() -> void:
 	var r := politics.hold_election()
+	r["opponent"] = Opposition.leader()
+	if bool(r.won):
+		Opposition.replace()
 	director.log.push_front({"date": date_text(), "title": "Election " + ("won" if r.won else "lost"),
 		"choice": "%.1f%% of the vote" % float(r.share), "id": "election", "m": months_played})
 	add_milestone("Election %s with %.1f%% of the vote" % ["won" if bool(r.won) else "lost", float(r.share)], "vote",

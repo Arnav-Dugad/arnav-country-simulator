@@ -2,6 +2,12 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.39.0] - 2026-11-08
+
+- **The opposition has a face.** In countries with elections you now run against a named (fictional) opposition leader and their party: People's Voice, Green Alliance, Enterprise Party and more
+- They go after your weakest record in the Inbox ("Prices are out of control…"), you meet them on the campaign card, and election night shows you side by side
+- Beat them and the opposition picks a new leader to take you on
+
 ## [0.38.0] - 2026-11-08
 
 - **Term limits.** Presidents now face their country's real limit: two terms in the United States, Brazil, France, Kenya, Indonesia and more; a single term in Mexico, South Korea, the Philippines, Colombia and others. A year before your last election you choose:

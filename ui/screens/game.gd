@@ -792,7 +792,11 @@ func _show_campaign() -> void:
 	add_child(_modal)
 	_modal.content.add_child(Illustration.banner("election", "ballot", DS.GOLD))
 	_modal.header("vote", DS.GOLD, "Election in %d months" % Game.politics.months_to_election, "Plan your campaign")
-	_modal.body("Pick two themes. Campaigning on your strengths wins votes; a weak record can backfire.")
+	var opp_line := ""
+	if Opposition.active():
+		var opp := Opposition.leader()
+		opp_line = " You face %s of the %s: \"%s.\"" % [str(opp.name), str(opp.party), str(opp.pitch)]
+	_modal.body("Pick two themes. Campaigning on your strengths wins votes; a weak record can backfire." + opp_line)
 	var c := Game.me()
 	var picked: Array = []
 	var launch := AppButton.make("Choose 2 themes", &"PrimaryButton", "vote")
@@ -875,7 +879,14 @@ func _show_election(r: Dictionary) -> void:
 	cap.theme_type_variation = &"Caption"
 	cap.text = "50% to win"
 	cap.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_modal.content.add_child(cap)
+	if r.has("opponent"):
+		var vs := VBoxContainer.new()
+		vs.add_theme_constant_override(&"separation", DS.S1)
+		vs.add_child(cap)
+		vs.add_child(_versus_row(r))
+		_modal.content.add_child(vs)
+	else:
+		_modal.content.add_child(cap)
 	var msg := _modal.body("")
 	share.set_instant(0.0)
 	share.value = float(r.share)
@@ -902,7 +913,7 @@ func _show_election(r: Dictionary) -> void:
 	msg.text = "Your approval stood at %s. %s" % [DS.pct(float(r.approval), 0),
 		(("A new leader from your party takes office, and your work goes on." if bool(r.get("successor", false)) else "Another term to shape the nation.") + (" Observers call the vote unfair." if managed and float(r.approval) < Economy.DISPUTED_BELOW else ""))
 		if won else ((("After %d terms, many voters wanted a change. " % int(r.terms)) if int(r.get("terms", 0)) >= 2 else "")
-			+ ("The opposition takes office." if not Game.god_mode else "Somehow, you stay in office anyway."))]
+			+ (("%s of the %s takes office." % [str(r.opponent.name), str(r.opponent.party)] if r.has("opponent") else "The opposition takes office.") if not Game.god_mode else "Somehow, you stay in office anyway."))]
 	_election_groups(r)
 	if won:
 		Haptics.success()
@@ -916,6 +927,47 @@ func _show_election(r: Dictionary) -> void:
 		map.spotlight(-1, false)
 		_modal.dismiss()
 		Game.continue_after_election(won))
+
+
+## Election night: you (left) against the opposition leader (right).
+func _versus_row(r: Dictionary) -> Control:
+	var opp: Dictionary = r.opponent
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override(&"separation", DS.S2)
+	var me_name := str(Settings.leader_name).strip_edges()
+	var me_face := Leaders.player_portrait()
+	var me_ctrl: Control = Photo.portrait(me_face, 36.0) if me_face != "" else \
+		Avatar.make(me_name if me_name != "" else "?", Settings.PARTY_COLORS[clampi(Settings.party_color, 0, 5)], 36.0)
+	var sides := [[me_ctrl, "Your party" if bool(r.get("successor", false)) else (me_name if me_name != "" else "You"),
+			Government.party().capitalize() if Government.party() != "your party" else "Your party", HORIZONTAL_ALIGNMENT_LEFT],
+		[Photo.portrait(str(opp.portrait), 36.0), str(opp.name), str(opp.party), HORIZONTAL_ALIGNMENT_RIGHT]]
+	for k in 2:
+		var side := HBoxContainer.new()
+		side.add_theme_constant_override(&"separation", DS.S2)
+		side.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		side.size_flags_stretch_ratio = 1.0
+		var col := VBoxContainer.new()
+		col.add_theme_constant_override(&"separation", 0)
+		col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		for j in 2:
+			var l := Label.new()
+			l.theme_type_variation = &"Subhead" if j == 0 else &"Caption"
+			l.text = str(sides[k][1 + j])
+			l.horizontal_alignment = sides[k][3]
+			l.clip_text = true
+			l.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+			l.custom_minimum_size = Vector2(20, 0)
+			col.add_child(l)
+		var face: Control = sides[k][0]
+		face.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		if k == 0:
+			side.add_child(face)
+			side.add_child(col)
+		else:
+			side.add_child(col)
+			side.add_child(face)
+		row.add_child(side)
+	return row
 
 
 ## A first-game checklist step is done (see Learn).
