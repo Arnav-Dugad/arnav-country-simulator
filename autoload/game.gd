@@ -13,6 +13,7 @@ signal election_held(result: Dictionary)
 signal game_over(summary: Dictionary)
 signal law_finished(id: String, repealed: bool)
 signal campaign_started
+signal world_news(item: Dictionary)
 
 const START_YEAR := 2026
 const HISTORY_MAX := 1200
@@ -51,7 +52,8 @@ var elections_won := 0
 var start_snapshot: Dictionary = {}
 var headlines_seen: Dictionary = {}
 var scheduled: Array = []   # follow-up events: [{id, due (months_played), other}]
-var last_rating := ""        # for upgrade/downgrade headlines
+var last_rating := ""
+var news: Array = []          # world news feed, newest first (see WorldNews)        # for upgrade/downgrade headlines
 var campaign_year := 0      # absolute month (months_played) of the election already campaigned for
 
 var _last_event_month := -10
@@ -99,6 +101,7 @@ func new_game(country_index: int, seed_value: int = -1) -> void:
 	scheduled = []
 	campaign_year = 0
 	last_rating = ""
+	news = []
 	event_log.clear()
 	elections_won = 0
 	_last_event_month = 0  # a few quiet months to settle in
@@ -192,10 +195,13 @@ func _fill_ai_queue() -> void:
 
 func _tick_ai(i: int) -> void:
 	var c: CountryState = countries[i]
+	var prev_growth := c.growth
 	if Simulation.tick(c, rng, false):
 		debt_crisis.emit(i)
+		WorldNews.defaulted(i)
 	if month % 3 == 0:
 		AI.quarterly(c, rng)
+	WorldNews.monthly(i, c, prev_growth, rng)
 
 
 ## Fraction of the current month elapsed (for smooth UI progress).
@@ -430,7 +436,7 @@ func to_dict() -> Dictionary:
 		"countries": cs, "relations": rel, "history": hist, "rng_state": str(rng.state),
 		"dip": dip, "event_log": event_log, "elections_won": elections_won,
 		"start": start_snapshot, "pending_event": pending_event, "headlines_seen": headlines_seen, "scheduled": scheduled,
-		"campaign_year": campaign_year, "last_rating": last_rating,
+		"campaign_year": campaign_year, "last_rating": last_rating, "news": news,
 	}
 
 
@@ -477,6 +483,7 @@ func load_dict(d: Dictionary) -> bool:
 	scheduled = d.get("scheduled", [])
 	campaign_year = int(d.get("campaign_year", 0))
 	last_rating = str(d.get("last_rating", ""))
+	news = d.get("news", [])
 	_low_stability_months = 0
 	speed = 1
 	_acc = 0.0

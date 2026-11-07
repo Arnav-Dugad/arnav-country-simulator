@@ -6,6 +6,7 @@ signal open_pending
 
 var _pending_box: VBoxContainer
 var _log: VBoxContainer
+var _news: VBoxContainer
 
 
 func _init() -> void:
@@ -16,7 +17,8 @@ func _init() -> void:
 func _build() -> void:
 	_pending_box = VBoxContainer.new()
 	add_child(_pending_box)
-	_log = section("History")
+	_news = section("World news")
+	_log = section("Your history")
 
 
 func refresh() -> void:
@@ -26,6 +28,18 @@ func refresh() -> void:
 		var b := AppButton.make("Decide: " + str(Game.pending_event.title), &"PrimaryButton", "alert")
 		b.pressed.connect(func() -> void: open_pending.emit())
 		_pending_box.add_child(b)
+	for ch in _news.get_children():
+		ch.queue_free()
+	if Game.news.is_empty():
+		note("News from around the world will appear here.", _news)
+	for item in Game.news.slice(0, 12):
+		var row := ListRow.new().setup(str(item.text), "", str(item.date))
+		row.title_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		row.title_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+		row.title_label.theme_type_variation = &"Body"
+		row.trailing_label.theme_type_variation = &"Caption"
+		row.set_leading(Flag.new().show_country(World.index_of(str(item.country)), 20.0))
+		_news.add_child(row)
 	for ch in _log.get_children():
 		ch.queue_free()
 	var e_next := Game.months_to_election

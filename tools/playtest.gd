@@ -67,6 +67,7 @@ func _run() -> void:
 	print("Played %d months: %d events (%d kinds), %d elections. GDP %s, debt %.0f%%, approval %.0f, stab %.0f" % [
 		Game.months_played, _events, seen_ids.size(), _elections, DS.money(c.gdp), c.debt_pct(), c.approval, c.stability])
 	print("Diplomacy: ", Diplomacy.summary())
+	print("World news (%d): " % Game.news.size(), Game.news.slice(0, 6).map(func(n: Dictionary) -> String: return "%s %s" % [n.date, n.text]))
 	print("Laws in force: ", Game.me().laws.keys(), "  modifiers: ", Laws.modifiers(Game.me()))
 	print("PLAYTEST OK")
 	get_tree().quit()

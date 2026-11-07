@@ -66,6 +66,7 @@ func _ready() -> void:
 	Game.event_started.connect(_show_event)
 	Game.election_held.connect(_show_election)
 	Game.campaign_started.connect(_show_campaign)
+	Game.world_news.connect(_on_world_news)
 	Game.game_over.connect(_on_game_over)
 	Game.law_finished.connect(func(id: String, repealed: bool) -> void:
 		var l := Laws.law(id)
@@ -362,6 +363,19 @@ func _show_year_review(r: Dictionary) -> void:
 			get_tree().create_timer(0.4).timeout.connect(func() -> void: _show_event(Game.pending_event)))
 	Haptics.success(false)
 	Audio.play("success", -4.0)
+
+
+## Big world stories (friends, neighbours, giants) get a gentle toast.
+func _on_world_news(item: Dictionary) -> void:
+	if _dev_fast or is_instance_valid(_modal):
+		return
+	var i := World.index_of(str(item.country))
+	var big := Diplomacy.has_alliance(i) or Diplomacy.has_deal(i) or i in World.map.neighbours[Game.player] 		or (Game.state(i) != null and Game.state(i).gdp > 3e12)
+	if big:
+		Toast.show_headline(self, str(item.text), str(item.icon), DS.GREEN if item.good else DS.ORANGE,
+			modes.position.y + 52.0)
+	if _current == "events":
+		_pages["events"].refresh()
 
 
 func _on_relations_changed() -> void:
