@@ -173,6 +173,8 @@ static func make_call(i: int, tone: String) -> Dictionary:
 	if not Game.dip.has("calls"):
 		Game.dip["calls"] = {}
 	Game.dip.calls[World.iso(i)] = Game.months_played
+	if Game.dip.calls.size() >= 5:
+		Achievements.unlock("hotline")
 	var first := str(ld.name).split(" ")[0]
 	var line := ""
 	if rel >= 4.0:

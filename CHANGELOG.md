@@ -2,6 +2,11 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.24.0] - 2026-11-08
+
+- Five new achievements: Goal getter, Straight talker, Hotline, Weathered the storm and Joiner
+- The top bar's poll now fits on every phone ("Vote 2030 · polls 52%")
+
 ## [0.23.0] - 2026-11-08
 
 - **Budget at a glance**: a donut chart shows where every dollar goes and smoothly reshapes as you drag the sliders, with the yearly total in the middle

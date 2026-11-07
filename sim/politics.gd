@@ -55,10 +55,11 @@ func next_year() -> int:
 func milestone_text() -> String:
 	var i := Game.player
 	if Government.has_elections(i):
-		var e := "Election %d" % next_year() if months_to_election > 0 else "Election this month"
+		if months_to_election <= 0:
+			return "Election this month"
 		if months_to_election <= 24:
-			e += "  ·  polling %d%%" % roundi(poll())
-		return e
+			return "Vote %d · polls %d%%" % [next_year(), roundi(poll())]
+		return "Election %d" % next_year()
 	if Government.review_years(i) > 0:
 		return "%s %d" % [Government.review_name(i), next_year()]
 	return Government.system_name(i)

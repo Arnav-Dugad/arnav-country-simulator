@@ -32,6 +32,11 @@ const ALL := [
 	{"id": "builder", "icon": "construction", "title": "Master builder", "desc": "Finish five projects in one game."},
 	{"id": "mandate", "icon": "landmark", "title": "Renewed mandate", "desc": "Survive a leadership review."},
 	{"id": "democrat", "icon": "vote", "title": "Power to the people", "desc": "Bring free elections to your country."},
+	{"id": "goal_getter", "icon": "crown", "title": "Goal getter", "desc": "Reach five national goals in one game."},
+	{"id": "straight_talker", "icon": "megaphone", "title": "Straight talker", "desc": "Earn press credibility of 85 or more."},
+	{"id": "hotline", "icon": "message-circle", "title": "Hotline", "desc": "Call five different world leaders."},
+	{"id": "storm", "icon": "shield", "title": "Weathered the storm", "desc": "See a bank run or currency crisis through to the end."},
+	{"id": "bloc_member", "icon": "handshake", "title": "Joiner", "desc": "Join a treaty or bloc."},
 ]
 
 var _got := {}        # id -> unix time
@@ -59,6 +64,15 @@ func _ready() -> void:
 		if own >= 5:
 			unlock("builder"))
 	Game.review_held.connect(func(_r: Dictionary) -> void: unlock("mandate"))
+	Game.goal_reached.connect(func(_g: Dictionary) -> void:
+		if Goals.done_count() >= 5:
+			unlock("goal_getter"))
+	Game.treaty_joined.connect(func(_id: String) -> void: unlock("bloc_member"))
+	Game.event_resolved.connect(func(ev: Dictionary, _c: int, _b: bool) -> void:
+		if str(ev.get("id", "")) in ["bailout_vote", "imf_review"]:
+			unlock("storm")
+		if str(ev.get("id", "")) == "press" and Press.credibility() >= 85.0:
+			unlock("straight_talker"))
 	Game.law_finished.connect(func(id: String, repealed: bool) -> void:
 		if not repealed and id == "free_elections":
 			unlock("democrat")
