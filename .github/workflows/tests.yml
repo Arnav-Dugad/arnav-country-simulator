@@ -1,0 +1,60 @@
+name: Tests
+
+# Runs the headless test suite on every push and pull request.
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+env:
+  GODOT_VERSION: "4.7.2"
+  GODOT_STATUS: "stable"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Godot
+        id: cache-godot
+        uses: actions/cache@v4
+        with:
+          path: ~/godot
+          key: godot-editor-${{ env.GODOT_VERSION }}-${{ env.GODOT_STATUS }}-v1
+
+      - name: Download Godot
+        if: steps.cache-godot.outputs.cache-hit != 'true'
+        run: |
+          BASE="https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}-${GODOT_STATUS}"
+          mkdir -p ~/godot
+          curl -fsSL -o /tmp/godot.zip "$BASE/Godot_v${GODOT_VERSION}-${GODOT_STATUS}_linux.x86_64.zip"
+          unzip -q /tmp/godot.zip -d ~/godot
+          mv ~/godot/Godot_v${GODOT_VERSION}-${GODOT_STATUS}_linux.x86_64 ~/godot/godot
+
+      - name: Import (fails on script errors)
+        run: |
+          ~/godot/godot --headless --path . --import 2>&1 | tee import.log || true
+          if grep -E "SCRIPT ERROR|Parse Error|Compile Error" import.log; then exit 1; fi
+
+      - name: Economy sanity (25 years, whole world)
+        run: |
+          ~/godot/godot --headless --path . res://tools/sim_test.tscn -- --years=25 2>&1 | tee sim.log
+          grep -q "Flagged 0 countries" sim.log
+          ! grep -E "SCRIPT ERROR" sim.log
+
+      - name: Playtest bot (3 countries)
+        run: |
+          for p in USA:3 IND:8 NGA:11; do
+            ~/godot/godot --headless --path . res://tools/playtest.tscn -- --years=15 --player=${p%%:*} --seed=${p##*:} 2>&1 | tee play.log
+            grep -q "PLAYTEST OK" play.log
+            ! grep -E "SCRIPT ERROR" play.log
+          done
+
+      - name: Store and gesture tests
+        run: |
+          ~/godot/godot --headless --path . res://tools/store_test.tscn 2>&1 | tee store.log
+          grep -q "STORE TEST OK" store.log
+          ~/godot/godot --headless --path . res://tools/gesture_test.tscn 2>&1 | tee gesture.log
+          grep -q "GESTURE TEST OK" gesture.log
