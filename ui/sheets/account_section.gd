@@ -80,41 +80,4 @@ func _sync() -> void:
 
 
 func _email_form(create: bool) -> void:
-	var m := ModalCard.new()
-	get_tree().current_scene.add_child(m)
-	m.header("mail", DS.ACCENT, "Account", "Create your account" if create else "Welcome back")
-	m.body("Your current progress stays with you." if create else "Sign in to restore your cloud saves.")
-	var mail := LineEdit.new()
-	mail.placeholder_text = "Email"
-	mail.virtual_keyboard_type = LineEdit.KEYBOARD_TYPE_EMAIL_ADDRESS
-	m.content.add_child(mail)
-	var pw := LineEdit.new()
-	pw.placeholder_text = "Password (6+ characters)"
-	pw.secret = true
-	pw.virtual_keyboard_type = LineEdit.KEYBOARD_TYPE_PASSWORD
-	m.content.add_child(pw)
-	var err := Label.new()
-	err.theme_type_variation = &"Footnote"
-	err.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	err.add_theme_color_override(&"font_color", DS.RED)
-	m.content.add_child(err)
-	m.choice("Create account" if create else "Sign in", "", &"PrimaryButton", func() -> void:
-		err.text = "Working…"
-		err.add_theme_color_override(&"font_color", DS.TEXT_2)
-		var r: Dictionary
-		if create:
-			r = await Firebase.sign_up_email(mail.text.strip_edges(), pw.text)
-		else:
-			r = await Firebase.sign_in_email(mail.text.strip_edges(), pw.text)
-		if r.ok:
-			Haptics.success()
-			m.dismiss()
-		else:
-			err.text = r.error
-			err.add_theme_color_override(&"font_color", DS.RED)
-			Haptics.warning())
-	if not create:
-		m.choice("Forgot password?", "", &"GhostButton", func() -> void:
-			var r: Dictionary = await Firebase.send_password_reset(mail.text.strip_edges())
-			err.text = "Reset email sent." if r.ok else r.error)
-	m.choice("Cancel", "", &"GhostButton", m.dismiss)
+	AccountForm.open(get_tree().current_scene, create)

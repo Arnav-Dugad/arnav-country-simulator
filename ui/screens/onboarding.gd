@@ -23,6 +23,9 @@ var _title: Label
 var _body: Label
 var _dots: HBoxContainer
 var _next: AppButton
+var _skip: AppButton
+var _footer: HBoxContainer
+var _account_step := false
 var _page := 0
 var _swipe_start := Vector2.ZERO
 var _swiping := false
@@ -39,6 +42,7 @@ func _ready() -> void:
 	var skip := AppButton.make("Skip", &"GhostButton")
 	skip.pressed.connect(_finish)
 	add_child(skip)
+	_skip = skip
 	skip.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
 	skip.position = Vector2(size.x - 90, Screen.top + DS.S3)
 	resized.connect(func() -> void: skip.position = Vector2(size.x - skip.size.x - DS.S3, Screen.top + DS.S3))
@@ -68,6 +72,7 @@ func _ready() -> void:
 	var footer := HBoxContainer.new()
 	footer.alignment = BoxContainer.ALIGNMENT_CENTER
 	col.add_child(footer)
+	_footer = footer
 	_dots = HBoxContainer.new()
 	_dots.add_theme_constant_override(&"separation", 6)
 	_dots.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -154,6 +159,8 @@ func _show_page(i: int, dir: int) -> void:
 
 
 func _advance() -> void:
+	if _account_step:
+		return
 	if _page < PAGES.size() - 1:
 		_show_page(_page + 1, 1)
 	else:
@@ -161,14 +168,64 @@ func _advance() -> void:
 
 
 func _back() -> void:
+	if _account_step:
+		return
 	if _page > 0:
 		_show_page(_page - 1, -1)
 
 
+## Pages done (or skipped): always ask to create an account on first launch.
 func _finish() -> void:
+	if Firebase.enabled() and not (Firebase.signed_in() and not Firebase.is_anonymous):
+		_show_account_step()
+	else:
+		_complete()
+
+
+func _complete() -> void:
 	Settings.set_value("onboarding_done", true)
 	Haptics.success()
 	Router.goto(NEXT)
+
+
+func _show_account_step() -> void:
+	if _account_step:
+		return
+	_account_step = true
+	_skip.visible = false
+	_footer.visible = false
+	var tile := ListRow.icon_tile("cloud", DS.ACCENT)
+	tile.custom_minimum_size = Vector2(52, 52)
+	tile.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	_content.add_child(tile)
+	_content.move_child(tile, 0)
+	_tile.queue_free()
+	_tile = tile
+	_title.text = "Save your progress"
+	_body.text = "Create a free account to back up your nation and continue on any device. It takes 20 seconds."
+	var buttons := VBoxContainer.new()
+	buttons.add_theme_constant_override(&"separation", DS.S2)
+	_footer.get_parent().add_child(buttons)
+	var create := AppButton.make("Create free account", &"PrimaryButton", "mail")
+	create.custom_minimum_size = Vector2(0, 52)
+	create.pressed.connect(func() -> void: AccountForm.open(self, true).succeeded.connect(_complete))
+	buttons.add_child(create)
+	var have := AppButton.make("I already have an account", &"", "log-out")
+	have.custom_minimum_size = Vector2(0, 48)
+	have.pressed.connect(func() -> void: AccountForm.open(self, false).succeeded.connect(_complete))
+	buttons.add_child(have)
+	var later := AppButton.make("Not now, play as guest", &"GhostButton")
+	later.pressed.connect(_complete)
+	buttons.add_child(later)
+	var note := Label.new()
+	note.theme_type_variation = &"Caption"
+	note.text = "Guests are backed up on this device's account too. You can add an email any time in Settings."
+	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	buttons.add_child(note)
+	_map.fly_to(Vector2(0, -400), _map.min_zoom * 1.6, 1.4)
+	_layout()
+	get_tree().process_frame.connect(_layout, CONNECT_ONE_SHOT)
 
 
 func _on_card_input(e: InputEvent) -> void:

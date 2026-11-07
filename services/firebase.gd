@@ -30,6 +30,13 @@ func _ready() -> void:
 	_load_session()
 
 
+func _exit_tree() -> void:
+	# Cancel in-flight requests so threaded HTTP clients shut down cleanly.
+	for c in get_children():
+		if c is HTTPRequest:
+			(c as HTTPRequest).cancel_request()
+
+
 func enabled() -> bool:
 	return FirebaseConfig.is_configured()
 

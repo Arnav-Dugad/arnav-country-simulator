@@ -77,3 +77,4 @@ DevTools user args (after `--`): `--scene=`, `--shot=`, `--shot-delay=`, `--size
 - Updater plugin (Kotlin, Godot v2): `android/plugin` → `android/plugin/build_plugin.sh` → `addons/acs_updater/bin/*.aar`.
 - Firebase (Spark): config in `services/firebase_config.gd` (empty = offline mode); rules in `firestore.rules`.
 - The Android emulator may be shared with other projects/sessions — never kill processes by image name, only by PID.
+- **Static factories:** never name a script's own `class_name` inside its static functions (e.g. `static func make() -> Foo: Foo.new()` in foo.gd when other scripts reference it). It creates a script reference cycle that leaks at exit; load by path instead.
