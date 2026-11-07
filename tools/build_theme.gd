@@ -121,7 +121,7 @@ func _buttons() -> void:
 	_button_states(&"IconButton", Color(1, 1, 1, 0), DS.FILL_3, DS.FILL, DS.R_PILL, f, DS.FS_BODY, DS.TEXT, 10, 10)
 	th.set_constant(&"icon_max_width", &"IconButton", 20)
 	var df := _font(500, 12)
-	_button_states(&"DockButton", Color(1, 1, 1, 0), Color(1, 1, 1, 0), Color(1, 1, 1, 0.06), DS.R_BUTTON, df, 11, DS.TEXT_2, 6, 6)
+	_button_states(&"DockButton", Color(1, 1, 1, 0), Color(1, 1, 1, 0), Color(1, 1, 1, 0.06), DS.R_BUTTON, df, 11, DS.TEXT_2, 2, 6)
 	th.set_constant(&"icon_max_width", &"DockButton", 22)
 	var cf := _font(600, 14)
 	_button_states(&"Chip", DS.FILL, DS.FILL_2, DS.FILL_3, DS.R_PILL, cf, 14, DS.TEXT_2, 14, 7)

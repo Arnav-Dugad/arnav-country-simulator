@@ -23,6 +23,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 	var neutral := E.neutral_rate(c.core_inflation)
 	var gap := clampf(c.interest_rate - neutral, -E.RATE_GAP_CAP, E.RATE_GAP_CAP)
 	var debt_pct := c.debt_pct()
+	var lx := Laws.modifiers(c)
 
 	# --- Growth ---------------------------------------------------------------
 	c.growth_anchor += (c.trend - c.growth_anchor) * E.TREND_PULL
@@ -41,6 +42,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Debt burden", -E.DEBT_GROWTH_DRAG * maxf(0.0, debt_pct - maxf(E.DEBT_SAFE, float(b.debt_pct)))],
 		["Instability", -E.STABILITY_GROWTH_DRAG * maxf(0.0, minf(float(b.stability), E.STABILITY_FLOOR) - c.stability)],
 		["Recent events", float(c.shocks.growth)],
+		["Laws & reforms", float(lx.get("growth", 0.0))],
 	]
 	var g := clampf(_sum(g_terms), -25.0, 20.0)
 	c.growth += (g - c.growth) * E.GROWTH_ADJUST
@@ -63,6 +65,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Trade barriers", E.PROTECTION_INFLATION * maxf(0.0, -d_trade) * 2.0],
 		["Interest rates", -E.RATE_INFLATION_EFFECT * gap],
 		["Recent events", float(c.shocks.inflation)],
+		["Laws & reforms", float(lx.get("inflation", 0.0))],
 	]
 	var pi := clampf(_sum(pi_terms), -5.0, 500.0)
 	c.inflation += (pi - c.inflation) * E.INFLATION_ADJUST
@@ -75,6 +78,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Economic momentum", -E.OKUN * (c.growth - c.growth_anchor)],
 		["Interest rates", E.RATE_UNEMP * gap],
 		["Recent events", float(c.shocks.unemployment)],
+		["Laws & reforms", float(lx.get("unemployment", 0.0))],
 	]
 	var u := clampf(_sum(u_terms), E.UNEMP_MIN, E.UNEMP_MAX)
 	c.unemployment += (u - c.unemployment) * E.UNEMP_ADJUST
@@ -114,6 +118,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Prices", -E.INFLATION_HAPPY * (minf(c.inflation, 60.0) - minf(float(b.inflation), 60.0))],
 		["Income tax", -E.TAX_HAPPY * d_inc],
 		["Recent events", float(c.shocks.happiness)],
+		["Laws & reforms", float(lx.get("happiness", 0.0))],
 	]
 	b.gdp_pc = float(b.gdp_pc) + (real_pc - float(b.gdp_pc)) * E.INCOME_ADAPTATION
 	var h := clampf(_sum(h_terms), 0.0, E.HAPPY_MAX)
@@ -128,6 +133,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Prices", -E.APPROVAL_INFLATION * clampf(c.inflation - float(b.inflation), -10.0, 40.0)],
 		["Diplomacy", c.alliances * 0.6 + c.trade_deals * 0.3 - c.sanctioned_by * 1.0],
 		["Recent events", float(c.shocks.approval)],
+		["Laws & reforms", float(lx.get("approval", 0.0))],
 	]
 	var a := clampf(_sum(a_terms), 0.0, 100.0)
 	c.approval += (a - c.approval) * E.APPROVAL_ADJUST
@@ -139,6 +145,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Military spending", E.STABILITY_MILITARY * c.share_delta("military") / 10.0],
 		["Jobs", -0.3 * (c.unemployment - float(b.unemployment))],
 		["Recent events", float(c.shocks.stability)],
+		["Laws & reforms", float(lx.get("stability", 0.0))],
 	]
 	var st := clampf(_sum(st_terms), 0.0, 100.0)
 	c.stability += (st - c.stability) * E.STABILITY_ADJUST
@@ -189,8 +196,9 @@ static func _guard(c: CountryState) -> void:
 static func update_finances(c: CountryState) -> void:
 	var cycle := 1.0 + (c.growth - c.growth_anchor) * 0.01
 	var rate := Economy.tax_yield(c.income_tax, Economy.K_INCOME) + Economy.tax_yield(c.corp_tax, Economy.K_CORP)
-	c.revenue = c.gdp * (rate + c.other_rev_pct / 100.0) * cycle
-	c.spending = c.gdp * c.spending_pct / 100.0
+	var lx := Laws.modifiers(c)
+	c.revenue = c.gdp * (rate + (c.other_rev_pct + float(lx.get("revenue", 0.0))) / 100.0) * cycle
+	c.spending = c.gdp * (c.spending_pct + float(lx.get("cost", 0.0))) / 100.0
 	# Inflation above the floor erodes local-currency debt, so only the real
 	# part of the rate is a burden in dollar terms.
 	var real_rate := maxf(c.debt_rate - maxf(0.0, c.inflation - Economy.DEBT_EROSION_FLOOR), 0.25)

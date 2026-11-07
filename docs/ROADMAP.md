@@ -52,7 +52,7 @@ The basics should feel finished before anything new is added.
 ### Map beauty
 - [ ] **Ocean depth:** a subtle procedural depth gradient near coasts (distance field baked offline), plus a faint graticule (every 30°) that fades in at mid zoom.
 - [ ] **Coastline light:** a 1 px inner highlight on land edges facing north-west, to suggest relief without textures.
-- [ ] **Capitals:** Natural Earth populated places (admin-0 capitals) as 3 pt dots with a soft halo, with labels from zoom ×4 and the player's capital in gold.
+- [x] **Capitals:** Natural Earth populated places (admin-0 capitals) as 3 pt dots with a soft halo, with labels from zoom ×4 and the player's capital in gold.
 - [x] **Flags:** country flags from `flag-icons` 7.6.0 (MIT) as SVG DPITextures with rounded corners and a hairline edge, in the picker rows and footer, the country sheet header, the top bar (player) and the diplomacy list.
 - [ ] **Distance-field player glow:** bake a signed-distance texture per country so the halo is perfectly smooth (replaces the outline-extruded glow, which still shows faint flares in very narrow inlets).
 - [ ] **Label system v2:** keep labels clear of HUD rectangles, cross-fade between zoom bands (no popping), letter-spacing scaled to zoom, and two lines for long names ("United States / of America").
@@ -102,7 +102,7 @@ The basics should feel finished before anything new is added.
 - [ ] Events on the timeline: small dots on the chart where events happened, tappable to see what you chose.
 
 ### Briefings and advisors
-- [ ] **Monthly briefing:** three generated headlines from the biggest changes ("Inflation falls to 3.1%, its lowest since 2026"), shown as a quiet banner that can be swiped away.
+- [x] **Monthly briefing:** three generated headlines from the biggest changes ("Inflation falls to 3.1%, its lowest since 2026"), shown as a quiet banner that can be swiped away.
 - [ ] **Cabinet advisors** (opt-in): Finance, Central Bank, Foreign Affairs and Interior. Each gives one short, contextual suggestion with a confidence level ("Rates look high for current inflation: consider −0.5 pts"). Never more than one at a time.
 - [ ] **World rankings:** your rank by GDP, GDP per person, happiness and stability, with a sortable "World" list.
 - [ ] **Compare:** you against any country side by side (two columns of tiles), opened from the country sheet.
@@ -114,7 +114,7 @@ The basics should feel finished before anything new is added.
 ## v0.4 "Depth": richer, still simple  *(priority: high, effort: L)*
 
 ### Laws and reforms (policy cards)
-- [ ] About **30 laws** in 7 groups:
+- [x] (16 laws shipped in v0.3.0; more to come) About **30 laws** in 7 groups:
   - Health: universal coverage, public insurance
   - Economy: minimum wage, privatisation, wealth tax
   - Society: pension age, free university, digital ID

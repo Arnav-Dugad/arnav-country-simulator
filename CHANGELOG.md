@@ -2,6 +2,18 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.3.0] - 2026-11-07
+
+**Laws & reforms**
+- New Laws tab with 16 reforms across health, economy, environment and governance: universal healthcare, free university, carbon tax, minimum wage, wealth tax, pension age and more
+- Laws take months to pass (or repeal); each shows its effects and yearly cost before you commit
+- Countries start with the laws they really have, so changes are what count
+
+**A living story**
+- Headlines when big things happen: GDP milestones, record-low inflation, winning back a majority
+- A Year in Review card every January
+- Capital cities on the map (your capital in gold), and labels never hide behind the controls
+
 ## [0.2.0] - 2026-11-07
 
 **Easier to understand**

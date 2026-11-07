@@ -55,6 +55,11 @@ var base := {}                 # starting values (see init_from_stats)
 var shocks := {"growth": 0.0, "inflation": 0.0, "unemployment": 0.0, "happiness": 0.0,
 	"approval": 0.0, "stability": 0.0}
 var estimated: Array = []
+var laws := {}         # id -> {state: active|passing|repealing, months_left}
+var laws_start := {}   # laws in force at the start (baseline; see Laws)
+var laws_ver := 0      # bump when `laws` changes (invalidates the modifier cache)
+var lx_cache := {}
+var lx_ver := -1
 
 # Explainer data from the latest tick (player only, not saved): see Simulation.tick.
 var why := {}
@@ -99,6 +104,9 @@ func init_from_stats(i: int, s: Dictionary) -> CountryState:
 	approval = Economy.start_approval(happiness, stability)
 	military = Economy.military_index(gdp * s.get("military_pct", 1.8) / 100.0)
 
+	laws_start = Laws.starting_set(self)
+	for id in laws_start:
+		laws[id] = {"state": "active"}
 	Simulation.update_finances(self)
 	treasury = spending / 12.0 * Economy.TREASURY_BUFFER_MONTHS
 	_capture_base()
@@ -187,7 +195,7 @@ const SAVE_FIELDS := ["idx", "population", "gdp", "growth", "growth_anchor", "tr
 	"u_natural", "inflation", "core_inflation", "interest_rate", "debt", "debt_rate", "treasury",
 	"other_rev_pct", "pop_growth", "price_index", "approval", "happiness", "stability", "military", "income_tax",
 	"corp_tax", "spending_pct", "budget", "trade_openness", "trade_deals", "sanctioned_by",
-	"alliances", "base", "shocks", "estimated"]
+	"alliances", "base", "shocks", "estimated", "laws", "laws_start"]
 
 
 func to_dict() -> Dictionary:

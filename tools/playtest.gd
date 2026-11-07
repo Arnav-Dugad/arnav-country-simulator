@@ -44,6 +44,12 @@ func _run() -> void:
 			_random_policy(rng)
 		if m % 7 == 0:
 			_random_diplomacy(rng)
+		if m % 9 == 0:
+			var l: Dictionary = Laws.ALL[rng.randi() % Laws.ALL.size()]
+			if Laws.pending_months(Game.me(), l.id) > 0:
+				Laws.cancel(Game.me(), l.id)
+			else:
+				Laws.start(Game.me(), l.id)
 		if m % 61 == 0:  # save/load round-trip
 			var d := Game.to_dict()
 			var txt := JSON.stringify(d)
@@ -57,6 +63,7 @@ func _run() -> void:
 	print("Played %d months: %d events (%d kinds), %d elections. GDP %s, debt %.0f%%, approval %.0f, stab %.0f" % [
 		Game.months_played, _events, seen_ids.size(), _elections, DS.money(c.gdp), c.debt_pct(), c.approval, c.stability])
 	print("Diplomacy: ", Diplomacy.summary())
+	print("Laws in force: ", Game.me().laws.keys(), "  modifiers: ", Laws.modifiers(Game.me()))
 	print("PLAYTEST OK")
 	get_tree().quit()
 

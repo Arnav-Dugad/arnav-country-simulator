@@ -6,7 +6,7 @@ const PAGES := {
 	"economy": "res://ui/sheets/economy_page.gd", "budget": "res://ui/sheets/budget_page.gd",
 	"diplomacy": "res://ui/sheets/diplomacy_page.gd", "events": "res://ui/sheets/events_page.gd",
 	"settings": "res://ui/sheets/settings_page.gd", "country": "res://ui/sheets/country_page.gd",
-	"store": "res://ui/sheets/store_page.gd",
+	"store": "res://ui/sheets/store_page.gd", "laws": "res://ui/sheets/laws_page.gd",
 }
 
 var map: MapView
@@ -66,6 +66,13 @@ func _ready() -> void:
 	Game.event_started.connect(_show_event)
 	Game.election_held.connect(_show_election)
 	Game.game_over.connect(_on_game_over)
+	Game.law_finished.connect(func(id: String, repealed: bool) -> void:
+		var l := Laws.law(id)
+		Toast.show_headline(self, ("%s repealed" if repealed else "%s is now law") % str(l.title),
+			str(l.icon), DS.GREEN if not repealed else DS.ORANGE, modes.position.y + 52.0)
+		Haptics.success()
+		if _current == "laws":
+			_pages["laws"].refresh())
 	Settings.changed.connect(func(key: String, _v: Variant) -> void:
 		if key == "map_theme" and _mode == MapModes.Mode.POLITICAL:
 			map.set_colors(_colors_for(_mode)))
@@ -94,6 +101,8 @@ func start_tour() -> void:
 			"text": "See how your country is doing and what to fix first. Set taxes and interest rates, with a forecast as you move each slider."},
 		{"target": func() -> Rect2: return dock.button_rect("budget"), "title": "Budget",
 			"text": "Decide how much the government spends, and on what: healthcare, schools, roads and more."},
+		{"target": func() -> Rect2: return dock.button_rect("laws"), "title": "Laws",
+			"text": "Pass reforms like universal healthcare or a carbon tax. Each takes months to pass and has clear tradeoffs."},
 		{"target": func() -> Rect2: return dock.button_rect("diplomacy"), "title": "The world",
 			"text": "Make friends abroad with trade deals, alliances and aid. You can also tap any country on the map."},
 		{"target": modes.get_global_rect, "title": "Map views",

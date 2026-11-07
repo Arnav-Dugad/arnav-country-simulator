@@ -11,6 +11,7 @@ signal event_started(event: Dictionary)
 signal event_resolved(event: Dictionary, choice: int)
 signal election_held(result: Dictionary)
 signal game_over(summary: Dictionary)
+signal law_finished(id: String, repealed: bool)
 
 const START_YEAR := 2026
 const HISTORY_MAX := 1200
@@ -176,6 +177,8 @@ func advance_month() -> void:
 	if month > 12:
 		month = 1
 		year += 1
+	for done in Laws.monthly(me()):
+		law_finished.emit(str(done.id), bool(done.repealed))
 	_record_history()
 	month_passed.emit()
 	_after_month(my_crisis)

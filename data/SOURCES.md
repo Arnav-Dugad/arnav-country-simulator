@@ -47,6 +47,14 @@ listed in that country's `estimated` array, and the game shows an "estimated" ma
 Derived game values (happiness, approval, policy rate, tax rates, military strength)
 are computed in `sim/economy.gd` from these real inputs and documented there.
 
+## Capitals
+Natural Earth 1:50m populated places (v5.1.2, public domain), features of class "Admin-0 capital";
+for countries with several capitals the seat of government is used.
+
+## Starting laws (estimated)
+Which reforms a country already has at the start (sim/laws.gd `starting_set`) is a simple estimate
+from income level and region, not a legal database. Only *changes* from that starting set affect play.
+
 ## Playable countries
 Entities of Natural Earth type *Sovereign country*, *Country* or *Disputed* that have
 real (non-estimated) population data, more than 50,000 people, and are their own

@@ -7,7 +7,8 @@ signal opened(page: String)
 const ITEMS := [
 	["economy", "Economy", "chart"],
 	["budget", "Budget", "wallet"],
-	["diplomacy", "Diplomacy", "globe"],
+	["laws", "Laws", "gavel"],
+	["diplomacy", "World", "globe"],
 	["events", "Events", "zap"],
 	["settings", "Settings", "settings"],
 ]
