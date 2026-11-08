@@ -2,6 +2,13 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.67.1] - 2026-11-08
+
+- Fixes found while testing on a real phone with a very long sandbox game:
+  - Tourist numbers stay realistic, shown in billions at most
+  - The stock market no longer doubles in months when growth runs extremely high
+  - National goals never ask for more happiness than is possible
+
 ## [0.67.0] - 2026-11-08
 
 - **Annex whole countries.** Win a total war and the defeated country becomes part of yours. Its people, economy, debt and part of its army join you; on the map the border disappears and the land takes your colour, inside one merged outline

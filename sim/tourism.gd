@@ -60,7 +60,8 @@ static func share() -> float:
 static func visitors() -> float:
 	var c := Game.me()
 	var per := 400.0 + 900.0 * Economy.income_level(c.gdp_per_capita())
-	return share() / 100.0 * c.gdp / per / 1e6
+	# Capped near the world's real total of trips (sandbox economies grow without limit).
+	return minf(share() / 100.0 * c.gdp / per / 1e6, 2500.0)
 
 
 ## How appealing you are now (1 = as at the start).

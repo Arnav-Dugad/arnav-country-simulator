@@ -32,6 +32,8 @@ func refresh() -> void:
 
 
 static func _visitors(m: float) -> String:
+	if m >= 1000.0:
+		return "%s billion" % String.num(m / 1000.0, 1)
 	if m >= 1.0:
 		return "%s million" % String.num(m, 1 if m < 10.0 else 0)
 	return "%d thousand" % roundi(m * 1000.0)

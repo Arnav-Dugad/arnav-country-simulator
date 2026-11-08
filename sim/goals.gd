@@ -78,7 +78,8 @@ static func candidates() -> Array:
 	# Always-available ambitions.
 	out.append([2.0, "builder", value("projects") + 3.0])
 	out.append([1.5, "friends", value("deals") + 3.0])
-	out.append([1.0, "happiness", c.happiness + 6.0])
+	if c.happiness < Economy.HAPPY_MAX - 6.0:      # never a goal above what's possible
+		out.append([1.0, "happiness", c.happiness + 6.0])
 	out.sort_custom(func(x: Array, y: Array) -> bool: return float(x[0]) > float(y[0]))
 	return out.map(func(x: Array) -> Array: return [x[1], x[2]])
 
@@ -134,6 +135,9 @@ static func met(g: Dictionary) -> bool:
 static func monthly() -> Array:
 	var st := _state()
 	var reached: Array = []
+	for g in st.active.duplicate():       # goals that became impossible (older saves)
+		if str(g.id) == "happiness" and float(g.target) > Economy.HAPPY_MAX:
+			st.active.erase(g)
 	for g in st.active.duplicate():
 		if met(g):
 			st.active.erase(g)

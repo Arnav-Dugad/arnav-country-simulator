@@ -207,7 +207,7 @@ static func monthly() -> Array:
 		wr -= 0.15 * maxf(Game.markets.oil_gap() - 0.3, 0.0) / 12.0
 	s.world = float(s.world) * exp(wr)
 	# Home index: world market + your economy.
-	var home := 0.6 * wr + E.ENT_INDEX_GROWTH * (c.growth - c.growth_anchor) / 12.0 \
+	var home := 0.6 * wr + E.ENT_INDEX_GROWTH * clampf(c.growth - c.growth_anchor, -6.0, 6.0) / 12.0 \
 		- E.ENT_INDEX_RATES * (c.interest_rate - float(s.get("rate0", c.interest_rate))) / 12.0 \
 		+ E.ENT_INDEX_STABILITY * (c.stability - float(c.base.get("stability", c.stability))) / 12.0 \
 		+ Game.rng.randfn(0.0, E.ENT_STOCK_VOL * 0.8) + E.ENT_STOCK_DRIFT * 0.4
