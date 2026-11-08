@@ -2,6 +2,10 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.46.0] - 2026-11-08
+
+- **The resource curse:** after a big mineral discovery, the mining money arrives 18 months later. Save it in a national wealth fund (like Norway), spend it on people now (popular, but prices rise and factories suffer), or pay down the debt
+
 ## [0.45.2] - 2026-11-08
 
 - An original fanfare plays when you win an election and when the world games open

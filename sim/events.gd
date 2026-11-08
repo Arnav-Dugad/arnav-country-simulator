@@ -94,11 +94,22 @@ const EVENTS := [
 		"body": "Geologists have confirmed large mineral deposits in {country}'s interior.",
 		"choices": [
 			{"label": "State-owned mining", "detail": "GDP +1.5% · revenue for the treasury",
-				"effects": {"gdp": 1.5, "approval": 2.0, "cost": -0.4}},
+				"effects": {"gdp": 1.5, "approval": 2.0, "cost": -0.4}, "next": {"id": "resource_windfall", "in": 18}},
 			{"label": "License private firms", "detail": "GDP +2.5% · faster growth, less control",
-				"effects": {"gdp": 2.5, "growth": 0.6, "happiness": -0.5}},
+				"effects": {"gdp": 2.5, "growth": 0.6, "happiness": -0.5}, "next": {"id": "resource_windfall", "in": 18}},
 			{"label": "Protect the land", "detail": "No gain · environmental goodwill",
 				"effects": {"happiness": 2.0, "approval": 1.0}}]},
+	# Norway's oil fund vs the "resource curse": a windfall spent at once lifts
+	# prices and the currency and crowds out other industries (Dutch disease).
+	{"id": "resource_windfall", "title": "The mining money arrives", "icon": "coins", "tint": "gold", "weight": 0.0,
+		"body": "Royalties from the new mines are pouring into {country}'s treasury. What should happen to the money?",
+		"choices": [
+			{"label": "Save it in a national wealth fund", "detail": "Like Norway · steady, for the long run",
+				"effects": {"cost": -0.8, "stability": 1.5, "press_cred": 2.0}},
+			{"label": "Spend it on people now", "detail": "Popular · prices rise, factories suffer",
+				"effects": {"happiness": 2.5, "approval": 2.5, "inflation": 1.0, "growth": -0.2}},
+			{"label": "Pay down the national debt", "detail": "Debt −3% of GDP",
+				"effects": {"debt_gdp": -3.0, "debt_rate": -0.2}}]},
 	{"id": "investment", "title": "Foreign investment offer", "icon": "building-2", "tint": "accent", "weight": 1.4,
 		"body": "A global manufacturer wants to build a large factory in {country}, asking for tax breaks.",
 		"choices": [
@@ -786,7 +797,7 @@ const _BAD_UP := {"growth": false, "inflation": true, "unemployment": true, "hap
 
 
 ## Follow-up events that are part of a story, not a worse stage (no "May escalate" chip).
-const GOOD_NEXT := ["games_prep", "games_open", "recovery_boom", "vaccine_race"]
+const GOOD_NEXT := ["games_prep", "games_open", "recovery_boom", "vaccine_race", "resource_windfall"]
 
 const DISASTERS := ["floods", "monsoon", "hurricane", "heatwave", "earthquake", "drought"]
 ## Event -> the natural risk it needs (Profiles.risks).
