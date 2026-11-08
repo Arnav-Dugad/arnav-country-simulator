@@ -2,6 +2,10 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.50.0] - 2026-11-08
+
+- **Coach marks:** the first time you open Economy, Budget, Build, Laws or World, a spotlight points at the most useful control with one sentence on what to do
+
 ## [0.49.0] - 2026-11-08
 
 - **Five new AI-generated scenes:** a border crossing, a central bank, a supreme court, a city market and a hospital ward. Refugee, currency, court, recovery and vaccine events now have their own art

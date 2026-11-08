@@ -200,6 +200,43 @@ func start_tour() -> void:
 		Game.set_speed(maxi(prev, 1)))
 
 
+## First visit to a page (after the tour): one spotlight tip on its key control.
+const COACH := {
+	"economy": ["Your nation at a glance", "This card sums up how things are going and what needs you most. Tap any number below to see what's moving it."],
+	"budget": ["Revenue, spending, balance", "Drag any slider below to change taxes and spending. The forecast shows what happens over the next year before you commit."],
+	"build": ["Build for the long run", "Projects cost money while they're built, put people to work, then lift the economy for decades. Pick one below and tap Build."],
+	"laws": ["Your cabinet", "Your ministers each have a strength and a weakness. Below them: corruption, then every law you can pass, with who will cheer and who will boo."],
+	"diplomacy": ["Where you stand in the world", "Your world rank in a few key numbers. Scroll for your rival, markets, climate and every country's attitude to you."],
+}
+
+
+func _maybe_coach(page: String) -> void:
+	if not COACH.has(page) or not Settings.tutorial_done or _dev_fast or is_instance_valid(_modal):
+		return
+	var seen: Array = Settings.get_value("coach_seen", [])
+	if page in seen:
+		return
+	var s := seen.duplicate()
+	s.append(page)
+	Settings.set_value("coach_seen", s)
+	await get_tree().create_timer(Settings.dur(0.55)).timeout   # let the sheet settle
+	if _current != page or not is_inside_tree():
+		return
+	var p: SheetPage = _pages[page]
+	var target := p.get_child(0) as Control
+	for ch in p.get_children():
+		if ch is Control and (ch as Control).visible and not (ch is Photo or ch is Illustration):
+			target = ch
+			break
+	var prev := Game.speed
+	Game.set_speed(0)
+	var g := Guide.new()
+	g.coach = true
+	g.steps = [{"target": func() -> Rect2: return target.get_global_rect(), "title": COACH[page][0], "text": COACH[page][1]}]
+	add_child(g)
+	g.finished.connect(func() -> void: Game.set_speed(prev))
+
+
 func _player_rect() -> Rect2:
 	var r := map.focus_rect(Game.player)
 	var xf := map.get_global_transform()
@@ -381,6 +418,7 @@ func open_page(page: String) -> void:
 	if page == "economy":
 		learned("economy")
 	Haptics.tap()
+	_maybe_coach(page)
 
 
 ## Sections fade in one after another (25 ms apart) when a panel opens.

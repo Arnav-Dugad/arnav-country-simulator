@@ -18,6 +18,9 @@ var _count: Label
 var _title: Label
 var _text: Label
 var _next: AppButton
+var _skip: AppButton
+## A single "coach mark" tip (first visit to a page): no counter, no skip.
+var coach := false
 var _hole := Vector4.ZERO
 var _tween: Tween
 
@@ -57,9 +60,9 @@ func _init() -> void:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override(&"separation", DS.S2)
 	col.add_child(row)
-	var skip := AppButton.make("Skip tour", &"GhostButton")
-	skip.pressed.connect(_finish)
-	row.add_child(skip)
+	_skip = AppButton.make("Skip tour", &"GhostButton")
+	_skip.pressed.connect(_finish)
+	row.add_child(_skip)
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(spacer)
@@ -98,10 +101,11 @@ func _show(i: int, animate: bool) -> void:
 		return
 	_i = i
 	var s: Dictionary = steps[i]
-	_count.text = "%d OF %d" % [i + 1, steps.size()]
+	_count.text = "TIP" if coach else "%d OF %d" % [i + 1, steps.size()]
 	_title.text = str(s.title)
 	_text.text = str(s.text)
-	_next.text = "Let's go" if i == steps.size() - 1 else "Next"
+	_next.text = "Got it" if coach else ("Let's go" if i == steps.size() - 1 else "Next")
+	_skip.visible = not coach
 	var r: Rect2 = (s.target as Callable).call() if s.has("target") else Rect2()
 	var target := Vector4.ZERO
 	if r.size != Vector2.ZERO:
