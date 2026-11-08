@@ -559,6 +559,14 @@ const TOUR_BID_MONTHS := 12        # from bid to vote
 const TOUR_SOFT_RELATIONS := 0.01  # relations a month with everyone per soft power point gained
 
 
+# -------------------------------------------------------------- overtourism ---
+# See sim/tourism.gd (crowding, tourist tax).
+const TOUR_CROWD_AT := 1.25         # tourism this far above the start crowds the locals
+const TOUR_CROWD_HAPPY := 4.0       # happiness lost per unit of crowding above that (heavy-tourism countries)
+const TOUR_TAX_APPEAL := 0.08       # appeal lost with a tourist tax
+const TOUR_TAX_REV := 0.05          # revenue as a share of tourism receipts
+
+
 # ------------------------------------------------------------ digital nation ---
 # See sim/digital.gd.
 const DGT_NET_GROWTH := 0.006       # share of the gap to 96 % online closed each month (×3 with broadband for all)

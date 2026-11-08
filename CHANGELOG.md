@@ -2,6 +2,16 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.93.0] - 2026-11-09
+
+- **Digital nation** (Industries):
+  - The share of people online, from World Bank data; Broadband for all speeds it up
+  - Launch a digital ID (as India did with Aadhaar): more tax collected and cleaner government, though some worry about privacy
+  - Put public services online
+  - The more you connect, the more hackers try their luck: ransomware attacks, and a cyber defence agency to stop them
+- **Overtourism:** where tourism is big and keeps growing (Venice and Barcelona style), locals push back. A tourist tax calms the streets and raises money
+- **Cabinet meetings** now propose rebuilding fish stocks, a digital ID and mineral surveys
+
 ## [0.92.0] - 2026-11-09
 
 - **At a glance everywhere:** Industries, World and Laws now open with tappable summary tiles that jump to the right section

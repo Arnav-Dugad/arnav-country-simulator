@@ -268,6 +268,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Critical minerals", float(mnx.get("happiness", 0.0))],
 		["Fisheries", float(fsx.get("happiness", 0.0))],
 		["Digital nation", float(dnx.get("happiness", 0.0))],
+		["Too many tourists", float(tox.get("happiness", 0.0))],
 		["Housing & families", float(ppx.get("happiness", 0.0))],
 		["Stock market", float(enx.get("happiness", 0.0))],
 		["Media", float(mdx.get("happiness", 0.0))],
@@ -411,6 +412,8 @@ static func update_finances(c: CountryState) -> void:
 		market_rev += Minerals.revenue_pct()
 	if c.idx == Game.player and Game.has_game() and Game.dip.has("dig_n"):
 		market_rev += Digital.revenue_pct()
+	if c.idx == Game.player and Game.has_game() and Game.dip.has("tour"):
+		market_rev += Tourism.tax_revenue_pct()
 	var extra_tax := Taxes.total_pct(c) if not c.taxes.is_empty() else 0.0
 	c.revenue = c.gdp * (rate + (c.other_rev_pct + extra_tax + float(lx.get("revenue", 0.0)) + market_rev) / 100.0) * cycle
 	c.spending = c.gdp * (c.spending_pct + float(lx.get("cost", 0.0)) + Projects.spending_pct(c) + Ageing.pension_cost(c)

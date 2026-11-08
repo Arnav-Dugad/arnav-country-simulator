@@ -87,6 +87,8 @@ static func appeal() -> float:
 	if not host.is_empty() and Game.months_played >= int(host.year_m) and Game.months_played < int(host.year_m) + 12:
 		a += float(EVENTS[str(host.ev)].boost)
 	a += E.TOUR_SOFT * (soft_power(Game.player) - float(s.soft0)) / 10.0
+	if bool(s.get("tax", false)):
+		a -= E.TOUR_TAX_APPEAL
 	var cp := Media.campaign() if Game.dip.has("media") else {}
 	if not cp.is_empty() and str(cp.id) == "invest":
 		a += 0.08
@@ -310,11 +312,37 @@ static func monthly() -> Array:
 	return out
 
 
+## Crowding: tourism now vs at the start (1 = as then).
+static func crowding() -> float:
+	return share() / maxf(float(st().share0), 0.01)
+
+
+## Locals feel crowded where tourism is big and has grown a lot (Venice, Barcelona…).
+static func crowd_penalty() -> float:
+	var s := st()
+	if float(s.share0) < 2.0:
+		return 0.0
+	var p := maxf(crowding() - E.TOUR_CROWD_AT, 0.0) * E.TOUR_CROWD_HAPPY * clampf(float(s.share0) / 6.0, 0.4, 1.5)
+	if bool(s.get("tax", false)):
+		p *= 0.5
+	return clampf(p, 0.0, 2.5)
+
+
+static func tax_revenue_pct() -> float:
+	if not Game.has_game() or not Game.dip.has("tour") or not bool(st().get("tax", false)):
+		return 0.0
+	return share() * E.TOUR_TAX_REV
+
+
 ## Target offsets from extra (or lost) tourism.
 static func modifiers() -> Dictionary:
 	if not Game.has_game() or not Game.dip.has("tour"):
 		return {}
 	var d := share() - float(st().share0)
-	if absf(d) < 0.01:
-		return {}
-	return {"growth": E.TOUR_GROWTH * d, "unemployment": -E.TOUR_JOBS * d}
+	var out := {}
+	if absf(d) >= 0.01:
+		out = {"growth": E.TOUR_GROWTH * d, "unemployment": -E.TOUR_JOBS * d}
+	var cp := crowd_penalty()
+	if cp > 0.0:
+		out["happiness"] = -cp
+	return out

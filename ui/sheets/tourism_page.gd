@@ -45,6 +45,20 @@ func _overview() -> void:
 	g.add_child(_tile("sparkles", DS.PURPLE, "Soft power", "%d / 100" % roundi(sp), "Rank %d in the world" % Tourism.rank()))
 	g.add_child(_tile("plane-takeoff", DS.TEAL, "Tourism", DS.pct(Tourism.share(), 1), "of GDP  ·  appeal %d%%" % roundi(Tourism.appeal() * 100.0)))
 	note("Soft power is how much the world admires you: your economy, freedom, clean government, culture and what you do abroad. Gaining it slowly warms every country toward you; wars, crackdowns and exposed spies cost it.", _box)
+	var s := Tourism.st()
+	var crowd := Tourism.crowding()
+	var cp := Tourism.crowd_penalty()
+	if cp > 0.0:
+		var w := note("Too many tourists: locals complain about rents, queues and crowds (happiness −%s). A tourist tax eases it." % String.num(cp, 1), _box)
+		w.add_theme_color_override(&"font_color", DS.ORANGE)
+	var tt := AppToggle.new().setup("Tourist tax  ·  +%s a year" % DS.money(Game.me().gdp * Tourism.share() * Economy.TOUR_TAX_REV / 100.0), bool(s.get("tax", false)), "receipt")
+	tt.toggled.connect(func(on: bool) -> void:
+		s["tax"] = on
+		Simulation.update_finances(Game.me())
+		Haptics.select()
+		refresh())
+	_box.add_child(tt)
+	note("A nightly charge on visitors: money for the treasury and calmer streets, a few fewer visitors. Tourism is %d%% of what it was when you took office." % roundi(crowd * 100.0), _box)
 
 
 func _tile(icon: String, color: Color, head: String, value: String, sub: String) -> Control:
