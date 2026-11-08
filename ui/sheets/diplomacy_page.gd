@@ -805,11 +805,13 @@ func _fill_nuke() -> void:
 	lst.add_theme_constant_override(&"separation", 4)
 	_nuke.add_child(lst)
 	var powers: Array = []
-	for iso in Nuclear.ARSENAL:
+	var isos: Array = Nuclear.ARSENAL.keys()
+	isos.append_array((Nuclear.st().get("ai", {}) as Dictionary).keys())
+	for iso in isos:
 		var i := World.index_of(str(iso))
-		if i >= 0 and Nuclear.warheads(i) > 0:
+		if i >= 0 and i != Game.player and Nuclear.warheads(i) > 0 and not powers.has(i):
 			powers.append(i)
-	if armed_new():
+	if Nuclear.armed():
 		powers.append(Game.player)
 	powers.sort_custom(func(a: int, b: int) -> bool: return Nuclear.warheads(a) > Nuclear.warheads(b))
 	for i in powers:

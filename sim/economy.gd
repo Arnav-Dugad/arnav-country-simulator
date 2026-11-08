@@ -609,6 +609,7 @@ const NUC_LEAVE_RELATIONS := 8.0    # relations lost with everyone when you leav
 const NUC_FIRST_ARSENAL := 20
 const NUC_DETER := 40.0             # Security deterrence from having (or losing) an arsenal
 const NUC_CUT_CAPITAL := 10.0       # 20 to give it all up
+const NUC_AI_PROLIF := 0.0012       # monthly chance a threshold state tests its first weapon
 
 
 # ---------------------------------------------------- schools & universities ---

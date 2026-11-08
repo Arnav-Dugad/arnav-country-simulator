@@ -14,6 +14,8 @@ extends RefCounted
 const E = preload("res://sim/economy.gd")
 
 const ARSENAL := {"RUS": 5580, "USA": 5044, "CHN": 500, "FRA": 290, "GBR": 225, "IND": 172, "PAK": 170, "ISR": 90, "PRK": 50}
+## Threshold states that might build the bomb during a game (rare).
+const THRESHOLD := ["IRN", "SAU", "TUR", "EGY", "KOR"]
 ## Never joined the NPT (or left it).
 const OUTSIDE_NPT := ["IND", "PAK", "ISR", "PRK", "SSD"]
 
@@ -32,6 +34,10 @@ static func warheads(i: int) -> int:
 		return int(st().w)
 	if World.is_absorbed(i):
 		return 0
+	if Game.has_game() and Game.dip.has("nuke"):
+		var ai: Dictionary = st().get("ai", {})
+		if ai.has(World.iso(i)):
+			return int(ai[World.iso(i)])
 	return int(ARSENAL.get(World.iso(i), 0))
 
 
@@ -251,6 +257,24 @@ static func monthly() -> Array:
 			c.shocks.approval = float(c.shocks.approval) + 3.0
 			Game.add_milestone("Became a nuclear power", "atom", "orange")
 			out.append({"text": "%s tests its first nuclear weapon. The world condemns it; no neighbour will dare attack." % World.The_name(Game.player),
+				"icon": "atom", "good": false, "big": true})
+	# Proliferation: a threshold state may test its first weapon (rare).
+	if Game.months_played >= 36 and r.randf() < E.NUC_AI_PROLIF:
+		var ai: Dictionary = s.get("ai", {})
+		var cand: Array = []
+		for iso in THRESHOLD:
+			var j := World.index_of(str(iso))
+			if j >= 0 and j != Game.player and not ai.has(iso) and not World.is_absorbed(j):
+				cand.append(iso)
+		if not cand.is_empty():
+			var iso2: String = cand[r.randi() % cand.size()]
+			ai[iso2] = E.NUC_FIRST_ARSENAL
+			s["ai"] = ai
+			move_clock(-10.0)
+			var j2 := World.index_of(iso2)
+			if Game.relations[j2] < -20.0:
+				Game.me().shocks.stability = float(Game.me().shocks.stability) - 1.0
+			out.append({"text": "%s tests its first nuclear weapon. The Doomsday Clock moves closer to midnight." % World.The_name(j2),
 				"icon": "atom", "good": false, "big": true})
 	# Arms-control talks about every five years for nuclear powers.
 	if armed() and Game.months_played - int(s.talks) >= 60 and Game.month == 6:
