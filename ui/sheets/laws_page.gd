@@ -119,6 +119,7 @@ func _build() -> void:
 	add_child(Illustration.banner("parliament", "gavel", DS.ACCENT, 124.0))
 	_capital = _capital_bar()
 	add_child(_capital)
+	add_child(jump_bar(["Your cabinet", "Royal family", "Clean government", "Media & propaganda", "Crime & justice", "Black market & smuggling"]))
 	_cabinet = section("Your cabinet")
 	_hos = section("Royal family")
 	_clean = section("Clean government")

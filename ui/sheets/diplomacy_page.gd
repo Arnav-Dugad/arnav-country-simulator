@@ -30,6 +30,7 @@ func _build() -> void:
 		["stadium", "trophy", DS.GOLD, "Sport", "World Cup, the Games, medals", func() -> void: page_requested.emit("sports")],
 		["summit", "landmark", DS.ACCENT, "United Nations", "Security Council, resolutions", func() -> void: _scroll_to(_un)],
 	], self)
+	add_child(jump_bar(["Your rival", "World markets", "At war", "Your empire", "Security", "Intelligence", "Climate", "United Nations", "Treaties & blocs"]))
 	_rival = section("Your rival")
 	_markets = section("World markets")
 	_war = section("At war")

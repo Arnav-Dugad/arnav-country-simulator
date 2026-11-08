@@ -8,6 +8,7 @@ extends Control
 
 signal next_tapped(item: Dictionary)
 signal layers_tapped
+signal find_tapped
 
 const H := 52.0
 
@@ -21,6 +22,7 @@ var _next_sub: Label
 var _ring: Control
 var _ring_icon: TextureRect
 var _layers: GlassPanel
+var _find: GlassPanel
 var _item: Dictionary = {}
 var _shown := false
 var _tween: Tween
@@ -96,6 +98,11 @@ func _ready() -> void:
 	lb.custom_minimum_size = Vector2(H - 8, H - 8)
 	lb.pressed.connect(func() -> void: layers_tapped.emit())
 	_layers.add_child(lb)
+	_find = _pill()
+	var fb := AppButton.make("", &"FloatButton", "search")
+	fb.custom_minimum_size = Vector2(H - 8, H - 8)
+	fb.pressed.connect(func() -> void: find_tapped.emit())
+	_find.add_child(fb)
 
 	Game.speed_changed.connect(_on_speed)
 	_on_speed(Game.speed)
@@ -116,8 +123,10 @@ func _relayout() -> void:
 	_time.position = Vector2(0, 0)
 	_layers.size = Vector2(H, H)
 	_layers.position = Vector2(size.x - H, 0)
+	_find.size = Vector2(H, H)
+	_find.position = Vector2(size.x - H * 2.0 - DS.S2, 0)
 	var x0 := t.x + DS.S2
-	var w := size.x - x0 - H - DS.S2
+	var w := size.x - x0 - H * 2.0 - DS.S2 * 2.0
 	_next.size = Vector2(w, H)
 	_next.position = Vector2(x0, 0)
 	_next.pivot_offset = _next.size * 0.5

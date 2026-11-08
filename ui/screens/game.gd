@@ -64,6 +64,7 @@ func _ready() -> void:
 	add_child(top_bar)
 	strip = ControlStrip.new()
 	strip.next_tapped.connect(_on_next)
+	strip.find_tapped.connect(func() -> void: Finder.open(self))
 	strip.layers_tapped.connect(func() -> void:
 		layers.set_globe_state(map.globe_on)
 		layers.open(strip.layers_rect()))
@@ -364,6 +365,10 @@ func _build_sheet_header() -> void:
 	_sheet_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_sheet_title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	row.add_child(_sheet_title)
+	var find := AppButton.make("", &"IconButton", "search")
+	find.custom_minimum_size = Vector2(DS.MIN_TOUCH, DS.MIN_TOUCH)
+	find.pressed.connect(func() -> void: Finder.open(self))
+	row.add_child(find)
 	var close := AppButton.make("", &"IconButton", "x")
 	close.custom_minimum_size = Vector2(DS.MIN_TOUCH, DS.MIN_TOUCH)
 	close.pressed.connect(sheet.close)

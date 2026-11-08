@@ -32,10 +32,15 @@ func on_open() -> void:
 
 # ---------------------------------------------------------------- helpers ---
 ## Grouped card with an overline header. Returns the inner VBox to fill.
+var _sections := {}      # header -> wrapper (for "Find anything" and the jump bar)
+
+
 func section(header: String, parent: Control = self) -> VBoxContainer:
 	var wrap := VBoxContainer.new()
 	wrap.add_theme_constant_override(&"separation", DS.S2)
 	parent.add_child(wrap)
+	if header != "":
+		_sections[header] = wrap
 	if header != "":
 		var h := Label.new()
 		h.theme_type_variation = &"Overline"
@@ -176,6 +181,41 @@ func _hub_tile(it: Array) -> Control:
 			st.down = false
 			p.create_tween().tween_property(p, "scale", Vector2.ONE, 0.12))
 	return p
+
+
+## Scroll the sheet so the named section is at the top (with a soft highlight).
+func scroll_to_section(header: String) -> void:
+	var wrap: Control = _sections.get(header)
+	var gs := get_tree().current_scene
+	if wrap == null or not is_instance_valid(wrap) or gs == null or not ("_scroll" in gs):
+		return
+	if not wrap.is_visible_in_tree():
+		return
+	var sc: ScrollContainer = gs._scroll
+	var y := wrap.global_position.y - sc.global_position.y + sc.scroll_vertical - 12.0
+	var tw := sc.create_tween()
+	DS.ease_out(tw)
+	tw.tween_property(sc, "scroll_vertical", int(y), Settings.dur(0.45))
+	var flash := wrap.create_tween()
+	flash.tween_property(wrap, "modulate", Color(1.25, 1.25, 1.35), Settings.dur(0.2)).set_delay(Settings.dur(0.4))
+	flash.tween_property(wrap, "modulate", Color.WHITE, Settings.dur(0.5))
+
+
+## A row of chips at the top of a long page that jump to its sections.
+func jump_bar(headers: Array) -> Control:
+	var sc := TouchScroll.make_horizontal()
+	sc.custom_minimum_size = Vector2(0, 40)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override(&"separation", DS.S2)
+	sc.add_child(row)
+	for h in headers:
+		var hh := str(h)
+		var b := AppButton.make(hh, &"Chip")
+		b.pressed.connect(func() -> void:
+			Haptics.select()
+			scroll_to_section(hh))
+		row.add_child(b)
+	return sc
 
 
 func note(text: String, parent: Control = self) -> Label:
