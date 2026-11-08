@@ -548,6 +548,18 @@ const TOUR_BID_MONTHS := 12        # from bid to vote
 const TOUR_SOFT_RELATIONS := 0.01  # relations a month with everyone per soft power point gained
 
 
+# --------------------------------------------------------- culture & values ---
+# See sim/culture.gd. Axis points (-100..100) per month unless noted.
+const CULT_LAW_FIT := 3.0          # approval when a law fully fits (or clashes with) the culture
+const CULT_EDU_DRIFT := 0.04       # progress per month at +10 points of education budget
+const CULT_WEALTH_DRIFT := 0.01    # progress and secularism drift as countries modernise
+const CULT_TRADE_DRIFT := 0.03
+const CULT_LAW_DRIFT := 0.015      # per law in force, scaled by how it leans
+const CULT_CAMPAIGN_DRIFT := 0.25  # per month for two years
+const CULT_CAMPAIGN_CAPITAL := 15.0
+const CULT_CAMPAIGN_COST := 0.04   # % of GDP
+
+
 # ---------------------------------------------------------- power brokers ---
 # See sim/factions.gd. Loyalty points (0..100, 60 = content).
 const FAC_ADJUST := 1.0 / 10.0

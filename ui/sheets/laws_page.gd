@@ -23,6 +23,7 @@ var _black: VBoxContainer
 var _hos: VBoxContainer
 var _const: VBoxContainer
 var _fac: VBoxContainer
+var _cult: VBoxContainer
 var _capital: Control
 var _cap_value: Label
 var _cap_note: Label
@@ -121,9 +122,10 @@ func _build() -> void:
 	add_child(Illustration.banner("parliament", "gavel", DS.ACCENT, 124.0))
 	_capital = _capital_bar()
 	add_child(_capital)
-	add_child(jump_bar(["Your cabinet", "Power brokers", "Royal family", "Constitution", "Clean government", "Media & propaganda", "Crime & justice", "Black market & smuggling"]))
+	add_child(jump_bar(["Your cabinet", "Power brokers", "Culture & values", "Royal family", "Constitution", "Clean government", "Media & propaganda", "Crime & justice", "Black market & smuggling"]))
 	_cabinet = section("Your cabinet")
 	_fac = section("Power brokers")
+	_cult = section("Culture & values")
 	_hos = section("Royal family")
 	_const = section("Constitution")
 	_clean = section("Clean government")
@@ -158,6 +160,7 @@ func refresh() -> void:
 	_fill_hos()
 	_fill_const()
 	_fill_fac()
+	_fill_cult()
 	var active := 0
 	var passing := 0
 	for l in Laws.ALL:
@@ -244,6 +247,9 @@ func _card(c: CountryState, l: Dictionary) -> Control:
 	if Inequality.LAW_GINI.has(l.id):
 		var gv := float(Inequality.LAW_GINI[l.id])
 		chips.add_child(_chip("Inequality %+.1f" % gv, DS.GREEN if gv < 0.0 else DS.RED))
+	var cfit := Culture.fit_text(str(l.id))
+	if cfit != "" and not Laws.is_active(c, l.id):
+		chips.add_child(_chip(cfit, DS.GREEN if Culture.law_fit(str(l.id)) > 0.0 else DS.ORANGE))
 	if l.id == "skilled_visas":
 		chips.add_child(_chip("Migrants +%s per 1,000" % String.num(Economy.MIG_VISAS, 0), DS.TEXT_2))
 	elif l.id == "border_control":
@@ -919,4 +925,71 @@ func _faction_card(id: String) -> void:
 				Haptics.warning()
 				Game.add_feed(t2, str(info.icon), "orange")
 			refresh())
+	m.choice("Close", "", &"GhostButton", m.dismiss)
+
+
+# --------------------------------------------------------- culture & values ---
+func _fill_cult() -> void:
+	for ch in _cult.get_children():
+		ch.queue_free()
+	note("What your people believe. Laws that fit are popular; laws that clash cost approval. Values shift slowly with education, openness and the laws you keep.", _cult)
+	for axis in Culture.AXES:
+		var a: Dictionary = Culture.AXES[axis]
+		var v := Culture.value(str(axis))
+		var d := v - float(Culture.st().start[axis])
+		var head := HBoxContainer.new()
+		_cult.add_child(head)
+		var t := Label.new()
+		t.theme_type_variation = &"Subhead"
+		t.text = Culture.label(str(axis))
+		t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		head.add_child(t)
+		if absf(d) >= 1.0:
+			var dl := Label.new()
+			dl.theme_type_variation = &"Caption"
+			dl.text = "%+d since you took office" % roundi(d)
+			head.add_child(dl)
+		# A two-ended bar with a marker.
+		var bar := Control.new()
+		bar.custom_minimum_size = Vector2(0, 26)
+		bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var font := get_theme_font(&"font", &"Caption")
+		var neg := str(a.neg)
+		var pos := str(a.pos)
+		bar.draw.connect(func() -> void:
+			var w := bar.size.x
+			bar.draw_style_box(get_theme_stylebox(&"track", &"AppSlider"), Rect2(0, 2, w, 6))
+			bar.draw_rect(Rect2(w * 0.5 - 1, 0, 2, 10), Color(1, 1, 1, 0.3))
+			var x := w * (0.5 + v / 200.0)
+			bar.draw_circle(Vector2(x, 5), 6.0, DS.ACCENT)
+			bar.draw_circle(Vector2(x, 5), 3.0, Color.WHITE)
+			bar.draw_string(font, Vector2(0, 24), neg, HORIZONTAL_ALIGNMENT_LEFT, w * 0.5, 11, DS.TEXT_3)
+			bar.draw_string(font, Vector2(w * 0.5, 24), pos, HORIZONTAL_ALIGNMENT_RIGHT, w * 0.5, 11, DS.TEXT_3))
+		_cult.add_child(bar)
+	var b := AppButton.make("Launch a culture campaign", &"", "megaphone")
+	b.pressed.connect(_culture_campaign)
+	_cult.add_child(b)
+
+
+func _culture_campaign() -> void:
+	var m := ModalCard.new()
+	get_tree().current_scene.add_child(m)
+	m.header("megaphone", DS.ACCENT, "Culture", "Shift the nation's values")
+	m.body("Schools, broadcasting and public campaigns nudge one value for two years. Costs %d political capital and %s." % [
+		int(Economy.CULT_CAMPAIGN_CAPITAL), DS.money(Game.me().gdp * Economy.CULT_CAMPAIGN_COST / 100.0)])
+	for axis in Culture.AXES:
+		var a: Dictionary = Culture.AXES[axis]
+		var wait := Culture.campaign_wait(str(axis))
+		for dir in [1, -1]:
+			var ax := str(axis)
+			var dd: int = dir
+			var ch := m.choice("Towards %s" % str(a.pos if dir > 0 else a.neg).to_lower(), ("Again in %d months" % wait) if wait > 0 else "", &"GhostButton", func() -> void:
+				if Culture.campaign(ax, dd):
+					Simulation.update_finances(Game.me())
+					Haptics.success()
+				m.dismiss()
+				refresh())
+			if wait > 0 or not Capital.can(Economy.CULT_CAMPAIGN_CAPITAL):
+				for bb in ch.find_children("*", "Button", true, false):
+					(bb as Button).disabled = true
 	m.choice("Close", "", &"GhostButton", m.dismiss)

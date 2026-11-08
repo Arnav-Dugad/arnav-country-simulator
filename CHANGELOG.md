@@ -2,6 +2,12 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.76.0] - 2026-11-09
+
+- **Culture & values:** your society has its own beliefs on three scales: traditional or progressive, inward-looking or open to the world, religious or secular. They start from real data, so Sweden and Nigeria feel very different (Laws page)
+  - Laws that fit your culture are popular; laws that clash cost approval. Law cards now say "Fits your culture" or "Clashes with your culture"
+  - Values shift slowly with education, openness to trade and the laws you keep, or faster with a two-year culture campaign
+
 ## [0.75.0] - 2026-11-09
 
 - **Power brokers:** five groups that can make or break your government whatever the voters think: the army, big business, trade unions, religious leaders and the civil service (Laws page)

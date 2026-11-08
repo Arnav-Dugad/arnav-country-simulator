@@ -177,6 +177,8 @@ static func start(c: CountryState, id: String) -> int:
 	c.laws[id] = {"state": "repealing" if repeal else "passing", "months_left": months}
 	c.laws_ver += 1
 	var pol := float(l.politics) * (-0.6 if repeal else 1.0)
+	if c.idx == Game.player:
+		pol += Culture.law_fit(id) * (-0.6 if repeal else 1.0)
 	if c.idx == Game.player and Mandate.active() and pol < 0.0:
 		pol *= Mandate.POLITICS_DISCOUNT     # honeymoon: voters forgive early reforms
 	c.shocks.approval = float(c.shocks.approval) + pol
