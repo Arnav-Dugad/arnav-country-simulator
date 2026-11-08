@@ -653,9 +653,16 @@ static func roll(rng: RandomNumberGenerator) -> Dictionary:
 	var me := Game.me()
 	var pool: Array = []
 	var weights: Array[float] = []
+	# Recently seen events (and ones whose story is still unfolding) sit out.
+	var recent := {}
+	for entry in Game.director.log:
+		if Game.months_played - int(entry.get("m", -999)) < REPEAT_GAP_MONTHS:
+			recent[str(entry.get("id", ""))] = true
+	for item in Game.director.scheduled:
+		recent[str(CHAIN_ROOT.get(str(item.id), item.id))] = true
 	for e in EVENTS:
 		var w := float(e.weight)
-		if w <= 0.0:
+		if w <= 0.0 or recent.has(str(e.id)):
 			continue
 		var other := -1
 		# Natural risks: the researched profile decides where it has one, else the region list.
@@ -795,6 +802,12 @@ static func _pick_country(rng: RandomNumberGenerator, ok: Callable) -> int:
 const _BAD_UP := {"growth": false, "inflation": true, "unemployment": true, "happiness": false,
 	"approval": false, "stability": false}
 
+
+## The same random event won't come back within this many months.
+const REPEAT_GAP_MONTHS := 30
+## Story follow-ups -> the event that starts the story (no new bid while one runs).
+const CHAIN_ROOT := {"games_prep": "games_bid", "games_open": "games_bid", "games_mess": "games_bid",
+	"resource_windfall": "resources"}
 
 ## Follow-up events that are part of a story, not a worse stage (no "May escalate" chip).
 const GOOD_NEXT := ["games_prep", "games_open", "recovery_boom", "vaccine_race", "resource_windfall"]
