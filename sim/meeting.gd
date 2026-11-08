@@ -47,6 +47,13 @@ static func proposals() -> Array:
 		out.append({"id": "fill", "post": "interior", "title": "Fill the grain reserve",
 			"why": "We grow only %d%% of our food. A full reserve protects families when world prices spike." % roundi(Food.self_sufficiency()),
 			"cost": "%s a year while filling" % DS.money(gdp * Economy.FOOD_SEC_FILL_COST / 100.0)})
+	elif Game.dip.has("air") and Air.pm() >= 30.0:
+		for aid in ["stoves", "vehicles", "industry", "burning"]:
+			if Air.available(aid) and not Air.has(aid):
+				out.append({"id": "air:" + aid, "post": "interior", "title": str(Air.POLICIES[aid].title),
+					"why": "The air is %s (%d µg/m³ of fine dust). %s" % [Air.label(Air.pm()).to_lower(), roundi(Air.pm()), str(Air.POLICIES[aid].desc)],
+					"cost": "%s a year" % DS.money(gdp * float(Air.POLICIES[aid].cost) / 100.0)})
+				break
 	# Finance (infrastructure).
 	if Game.dip.has("water") and Water.stress() >= 2.8 and Water.can_desal():
 		out.append({"id": "desal", "post": "finance", "title": "Build a desalination plant",
@@ -121,4 +128,7 @@ static func approve(id: String) -> void:
 			Water.apply(id)
 		"escort":
 			SeaLanes.set_escort(p[1], true)
+		"air":
+			if not Air.has(p[1]):
+				Air.toggle(p[1])
 	Simulation.update_finances(Game.me())

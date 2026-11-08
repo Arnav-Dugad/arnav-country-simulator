@@ -50,6 +50,8 @@ static func life_target(c: CountryState) -> float:
 		t += float(Wonders.modifiers().get("life", 0.0))
 	if c.idx == Game.player and Game.dip.has("hlth"):
 		t += float(Health.modifiers().get("life", 0.0))
+	if c.idx == Game.player and Game.dip.has("air"):
+		t += float(Air.modifiers().get("life", 0.0))
 	if c.idx == Game.player and Game.dip.has("media"):
 		t += float(Media.modifiers().get("life", 0.0))
 	return clampf(t, 40.0, 90.0)

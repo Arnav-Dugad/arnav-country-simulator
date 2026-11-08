@@ -2,6 +2,18 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.88.0] - 2026-11-09
+
+- **Air quality** (People & society), from real WHO and IQAir data, from Bangladesh and India (hazardous) to Finland and Iceland (clean):
+  - Fine dust follows your power plants, traffic and industry, so cleaner energy clears the air too
+  - Clean vehicle standards, filters on factories, clean cooking stoves and an end to crop burning
+  - Dirty air shortens lives; cleaning it adds years
+  - A winter smog crisis can hit the most polluted capitals
+- **Cabinet meetings** now cover clean air and naval escorts too
+- **Year in review:** the newspaper has a new column, History made, with the year's biggest milestone
+- **Legacy:** your final grade counts world wonders built, regions lost, nuclear disarmament and better schools
+- New achievement: Blue skies
+
 ## [0.87.0] - 2026-11-09
 
 - **Sea lanes** (World › Sea lanes): the Strait of Hormuz, the Suez Canal, Bab el-Mandeb, the Panama Canal, the Strait of Malacca and the Bosporus can be disrupted by blockades, attacks, a stuck container ship or drought

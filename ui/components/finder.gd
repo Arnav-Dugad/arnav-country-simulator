@@ -36,6 +36,7 @@ const INDEX := [
 	["Sea lanes", "diplomacy", "Sea lanes", "ship", "sea lanes shipping suez panama hormuz malacca canal strait navy escort tolls"],
 	["Water", "diplomacy", "Water", "droplets", "water drought rivers dams desalination irrigation shortage nile indus mekong"],
 	["Nuclear weapons", "diplomacy", "Nuclear weapons", "atom", "nuclear weapons bomb warheads deterrence treaty npt doomsday clock disarmament arms control"],
+	["Air quality", "population", "Air quality", "wind", "air quality pollution smog pm2.5 dust clean air vehicles factories stoves"],
 	["Health system", "population", "Health system", "stethoscope", "health hospitals doctors waiting times coverage medicine drug prices nurses"],
 	["Schools & universities", "population", "Schools & universities", "graduation-cap", "education schools universities teachers learning test brain drain students"],
 	["Regions", "population", "Regions", "map-pin", "regions separatism independence referendum autonomy provinces north south capital"],

@@ -559,6 +559,13 @@ const TOUR_BID_MONTHS := 12        # from bid to vote
 const TOUR_SOFT_RELATIONS := 0.01  # relations a month with everyone per soft power point gained
 
 
+# --------------------------------------------------------------- air quality ---
+# See sim/air.gd. PM2.5 in µg/m³.
+const AIR_EMISSION_LINK := 0.7      # PM follows fossil emissions per person (elasticity)
+const AIR_LIFE := 0.05              # years of life per µg/m³ (WHO cohort studies, roughly)
+const AIR_HAPPY := 0.03             # happiness per µg/m³
+
+
 # ----------------------------------------------------------------- sea lanes ---
 # See sim/sea_lanes.gd. Disruptions touch only the player's targets.
 const SEA_CHANCE := 0.012           # monthly chance a strait is disrupted

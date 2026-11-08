@@ -32,9 +32,10 @@ func refresh() -> void:
 	var af := Population.afford()
 	g.add_child(_tile("house", DS.GREEN if af >= 95.0 else (DS.ORANGE if af >= 80.0 else DS.RED), "Housing", "%d" % roundi(af),
 		"affordability  ·  100 = at start"))
-	_box.add_child(jump_bar(["Regions", "Health system", "Schools & universities", "Diaspora & remittances", "Age structure", "Family policy", "Cities & housing"]))
+	_box.add_child(jump_bar(["Regions", "Health system", "Air quality", "Schools & universities", "Diaspora & remittances", "Age structure", "Family policy", "Cities & housing"]))
 	_regions()
 	_health()
+	_air()
 	_education()
 	_diaspora()
 	# Age structure.
@@ -448,3 +449,32 @@ func _diaspora() -> void:
 			refresh())
 		db.add_child(bb)
 		note("Your people abroad lend to their country at a low rate. It adds to the debt, so use it wisely.", db)
+
+
+# --------------------------------------------------------------- air quality ---
+func _air() -> void:
+	var ab := section("Air quality", _box)
+	var s := Air.st()
+	var v := Air.pm()
+	var d := v - float(s.pm0)
+	var c := Game.me()
+	var hl := ListRow.new().setup(Air.label(v),
+		"%d µg/m³ of fine dust (WHO guideline: 5)" % roundi(v) + (("  ·  %+d since you took office" % roundi(d)) if absf(d) >= 1.0 else ""))
+	hl.subtitle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	hl.subtitle_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	hl.set_leading(ListRow.icon_tile("wind", Air.color(v)))
+	ab.add_child(hl)
+	ab.add_child(meter(clampf(v / 80.0, 0.0, 1.0), 0.0, Air.color(v), 6.0))
+	note("It follows your power plants, traffic and industry: cleaner energy clears the air too. Dirty air costs years of life. %s" % (
+		("Heading to %d." % roundi(Air.target())) if absf(Air.target() - v) >= 1.0 else ""), ab)
+	for id in Air.POLICIES:
+		if not Air.available(str(id)):
+			continue
+		var p: Dictionary = Air.POLICIES[id]
+		var t := AppToggle.new().setup("%s  ·  %s a year" % [str(p.title), DS.money(c.gdp * float(p.cost) / 100.0)], Air.has(str(id)), str(p.icon))
+		var pid := str(id)
+		t.toggled.connect(func(_on: bool) -> void:
+			Air.toggle(pid)
+			Simulation.update_finances(Game.me())
+			Haptics.select())
+		ab.add_child(t)

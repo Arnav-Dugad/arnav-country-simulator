@@ -606,6 +606,15 @@ const EVENTS := [
 				"effects": {"spending": -2.0, "income_tax": 2.0, "approval": -8.0, "growth": -0.8}},
 			{"label": "Print money", "detail": "Inflation erodes the debt · prices explode",
 				"effects": {"inflation": 9.0, "debt_gdp": -8.0, "approval": -4.0, "stability": -4.0}}]},
+	{"id": "smog_crisis", "title": "Smog chokes the capital", "icon": "wind", "tint": "orange", "weight": 2.0, "cond": "smog",
+		"body": "A thick brown smog has settled over {country}'s capital. Hospitals are full of children who can't breathe, and flights are grounded.",
+		"choices": [
+			{"label": "Close schools and factories", "detail": "A week of emergency measures · growth dips",
+				"effects": {"growth": -0.2, "happiness": 0.5, "approval": 1.0}},
+			{"label": "Odd-even driving days", "detail": "Half the cars off the road · drivers fume",
+				"effects": {"approval": -0.5, "happiness": 0.5}},
+			{"label": "Wait for the wind", "detail": "No cost · anger grows",
+				"effects": {"happiness": -1.5, "approval": -1.5}}]},
 	{"id": "leadership_challenge", "title": "A leadership challenge", "icon": "swords", "tint": "red", "weight": 4.0, "cond": "spill",
 		"body": "With the polls this bad, rebels in your own party have the signatures to force a vote on your leadership. Lose it and you're out.",
 		"choices": [
@@ -944,6 +953,9 @@ static func roll(rng: RandomNumberGenerator) -> Dictionary:
 					continue
 			"cb_overruled":
 				if me.cb_auto or me.interest_rate > Economy.neutral_rate(me.core_inflation) - 1.0:
+					continue
+			"smog":
+				if not Game.dip.has("air") or Air.pm() < 45.0 or not Game.month in [11, 12, 1]:
 					continue
 			"spill":
 				if not Government.kind(Game.player) in ["parliamentary", "monarchy_parl"] or not Government.is_free(Game.player) \

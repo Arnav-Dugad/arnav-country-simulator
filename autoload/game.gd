@@ -175,6 +175,9 @@ func new_game(country_index: int, seed_value: int = -1, level: String = "") -> v
 	Water.st()                      # water stress, shared rivers
 	Food.st()                       # self-sufficiency, grain reserve
 	Diaspora.st()                   # remittances
+	Air.st()                        # air quality
+	SeaLanes.st()                   # straits and canals
+	DigitalMoney.st()               # crypto market
 	headlines_seen = {}
 	last_rating = ""
 	news = []
@@ -341,6 +344,7 @@ func advance_month() -> void:
 	Culture.monthly()
 	Regions.monthly()
 	Health.monthly()
+	Air.monthly()
 	Food.monthly()
 	Diaspora.monthly()
 	for h in SeaLanes.monthly():
