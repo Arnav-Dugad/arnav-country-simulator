@@ -4,6 +4,7 @@ The release workflow publishes the section that matches the tag as the GitHub Re
 
 ## [0.46.0] - 2026-11-08
 
+- Calmer Inbox: foreign leaders ask for disaster aid at most once every 8 months
 - Fewer repeats: the same event no longer comes back within two and a half years, and a new world games bid can't arrive while you're still hosting one
 - **The resource curse:** after a big mineral discovery, the mining money arrives 18 months later. Save it in a national wealth fund (like Norway), spend it on people now (popular, but prices rise and factories suffer), or pay down the debt
 

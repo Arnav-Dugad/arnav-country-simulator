@@ -63,6 +63,8 @@ static func _leader_change(i: int, c: CountryState, rng: RandomNumberGenerator, 
 		add(i, "%s%s" % [headline, ", " + tone if tone != "" else ""], "vote", swing >= 0.0)
 
 
+const AID_ASK_GAP := 8
+
 ## Natural disasters strike notable countries now and then (news + map weather),
 ## only where they really happen (the same regions as the player's disaster events).
 static func _maybe_disaster(i: int, rng: RandomNumberGenerator) -> void:
@@ -81,7 +83,9 @@ static func _maybe_disaster(i: int, rng: RandomNumberGenerator) -> void:
 	add(i, str(what.get(kind, "Disaster in %s")) % World.map.names[i], "cloud", false)
 	Game.add_weather(kind, i, 2)
 	# Friends and partners ask you for help.
-	if Game.relations[i] >= 10.0 and Game.director.inbox.size() < EventDirector.MAX_OPEN:
+	# (At most one request every AID_ASK_GAP months: the Inbox stays calm.)
+	if Game.relations[i] >= 10.0 and Game.director.inbox.size() < EventDirector.MAX_OPEN 			and Game.months_played - int(Game.dip.get("aid_ask_last", -99)) >= AID_ASK_GAP:
+		Game.dip["aid_ask_last"] = Game.months_played
 		Game.director.add(GameEvents.aid_request(i, kind))
 
 
