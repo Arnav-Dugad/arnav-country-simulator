@@ -2,6 +2,15 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.86.0] - 2026-11-09
+
+- **Diaspora & remittances** (People & society), from World Bank data:
+  - Money sent home by citizens abroad is almost half of Tajikistan's economy and a quarter of Nepal's, while Gulf states see money flow out
+  - Cut transfer fees, let citizens abroad vote and keep two passports, or issue diaspora bonds for cheap money from your own people
+  - Host countries can tax money sent abroad
+- **Country profiles:** a new fact grid when you tap any country, covering test scores, best university, water stress, food grown at home, nuclear warheads and remittances
+- **Polish:** the new sections fit at the largest text size; the Cabinet pill no longer truncates
+
 ## [0.85.0] - 2026-11-09
 
 - **Cabinet meetings:** every six months your ministers bring up to four concrete proposals drawn from the state of the country, such as "Train more doctors", "A development fund for the East", "Build a desalination plant" or "A water treaty on the Nile"
