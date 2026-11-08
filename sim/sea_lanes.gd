@@ -31,6 +31,10 @@ const LANES := {
 		"causes": ["Grain ships are stuck at the Bosporus"]},
 }
 
+## Where each strait is (longitude, latitude) for the map.
+const POS := {"hormuz": Vector2(56.4, 26.5), "suez": Vector2(32.4, 30.6), "bab": Vector2(43.4, 12.6),
+	"panama": Vector2(-79.7, 9.1), "malacca": Vector2(100.5, 3.0), "bosporus": Vector2(29.0, 41.1)}
+
 const TOLLS := ["low", "normal", "high"]
 const TOLL_INFO := {"low": {"title": "Low", "rev": 0.8, "rel": 0.05}, "normal": {"title": "Normal", "rev": 1.0, "rel": 0.0},
 	"high": {"title": "High", "rev": 1.2, "rel": -0.05}}

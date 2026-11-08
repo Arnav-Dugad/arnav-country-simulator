@@ -68,6 +68,7 @@ func _draw() -> void:
 	_draw_tariffs()
 	_draw_projects()
 	_draw_wonders()
+	_draw_sea()
 	_draw_flight()
 	_draw_fx()
 	_draw_fronts()
@@ -473,6 +474,27 @@ func _draw_projects() -> void:
 		if tex:
 			draw_texture_rect(tex, Rect2(p - Vector2(6.5, 6.5), Vector2(13, 13)), false,
 				Color(1, 1, 1, 0.95) if not building else Color(DS.ORANGE.lightened(0.3), 0.95))
+
+
+## Disrupted sea lanes: a pulsing red ring at the strait (teal while your navy escorts).
+func _draw_sea() -> void:
+	if not Game.dip.has("sea") or (SeaLanes.st().open as Dictionary).is_empty():
+		return
+	var tex: Texture2D = _icons.get("sea_ship")
+	if tex == null:
+		tex = DS.icon("ship")
+		_icons["sea_ship"] = tex
+	for id in SeaLanes.st().open:
+		var ll: Vector2 = SeaLanes.POS.get(id, Vector2.ZERO)
+		var p := map.world_to_screen(Geo.equal_earth(ll.x, ll.y))
+		var col := DS.TEAL if (SeaLanes.st().escort as Dictionary).has(id) else DS.RED
+		for k in 2:
+			var u := fposmod(_t * 0.6 + k * 0.5, 1.0)
+			draw_arc(p, 8.0 + 22.0 * u, 0.0, TAU, 32, Color(col, 0.55 * (1.0 - u)), 2.0, true)
+		draw_circle(p, 10.0, Color(0.05, 0.06, 0.1, 0.9), true, -1.0, true)
+		draw_arc(p, 10.0, 0.0, TAU, 24, col, 1.6, true)
+		if tex:
+			draw_texture_rect(tex, Rect2(p - Vector2(6, 6), Vector2(12, 12)), false, Color(col.lightened(0.3), 1.0))
 
 
 ## World wonders: a gold landmark pin above the capital of each country that built one.
