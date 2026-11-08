@@ -4,6 +4,9 @@ The release workflow publishes the section that matches the tag as the GitHub Re
 
 ## [0.53.0] - 2026-11-08
 
+- **Your legacy, charted:** the end-of-term screen shows your support through every month of your time in power, with elections and your big decisions marked on the line. Drag along it to read any month
+- **Political capital.** A new resource (0–100) on the Laws page: goodwill you earn every month from public support, plus bonuses for election wins, renewed mandates and reached goals. Spend it on passing and repealing laws (popular reforms are cheap, painful ones dear), cabinet reshuffles, corruption crackdowns, tariffs and changing the constitution. Every big move is now a real choice
+- **Address the nation.** Once a year, go live on every channel from the Economy page. Choose your message: better days ahead, one nation, hard truths, or standing tall in the world. Words that match what people see land well (and credibility makes them land harder); optimism in a recession backfires
 - **Events grow out of your country.** New dilemmas appear when your own numbers call for them: marches against inequality when the gap widens, pension strikes as the country ages, farmers blocking highways in a trade war, doctors leaving when emigration rises, bribery scandals where corruption runs deep, and wildfire seasons in a warming world
 - Press conferences come less often (about every 15 months), leaving room for the decisions that matter
 

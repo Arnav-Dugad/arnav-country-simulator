@@ -402,6 +402,28 @@ static func tax_yield(rate: float, k: float) -> float:
 	return r * k * (1.0 - LAFFER * r * r)
 
 
+# -------------------------------------------------------- political capital ---
+# See sim/capital.gd. Points 0..CAPITAL_MAX.
+const CAPITAL_START := 50.0
+const CAPITAL_MAX := 100.0
+## Monthly income: BASE + PER_SUPPORT x (support - 45), clamped.
+const CAPITAL_BASE := 2.0
+const CAPITAL_PER_SUPPORT := 0.12
+const CAPITAL_MIN_GAIN := 0.5
+const CAPITAL_MAX_GAIN := 4.5
+## One-off boosts.
+const CAPITAL_ELECTION_WIN := 25.0
+const CAPITAL_MANDATE_RENEWED := 15.0
+const CAPITAL_GOAL := 6.0
+## Costs. A law costs BASE - PER_POLITICS x its politics score (backlash raises it).
+const CAPITAL_LAW_BASE := 12.0
+const CAPITAL_LAW_PER_POLITICS := 3.0
+const CAPITAL_RESHUFFLE := 10.0
+const CAPITAL_CRACKDOWN := 20.0
+const CAPITAL_TARIFF := 8.0
+const CAPITAL_AMEND := 35.0
+
+
 # ------------------------------------------------------- health & schooling ---
 # See sim/outcomes.gd. Effects are gentle and slow, as in reality.
 ## Years of life expectancy per doubling of health effort (spending x share).

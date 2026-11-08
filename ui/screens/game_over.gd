@@ -32,9 +32,15 @@ func _ready() -> void:
 	card.theme_type_variation = &"GlassSheet"
 	card.tint = DS.GLASS_TINT_STRONG
 	add_child(card)
+	# Content scrolls when it's taller than the screen (long careers, small phones).
+	var scroll := TouchScroll.new()
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	card.add_child(scroll)
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override(&"separation", DS.S4)
-	card.add_child(col)
+	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(col)
+	_col = col
 
 	var reason := str(data.reason)
 	var over := Label.new()
@@ -140,6 +146,8 @@ Weakest: %s" % str(worst[0]).to_lower()]
 	bt.tween_property(badge, "scale", Vector2.ONE, 0.6).set_delay(0.5)
 	bt.tween_property(badge, "modulate:a", 1.0, 0.3).set_delay(0.5)
 
+	_timeline(col)
+
 	var g := GridContainer.new()
 	g.columns = 2
 	g.add_theme_constant_override(&"h_separation", DS.S2)
@@ -177,6 +185,40 @@ Weakest: %s" % str(worst[0]).to_lower()]
 	Haptics.warning()
 
 
+## Your time in power at a glance: support month by month, elections in gold,
+## other big decisions as dots. Scrub it to read any month.
+func _timeline(col: VBoxContainer) -> void:
+	var hist: PackedFloat32Array = Game.history.get("approval", PackedFloat32Array())
+	if hist.size() < 6:
+		return
+	var head := Label.new()
+	head.theme_type_variation = &"Overline"
+	head.text = "%s THROUGH THE YEARS" % Government.support_word(Game.player).to_upper()
+	col.add_child(head)
+	var ch := LineChart.new()
+	ch.custom_minimum_size = Vector2(0, 120)
+	ch.window = hist.size()
+	ch.set_color(DS.ACCENT)
+	ch.formatter = func(v: float) -> String: return String.num(v, 0) + "%"
+	ch.date_of = func(i: int) -> String:
+		# i indexes the full history, which ends at the current month.
+		var total := Game.year * 12 + (Game.month - 1) - (hist.size() - 1 - i)
+		return "%s %d" % [["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][total % 12], total / 12]
+	var marks: Array = []
+	for e in Game.event_log:
+		if e.has("m") and (str(e.id) == "election" or not bool(e.get("cabinet", false))):
+			marks.append([int(e.m), DS.GOLD if str(e.id) == "election" else DS.ACCENT_SOFT, str(e.title)])
+	ch.markers = marks
+	col.add_child(ch)
+	ch.set_data(hist, true)
+	var cap := Label.new()
+	cap.theme_type_variation = &"Caption"
+	cap.text = "Gold: elections and reviews · blue: your big decisions. Drag along the line to read any month."
+	cap.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	cap.custom_minimum_size = Vector2(60, 0)
+	col.add_child(cap)
+
+
 func _stat(parent: Control, t: String, v: String) -> void:
 	var p := PanelContainer.new()
 	p.theme_type_variation = &"TilePanel"
@@ -195,8 +237,14 @@ func _stat(parent: Control, t: String, v: String) -> void:
 	b.add_child(c)
 
 
+var _col: VBoxContainer
+
+
 func _place(card: Control) -> void:
 	var w := size.x - DS.S4 * 2.0
-	card.size = Vector2(w, card.get_combined_minimum_size().y)
+	var pad := card.get_combined_minimum_size().y        # the panel's own padding
+	var want := _col.get_combined_minimum_size().y + pad
+	var room := size.y - Screen.top - Screen.bottom - DS.S4 * 2.0
+	card.size = Vector2(w, minf(want, room))
 	card.position = Vector2(DS.S4, size.y - Screen.bottom - DS.S4 - card.size.y)
 	Screen.fit_card(card, self)

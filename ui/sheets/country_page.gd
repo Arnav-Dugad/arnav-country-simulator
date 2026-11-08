@@ -242,10 +242,12 @@ func _build_actions(i: int, is_me: bool, playable: bool) -> void:
 			_done("Tariffs lifted. Trade flows again.", true),
 			false, "Prices calm down" + (", and they drop theirs" if Tariffs.retaliating(i) else ""))
 	else:
-		_action("Put tariffs on their goods", &"", "ban", func() -> void:
+		_action("Put tariffs on their goods  ·  %d" % int(Economy.CAPITAL_TARIFF), &"", "ban", func() -> void:
+			if not Capital.spend(Economy.CAPITAL_TARIFF):
+				return
 			var back := Tariffs.impose(i)
 			_done("Tariffs imposed. %s" % ("They hit back with their own." if back else "They chose not to retaliate."), not back),
-			false, "Prices rise · %d%% chance they hit back" % roundi(Tariffs.retaliation_chance(i) * 100.0))
+			not Capital.can(Economy.CAPITAL_TARIFF), "Prices rise · %d%% chance they hit back" % roundi(Tariffs.retaliation_chance(i) * 100.0))
 	# Sanctions
 	if Diplomacy.is_sanctioning(i):
 		_action("Lift sanctions", &"", "check", func() -> void:

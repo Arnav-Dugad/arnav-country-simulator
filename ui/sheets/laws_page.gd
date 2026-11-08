@@ -17,6 +17,61 @@ var _cabinet: VBoxContainer
 
 
 var _clean: VBoxContainer
+var _capital: Control
+var _cap_value: Label
+var _cap_note: Label
+var _cap_bar: Control
+
+
+## "Political capital 42 / 100" with a bar and a one-line explanation.
+func _capital_bar() -> Control:
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override(&"separation", 2)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override(&"separation", DS.S2)
+	box.add_child(row)
+	var ic := TextureRect.new()
+	ic.texture = DS.icon("landmark")
+	ic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	ic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	ic.custom_minimum_size = Vector2(18, 18)
+	ic.modulate = DS.GOLD
+	row.add_child(ic)
+	var t := Label.new()
+	t.theme_type_variation = &"Subhead"
+	t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	t.text = "Political capital"
+	row.add_child(t)
+	var v := Label.new()
+	v.theme_type_variation = &"StatSmall"
+	v.add_theme_color_override(&"font_color", DS.GOLD)
+	row.add_child(v)
+	_cap_value = v
+	var bar := Control.new()
+	bar.custom_minimum_size = Vector2(0, 6)
+	bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bar.draw.connect(func() -> void:
+		var w := bar.size.x
+		bar.draw_style_box(get_theme_stylebox(&"track", &"AppSlider"), Rect2(0, 0, w, 6))
+		var f: StyleBoxFlat = (get_theme_stylebox(&"fill", &"AppSlider") as StyleBoxFlat).duplicate()
+		f.bg_color = DS.GOLD
+		bar.draw_style_box(f, Rect2(0, 0, maxf(w * Capital.value() / Economy.CAPITAL_MAX, 6.0), 6)))
+	box.add_child(bar)
+	_cap_bar = bar
+	var n := Label.new()
+	n.theme_type_variation = &"Caption"
+	_cap_note = n
+	n.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	n.custom_minimum_size = Vector2(60, 0)
+	box.add_child(n)
+	return box
+
+
+func _fill_capital() -> void:
+	_cap_value.text = "%s / %d" % [Capital.label(), int(Economy.CAPITAL_MAX)]
+	_cap_note.text = "Goodwill you spend on reforms, reshuffles and crackdowns. +%s a month from your %s; elections and goals add more." % [
+		String.num(Capital.income(), 1), Government.support_word(Game.player).to_lower()]
+	_cap_bar.queue_redraw()
 
 
 func _fill_clean() -> void:
@@ -43,8 +98,11 @@ func _fill_clean() -> void:
 	col.add_child(sub)
 	var wait := Corruption.drive_wait()
 	var b := AppButton.make("Crack down on corruption", &"", "gavel")
-	b.disabled = wait > 0
+	b.disabled = wait > 0 or not Capital.can(Economy.CAPITAL_CRACKDOWN)
+	b.text = "Crack down on corruption  ·  %d" % int(Economy.CAPITAL_CRACKDOWN)
 	b.pressed.connect(func() -> void:
+		if not Capital.spend(Economy.CAPITAL_CRACKDOWN):
+			return
 		Corruption.launch_drive()
 		Haptics.success()
 		refresh())
@@ -55,6 +113,8 @@ func _fill_clean() -> void:
 
 func _build() -> void:
 	add_child(Illustration.banner("parliament", "gavel", DS.ACCENT, 124.0))
+	_capital = _capital_bar()
+	add_child(_capital)
 	_cabinet = section("Your cabinet")
 	_clean = section("Clean government")
 	_summary = note("")
@@ -76,6 +136,7 @@ func refresh() -> void:
 	var c := Game.me()
 	if c == null:
 		return
+	_fill_capital()
 	_fill_cabinet()
 	_fill_clean()
 	var active := 0
@@ -194,10 +255,10 @@ func _card(c: CountryState, l: Dictionary) -> Control:
 	elif on and bool(l.get("oneway", false)):
 		return v
 	elif on:
-		b = AppButton.make("Repeal", &"", "rotate-ccw")
+		b = AppButton.make("Repeal  ·  %d" % int(Capital.law_cost(l, true)), &"", "rotate-ccw")
 		b.pressed.connect(_confirm.bind(l, true))
 	else:
-		b = AppButton.make("Pass this law", &"", "gavel")
+		b = AppButton.make("Pass this law  ·  %d" % int(Capital.law_cost(l, false)), &"", "gavel")
 		b.pressed.connect(_confirm.bind(l, false))
 		if Government.is_free(c.idx) and Blocs.LAW_FX.has(l.id) and not bool(l.get("oneway", false)):
 			v.add_child(b)
@@ -249,7 +310,7 @@ func _minister_card(post: String) -> void:
 	else:
 		var head := Label.new()
 		head.theme_type_variation = &"Overline"
-		head.text = "REPLACE WITH (APPROVAL −1)"
+		head.text = "REPLACE WITH (APPROVAL −1 · CAPITAL −%d)" % int(Economy.CAPITAL_RESHUFFLE)
 		m.content.add_child(head)
 		var pool: Array = cab.candidates.get(post, [])
 		for k in pool.size():
@@ -261,6 +322,9 @@ func _minister_card(post: String) -> void:
 			var cf := Leaders.portrait_for(cand)
 			row.set_leading(Photo.portrait(cf, 36.0) if cf != "" else _avatar(str(cand.name), post))
 			row.tapped.connect(func() -> void:
+				if not Capital.spend(Economy.CAPITAL_RESHUFFLE):
+					Haptics.warning()
+					return
 				cab.appoint(post, k)
 				Simulation.update_finances(Game.me())
 				Haptics.success()
@@ -335,10 +399,15 @@ func _confirm(l: Dictionary, repeal: bool) -> void:
 	var pol := float(l.politics) * (-0.6 if repeal else 1.0)
 	var people := "Voters" if Government.has_elections(c.idx) else "People"
 	var mood := people + " will welcome it" if pol > 0.5 else ("Expect some backlash" if pol < -0.5 else people + " are split")
-	m.body("%s\n\nIt will take about %d months%s. %s." % [str(l.desc), months,
-		" and its effects will reverse" if repeal else " before it takes effect", mood])
+	var cost := Capital.law_cost(l, repeal)
+	m.body("%s\n\nIt will take about %d months%s. %s. Costs %d political capital (you have %s)." % [str(l.desc), months,
+		" and its effects will reverse" if repeal else " before it takes effect", mood, int(cost), Capital.label()])
+	if not Capital.can(cost):
+		m.choice("Not enough political capital", "Win support, reach goals or wait: it grows every month", &"GhostButton", m.dismiss)
+		return
 	m.choice("Repeal it" if repeal else "Start passing it", "", &"DestructiveButton" if repeal else &"PrimaryButton",
 		func() -> void:
+			Capital.spend(cost)
 			Laws.start(c, l.id)
 			Haptics.success()
 			var gs := get_tree().current_scene

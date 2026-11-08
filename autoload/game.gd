@@ -285,12 +285,14 @@ func advance_month() -> void:
 	Corruption.monthly()
 	Outcomes.monthly()
 	Leaders.age_check()
+	Capital.monthly()
 	Opposition.monthly()
 	if months_played == Mandate.MONTHS:
 		var did := Mandate.summary()
 		add_milestone("First 100 days: %s" % (", ".join(did.slice(0, 3)).to_lower() if not did.is_empty() else "a quiet start"),
 			"calendar", "gold")
 	for g in Goals.monthly():
+		Capital.add(Economy.CAPITAL_GOAL)
 		add_milestone("Goal reached: %s" % Goals.title(g).to_lower(), str(Goals.SPECS[g.id].icon), "gold")
 		goal_reached.emit(g)
 	_record_history()
@@ -323,6 +325,7 @@ func _after_month(my_crisis: bool) -> void:
 				finish("review")
 				return
 			add_feed("%s renews your mandate" % r.name, "landmark", "gold")
+			Capital.add(Economy.CAPITAL_MANDATE_RENEWED)
 			review_held.emit(r)
 		"campaign":
 			campaign_started.emit()
@@ -381,6 +384,7 @@ func hold_election() -> void:
 	r["opponent"] = Opposition.leader()
 	if bool(r.won):
 		Opposition.replace()
+		Capital.add(Economy.CAPITAL_ELECTION_WIN)
 	director.log.push_front({"date": date_text(), "title": "Election " + ("won" if r.won else "lost"),
 		"choice": "%.1f%% of the vote" % float(r.share), "id": "election", "m": months_played})
 	add_milestone("Election %s with %.1f%% of the vote" % ["won" if bool(r.won) else "lost", float(r.share)], "vote",

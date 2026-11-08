@@ -45,6 +45,9 @@ func _build() -> void:
 	_health = HealthCard.new()
 	_health.page_requested.connect(func(p: String) -> void: page_requested.emit(p))
 	add_child(_health)
+	_speech = AppButton.make("Address the nation", &"", "mic")
+	_speech.pressed.connect(_address)
+	add_child(_speech)
 	_goals = GoalsCard.new()
 	add_child(_goals)
 	_trend = TrendCard.new()
@@ -202,6 +205,34 @@ func _explain_rating() -> void:
 	m.choice("Got it", "", &"PrimaryButton", m.dismiss)
 
 
+var _speech: AppButton
+
+
+## Address the nation: choose the message; chips say how well it fits the mood.
+func _address() -> void:
+	var m := ModalCard.new()
+	get_tree().current_scene.add_child(m)
+	m.content.add_child(Illustration.banner("address", "mic", DS.ACCENT, 110.0))
+	m.header("mic", DS.ACCENT, "Live on every channel", "Address the nation")
+	m.body("What will you tell the country? Speeches that match what people see land well; credibility makes them land harder.")
+	for theme in Speech.THEMES:
+		var info: Dictionary = Speech.THEMES[theme]
+		var f := Speech.fit(theme)
+		var chip: Array = ["Fits the mood", true, 1.0] if f >= 0.35 else (["Risky right now", false, 1.0] if f < 0.0 else ["Could work", true, 0.5])
+		m.choice(str(info.label), str(info.desc), &"", func() -> void:
+			var r := Speech.give(theme)
+			if float(r.approval) >= 0.5 or float(r.stability) >= 1.0:
+				Haptics.success()
+			else:
+				Haptics.warning()
+			m.dismiss()
+			var gs := get_tree().current_scene
+			if gs and gs.has_method("_notify"):
+				gs._notify(str(r.line), "mic", DS.GREEN if float(r.approval) >= 0.0 else DS.ORANGE, true)
+			refresh(), [chip])
+	m.choice("Not now", "", &"GhostButton", m.dismiss)
+
+
 func _tile(parent: Control, title_: String, fmt: Callable, good_up: bool) -> StatTile:
 	var t := StatTile.new().setup(title_, fmt, good_up)
 	parent.add_child(t)
@@ -246,6 +277,10 @@ func refresh() -> void:
 	var c := Game.me()
 	if c == null:
 		return
+	if _speech:
+		var w := Speech.wait()
+		_speech.disabled = w > 0
+		_speech.text = "Address the nation" if w == 0 else "Next address to the nation in %d mo" % w
 	_tiles.gdp.show_value(c.gdp, year_ago("gdp"), func(d: float) -> String: return DS.money(absf(d)))
 	_tiles.growth.show_value(c.growth, year_ago("growth"), SheetPage.fmt_pts)
 	_tiles.unemployment.show_value(c.unemployment, year_ago("unemployment"), SheetPage.fmt_pts)

@@ -687,7 +687,9 @@ static func term_limit_event() -> Dictionary:
 			{"label": "Back a successor", "detail": "Keep playing if your party wins",
 				"effects": {"term": "successor"}},
 			{"label": "Change the constitution", "detail": "%d%% chance it passes · democracies object" % roundi(p.amend_chance() * 100.0),
-				"effects": {"term": "amend", "stability": -5.0, "press_cred": -6.0, "bloc_relations": {"west": -5.0}}}]}
+				"effects": {"term": "amend", "capital": Economy.CAPITAL_AMEND, "stability": -5.0, "press_cred": -6.0, "bloc_relations": {"west": -5.0}}}]}
+	if not Capital.can(Economy.CAPITAL_AMEND):
+		(e.choices as Array).pop_back()
 	return instance(e)
 
 
@@ -969,6 +971,8 @@ static func apply_effects(fx: Dictionary, other: int, ev_id: String = "") -> voi
 				c.cb_auto = true
 			"clean":
 				Corruption.boost(float(v))
+			"capital":
+				Capital.add(-float(v))
 			"term":
 				Game.politics.term_choice(str(v))
 			"project_delay":
@@ -1046,6 +1050,8 @@ static func effect_chips(fx: Dictionary) -> Array:
 				out.append(["Bank independent again", true, 6.0])
 			"clean":
 				out.append(["Cleaner government +%d" % roundi(float(v)), true, float(v)])
+			"capital":
+				out.append(["Political capital −%d" % roundi(float(v)), false, 8.0])
 			"term":
 				var t: Array = {"retire": ["Legacy +%d" % roundi(Economy.HANDOVER_LEGACY), true],
 					"successor": ["Keep playing if your party wins", true],
