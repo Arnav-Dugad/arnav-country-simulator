@@ -65,6 +65,9 @@ func _build() -> void:
 		["city", "users", DS.TEAL, "People & society", "Regions, health, schools, families, housing", func() -> void: page_requested.emit("population")],
 		["port", "ship", DS.ORANGE, "Trade & tariffs", "Partners, deals and trade wars on the World page", func() -> void: page_requested.emit("diplomacy")],
 	], self, "Explore your country")
+	_coming = ComingUp.new()
+	_coming.page_requested.connect(func(p: String) -> void: page_requested.emit(p))
+	add_child(_coming)
 	_goals = GoalsCard.new()
 	add_child(_goals)
 	_trend = TrendCard.new()
@@ -321,7 +324,12 @@ var _disaster: DisasterCard
 var _election: ElectionCard
 
 
+var _coming: ComingUp
+
+
 func refresh() -> void:
+	if _coming:
+		_coming.refresh()
 	if _pandemic:
 		_pandemic.refresh()
 	if _disaster:

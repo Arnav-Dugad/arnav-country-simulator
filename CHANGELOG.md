@@ -2,6 +2,15 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.95.0] - 2026-11-09
+
+- **Culture exports** (Tourism): now and then a film, series, song, game or novel from your country becomes a worldwide hit (all titles invented)
+  - Countries with big creative industries (South Korea, the US, Japan, India, Nigeria…) score more often
+  - A creative industries fund raises the odds anywhere
+  - Each hit lifts soft power and tourism for a few years
+- **Coming up** (Economy): a short timeline of what's next, soonest first. The election, your cabinet meeting, projects and wonders finishing, plants and mines opening, UN votes and climate summits. Tap one to go there
+- New achievement: Cultural wave
+
 ## [0.94.0] - 2026-11-09
 
 - **Three new global agreements** (World › Treaties & blocs), with their real members:
