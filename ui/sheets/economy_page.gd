@@ -60,6 +60,8 @@ func _build() -> void:
 	_tiles.approval = _tile(g, Government.support_word(Game.player), SheetPage.fmt_pct, true)
 	_tiles.rating = _tile(g, "Credit rating", func(_v: float) -> String: return Game.me().rating(), true)
 	_tiles.balance = _tile(g, "Budget", func(v: float) -> String: return DS.pct(v, 1, true) + " GDP", true)
+	_tiles.life = _tile(g, "Life expectancy", func(v: float) -> String: return "%s yrs" % String.num(v, 1), true)
+	_tiles.literacy = _tile(g, "Literacy", func(v: float) -> String: return DS.pct(v, 0), true)
 	_tiles.rating.make_tappable().tapped.connect(_explain_rating)
 	# Tap a tile to see why it is moving.
 	for pair in [["gdp", "growth"], ["growth", "growth"], ["unemployment", "unemployment"],
@@ -249,6 +251,8 @@ func refresh() -> void:
 	_tiles.unemployment.show_value(c.unemployment, year_ago("unemployment"), SheetPage.fmt_pts)
 	_tiles.inflation.show_value(c.inflation, year_ago("inflation"), SheetPage.fmt_pts)
 	_tiles.debt_pct.show_value(c.debt_pct(), year_ago("debt_pct"), SheetPage.fmt_pts)
+	_tiles.life.show_value(Outcomes.life(c), Outcomes.year_ago("life"), func(d: float) -> String: return "%s yrs" % String.num(absf(d), 2))
+	_tiles.literacy.show_value(Outcomes.literacy(c), Outcomes.year_ago("literacy"), SheetPage.fmt_pts)
 	_tiles.approval.show_value(c.approval, year_ago("approval"), SheetPage.fmt_pts)
 	_tiles.rating.number.set_instant(c.rating_score())
 	_tiles.rating.delta_label.text = "Tap for details"

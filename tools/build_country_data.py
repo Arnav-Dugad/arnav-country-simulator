@@ -62,10 +62,11 @@ WB_INDICATORS = {
     "voice_wgi": ("GOV_WGI_VA.EST", 3),
     "co2_pc": ("EN.GHG.CO2.PC.CE.AR5", None),          # CO2 excl. land use, tonnes per person
     "renewables_pct": ("EG.FEC.RNEW.ZS", None),        # renewables, % of final energy use
+    "literacy_pct": ("SE.ADT.LITR.ZS", None),          # adult literacy, % of people 15+
 }
 DETAIL_KEYS = ["health_pct", "education_pct", "research_pct", "gini", "age65_pct", "urban_pct",
                "tourism_pct", "manufacturing_pct", "agriculture_pct", "internet_pct", "electricity_pct",
-               "trade_pct", "corruption_wgi", "voice_wgi", "co2_pc", "renewables_pct", "net_migration_rate"]
+               "trade_pct", "corruption_wgi", "voice_wgi", "co2_pc", "renewables_pct", "net_migration_rate", "literacy_pct"]
 IMF_INDICATORS = {
     "debt_pct": "GGXWDG_NGDP",
     "budget_balance_pct": "GGXCNL_NGDP",
@@ -226,6 +227,11 @@ def main():
         if c["sovereign"] not in (None, code):
             c["playable"] = False
         del c["sovereign_name"]
+
+    # Rich countries stopped reporting adult literacy because it is near universal.
+    for c in countries.values():
+        if "literacy_pct" not in c and c.get("gdp") and c.get("population") and c["gdp"] / c["population"] > 20000:
+            c["literacy_pct"] = 99.0
 
     # Regional medians for remaining gaps (flagged).
     fill_keys = ["gdp_growth", "unemployment", "inflation", "revenue_pct", "military_pct",

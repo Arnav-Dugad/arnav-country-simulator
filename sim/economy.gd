@@ -400,6 +400,22 @@ static func tax_yield(rate: float, k: float) -> float:
 	return r * k * (1.0 - LAFFER * r * r)
 
 
+# ------------------------------------------------------- health & schooling ---
+# See sim/outcomes.gd. Effects are gentle and slow, as in reality.
+## Years of life expectancy per doubling of health effort (spending x share).
+const LIFE_HEALTH := 2.5
+## ... and per doubling of real income per person (Preston curve, flattening).
+const LIFE_INCOME := 1.5
+## Monthly pull toward the target (about a 6-year half-life).
+const LIFE_ADJUST := 0.01
+## Literacy points per doubling of education effort (scaled by the gap to 100 %).
+const LIT_EDUCATION := 8.0
+const LIT_ADJUST := 0.008
+## Happiness per extra year of life expectancy; growth per literacy point.
+const LIFE_HAPPY := 0.6
+const LIT_GROWTH := 0.03
+
+
 # -------------------------------------------------------------- corruption ---
 # See sim/corruption.gd (score 0..100).
 ## Target points per point of stability above / below the start.

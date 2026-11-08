@@ -2,6 +2,10 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.49.0] - 2026-11-08
+
+- **Health and schooling results.** Life expectancy and adult literacy start at real values and slowly respond to your health and education budgets, rising incomes, hospitals, clean water, new schools and universal healthcare. Longer lives make people happier; a more literate workforce grows faster. Both are new tiles on the Economy page
+
 ## [0.48.0] - 2026-11-08
 
 - **Realistic is properly harder now:** voters are tougher and crises bite harder (the balance report showed it had become almost as forgiving as Standard)
