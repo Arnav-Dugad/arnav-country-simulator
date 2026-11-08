@@ -2,6 +2,12 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.53.1] - 2026-11-08
+
+- **14 more AI-generated faces** (original, fictional people): senior stateswomen in their 60s and young ministers in their 30s from every region. Leaders, ministers and opposition leaders now come in 42 different faces, and you can pick any of them for yourself
+- If you choose a young face, eight years in office age it a band at a time
+- The Laws tip now explains political capital
+
 ## [0.53.0] - 2026-11-08
 
 - **Your legacy, charted:** the end-of-term screen shows your support through every month of your time in power, with elections and your big decisions marked on the line. Drag along it to read any month

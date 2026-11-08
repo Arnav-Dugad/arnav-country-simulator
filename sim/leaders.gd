@@ -40,9 +40,9 @@ static func group_of(i: int) -> String:
 	return "East"
 
 
-## Two faces per region and gender: variant 0 (40s/50s) and 1 (younger women,
-## older men). Picked from a person's name so they always keep the same face.
-const VARIANTS := 2
+## Three faces per region and gender, picked from a person's name so they always
+## keep the same face. Women: 0 = 40s, 1 = 30s, 2 = 60s. Men: 0 = 50s, 1 = 60s, 2 = 30s.
+const VARIANTS := 3
 
 
 static func portrait_key(group: String, female: bool, variant: int = 0) -> String:
@@ -152,14 +152,17 @@ static func player_portrait() -> String:
 	return key
 
 
-## The older face for a portrait: men's 50s -> 60s (x_m -> x_m2), women's
-## 30s -> 40s (x_f2 -> x_f). Others stay as they are.
+## The older face for a portrait: one age band on (30s -> 40s/50s -> 60s).
 static func aged(key: String) -> String:
 	var older := key
-	if key.ends_with("_m"):
+	if key.ends_with("_m3"):
+		older = key.trim_suffix("3")
+	elif key.ends_with("_m"):
 		older = key + "2"
 	elif key.ends_with("_f2"):
 		older = key.trim_suffix("2")
+	elif key.ends_with("_f"):
+		older = key + "3"
 	return older if ResourceLoader.exists("res://assets/portraits/%s.webp" % older) else key
 
 
