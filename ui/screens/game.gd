@@ -631,6 +631,10 @@ func _refresh_next() -> void:
 	elif not _review.is_empty() and Game.months_played <= _review_until:
 		item = {"kind": "review", "key": "review%d" % int(_review.year), "title": "%d in review" % int(_review.year),
 			"icon": "calendar", "tint": DS.GOLD, "sub": str(_review.title)}
+	elif Meeting.available():
+		var n := Meeting.proposals().size()
+		item = {"kind": "meeting", "key": "meeting%d" % int(Meeting.st().open), "title": "Cabinet meeting", "icon": "users", "tint": DS.ACCENT,
+			"sub": "%d proposal%s · tap to decide" % [n, "" if n == 1 else "s"]}
 	elif not Learn.finished() and Game.months_played < 48:
 		var st := Learn.next_step()
 		var n := Learn.STEPS.find(st) + 1
@@ -655,6 +659,8 @@ func _on_next(item: Dictionary) -> void:
 			_show_year_review(_review)
 		"tip":
 			_show_tip(item.tip)
+		"meeting":
+			_show_meeting(Meeting.proposals(), 0, 0)
 		"learn":
 			open_page(str(item.step.page))
 
@@ -1222,6 +1228,57 @@ func _election_groups(r: Dictionary) -> void:
 		nl.clip_text = true
 		nl.custom_minimum_size = Vector2(20, 0)
 		col.add_child(nl)
+
+
+## The cabinet meeting: one card per proposal, approve or skip.
+func _show_meeting(list: Array, k: int, yes: int) -> void:
+	if k == 0:
+		if is_instance_valid(_modal) or list.is_empty():
+			return
+		Game.pause_for_modal()
+	if k >= list.size():
+		Meeting.done()
+		Game.resume_after_modal()
+		if yes > 0:
+			Game.add_feed("Cabinet meeting: %d of %d proposals approved" % [yes, list.size()], "users", "accent")
+		_refresh_next()
+		if _current != "" and _pages.has(_current):
+			_pages[_current].refresh()
+		return
+	var p: Dictionary = list[k]
+	var post := str(p.post)
+	_modal = ModalCard.new()
+	add_child(_modal)
+	var mn: Dictionary = Game.cabinet.ministers.get(post, {})
+	var face := str(Leaders.cabinet_portraits().get(post, ""))
+	var who := HBoxContainer.new()
+	who.add_theme_constant_override(&"separation", DS.S3)
+	who.add_child(Photo.portrait(face, 52.0) if face != "" else Avatar.make(str(mn.get("name", "Minister")), DS.ACCENT, 52.0))
+	var wc := VBoxContainer.new()
+	wc.alignment = BoxContainer.ALIGNMENT_CENTER
+	wc.add_theme_constant_override(&"separation", 0)
+	who.add_child(wc)
+	var nl := Label.new()
+	nl.theme_type_variation = &"Headline"
+	nl.text = str(mn.get("name", "Your minister"))
+	wc.add_child(nl)
+	var pl := Label.new()
+	pl.theme_type_variation = &"Caption"
+	pl.text = "%s minister proposes" % str(Cabinet.POST_TITLES.get(post, ""))
+	wc.add_child(pl)
+	_modal.content.add_child(who)
+	_modal.header(str(Cabinet.POST_ICONS.get(post, "users")), DS.ACCENT, "Cabinet meeting  ·  %d of %d" % [k + 1, list.size()], str(p.title))
+	_modal.body(str(p.why))
+	var m := _modal
+	m.choice("Approve", str(p.cost), &"PrimaryButton", func() -> void:
+		Meeting.approve(str(p.id))
+		Haptics.success()
+		m.dismiss()
+		_show_meeting(list, k + 1, yes + 1))
+	m.choice("Not now", "", &"GhostButton", func() -> void:
+		Haptics.select()
+		m.dismiss()
+		_show_meeting(list, k + 1, yes))
 
 
 ## How each home region voted: loyal, richer regions lean to the government.

@@ -2,6 +2,12 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.85.0] - 2026-11-09
+
+- **Cabinet meetings:** every six months your ministers bring up to four concrete proposals drawn from the state of the country, such as "Train more doctors", "A development fund for the East", "Build a desalination plant" or "A water treaty on the Nile"
+  - Each comes with its reason and its cost, and you approve or skip it with one tap
+  - The meeting waits in the pill above the dock; nothing is decided without you
+
 ## [0.84.0] - 2026-11-09
 
 - **Leadership challenges** (parliamentary democracies): when your approval sinks below 30%, rebels in your own party can force a vote on your leadership. Fight it, with your odds shown, or buy them off with political capital
