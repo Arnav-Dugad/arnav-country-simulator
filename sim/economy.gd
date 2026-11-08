@@ -341,7 +341,7 @@ static func legacy_parts(s: Dictionary) -> Array:
 	var years := float(s.years)
 	# Short terms prove less: performance counts fully only after two years.
 	var w := clampf(years / 2.0, 0.15, 1.0)
-	return [
+	var parts: Array = [
 		["Economic growth", w * clampf((float(s.avg_growth) - float(s.trend)) * 6.0 + 4.0, -20.0, 20.0)],
 		["People's happiness", w * clampf((float(s.happiness_end) - float(s.happiness_start)) * 1.2, -20.0, 20.0)],
 		["Public debt", w * clampf(-(float(s.debt_end) - float(s.debt_start)) * 0.3, -15.0, 15.0)],
@@ -351,7 +351,18 @@ static func legacy_parts(s: Dictionary) -> Array:
 		["National goals reached", minf(float(s.get("goals_done", 0)) * 3.0, 15.0)],
 		["Final approval", clampf((float(s.approval) - 45.0) * 0.4, -8.0, 8.0)],
 		["Short term", -12.0 * (1.0 - w)],
-	] + ([["Peaceful handover", HANDOVER_LEGACY]] if str(s.get("reason", "")) == "retired" else [])
+	]
+	if int(s.get("wonders", 0)) > 0:
+		parts.append(["World wonders", minf(float(s.wonders) * 4.0, 12.0)])
+	if int(s.get("seceded", 0)) > 0:
+		parts.append(["Regions lost", -10.0 * float(s.seceded)])
+	if bool(s.get("disarmed", false)):
+		parts.append(["Gave up nuclear weapons", 6.0])
+	if absf(float(s.get("learn_delta", 0.0))) >= 5.0:
+		parts.append(["Better schools", clampf(float(s.learn_delta) * 0.15, -6.0, 6.0)])
+	if str(s.get("reason", "")) == "retired":
+		parts.append(["Peaceful handover", HANDOVER_LEGACY])
+	return parts
 
 
 static func legacy_grade(score: float) -> String:

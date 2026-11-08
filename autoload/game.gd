@@ -591,6 +591,10 @@ func summary(reason: String = "") -> Dictionary:
 		"projects": Projects.count_done(c) - c.projects.values().filter(func(p: Dictionary) -> bool:
 			return bool(p.get("start", false))).size(),
 		"cheats": cheats_used, "goals_done": Goals.done_count(), "daily": daily,
+		"wonders": Wonders.done().values().filter(func(w: Dictionary) -> bool: return str(w.owner) == World.iso(player)).size() if dip.has("won") else 0,
+		"seceded": int(Regions.st().seceded) if dip.has("reg") else 0,
+		"disarmed": int(Nuclear.st().gave) > 0 and int(Nuclear.st().w) == 0 if dip.has("nuke") else false,
+		"learn_delta": Education.score() - float(Education.st().score0) if dip.has("edu") else 0.0,
 		"laws": c.laws.keys().filter(func(k: String) -> bool:
 			return Laws.is_active(c, k) and not c.laws_start.has(k)).size()}
 
