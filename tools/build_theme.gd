@@ -66,6 +66,14 @@ func _labels() -> void:
 	_label_variant(&"MapLabel", _font(600, 14, 1), 11, Color(1, 1, 1, 0.78))
 	th.set_color(&"font_outline_color", &"MapLabel", Color(0.01, 0.03, 0.07, 0.75))
 	th.set_constant(&"outline_size", &"MapLabel", 4)
+	# Text laid over photos (category headers): soft shadow keeps it readable.
+	_label_variant(&"PhotoTitle", _font(700, 22, -1), DS.FS_TITLE_2, DS.TEXT)
+	_label_variant(&"PhotoCaption", _font(500, 13), DS.FS_FOOTNOTE, Color(1, 1, 1, 0.86))
+	for v: StringName in [&"PhotoTitle", &"PhotoCaption"]:
+		th.set_color(&"font_shadow_color", v, Color(0, 0.02, 0.06, 0.7))
+		th.set_constant(&"shadow_offset_x", v, 0)
+		th.set_constant(&"shadow_offset_y", v, 1)
+		th.set_constant(&"shadow_outline_size", v, 6)
 
 
 func _box(bg: Color, radius: int, pad_h: int = 16, pad_v: int = 10) -> StyleBoxFlat:

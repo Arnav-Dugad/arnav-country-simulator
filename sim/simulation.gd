@@ -102,6 +102,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Laws & reforms", float(lx.get("inflation", 0.0))],
 		["Projects you built", float(px.get("inflation", 0.0))],
 		["Things you built", float(bx.get("inflation", 0.0))],
+		["Construction boom", float(bx.get("boom", 0.0))],
 		["Other taxes", float(txm.get("inflation", 0.0))],
 		["Technology", float(tm.get("inflation", 0.0))],
 		["War", float(wx.get("inflation", 0.0))],

@@ -208,7 +208,7 @@ static func cancel(c: CountryState, id: String) -> void:
 ## Advances construction. Returns the ids finished this month.
 static func monthly(c: CountryState) -> Array:
 	var done: Array = []
-	var sp := speed(c)
+	var sp := speed(c) * Builds.pace(c)
 	for id in c.projects.keys():
 		var st: Dictionary = c.projects[id]
 		if str(st.state) != "building":
@@ -276,6 +276,18 @@ static func modifiers(c: CountryState) -> Dictionary:
 		out["build_growth"] = building * BUILD_GROWTH
 		out["build_jobs"] = -building * BUILD_JOBS
 	return out
+
+
+## Construction under way on projects, % of GDP a year.
+static func building_pct(c: CountryState) -> float:
+	var s := 0.0
+	for id in c.projects:
+		var st: Dictionary = c.projects[id]
+		if str(st.state) == "building":
+			var p := by_id(id)
+			if not p.is_empty():
+				s += float(st.get("price", 0.0)) / maxf(c.gdp, 1.0) * 100.0 / float(p.months) * 12.0
+	return s
 
 
 static func count_done(c: CountryState) -> int:

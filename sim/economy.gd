@@ -407,6 +407,22 @@ static func tax_yield(rate: float, k: float) -> float:
 ## 0 to full coverage; this scale makes a build programme about as rewarding per
 ## dollar as the national projects. Military and CO2 effects are not scaled.
 const BUILD_FX_SCALE := 3.5
+## Construction capacity: new building work (builds + projects) your builders can
+## take on, % of GDP a year, at normal crew speed. Above it, work slows in
+## proportion and the construction boom pushes up prices.
+const BUILD_CAPACITY_PCT := 2.5
+const BUILD_OVERHEAT_INFL := 1.5   # inflation points per 100 % of capacity overload
+const BUILD_OVERHEAT_MAX := 4.0
+## Rush order: pay this share of a batch's remaining cost again to build it this much faster.
+const BUILD_RUSH_PREMIUM := 0.5
+const BUILD_RUSH_SPEED := 2.0
+## Condition of everything built: drifts toward 1 + (infrastructure budget share
+## change, points) / BUILD_COND_PER_POINT, within MIN..MAX. Worn-out roads and
+## hospitals deliver less (their units count times the condition).
+const BUILD_COND_PER_POINT := 50.0
+const BUILD_COND_MIN := 0.9
+const BUILD_COND_MAX := 1.04
+const BUILD_COND_ADJUST := 1.0 / 30.0
 
 
 # ---------------------------------------------------------------- research ---

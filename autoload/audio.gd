@@ -48,6 +48,17 @@ func _ready() -> void:
 	Settings.changed.connect(_on_setting)
 
 
+## Release the music streams on quit (a playing Ogg stream otherwise leaks at exit).
+func _exit_tree() -> void:
+	for t: Tween in [_place_tween, _mood_tween, _duck_tween]:
+		if t:
+			t.kill()
+	for p: AudioStreamPlayer in [_music, _tense, _menu]:
+		if p:
+			p.stop()
+			p.stream = null
+
+
 func _music_player(track: String) -> AudioStreamPlayer:
 	var p := AudioStreamPlayer.new()
 	p.bus = &"Music"

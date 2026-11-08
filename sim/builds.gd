@@ -230,6 +230,130 @@ static func max_more(c: CountryState, id: String) -> int:
 	return maxi(0, int(ceil(need(c, id) * 2.5)) - count(c, id) - building(c, id))
 
 
+## Most construction work the builders can take on, % of GDP a year.
+static func capacity_pct(c: CountryState) -> float:
+	return E.BUILD_CAPACITY_PCT * Projects.speed(c)
+
+
+## Work under way (builds and national projects) as a share of capacity (1 = full).
+static func work_load(c: CountryState) -> float:
+	if c.builds.is_empty():
+		return 0.0
+	return (building_pct(c) + Projects.building_pct(c)) / maxf(capacity_pct(c), 0.1)
+
+
+## Pace multiplier: overloaded builders spread themselves thin.
+static func pace(c: CountryState) -> float:
+	return 1.0 / maxf(work_load(c), 1.0)
+
+
+## Extra inflation from an overheated construction sector (points).
+static func overheat(c: CountryState) -> float:
+	return clampf((work_load(c) - 1.0) * E.BUILD_OVERHEAT_INFL, 0.0, E.BUILD_OVERHEAT_MAX)
+
+
+## Condition of the nation's buildings (player only): 1 = as maintained when you took office.
+static func condition() -> float:
+	return float(Game.dip.get("build_cond", 1.0)) if Game.has_game() else 1.0
+
+
+static func condition_target(c: CountryState) -> float:
+	return clampf(1.0 + c.share_delta("infrastructure") / E.BUILD_COND_PER_POINT, E.BUILD_COND_MIN, E.BUILD_COND_MAX)
+
+
+## Cost to rush batch k (pay again a share of what is left to build).
+static func rush_cost(c: CountryState, id: String, k: int) -> float:
+	var b: Array = _st(c, id).batches
+	if k < 0 or k >= b.size() or bool(b[k].get("rush", false)):
+		return 0.0
+	var bd: Dictionary = b[k]
+	return float(bd.price) * int(bd.n) * clampf(float(bd.left) / float(spec(id).months), 0.0, 1.0) * E.BUILD_RUSH_PREMIUM
+
+
+static func rush(c: CountryState, id: String, k: int) -> bool:
+	var cost := rush_cost(c, id, k)
+	if cost <= 0.0:
+		return false
+	c.treasury -= cost
+	_st(c, id).batches[k]["rush"] = true
+	c.builds_ver += 1
+	return true
+
+
+## Months left for a batch at today's pace.
+static func batch_months(c: CountryState, bd: Dictionary) -> int:
+	var sp := Projects.speed(c) * pace(c) * (E.BUILD_RUSH_SPEED if bool(bd.get("rush", false)) else 1.0)
+	return int(ceil(float(bd.left) / maxf(sp, 0.05)))
+
+
+## Every batch under construction: [{id, k, n, left, frac, rush}], soonest first.
+static func queue(c: CountryState) -> Array:
+	var out: Array = []
+	for id in c.builds:
+		var sp: Dictionary = spec(id)
+		if sp.is_empty():
+			continue
+		var bt: Array = c.builds[id].batches
+		for k in bt.size():
+			var bd: Dictionary = bt[k]
+			out.append({"id": id, "k": k, "n": int(bd.n), "months": batch_months(c, bd),
+				"frac": clampf(1.0 - float(bd.left) / float(sp.months), 0.0, 1.0), "rush": bool(bd.get("rush", false))})
+	out.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return int(a.months) < int(b.months))
+	return out
+
+
+## Value of building a tenth of the need now: target points gained per % of GDP.
+static func value_of(c: CountryState, id: String) -> float:
+	var s := spec(id)
+	var q := maxi(1, mini(int(ceil(need(c, id) * 0.1)), max_more(c, id)))
+	var have := float(count(c, id) + building(c, id))
+	var d := coverage_of(c, id, have + q) - coverage_of(c, id, have)
+	var pts := 0.0
+	for k in s.fx:
+		if not Laws.FX_GOOD_UP.has(k):
+			continue
+		var v := float(s.fx[k]) * d * E.BUILD_FX_SCALE
+		var w := 1.0 if k in ["growth", "unemployment", "inflation"] else 0.5
+		pts += w * (v if bool(Laws.FX_GOOD_UP[k]) else -v)
+	var cost := unit_price(c, id) * q / maxf(c.gdp, 1.0) * 100.0 * (1.0 + float(s.upkeep) * 10.0)
+	return pts / maxf(cost, 0.0001)
+
+
+## The k best-value civilian builds right now (ids).
+static func best_value(c: CountryState, k: int = 3) -> Array:
+	var cands: Array = []
+	for id in ALL:
+		if str(ALL[id].group) == "Defence" or available(c, id) != "" or max_more(c, id) <= 0:
+			continue
+		var v := value_of(c, str(id))
+		if v > 0.0:
+			cands.append([v, id])
+	cands.sort_custom(func(a: Array, b: Array) -> bool: return float(a[0]) > float(b[0]))
+	var out: Array = []
+	for x in cands.slice(0, k):
+		out.append(x[1])
+	return out
+
+
+## Average coverage of a group (0..1), for the dashboard.
+static func group_coverage(c: CountryState, group: String) -> float:
+	var s := 0.0
+	var n := 0
+	for id in ids_in(group):
+		if available(c, id) != "":
+			continue
+		s += coverage_of(c, id, float(count(c, id)))
+		n += 1
+	return s / float(maxi(n, 1))
+
+
+static func group_building(c: CountryState, group: String) -> int:
+	var q := 0
+	for id in ids_in(group):
+		q += building(c, id)
+	return q
+
+
 static func order(c: CountryState, id: String, n: int) -> bool:
 	if n <= 0 or available(c, id) != "" or n > max_more(c, id):
 		return false
@@ -256,12 +380,15 @@ static func cancel(c: CountryState, id: String, k: int) -> void:
 ## Advances construction; returns [[id, n], …] finished this month.
 static func monthly(c: CountryState) -> Array:
 	var done: Array = []
-	var sp := Projects.speed(c)
+	var sp := Projects.speed(c) * pace(c)
+	if c.idx == Game.player and Game.has_game():
+		var cond := condition()
+		Game.dip["build_cond"] = cond + (condition_target(c) - cond) * E.BUILD_COND_ADJUST
 	for id in c.builds:
 		var st: Dictionary = c.builds[id]
 		var keep: Array = []
 		for b in st.batches:
-			b.left = float(b.left) - sp
+			b.left = float(b.left) - sp * (E.BUILD_RUSH_SPEED if bool(b.get("rush", false)) else 1.0)
 			if float(b.left) <= 0.0:
 				st.n = int(st.n) + int(b.n)
 				done.append([id, int(b.n)])
@@ -301,7 +428,8 @@ static func building_pct(c: CountryState) -> float:
 ## Coverage gained since the start (can be negative after demolitions).
 static func gain(c: CountryState, id: String) -> float:
 	var st := _st(c, id)
-	return coverage_of(c, id, float(st.n)) - coverage_of(c, id, float(st.n0))
+	var cond := condition() if c.idx == Game.player else 1.0
+	return coverage_of(c, id, float(st.n) * cond) - coverage_of(c, id, float(st.n0))
 
 
 ## Target offsets from all builds (cached per builds_ver and month).
@@ -329,6 +457,9 @@ static func modifiers(c: CountryState) -> Dictionary:
 	if b > 0.0:
 		out["build_growth"] = b * Projects.BUILD_GROWTH
 		out["build_jobs"] = -b * Projects.BUILD_JOBS
+	var oh := overheat(c)
+	if oh > 0.0:
+		out["boom"] = oh
 	c.set_meta(&"bx_key", key)
 	c.set_meta(&"bx", out)
 	return out

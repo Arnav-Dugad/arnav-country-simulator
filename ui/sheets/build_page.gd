@@ -12,6 +12,8 @@ var _tab := 0               # 0 build, 1 defence, 2 research, 3 programmes
 var _tabs: SegmentedControl
 var _prog_box: VBoxContainer
 var _units: VBoxContainer
+var _group := ""           # Build tab: "" = overview, else one category
+var _banner: Control
 
 
 func _init() -> void:
@@ -20,7 +22,8 @@ func _init() -> void:
 
 
 func _build() -> void:
-	add_child(Illustration.banner("construction", "crane", DS.ORANGE, 124.0))
+	_banner = Illustration.banner("tech", "flask-conical", DS.PURPLE, 124.0)
+	add_child(_banner)
 	_tabs = SegmentedControl.new().setup(["Build", "Defence", "Research", "Projects"], [], 0)
 	_tabs.plain = true
 	_tabs.compact = false
@@ -28,6 +31,7 @@ func _build() -> void:
 	_tabs.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_tabs.changed.connect(func(i: int) -> void:
 		_tab = i
+		_group = ""
 		Haptics.select()
 		refresh())
 	add_child(_tabs)
@@ -58,6 +62,11 @@ func refresh() -> void:
 		return
 	_prog_box.visible = _tab == 3
 	_units.visible = _tab != 3
+	_banner.visible = _tab >= 2
+	if _banner is Photo and _tab >= 2:
+		var key := "tech" if _tab == 2 else "construction"
+		if Photo.has_scene(key):
+			_banner.set(&"texture", load("res://assets/scenes/%s.webp" % key))
 	if _tab == 2:
 		_fill_research(c)
 		return
@@ -241,59 +250,499 @@ func _chip(text: String, color: Color) -> Control:
 
 
 # ------------------------------------------------------------ countable builds ---
+## Category -> AI scene (assets/scenes) used for its tile and header.
+const GROUP_SCENE := {"Transport": "transport", "Energy": "energy", "Health & care": "hospital", "Education": "school",
+	"Housing & cities": "city", "Economy": "port", "Culture & sport": "stadium", "Defence": "defence"}
+const GROUP_ICON := {"Transport": "route", "Energy": "zap", "Health & care": "heart-pulse", "Education": "graduation-cap",
+	"Housing & cities": "building-2", "Economy": "factory", "Culture & sport": "trophy", "Defence": "shield"}
+const GROUP_BLURB := {"Transport": "Roads, rail, ports and airports move people and goods.",
+	"Energy": "Clean, cheap power keeps prices down and factories running.",
+	"Health & care": "Hospitals and clinics: longer, healthier lives.",
+	"Education": "Schools and universities: skills, jobs and research.",
+	"Housing & cities": "Homes, water and parks: fairer, happier cities.",
+	"Economy": "Industry and trade: jobs and growth.",
+	"Culture & sport": "Stadiums, museums and arenas: national pride.",
+	"Defence": "Forces you build add to military strength."}
+
 static func _n(v: float) -> String:
 	return DS.compact(roundf(v)).trim_suffix(".0").replace(".0K", "K").replace(".0M", "M")
 
 
-func _fill_units(c: CountryState) -> void:
+static func _plural(title: String, n: int) -> String:
+	var t := title.to_lower()
+	if n == 1:
+		return t
+	if t.ends_with("y") and not t.ends_with("ay"):
+		return t.left(t.length() - 1) + "ies"
+	return t + ("es" if t.ends_with("s") or t.ends_with("ch") else "s")
+
+
+func _clear_units() -> void:
 	for ch in _units.get_children():
 		ch.queue_free()
-	var defence := _tab == 1
-	var head := Label.new()
-	head.theme_type_variation = &"Subhead"
-	head.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	head.custom_minimum_size = Vector2(60, 0)
-	var spend := Builds.building_pct(c)
-	if defence:
-		head.text = "Military strength %d / 100. Forces you build add to it; your Military budget keeps them ready." % roundi(c.military)
-	elif spend > 0.0:
-		head.text = "Building now: %s a year." % DS.money(c.gdp * spend / 100.0)
+
+
+func _fill_units(c: CountryState) -> void:
+	_clear_units()
+	if _tab == 1:
+		_fill_group(c, "Defence")
+	elif _group != "":
+		_fill_group(c, _group)
 	else:
-		head.text = "Choose how many of anything to build. Countries that lack something gain the most from it."
+		_fill_overview(c)
+
+
+## Tap handler that ignores drags (lists scroll under the finger).
+func _on_tap(ctrl: Control, cb: Callable) -> void:
+	ctrl.mouse_filter = Control.MOUSE_FILTER_PASS
+	var st := {"p": Vector2.ZERO, "down": false}
+	ctrl.gui_input.connect(func(e: InputEvent) -> void:
+		if e is InputEventMouseButton and e.button_index == MOUSE_BUTTON_LEFT:
+			if e.pressed:
+				st.p = e.global_position
+				st.down = true
+			elif st.down:
+				st.down = false
+				if e.global_position.distance_to(st.p) < 10.0:
+					Haptics.tap()
+					cb.call()
+		elif e is InputEventMouseMotion and st.down and e.global_position.distance_to(st.p) >= 10.0:
+			st.down = false)
+
+
+func _go_group(g: String) -> void:
+	_group = g
+	Haptics.select()
+	refresh()
+	var p := get_parent()
+	while p != null and not (p is ScrollContainer):
+		p = p.get_parent()
+	if p is ScrollContainer:
+		(p as ScrollContainer).scroll_vertical = 0
+
+
+## Thin progress meter: solid fill to a, lighter "pending" fill to b.
+func _meter(a: float, b: float, color: Color, h: float = 6.0) -> Control:
+	var bar := Control.new()
+	bar.custom_minimum_size = Vector2(0, h)
+	bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	bar.draw.connect(func() -> void:
+		var w := bar.size.x
+		bar.draw_style_box(get_theme_stylebox(&"track", &"AppSlider"), Rect2(0, 0, w, h))
+		var f: StyleBoxFlat = (get_theme_stylebox(&"fill", &"AppSlider") as StyleBoxFlat).duplicate()
+		if b > a:
+			f.bg_color = Color(color, 0.35)
+			bar.draw_style_box(f, Rect2(0, 0, maxf(w * clampf(b, 0.0, 1.0), h), h))
+		f.bg_color = color
+		if a > 0.0:
+			bar.draw_style_box(f, Rect2(0, 0, maxf(w * clampf(a, 0.0, 1.0), h), h)))
+	return bar
+
+
+static func _cov_color(cov: float) -> Color:
+	return DS.GREEN if cov >= 0.8 else (DS.ACCENT if cov >= 0.5 else (DS.ORANGE if cov >= 0.25 else DS.RED))
+
+
+func _caption(text: String, parent: Control, color: Color = Color(0, 0, 0, 0)) -> Label:
+	var l := Label.new()
+	l.theme_type_variation = &"Caption"
+	l.text = text
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.custom_minimum_size = Vector2(40, 0)
+	if color.a > 0.0:
+		l.add_theme_color_override(&"font_color", color)
+	parent.add_child(l)
+	return l
+
+
+## Photo with a title and caption over its lower edge.
+func _photo_header(scene: String, title_text: String, sub: String, h: float) -> Control:
+	var ph := Photo.scene(scene, h, true)
+	ph.set(&"fade_bottom", 0.55)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override(&"separation", 0)
+	v.alignment = BoxContainer.ALIGNMENT_END
+	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ph.add_child(v)
+	v.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	v.offset_left = DS.S4
+	v.offset_right = -DS.S4
+	v.offset_bottom = -DS.S3
+	var t := Label.new()
+	t.theme_type_variation = &"PhotoTitle"
+	t.text = title_text
+	v.add_child(t)
+	if sub != "":
+		var s := Label.new()
+		s.theme_type_variation = &"PhotoCaption"
+		s.text = sub
+		s.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		s.custom_minimum_size = Vector2(40, 0)
+		v.add_child(s)
+	return ph
+
+
+# ---- overview ---------------------------------------------------------------
+func _fill_overview(c: CountryState) -> void:
+	var spend := Builds.building_pct(c) + Projects.building_pct(c)
+	_units.add_child(_photo_header("construction", "Build your nation",
+		("Building now: %s a year" % DS.money(c.gdp * spend / 100.0)) if spend > 0.0 else "Choose how many of anything to build", 150.0))
+	_dashboard(c)
+	# Best value now.
+	var best := Builds.best_value(c, 3)
+	if not best.is_empty():
+		var box := section("Best value now", _units)
+		for id in best:
+			box.add_child(_suggestion_row(c, str(id)))
+	# Categories.
+	var head := Label.new()
+	head.theme_type_variation = &"Overline"
+	head.text = "CATEGORIES"
 	_units.add_child(head)
-	for g in Builds.GROUPS:
-		if (g == "Defence") != defence:
-			continue
-		var box := section(g, _units)
-		for id in Builds.ids_in(g):
-			box.add_child(_unit_row(c, str(id)))
+	var g := grid(_units, 2)
+	for grp in Builds.GROUPS:
+		g.add_child(_group_tile(c, str(grp)))
+	_queue_section(c)
 
 
-func _unit_row(c: CountryState, id: String) -> Control:
+func _dashboard(c: CountryState) -> void:
+	var card := PanelContainer.new()
+	card.theme_type_variation = &"GroupPanel"
+	_units.add_child(card)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override(&"separation", DS.S2)
+	card.add_child(v)
+	# Builders' capacity.
+	var ld := Builds.work_load(c)
+	var col := DS.GREEN if ld < 0.8 else (DS.ORANGE if ld <= 1.0 else DS.RED)
+	var r1 := HBoxContainer.new()
+	r1.add_theme_constant_override(&"separation", DS.S3)
+	v.add_child(r1)
+	r1.add_child(ListRow.icon_tile("hard-hat", col))
+	var c1 := VBoxContainer.new()
+	c1.add_theme_constant_override(&"separation", 0)
+	c1.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	r1.add_child(c1)
+	var t1 := Label.new()
+	t1.theme_type_variation = &"Headline"
+	t1.text = "Builders"
+	c1.add_child(t1)
+	_caption("Can take on %s of work a year" % DS.money(c.gdp * Builds.capacity_pct(c) / 100.0), c1)
+	var p1 := Label.new()
+	p1.theme_type_variation = &"StatSmall"
+	p1.text = "%d%%" % roundi(ld * 100.0)
+	p1.add_theme_color_override(&"font_color", col)
+	r1.add_child(p1)
+	v.add_child(_meter(minf(ld, 1.0), 0.0, col))
+	if ld > 1.0:
+		_caption("Over capacity: everything builds %d%% slower and the boom adds %s to inflation." % [
+			roundi((1.0 - Builds.pace(c)) * 100.0), DS.pct(Builds.overheat(c), 1)], v, DS.ORANGE)
+	else:
+		_caption("A bigger Infrastructure budget means more and faster crews.", v)
+	# Condition.
+	var cond := Builds.condition()
+	var tgt := Builds.condition_target(c)
+	var cc := DS.GREEN if cond >= 0.99 else (DS.ORANGE if cond >= 0.95 else DS.RED)
+	var r2 := HBoxContainer.new()
+	r2.add_theme_constant_override(&"separation", DS.S3)
+	v.add_child(r2)
+	r2.add_child(ListRow.icon_tile("wrench", cc))
+	var c2 := VBoxContainer.new()
+	c2.add_theme_constant_override(&"separation", 0)
+	c2.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	r2.add_child(c2)
+	var t2 := Label.new()
+	t2.theme_type_variation = &"Headline"
+	t2.text = "Condition"
+	c2.add_child(t2)
+	_caption("Improving" if tgt > cond + 0.002 else ("Wearing out: raise the Infrastructure budget" if tgt < cond - 0.002 else "Steady"), c2,
+		DS.ORANGE if tgt < cond - 0.002 else Color(0, 0, 0, 0))
+	var p2 := Label.new()
+	p2.theme_type_variation = &"StatSmall"
+	p2.text = "%d%%" % roundi(cond * 100.0)
+	p2.add_theme_color_override(&"font_color", cc)
+	r2.add_child(p2)
+	v.add_child(_meter((cond - 0.8) / 0.25, (tgt - 0.8) / 0.25, cc))
+
+
+func _suggestion_row(c: CountryState, id: String) -> Control:
+	var s := Builds.spec(id)
+	var q := maxi(1, mini(int(ceil(Builds.need(c, id) * 0.1)), Builds.max_more(c, id)))
+	var have := float(Builds.count(c, id) + Builds.building(c, id))
+	var d := Builds.coverage_of(c, id, have + q) - Builds.coverage_of(c, id, have)
+	var parts: PackedStringArray = []
+	for k in s.fx:
+		if Laws.FX_LABELS.has(k):
+			var val := float(s.fx[k]) * d * Economy.BUILD_FX_SCALE
+			if absf(val) >= 0.01:
+				parts.append("%s %+.2f" % [str(Laws.FX_LABELS[k]).to_lower(), val])
+	var row := ListRow.new().setup(str(s.title), "%s for %s  ·  %s" % [_n(q), DS.money(Builds.unit_price(c, id) * q), ", ".join(parts)], "›")
+	row.subtitle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	row.subtitle_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	row.trailing_label.add_theme_color_override(&"font_color", DS.TEXT_3)
+	row.set_leading(ListRow.icon_tile(str(s.icon), DS.GOLD))
+	row.tapped.connect(_order.bind(id, q))
+	return row
+
+
+func _group_tile(c: CountryState, g: String) -> Control:
+	var p := PanelContainer.new()
+	p.theme_type_variation = &"TilePanel"
+	p.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override(&"separation", 6)
+	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	p.add_child(v)
+	var ph := Photo.scene(str(GROUP_SCENE[g]), 64.0, false)
+	ph.set(&"radius", 12.0)
+	v.add_child(ph)
+	var top := HBoxContainer.new()
+	top.add_theme_constant_override(&"separation", 6)
+	top.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	v.add_child(top)
+	var ic := TextureRect.new()
+	ic.texture = DS.icon(str(GROUP_ICON[g]))
+	ic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	ic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	ic.custom_minimum_size = Vector2(16, 16)
+	ic.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	ic.modulate = DS.RED if g == "Defence" else DS.ACCENT
+	top.add_child(ic)
+	var t := Label.new()
+	t.theme_type_variation = &"Subhead"
+	t.add_theme_color_override(&"font_color", DS.TEXT)
+	t.text = g
+	t.clip_text = true
+	t.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	t.custom_minimum_size = Vector2(30, 0)
+	top.add_child(t)
+	var cov := Builds.group_coverage(c, g)
+	var q := Builds.group_building(c, g)
+	var sub := ("Strength %d" % roundi(c.military)) if g == "Defence" else ("%d%% covered" % roundi(cov * 100.0))
+	if q > 0:
+		sub += "  ·  %s building" % _n(q)
+	var cap := Label.new()
+	cap.theme_type_variation = &"Caption"
+	cap.text = sub
+	cap.clip_text = true
+	cap.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	cap.custom_minimum_size = Vector2(30, 0)
+	v.add_child(cap)
+	var m := c.military / 100.0 if g == "Defence" else cov
+	v.add_child(_meter(m, 0.0, DS.RED if g == "Defence" else _cov_color(cov), 4.0))
+	_on_tap(p, func() -> void:
+		if g == "Defence":
+			_tab = 1
+			_tabs.select(1, false)
+			_go_group("")
+		else:
+			_go_group(g))
+	return p
+
+
+func _queue_section(c: CountryState) -> void:
+	var q := Builds.queue(c)
+	if q.is_empty():
+		return
+	var box := section("Under construction", _units)
+	var shown := 0
+	for it in q:
+		if shown >= 6:
+			note("And %d more batches." % (q.size() - shown), box)
+			break
+		box.add_child(_batch_row(c, it))
+		shown += 1
+
+
+func _batch_row(c: CountryState, it: Dictionary) -> Control:
+	var id := str(it.id)
+	var s := Builds.spec(id)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override(&"separation", 6)
+	var h := HBoxContainer.new()
+	h.add_theme_constant_override(&"separation", DS.S3)
+	v.add_child(h)
+	h.add_child(ListRow.icon_tile(str(s.icon), DS.ORANGE))
+	var mid := VBoxContainer.new()
+	mid.add_theme_constant_override(&"separation", 0)
+	mid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	h.add_child(mid)
+	var t := Label.new()
+	t.theme_type_variation = &"Headline"
+	t.text = "%s %s" % [_n(int(it.n)), _plural(str(s.title), int(it.n))]
+	t.clip_text = true
+	t.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	t.custom_minimum_size = Vector2(40, 0)
+	mid.add_child(t)
+	_caption("%d%% built  ·  %d mo left%s" % [roundi(float(it.frac) * 100.0), int(it.months), "  ·  rushed" if bool(it.rush) else ""], mid)
+	if not bool(it.rush):
+		var cost := Builds.rush_cost(c, id, int(it.k))
+		var b := AppButton.make("Rush", &"Chip", "zap")
+		b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		b.pressed.connect(_confirm_rush.bind(id, int(it.k), cost))
+		h.add_child(b)
+	v.add_child(_meter(float(it.frac), 0.0, DS.GOLD if bool(it.rush) else DS.ORANGE, 4.0))
+	return v
+
+
+func _confirm_rush(id: String, k: int, cost: float) -> void:
+	var c := Game.me()
+	var s := Builds.spec(id)
+	var m := ModalCard.new()
+	get_tree().current_scene.add_child(m)
+	m.header("zap", DS.GOLD, "Rush order", str(s.title))
+	m.body("Double shifts and extra crews finish this batch %s as fast. It costs %s more, paid now." % [
+		"twice" if is_equal_approx(Economy.BUILD_RUSH_SPEED, 2.0) else "%.1f times" % Economy.BUILD_RUSH_SPEED, DS.money(cost)])
+	if c.treasury < cost:
+		var w := m.body("Your treasury is short: the rest will be borrowed.")
+		w.add_theme_color_override(&"font_color", DS.ORANGE)
+	m.choice("Rush it", DS.money(cost), &"PrimaryButton", func() -> void:
+		if Builds.rush(c, id, k):
+			Simulation.update_finances(c)
+			Haptics.success()
+			Audio.play("success", -8.0)
+		m.dismiss()
+		refresh())
+	m.choice("Not now", "", &"GhostButton", m.dismiss)
+
+
+# ---- one category -----------------------------------------------------------
+func _fill_group(c: CountryState, g: String) -> void:
+	if g != "Defence":
+		var back := AppButton.make("All categories", &"Chip", "chevron-left")
+		back.pressed.connect(_go_group.bind(""))
+		var bar := HBoxContainer.new()       # in a VBox the chip would clip its text
+		bar.add_child(back)
+		_units.add_child(bar)
+	var sub := ""
+	if g == "Defence":
+		sub = "Military strength %d / 100. Your Military budget keeps forces ready." % roundi(c.military)
+	else:
+		sub = "%d%% covered on average  ·  %s" % [roundi(Builds.group_coverage(c, g) * 100.0), str(GROUP_BLURB[g])]
+	_units.add_child(_photo_header(str(GROUP_SCENE[g]), g, sub, 140.0))
+	var open: Array = []
+	var locked: Array = []
+	for id in Builds.ids_in(g):
+		if Builds.available(c, str(id)) == "":
+			open.append(id)
+		else:
+			locked.append(id)
+	var box := section("", _units)
+	for i in open.size():
+		box.add_child(_unit_card(c, str(open[i])))
+		if i < open.size() - 1:
+			var sep := HSeparator.new()
+			sep.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			box.add_child(sep)
+	if not locked.is_empty():
+		var lb := section("Not yet available", _units)
+		for id in locked:
+			var s := Builds.spec(str(id))
+			var row := ListRow.new().setup(str(s.title), Builds.available(c, str(id)))
+			row.subtitle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			row.subtitle_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+			row.set_leading(ListRow.icon_tile("lock", DS.TEXT_3))
+			lb.add_child(row)
+
+
+func _unit_card(c: CountryState, id: String) -> Control:
 	var s := Builds.spec(id)
 	var n := Builds.count(c, id)
 	var q := Builds.building(c, id)
 	var cov := Builds.coverage_of(c, id, float(n))
-	var why := Builds.available(c, id)
-	var sub := "%s  ·  %d%% of need" % [_n(n), roundi(cov * 100.0)]
+	var cov2 := Builds.coverage_of(c, id, float(n + q))
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override(&"separation", 6)
+	var h := HBoxContainer.new()
+	h.add_theme_constant_override(&"separation", DS.S3)
+	h.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	v.add_child(h)
+	var tint := DS.ORANGE if q > 0 else (DS.RED if str(s.group) == "Defence" else _cov_color(cov))
+	h.add_child(ListRow.icon_tile(str(s.icon), tint))
+	var mid := VBoxContainer.new()
+	mid.add_theme_constant_override(&"separation", 0)
+	mid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	mid.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	h.add_child(mid)
+	var t := Label.new()
+	t.theme_type_variation = &"Headline"
+	t.text = str(s.title)
+	t.clip_text = true
+	t.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	t.custom_minimum_size = Vector2(40, 0)
+	mid.add_child(t)
+	var line := "%s built" % _n(n)
 	if q > 0:
-		sub += "  ·  +%s building" % _n(q)
-	var row := ListRow.new().setup(str(s.title), sub if why == "" else why, "›")
-	row.trailing_label.add_theme_color_override(&"font_color", DS.TEXT_3)
-	var tint := DS.RED if str(s.group) == "Defence" else DS.ACCENT
-	if why != "":
-		tint = DS.TEXT_3
-	elif q > 0:
-		tint = DS.ORANGE
-	elif cov >= 0.8:
-		tint = DS.GREEN
-	row.set_leading(ListRow.icon_tile(str(s.icon), tint))
-	if why == "":
-		row.tapped.connect(_order.bind(id))
-	return row
+		line += "  ·  +%s building" % _n(q)
+	line += "  ·  %s each" % DS.money(Builds.unit_price(c, id), 0)
+	var cap := _caption(line, mid)
+	cap.autowrap_mode = TextServer.AUTOWRAP_OFF
+	cap.clip_text = true
+	cap.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	var right := VBoxContainer.new()
+	right.add_theme_constant_override(&"separation", 0)
+	right.alignment = BoxContainer.ALIGNMENT_CENTER
+	right.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	h.add_child(right)
+	var pct := Label.new()
+	pct.theme_type_variation = &"StatSmall"
+	pct.text = "%d%%" % roundi(cov * 100.0)
+	pct.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	right.add_child(pct)
+	var pc := Label.new()
+	pc.theme_type_variation = &"Caption"
+	pc.text = "of need"
+	pc.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	right.add_child(pc)
+	v.add_child(_meter(cov, cov2, tint, 4.0))
+	_on_tap(v, _order.bind(id, 0))
+	return v
 
 
-func _order(id: String) -> void:
+# ---- order sheet -------------------------------------------------------------
+## Coverage curve: diminishing returns made visible. Dots at what you have and
+## where this order takes you; the shaded slice is what you gain.
+func _curve(c: CountryState, id: String, have: float, st: Dictionary) -> Control:
+	var cv := Control.new()
+	cv.custom_minimum_size = Vector2(0, 92)
+	cv.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var font := get_theme_font(&"font", &"Caption")
+	cv.draw.connect(func() -> void:
+		var w := cv.size.x
+		var h := cv.size.y - 16.0
+		var need := Builds.need(c, id)
+		var xmax := need * 3.0
+		var k := float(st.v)
+		var pts := PackedVector2Array()
+		for i in 49:
+			var x := xmax * i / 48.0
+			pts.append(Vector2(w * i / 48.0, h - h * (1.0 - exp(-x / need))))
+		# 100 % line
+		cv.draw_dashed_line(Vector2(0, 2), Vector2(w, 2), DS.TEXT_3 * Color(1, 1, 1, 0.5), 1.0, 4.0)
+		var x0 := w * clampf(have / xmax, 0.0, 1.0)
+		var x1 := w * clampf((have + k) / xmax, 0.0, 1.0)
+		var y0 := h - h * Builds.coverage_of(c, id, have)
+		var y1 := h - h * Builds.coverage_of(c, id, have + k)
+		# gain slice
+		var poly := PackedVector2Array([Vector2(x0, h), Vector2(x0, y0)])
+		for p in pts:
+			if p.x > x0 and p.x < x1:
+				poly.append(p)
+		poly.append(Vector2(x1, y1))
+		poly.append(Vector2(x1, h))
+		if x1 - x0 > 1.0 and poly.size() >= 3:
+			cv.draw_colored_polygon(poly, Color(DS.GREEN, 0.22))
+		cv.draw_polyline(pts, Color(DS.TEXT_2, 0.8), 2.0, true)
+		cv.draw_line(Vector2(0, h), Vector2(w, h), Color(1, 1, 1, 0.12), 1.0)
+		cv.draw_circle(Vector2(x0, y0), 4.5, DS.TEXT)
+		cv.draw_circle(Vector2(x1, y1), 5.5, DS.GREEN)
+		cv.draw_string(font, Vector2(0, cv.size.y - 2), "Coverage grows fast at first, then levels off", HORIZONTAL_ALIGNMENT_LEFT, w, 11, DS.TEXT_3))
+	return cv
+
+
+func _order(id: String, preset: int = 0) -> void:
 	var c := Game.me()
 	var s := Builds.spec(id)
 	var m := ModalCard.new()
@@ -302,53 +751,69 @@ func _order(id: String) -> void:
 	var n := Builds.count(c, id)
 	var price := Builds.unit_price(c, id)
 	var months := Builds.months(c, id)
-	m.body("You have %s (%d%% of what %s needs). Each %s costs %s and takes about %d months to build." % [
+	m.body("You have %s (%d%% of what %s needs). Each %s costs %s and takes about %d months." % [
 		_n(n), roundi(Builds.coverage_of(c, id, float(n)) * 100.0), World.the_name(c.idx),
-		str(s.unit), DS.money(price, 0), months])
+		str(s.unit), DS.money(price, 0), int(ceil(float(months) / Builds.pace(c)))])
 	var most := Builds.max_more(c, id)
 	var info := Label.new()
 	info.theme_type_variation = &"Footnote"
 	info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	info.custom_minimum_size = Vector2(60, 0)
+	var cap_l := Label.new()
+	cap_l.theme_type_variation = &"Caption"
+	cap_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	cap_l.custom_minimum_size = Vector2(60, 0)
 	var chips := HFlowContainer.new()
 	chips.add_theme_constant_override(&"h_separation", 6)
 	chips.add_theme_constant_override(&"v_separation", 6)
-	var qty := {"v": clampi(int(ceil(Builds.need(c, id) * 0.1)), 1, maxi(most, 1))}
-	var ui := {"confirm": null}
+	var start_q := preset if preset > 0 else int(ceil(Builds.need(c, id) * 0.1))
+	var qty := {"v": clampi(start_q, 1, maxi(most, 1))}
+	var ui := {"confirm": null, "curve": null}
 	var have := n + Builds.building(c, id)
+	var load0 := Builds.work_load(c)
+	var cap_pct := Builds.capacity_pct(c)
 	var update := func() -> void:
 		var k := int(qty.v)
 		var total := price * k
 		var cov0 := Builds.coverage_of(c, id, float(have))
 		var cov1 := Builds.coverage_of(c, id, float(have + k))
-		info.text = "%s × %s = %s over %d months (%s of GDP a year). Coverage %d%% → %d%%. Upkeep afterwards: %s a year." % [
-			_n(k), DS.money(price, 0), DS.money(total), months,
-			DS.pct(total / float(maxi(months, 1)) * 12.0 / c.gdp * 100.0, 2), roundi(cov0 * 100.0), roundi(cov1 * 100.0),
+		var per_year := total / float(maxi(int(s.months), 1)) * 12.0 / c.gdp * 100.0
+		info.text = "%s × %s = %s (%s of GDP a year while it's built). Coverage %d%% → %d%%. Upkeep afterwards: %s a year." % [
+			_n(k), DS.money(price, 0), DS.money(total), DS.pct(per_year, 2), roundi(cov0 * 100.0), roundi(cov1 * 100.0),
 			DS.money(total * float(s.upkeep), 0)]
+		var load1 := load0 + per_year / maxf(cap_pct, 0.1)
+		cap_l.text = "Builders %d%% → %d%% busy%s" % [roundi(load0 * 100.0), roundi(load1 * 100.0),
+			("  ·  over capacity: all work slows and prices rise" if load1 > 1.0 else "")]
+		cap_l.add_theme_color_override(&"font_color", DS.ORANGE if load1 > 1.0 else DS.TEXT_3)
 		for ch in chips.get_children():
 			ch.queue_free()
 		var d := cov1 - cov0
 		for key in s.fx:
 			if key == "relations_soft":
 				continue
-			var v := float(s.fx[key]) * d * Economy.BUILD_FX_SCALE
-			if absf(v) >= 0.01:
-				var good: bool = (v > 0.0) == bool(Laws.FX_GOOD_UP.get(key, true))
-				chips.add_child(_chip("%s %+.2f" % [Laws.FX_LABELS.get(key, key), v], DS.GREEN if good else DS.RED))
+			var val := float(s.fx[key]) * d * Economy.BUILD_FX_SCALE
+			if absf(val) >= 0.01:
+				var good: bool = (val > 0.0) == bool(Laws.FX_GOOD_UP.get(key, true))
+				chips.add_child(_chip("%s %+.2f" % [Laws.FX_LABELS.get(key, key), val], DS.GREEN if good else DS.RED))
 		if s.has("mil"):
 			chips.add_child(_chip("Military %+.1f" % (float(s.mil) * d), DS.GREEN))
 		if s.has("life"):
 			chips.add_child(_chip("Life expectancy %+.2f yrs" % (float(s.life) * d * Economy.BUILD_FX_SCALE), DS.GREEN))
 		if s.has("co2") and float(s.co2) > 0.0:
 			chips.add_child(_chip("CO₂ −%s%%" % String.num(float(s.co2) * d * 100.0, 1), DS.GREEN))
+		var cvc: Control = ui.curve
+		if is_instance_valid(cvc):
+			cvc.queue_redraw()
 		var cb: Control = ui.confirm
 		if is_instance_valid(cb):
 			for b in cb.find_children("*", "Button", true, false):
 				(b as Button).text = "Build %s" % _n(k)
 				break
 	if most <= 0:
-		m.body("You already have all the %s your country could use." % str(s.title).to_lower())
+		m.body("You already have all the %s your country could use." % _plural(str(s.title), 2))
 	else:
+		ui.curve = _curve(c, id, float(have), qty)
+		m.content.add_child(ui.curve)
 		var slider := AppSlider.new().setup("How many", 1, maxf(most, 1), 1, float(qty.v))
 		slider.formatter = func(v: float) -> String: return _n(v)
 		slider.value_changed.connect(func(v: float) -> void:
@@ -378,19 +843,30 @@ func _order(id: String) -> void:
 				update.call())
 			presets.add_child(fb)
 		m.content.add_child(info)
+		m.content.add_child(cap_l)
 		m.content.add_child(chips)
 		ui.confirm = m.choice("Build", "", &"PrimaryButton", func() -> void:
 			if Builds.order(c, id, int(qty.v)):
 				Haptics.success()
+				Audio.play("success", -8.0)
 				Simulation.update_finances(c)
+				var gs := get_tree().current_scene
+				if gs and gs.has_method("learned"):
+					gs.learned("build")
 			m.dismiss()
 			refresh())
 		update.call()
-	# Under construction, and demolition.
+	# Under construction (rush or stop), and demolition.
 	var bt: Array = c.builds.get(id, {}).get("batches", [])
 	for k in bt.size():
 		var bd: Dictionary = bt[k]
-		m.choice("Stop building %s (%d mo left)" % [_n(float(bd.n)), int(ceil(float(bd.left) / Projects.speed(c)))],
+		if not bool(bd.get("rush", false)):
+			var rc := Builds.rush_cost(c, id, k)
+			m.choice("Rush %s (%d mo left)" % [_n(float(bd.n)), Builds.batch_months(c, bd)],
+				"Twice as fast for %s more" % DS.money(rc), &"GhostButton", func() -> void:
+					m.dismiss()
+					_confirm_rush(id, k, rc))
+		m.choice("Stop building %s" % _n(float(bd.n)),
 			"Money already spent is lost", &"GhostButton", func() -> void:
 				Builds.cancel(c, id, k)
 				Haptics.tap()

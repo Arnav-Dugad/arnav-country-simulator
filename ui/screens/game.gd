@@ -231,7 +231,7 @@ func start_tour() -> void:
 const COACH := {
 	"economy": ["Your nation at a glance", "This card sums up how things are going and what needs you most. Tap any number below to see what's moving it."],
 	"budget": ["Revenue, spending, balance", "Drag any slider below to change taxes and spending. The forecast shows what happens over the next year before you commit."],
-	"build": ["Build anything, by the number", "Tap any row to choose how many hospitals, schools, power plants or stadiums to build. Defence holds your armed forces; Programmes, the big national projects."],
+	"build": ["Build anything, by the number", "Start with Best value now, or open a category and tap anything to choose how many to build. Keep your builders under capacity, and rush the batches you need sooner."],
 	"laws": ["Political capital", "The goodwill you spend on reforms, reshuffles and crackdowns. It grows every month with public support. Below: your cabinet, then every law with its cost and who will cheer or boo."],
 	"diplomacy": ["Where you stand in the world", "Your world rank in a few key numbers. Scroll for your rival, markets, climate and every country's attitude to you."],
 }

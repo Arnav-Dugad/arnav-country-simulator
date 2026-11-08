@@ -2,6 +2,16 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.62.0] - 2026-11-08
+
+- **A redesigned Build tab.** It opens on a dashboard with a new AI-painted header, then shows eight category cards with their own artwork and coverage bars (Transport, Energy, Health & care, Education, Housing & cities, Economy, Culture & sport, Defence). Each category page lists every build with how many you have, the price of one, and a bar showing coverage now and once the work under way is finished
+- **Best value now:** the three civilian builds that would do the most for your country per dollar right now, one tap away
+- **Builders have a capacity.** Your construction sector can take on only so much work a year (more with a bigger Infrastructure budget). Go over it and every site slows down, and the building boom pushes up inflation
+- **Rush orders:** pay extra to finish a batch twice as fast, from the new Under construction list or the order card
+- **Condition:** roads, hospitals and schools wear out when the Infrastructure budget is cut, and deliver less until it is restored
+- **A clearer order card:** a coverage curve shows the diminishing returns of each extra unit, plus how busy your builders will be
+- **Approval is always in the top bar**, as a coloured ring. Tap it to see what drives it
+
 ## [0.61.0] - 2026-11-08
 
 - **Research and the space race.** A new Research tab on the Build page with 25 technologies in six branches (Economy, Energy, Health, Transport, Space, Military). Research points come from your research budget, universities and labs, and the size of your economy. Each breakthrough lasts forever: AI, quantum computing, fusion power, longevity therapies, self-driving vehicles, drone swarms, hypersonic missiles and more
