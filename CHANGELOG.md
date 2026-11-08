@@ -2,6 +2,13 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.89.0] - 2026-11-09
+
+- **People & society at a glance:** six tiles at the top (unity, hospital waits, air, schools, births, housing); tap one to jump straight to it
+- **World wonders on the map:** gold pins glow above the capital of every country that has built one, yours and your rivals'
+- **Compare** now puts test scores, top university, water stress and air quality side by side
+- **Cheats:** a new Society group: unite the nation, world-class schools, fresh water, blue skies, short waits and finish my wonder
+
 ## [0.88.0] - 2026-11-09
 
 - **Air quality** (People & society), from real WHO and IQAir data, from Bangladesh and India (hazardous) to Finland and Iceland (clean):
