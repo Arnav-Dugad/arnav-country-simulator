@@ -2,6 +2,11 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.59.0] - 2026-11-08
+
+- **A new Cheats page.** A sandbox header that shows whether achievements still count, four always-on switches (never lose power, no random events, unlimited political capital, unlimited money) and 22 one-tap cheats in six categories: Money, People, Economy, Building, World and Time. Tiles glow when you use them. New cheats include full employment, a fair society, an economic miracle, stable prices, undo warming, "modern nation" (+25% coverage on every build), a superpower army, win every war, peace everywhere, skip to the election and clear the inbox
+- **A redesigned Store.** A featured Complete Edition card with a new AI-painted image, map themes as swipeable cards with a live preview of each palette, side-by-side Statesman Pass plans, and compact support tiles
+
 ## [0.58.0] - 2026-11-08
 
 - **War.** You can now declare war on a neighbour (or, with a strong enough military, on a coastal country overseas) from its country page, and hostile, much stronger neighbours may attack you

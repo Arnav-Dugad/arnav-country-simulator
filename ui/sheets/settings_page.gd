@@ -368,84 +368,15 @@ func _build_account() -> void:
 
 # ----------------------------------------------------------------- cheats ---
 func _build_cheats() -> void:
-	_cheat_box = section("", _sub)
+	_cheat_box = VBoxContainer.new()
+	_sub.add_child(_cheat_box)
 	_fill_cheats()
 
 
 func _fill_cheats() -> void:
 	for ch in _cheat_box.get_children():
 		ch.queue_free()
-	if not Settings.cheats:
-		note("A sandbox for experimenting: money, instant building, never losing power and more. Games where you use cheats don't earn achievements.", _cheat_box)
-		var unlock := AppButton.make("Turn on cheats", &"", "wand-sparkles")
-		unlock.pressed.connect(func() -> void:
-			Settings.set_value("cheats", true)
-			Haptics.success()
-			_fill_cheats())
-		_cheat_box.add_child(unlock)
-		return
-	if Game.me() == null:
-		return
-	var status := note("Cheats used in this game: %s" % ("yes, achievements are off" if Game.cheats_used else "not yet"), _cheat_box)
-	var cheat := func(text: String, icon_: String, fn: Callable) -> void:
-		var b := AppButton.make(text, &"", icon_)
-		b.pressed.connect(func() -> void:
-			Game.cheats_used = true
-			fn.call()
-			Simulation.update_finances(Game.me())
-			Game.me().refresh_explainer()
-			Game.month_passed.emit()   # refresh every panel
-			Haptics.success()
-			status.text = "Done: %s. Achievements are off for this game." % text.to_lower())
-		_cheat_box.add_child(b)
-	cheat.call("Add 10% of GDP to the treasury", "coins", func() -> void:
-		Game.me().treasury += Game.me().gdp * 0.1)
-	cheat.call("Wipe out the national debt", "piggy-bank", func() -> void:
-		Game.me().debt = 0.0)
-	cheat.call("Everyone loves you", "heart", func() -> void:
-		var m := Game.me()
-		m.approval = minf(m.approval + 20.0, 95.0)
-		m.happiness = minf(m.happiness + 15.0, 95.0)
-		m.shocks.approval = float(m.shocks.approval) + 20.0
-		m.shocks.happiness = float(m.shocks.happiness) + 15.0)
-	cheat.call("Restore order", "shield", func() -> void:
-		var m := Game.me()
-		m.stability = minf(m.stability + 25.0, 95.0)
-		m.shocks.stability = float(m.shocks.stability) + 25.0)
-	cheat.call("Finish all construction now", "hammer", func() -> void:
-		var m := Game.me()
-		for id in m.projects.keys():
-			if str(m.projects[id].state) == "building":
-				m.projects[id].progress = float(Projects.by_id(id).months)
-		for id in Projects.monthly(m):
-			Game.project_finished.emit(str(id)))
-	cheat.call("Pass all laws being debated", "gavel", func() -> void:
-		var m := Game.me()
-		for id in m.laws.keys():
-			if str(m.laws[id].get("state", "")) in ["passing", "repealing"]:
-				m.laws[id].months_left = 1
-		for done in Laws.monthly(m):
-			if str(done.id) == "free_elections" and not bool(done.repealed):
-				Game.politics.become_democracy()
-			Game.law_finished.emit(str(done.id), bool(done.repealed)))
-	cheat.call("Make friends with the whole world", "globe", func() -> void:
-		for i in Game.relations.size():
-			if i != Game.player:
-				Game.relations[i] = clampf(Game.relations[i] + 30.0, -100.0, 100.0)
-				Game.dip.baseline[str(i)] = clampf(float(Game.dip.baseline.get(str(i), 0.0)) + 30.0, -100.0, 100.0)
-		Game.relations_changed.emit())
-	var god := AppToggle.new().setup("Never lose power", Game.god_mode, "crown")
-	god.toggled.connect(func(v: bool) -> void:
-		Game.god_mode = v
-		if v:
-			Game.cheats_used = true
-			status.text = "You can't lose power. Achievements are off for this game.")
-	_cheat_box.add_child(god)
-	var off := AppButton.make("Hide cheats", &"GhostButton", "x")
-	off.pressed.connect(func() -> void:
-		Settings.set_value("cheats", false)
-		_fill_cheats())
-	_cheat_box.add_child(off)
+	_cheat_box.add_child(CheatsPanel.new())
 
 
 # ------------------------------------------------------------------ about ---

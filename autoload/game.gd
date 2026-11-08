@@ -301,6 +301,10 @@ func advance_month() -> void:
 	Outcomes.monthly()
 	Leaders.age_check()
 	Capital.monthly()
+	if bool(dip.get("cheat_capital", false)):
+		dip["capital"] = Economy.CAPITAL_MAX
+	if bool(dip.get("cheat_money", false)) and me().treasury < me().spending:
+		me().treasury = me().spending
 	for note in War.monthly():
 		war_battle.emit(note)
 	Opposition.monthly()
