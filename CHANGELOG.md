@@ -2,6 +2,10 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.42.1] - 2026-11-08
+
+- Fixed cabinet banners like "your cabinet chose to security": choices that aren't actions now read "your cabinet went with “Security”"
+
 ## [0.42.0] - 2026-11-08
 
 - **Culture** projects in Build: a national stadium, a grand national museum, libraries and arts centres, and an iconic landmark for your capital

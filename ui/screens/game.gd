@@ -499,10 +499,28 @@ func _on_decision_added(_ev: Dictionary) -> void:
 		_pages["events"].refresh()
 
 
+## Choice labels that start with a verb read as "your cabinet chose to send aid";
+## the rest ("Security", "IMF programme", "Bold: cut 25%…") as "went with …".
+const _LABEL_VERBS := ["vote", "let", "raise", "ask", "send", "make", "invest", "decline", "build", "welcome", "tax",
+	"stand", "spend", "ride", "print", "pay", "open", "offer", "leave", "import", "cut", "close", "call", "borrow",
+	"abstain", "trim", "train", "target", "talk", "subsidise", "step", "spin", "sign", "show", "say", "save", "retrain",
+	"respect", "rent", "renegotiate", "release", "refuse", "rebuild", "ration", "publish", "protect", "promote",
+	"promise", "press", "name", "license", "lean", "keep", "join", "investigate", "host", "hope", "hold", "help",
+	"guarantee", "govern", "give", "fund", "fire", "embrace", "diversify", "disperse", "devalue", "delay", "deflect",
+	"declare", "crack", "compromise", "change", "buy", "be", "bail", "back", "attack", "add", "act", "accept"]
+
+
+static func _cabinet_phrase(label: String) -> String:
+	var first := label.get_slice(" ", 0).to_lower().trim_suffix(":").trim_suffix(",")
+	if first in _LABEL_VERBS:
+		return "your cabinet chose to %s" % (label.left(1).to_lower() + label.substr(1))
+	return "your cabinet went with “%s”" % label
+
+
 func _on_event_resolved(ev: Dictionary, choice: int, by_cabinet: bool) -> void:
 	if by_cabinet and not _dev_fast:
 		var label := str(ev.choices[clampi(choice, 0, ev.choices.size() - 1)].label)
-		_notify("%s: your cabinet chose to %s" % [str(ev.title), label.left(1).to_lower() + label.substr(1)], str(ev.icon),
+		_notify("%s: %s" % [str(ev.title), _cabinet_phrase(label)], str(ev.icon),
 			GameEvents.tint(str(ev.tint)), Settings.decisions != "cabinet")
 	_refresh_next()
 	if _current != "" and _pages.has(_current):
