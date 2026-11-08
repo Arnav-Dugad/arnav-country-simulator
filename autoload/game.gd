@@ -182,6 +182,7 @@ func new_game(country_index: int, seed_value: int = -1, level: String = "") -> v
 	Fisheries.st()                  # fish stocks
 	Digital.st()                    # online, digital ID, cyber
 	CultureExports.st()             # films, songs, games
+	PowerIndex.table()              # remember your starting power rank
 	headlines_seen = {}
 	last_rating = ""
 	news = []

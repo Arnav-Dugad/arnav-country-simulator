@@ -32,7 +32,8 @@ func _build() -> void:
 	], self)
 	_glance_box = VBoxContainer.new()
 	add_child(_glance_box)
-	add_child(jump_bar(["Your rival", "World markets", "At war", "Your empire", "Security", "Nuclear weapons", "Intelligence", "Climate", "Water", "Sea lanes", "United Nations", "Treaties & blocs"]))
+	add_child(jump_bar(["World powers", "Your rival", "World markets", "At war", "Your empire", "Security", "Nuclear weapons", "Intelligence", "Climate", "Water", "Sea lanes", "United Nations", "Treaties & blocs"]))
+	_powers = section("World powers")
 	_rival = section("Your rival")
 	_markets = section("World markets")
 	_war = section("At war")
@@ -68,6 +69,7 @@ var _adapt: VBoxContainer
 var _security: VBoxContainer
 var _nuke: VBoxContainer
 var _glance_box: VBoxContainer
+var _powers: VBoxContainer
 var _water: VBoxContainer
 var _sea: VBoxContainer
 var _empire: VBoxContainer
@@ -84,6 +86,7 @@ func refresh() -> void:
 		return
 	_fill_ranks()
 	_fill_glance()
+	_fill_powers()
 	_fill_rival()
 	_fill_markets()
 	_fill_climate()
@@ -326,6 +329,55 @@ func _world_war_actions(k: String) -> void:
 				m.dismiss()
 				refresh())
 	m.choice("Stay neutral", "", &"GhostButton", m.dismiss)
+
+
+func _fill_powers() -> void:
+	for ch in _powers.get_children():
+		ch.queue_free()
+	var t := PowerIndex.table()
+	var me := PowerIndex.rank()
+	var start := PowerIndex.start_rank()
+	var d := start - me
+	note("Economy, military, soft power, nuclear weapons and skills in one score. You are #%d%s." % [me,
+		("  ·  up %d since you took office" % d) if d > 0 else (("  ·  down %d since you took office" % -d) if d < 0 else "")], _powers)
+	var shown := 0
+	for k in t.size():
+		var i := int(t[k][0])
+		if k >= 10 and i != Game.player:
+			continue
+		if k >= 10 and shown >= 10:
+			var gap := Label.new()
+			gap.theme_type_variation = &"Caption"
+			gap.text = "···"
+			gap.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			_powers.add_child(gap)
+		shown += 1
+		var line := HBoxContainer.new()
+		line.add_theme_constant_override(&"separation", DS.S2)
+		_powers.add_child(line)
+		var rk := Label.new()
+		rk.theme_type_variation = &"StatSmall"
+		rk.text = "%d" % (k + 1)
+		rk.custom_minimum_size = Vector2(26, 0)
+		rk.add_theme_color_override(&"font_color", DS.GOLD if k < 3 else DS.TEXT_3)
+		line.add_child(rk)
+		line.add_child(Flag.new().show_country(i, 16.0))
+		var nl := Label.new()
+		nl.theme_type_variation = &"Body" if i != Game.player else &"Headline"
+		nl.text = World.map.names[i]
+		nl.clip_text = true
+		nl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		nl.custom_minimum_size = Vector2(90, 0)
+		line.add_child(nl)
+		var bar := meter(float(t[k][1]) / 100.0, 0.0, DS.GOLD if i == Game.player else DS.ACCENT, 6.0)
+		bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		line.add_child(bar)
+		var sl := Label.new()
+		sl.theme_type_variation = &"StatSmall"
+		sl.text = "%d" % roundi(float(t[k][1]))
+		sl.custom_minimum_size = Vector2(30, 0)
+		sl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		line.add_child(sl)
 
 
 func _fill_glance() -> void:

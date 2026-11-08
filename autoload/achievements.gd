@@ -41,6 +41,7 @@ const ALL := [
 	{"id": "moonshot", "icon": "flag", "title": "Moonshot", "desc": "Win the new space race to the Moon."},
 	{"id": "blue_skies", "icon": "wind", "title": "Blue skies", "desc": "Cut air pollution by 40% in a polluted country."},
 	{"id": "full_nets", "icon": "fish", "title": "Full nets", "desc": "Bring overfished seas back to health (85+)."},
+	{"id": "top_power", "icon": "crown", "title": "Great power", "desc": "Climb into the world's top three powers from outside them."},
 	{"id": "cultural_wave", "icon": "music", "title": "Cultural wave", "desc": "Five worldwide hits from your country."},
 	{"id": "granary", "icon": "wheat", "title": "Full granary", "desc": "Feed yourself with six months of food in store."},
 	{"id": "water_wise", "icon": "droplets", "title": "Water wise", "desc": "Cut your water stress by a full point."},
