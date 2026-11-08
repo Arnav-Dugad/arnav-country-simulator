@@ -321,25 +321,6 @@ func _go_group(g: String) -> void:
 		(p as ScrollContainer).scroll_vertical = 0
 
 
-## Thin progress meter: solid fill to a, lighter "pending" fill to b.
-func _meter(a: float, b: float, color: Color, h: float = 6.0) -> Control:
-	var bar := Control.new()
-	bar.custom_minimum_size = Vector2(0, h)
-	bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	bar.draw.connect(func() -> void:
-		var w := bar.size.x
-		bar.draw_style_box(get_theme_stylebox(&"track", &"AppSlider"), Rect2(0, 0, w, h))
-		var f: StyleBoxFlat = (get_theme_stylebox(&"fill", &"AppSlider") as StyleBoxFlat).duplicate()
-		if b > a:
-			f.bg_color = Color(color, 0.35)
-			bar.draw_style_box(f, Rect2(0, 0, maxf(w * clampf(b, 0.0, 1.0), h), h))
-		f.bg_color = color
-		if a > 0.0:
-			bar.draw_style_box(f, Rect2(0, 0, maxf(w * clampf(a, 0.0, 1.0), h), h)))
-	return bar
-
-
 static func _cov_color(cov: float) -> Color:
 	return DS.GREEN if cov >= 0.8 else (DS.ACCENT if cov >= 0.5 else (DS.ORANGE if cov >= 0.25 else DS.RED))
 
@@ -356,37 +337,10 @@ func _caption(text: String, parent: Control, color: Color = Color(0, 0, 0, 0)) -
 	return l
 
 
-## Photo with a title and caption over its lower edge.
-func _photo_header(scene: String, title_text: String, sub: String, h: float) -> Control:
-	var ph := Photo.scene(scene, h, true)
-	ph.set(&"fade_bottom", 0.55)
-	var v := VBoxContainer.new()
-	v.add_theme_constant_override(&"separation", 0)
-	v.alignment = BoxContainer.ALIGNMENT_END
-	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	ph.add_child(v)
-	v.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	v.offset_left = DS.S4
-	v.offset_right = -DS.S4
-	v.offset_bottom = -DS.S3
-	var t := Label.new()
-	t.theme_type_variation = &"PhotoTitle"
-	t.text = title_text
-	v.add_child(t)
-	if sub != "":
-		var s := Label.new()
-		s.theme_type_variation = &"PhotoCaption"
-		s.text = sub
-		s.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		s.custom_minimum_size = Vector2(40, 0)
-		v.add_child(s)
-	return ph
-
-
 # ---- overview ---------------------------------------------------------------
 func _fill_overview(c: CountryState) -> void:
 	var spend := Builds.building_pct(c) + Projects.building_pct(c)
-	_units.add_child(_photo_header("construction", "Build your nation",
+	_units.add_child(photo_header("construction", "Build your nation",
 		("Building now: %s a year" % DS.money(c.gdp * spend / 100.0)) if spend > 0.0 else "Choose how many of anything to build", 150.0))
 	_dashboard(c)
 	# Best value now.
@@ -434,7 +388,7 @@ func _dashboard(c: CountryState) -> void:
 	p1.text = "%d%%" % roundi(ld * 100.0)
 	p1.add_theme_color_override(&"font_color", col)
 	r1.add_child(p1)
-	v.add_child(_meter(minf(ld, 1.0), 0.0, col))
+	v.add_child(meter(minf(ld, 1.0), 0.0, col))
 	if ld > 1.0:
 		_caption("Over capacity: everything builds %d%% slower and the boom adds %s to inflation." % [
 			roundi((1.0 - Builds.pace(c)) * 100.0), DS.pct(Builds.overheat(c), 1)], v, DS.ORANGE)
@@ -463,7 +417,7 @@ func _dashboard(c: CountryState) -> void:
 	p2.text = "%d%%" % roundi(cond * 100.0)
 	p2.add_theme_color_override(&"font_color", cc)
 	r2.add_child(p2)
-	v.add_child(_meter((cond - 0.8) / 0.25, (tgt - 0.8) / 0.25, cc))
+	v.add_child(meter((cond - 0.8) / 0.25, (tgt - 0.8) / 0.25, cc))
 
 
 func _suggestion_row(c: CountryState, id: String) -> Control:
@@ -531,7 +485,7 @@ func _group_tile(c: CountryState, g: String) -> Control:
 	cap.custom_minimum_size = Vector2(30, 0)
 	v.add_child(cap)
 	var m := c.military / 100.0 if g == "Defence" else cov
-	v.add_child(_meter(m, 0.0, DS.RED if g == "Defence" else _cov_color(cov), 4.0))
+	v.add_child(meter(m, 0.0, DS.RED if g == "Defence" else _cov_color(cov), 4.0))
 	_on_tap(p, func() -> void:
 		if g == "Defence":
 			_tab = 1
@@ -583,7 +537,7 @@ func _batch_row(c: CountryState, it: Dictionary) -> Control:
 		b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		b.pressed.connect(_confirm_rush.bind(id, int(it.k), cost))
 		h.add_child(b)
-	v.add_child(_meter(float(it.frac), 0.0, DS.GOLD if bool(it.rush) else DS.ORANGE, 4.0))
+	v.add_child(meter(float(it.frac), 0.0, DS.GOLD if bool(it.rush) else DS.ORANGE, 4.0))
 	return v
 
 
@@ -621,7 +575,7 @@ func _fill_group(c: CountryState, g: String) -> void:
 		sub = "Military strength %d / 100. Your Military budget keeps forces ready." % roundi(c.military)
 	else:
 		sub = "%d%% covered on average  ·  %s" % [roundi(Builds.group_coverage(c, g) * 100.0), str(GROUP_BLURB[g])]
-	_units.add_child(_photo_header(str(GROUP_SCENE[g]), g, sub, 140.0))
+	_units.add_child(photo_header(str(GROUP_SCENE[g]), g, sub, 140.0))
 	var open: Array = []
 	var locked: Array = []
 	for id in Builds.ids_in(g):
@@ -696,7 +650,7 @@ func _unit_card(c: CountryState, id: String) -> Control:
 	pc.text = "of need"
 	pc.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	right.add_child(pc)
-	v.add_child(_meter(cov, cov2, tint, 4.0))
+	v.add_child(meter(cov, cov2, tint, 4.0))
 	_on_tap(v, _order.bind(id, 0))
 	return v
 

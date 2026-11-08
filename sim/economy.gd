@@ -498,6 +498,35 @@ const CAPITAL_LAW_BASE := 12.0
 const CAPITAL_LAW_PER_POLITICS := 3.0
 const CAPITAL_RESHUFFLE := 10.0
 const CAPITAL_CRACKDOWN := 20.0
+const CAPITAL_MEDIA_CONTROL := 20.0   # per step toward state control of the media
+
+
+# ------------------------------------------------------------------- media ---
+# See sim/media.gd. Per step toward state control (free -> guided -> state-run),
+# relative to where your country started:
+const MEDIA_STEP_APPROVAL := 2.0     # friendlier coverage
+const MEDIA_STEP_STABILITY := 1.5
+const MEDIA_STEP_HAPPY := 2.0        # people resent being told what to think
+const MEDIA_STEP_GROWTH := 0.12      # investors and innovators want open information
+const MEDIA_STEP_CLEAN := 5.0        # clean-government target points: a captured press hides graft
+const MEDIA_CRACKDOWN_STAB := 4.0    # one-off stability hit per step tightened (x1.5 in free systems)
+const MEDIA_CRACKDOWN_APPR := 2.0    # one-off approval hit per step tightened
+const MEDIA_DEMOCRACY_REL := 4.0     # relations lost with every democracy per step tightened
+const MEDIA_CRED_CAP_GUIDED := 70.0  # most credibility a guided press can have
+const MEDIA_CRED_CAP_STATE := 40.0
+## Campaign reach by stance, and how a repeat within two years lands.
+const MEDIA_REACH_FREE := 0.7
+const MEDIA_REACH_GUIDED := 1.0
+const MEDIA_REACH_STATE := 1.35
+const MEDIA_REPEAT_MULT := 0.6
+const MEDIA_CAMPAIGN_MONTHS := 6
+const MEDIA_CAMPAIGN_CRED := 3.0     # credibility each campaign costs (health and green are free)
+## Smear campaigns: monthly leak chance by stance, and the damage when one leaks.
+const MEDIA_LEAK_FREE := 0.12
+const MEDIA_LEAK_GUIDED := 0.06
+const MEDIA_LEAK_STATE := 0.02
+const MEDIA_LEAK_APPR := 6.0
+const MEDIA_LEAK_CRED := 15.0
 const CAPITAL_TARIFF := 8.0
 const CAPITAL_AMEND := 35.0
 

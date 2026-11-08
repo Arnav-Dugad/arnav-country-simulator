@@ -17,6 +17,7 @@ var _cabinet: VBoxContainer
 
 
 var _clean: VBoxContainer
+var _media: VBoxContainer
 var _capital: Control
 var _cap_value: Label
 var _cap_note: Label
@@ -117,6 +118,7 @@ func _build() -> void:
 	add_child(_capital)
 	_cabinet = section("Your cabinet")
 	_clean = section("Clean government")
+	_media = section("Media & propaganda")
 	_summary = note("")
 	_filter = SegmentedControl.new().setup(["All", "In force", "Not yet"], [], 0)
 	_filter.plain = true
@@ -139,6 +141,7 @@ func refresh() -> void:
 	_fill_capital()
 	_fill_cabinet()
 	_fill_clean()
+	_fill_media()
 	var active := 0
 	var passing := 0
 	for l in Laws.ALL:
@@ -427,3 +430,140 @@ func _chip(text: String, color: Color) -> Control:
 	lbl.text = text
 	p.add_child(lbl)
 	return p
+
+
+# ------------------------------------------------------------------- media ---
+func _fill_media() -> void:
+	for ch in _media.get_children():
+		ch.queue_free()
+	var cred := Press.credibility()
+	var stance := Media.stance()
+	_media.add_child(photo_header("press", "Media & press", "%s  ·  credibility %d / 100" % [
+		str(Media.STANCE[stance].title), roundi(cred)], 118.0))
+	# Stance.
+	var labels := PackedStringArray()
+	for sid in Media.STANCES:
+		labels.append(str(Media.STANCE[sid].title))
+	var seg := SegmentedControl.new().setup(labels, [], Media.rank(stance))
+	seg.fill = true
+	seg.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	seg.changed.connect(func(i: int) -> void:
+		seg.select(Media.rank(Media.stance()), false)
+		_confirm_stance(str(Media.STANCES[i])))
+	_media.add_child(seg)
+	var sd := Label.new()
+	sd.theme_type_variation = &"Footnote"
+	sd.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	sd.custom_minimum_size = Vector2(60, 0)
+	sd.text = str(Media.STANCE[stance].desc)
+	_media.add_child(sd)
+	# Credibility.
+	var cc := DS.GREEN if cred >= 60.0 else (DS.ORANGE if cred >= 35.0 else DS.RED)
+	var r := HBoxContainer.new()
+	r.add_theme_constant_override(&"separation", DS.S3)
+	_media.add_child(r)
+	r.add_child(ListRow.icon_tile("newspaper", cc))
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override(&"separation", 0)
+	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	r.add_child(col)
+	var t := Label.new()
+	t.theme_type_variation = &"Headline"
+	t.text = "Credibility"
+	col.add_child(t)
+	var cap := Label.new()
+	cap.theme_type_variation = &"Caption"
+	cap.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	cap.custom_minimum_size = Vector2(40, 0)
+	cap.text = "How much people believe you" + (("  ·  capped at %d under a %s press" % [roundi(Media.cred_cap()), str(Media.STANCE[stance].title).to_lower()]) if Media.cred_cap() < 100.0 else "")
+	col.add_child(cap)
+	var v := Label.new()
+	v.theme_type_variation = &"StatSmall"
+	v.text = str(roundi(cred))
+	v.add_theme_color_override(&"font_color", cc)
+	r.add_child(v)
+	_media.add_child(meter(cred / 100.0, Media.cred_cap() / 100.0 if Media.cred_cap() < 100.0 else 0.0, cc, 4.0))
+	# Campaign.
+	var cp := Media.campaign()
+	if not cp.is_empty():
+		var info: Dictionary = Media.CAMPAIGNS[str(cp.id)]
+		var row := ListRow.new().setup(str(info.title), ("Leaked: no effect" if bool(cp.get("leaked", false))
+			else "%d months left  ·  %d%% strength" % [Media.months_left(), roundi(float(cp.get("power", 1.0)) * 100.0)]))
+		row.set_leading(ListRow.icon_tile(str(info.icon), DS.RED if bool(cp.get("leaked", false)) else DS.PURPLE))
+		_media.add_child(row)
+		var frac := 1.0 - float(Media.months_left()) / float(Economy.MEDIA_CAMPAIGN_MONTHS)
+		_media.add_child(meter(frac, 0.0, DS.PURPLE, 4.0))
+	else:
+		var b := AppButton.make("Launch a media campaign", &"", "megaphone")
+		b.pressed.connect(_campaigns)
+		_media.add_child(b)
+	note("Campaigns reach further when the state controls the media, but work best when people trust you. Repeating a message wears it out.", _media)
+
+
+func _confirm_stance(sid: String) -> void:
+	var why := Media.blocked(sid)
+	if why == "Current":
+		return
+	var m := ModalCard.new()
+	get_tree().current_scene.add_child(m)
+	var tighten := Media.rank(sid) > Media.rank(Media.stance())
+	m.header(str(Media.STANCE[sid].icon), DS.ORANGE if tighten else DS.GREEN, "Media", str(Media.STANCE[sid].title))
+	m.body(str(Media.STANCE[sid].desc))
+	if tighten:
+		m.body("Friendlier coverage lifts approval and calm, but people are less happy, government gets less clean, investors grow wary and democracies cool on you. Expect protests now%s." % (
+			", loud ones in a free country" if Government.is_free(Game.player) else ""))
+	else:
+		m.body("Critical coverage returns: approval loses its cushion, but people are happier, credibility can climb again, graft gets exposed and investors like it.")
+	if why != "":
+		var w := m.body(why + ".")
+		w.add_theme_color_override(&"font_color", DS.ORANGE)
+	else:
+		m.choice("Tighten control" if tighten else "Free the press", ("Costs %d political capital" % int(Economy.CAPITAL_MEDIA_CONTROL)) if tighten else "",
+			&"DestructiveButton" if tighten else &"PrimaryButton", func() -> void:
+				Media.set_stance(sid)
+				Simulation.update_finances(Game.me())
+				if tighten:
+					Haptics.warning()
+				else:
+					Haptics.success()
+				m.dismiss()
+				refresh())
+	m.choice("Cancel", "", &"GhostButton", m.dismiss)
+
+
+func _campaigns() -> void:
+	var m := ModalCard.new()
+	get_tree().current_scene.add_child(m)
+	m.header("megaphone", DS.PURPLE, "State media", "Launch a campaign")
+	m.body("Six months on every screen. Strength now: reach %d%% × trust %d%%." % [roundi(Media.reach() * 100.0), roundi((0.5 + Press.credibility() / 100.0) * 100.0)])
+	for id in Media.CAMPAIGNS:
+		var info: Dictionary = Media.CAMPAIGNS[id]
+		var why := Media.can_launch(str(id))
+		var pw := Media.power(str(id))
+		var chips: Array = []
+		for k in info.fx:
+			var val := float(info.fx[k]) * pw
+			match str(k):
+				"co2":
+					chips.append(["CO₂ −%s%%" % String.num(val * 100.0, 1), DS.GREEN])
+				"life":
+					chips.append(["Life +%s yrs" % String.num(val, 2), DS.GREEN])
+				_:
+					chips.append(["%s %+.1f" % [Laws.FX_LABELS.get(k, str(k).capitalize()), val], DS.GREEN])
+		chips.append([DS.money(Media.cost(str(id))), DS.ORANGE])
+		var detail := str(info.desc)
+		if why != "":
+			detail = why
+		elif pw < Media.reach() * (0.5 + Press.credibility() / 100.0) - 0.01:
+			detail += " Used recently: weaker."
+		var ch := m.choice(str(info.title), detail, &"GhostButton", func() -> void:
+			if Media.launch(str(id)):
+				Simulation.update_finances(Game.me())
+				Haptics.success()
+				Audio.play("success", -8.0)
+			m.dismiss()
+			refresh(), chips if why == "" else [])
+		if why != "":
+			for b in ch.find_children("*", "Button", true, false):
+				(b as Button).disabled = true
+	m.choice("Close", "", &"GhostButton", m.dismiss)

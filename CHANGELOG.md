@@ -2,6 +2,15 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.63.0] - 2026-11-08
+
+- **Media & propaganda.** A new section on the Laws page, with an AI-painted press room. Choose how free your press is: a free press, guided coverage or state-run media
+  - More control means friendlier coverage and calmer streets, but unhappier people, dirtier government, wary investors and colder democracies
+  - Tightening control costs political capital and sparks protests, loud ones in a free country. Credibility is capped lower under a controlled press
+- **State media campaigns:** six months on every screen. Choose Proud nation, Healthy lives, Calm and order, Green habits, Invest in us, Behind our troops (wartime only) or Discredit the opposition
+  - Their strength depends on how far state media reaches and how much people trust you, and repeating a message wears it thin
+  - A smear campaign can leak, and a free press is far more likely to dig it up
+
 ## [0.62.0] - 2026-11-08
 
 - **A redesigned Build tab.** It opens on a dashboard with a new AI-painted header, then shows eight category cards with their own artwork and coverage bars (Transport, Energy, Health & care, Education, Housing & cities, Economy, Culture & sport, Defence). Each category page lists every build with how many you have, the price of one, and a bar showing coverage now and once the work under way is finished

@@ -28,6 +28,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 	var bx := Builds.modifiers(c) if not c.builds.is_empty() else {}
 	var txm := Taxes.modifiers(c)
 	var tm: Dictionary = Tech.modifiers() if c.idx == Game.player and Game.has_game() else {}
+	var mdx: Dictionary = Media.modifiers() if c.idx == Game.player and Game.has_game() else {}
 	var wx: Dictionary = War.effects() if c.idx == Game.player and Game.has_game() and War.at_war() else {}
 	var mx := Game.markets.effects(c)
 	var tx := Treaties.modifiers(c) if c.idx == Game.player else {}
@@ -71,6 +72,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Things you built", float(bx.get("growth", 0.0))],
 		["Other taxes", float(txm.get("growth", 0.0))],
 		["Technology", float(tm.get("growth", 0.0))],
+		["Media", float(mdx.get("growth", 0.0))],
 		["War", float(wx.get("growth", 0.0))],
 		["Construction work", float(px.get("build_growth", 0.0)) + float(bx.get("build_growth", 0.0))],
 	]
@@ -187,6 +189,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Things you built", float(bx.get("happiness", 0.0))],
 		["Other taxes", float(txm.get("happiness", 0.0))],
 		["Technology", float(tm.get("happiness", 0.0))],
+		["Media", float(mdx.get("happiness", 0.0))],
 		["War", float(wx.get("happiness", 0.0))],
 	]
 	b.gdp_pc = float(b.gdp_pc) + (real_pc - float(b.gdp_pc)) * E.INCOME_ADAPTATION
@@ -208,6 +211,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Other taxes", float(txm.get("approval", 0.0))],
 		["War weariness", float(wx.get("approval", 0.0))],
 		["Your ministers", float(cx.get("approval", 0.0))],
+		["Media", float(mdx.get("approval", 0.0))],
 	]
 	var a := clampf(_sum(a_terms), 0.0, 100.0)
 	c.approval += (a - c.approval) * E.APPROVAL_ADJUST
@@ -223,6 +227,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Inequality", -E.INEQ_STABILITY * d_gini],
 		["Foreign threats", float(sec.stability)],
 		["Technology", float(tm.get("stability", 0.0))],
+		["Media", float(mdx.get("stability", 0.0))],
 		["War", float(wx.get("stability", 0.0))],
 		["Recent events", float(c.shocks.stability)],
 		["Laws & reforms", float(lx.get("stability", 0.0))],

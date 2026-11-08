@@ -43,6 +43,8 @@ static func target(c: CountryState) -> float:
 		if on != c.laws_start.has(id):
 			t += float(LAW_CLEAN[id]) * (1.0 if on else -1.0)
 	t += E.CORR_STABILITY * (c.stability - float(c.base.get("stability", c.stability)))
+	if c.idx == Game.player and Game.dip.has("media"):
+		t += Media.clean_offset()
 	for m in _st().drives:
 		var age := (Game.months_played - int(m)) / 12.0
 		t += DRIVE_BOOST * clampf(1.0 - age / DRIVE_YEARS, 0.0, 1.0)

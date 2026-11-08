@@ -163,7 +163,7 @@ func choice(label: String, detail: String, variant: StringName, cb: Callable, ch
 			var l := Label.new()
 			l.theme_type_variation = &"ChipValue"
 			l.add_theme_font_size_override(&"font_size", 12)
-			l.add_theme_color_override(&"font_color", DS.GREEN if ch[1] else DS.RED)
+			l.add_theme_color_override(&"font_color", ch[1] if ch[1] is Color else (DS.GREEN if ch[1] else DS.RED))
 			l.text = str(ch[0])
 			p.add_child(l)
 			flow.add_child(p)
