@@ -431,6 +431,11 @@ func _after_month(my_crisis: bool) -> void:
 	if not running:
 		return
 	_check_challenge()
+	if dip.get("spill_lost", false) and not god_mode:
+		dip.erase("spill_lost")
+		finish("spill")
+		return
+	dip.erase("spill_lost")
 	if Daily.over():
 		finish("daily")
 		return

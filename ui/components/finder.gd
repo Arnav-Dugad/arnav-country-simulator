@@ -133,7 +133,7 @@ static func open(parent: Node) -> void:
 
 static func _where(e: Array) -> String:
 	var page: String = {"economy": "Economy", "firms": "Economy › Wealth & firms", "industries": "Economy › Industries",
-		"population": "Economy › People & cities", "budget": "Budget", "build": "Build", "laws": "Laws", "diplomacy": "World",
+		"population": "Economy › People & society", "budget": "Budget", "build": "Build", "laws": "Laws", "diplomacy": "World",
 		"tourism": "World › Tourism", "sports": "World › Sport", "events": "Inbox", "achievements": "Hall of fame",
 		"settings": "Settings", "store": "Store", "dashboard": "Dashboard"}.get(str(e[1]), str(e[1]))
 	return page + (" › " + str(e[2]) if str(e[2]) != "" else "")

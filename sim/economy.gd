@@ -548,6 +548,12 @@ const TOUR_BID_MONTHS := 12        # from bid to vote
 const TOUR_SOFT_RELATIONS := 0.01  # relations a month with everyone per soft power point gained
 
 
+# ------------------------------------------------------- leadership challenge ---
+# See GameEvents.spill (parliamentary democracies only).
+const SPILL_APPROVAL := 30.0        # approval below which rebels can force a vote
+const SPILL_DEAL_CAPITAL := 20.0
+
+
 # ------------------------------------------------------------- food security ---
 # See sim/food.gd.
 const FOOD_SEC_RESERVE_START := 2.0  # months of food in store at the start

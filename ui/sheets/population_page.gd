@@ -1,13 +1,13 @@
 class_name PopulationPage
 extends SheetPage
-## People & cities: population, births, the age structure, cities and housing.
+## People & society: regions, health, schools, births, the age structure, cities and housing.
 
 var _box: VBoxContainer
 
 
 func _init() -> void:
 	super._init()
-	title = "People & cities"
+	title = "People & society"
 
 
 func _build() -> void:

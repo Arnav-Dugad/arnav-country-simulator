@@ -62,6 +62,7 @@ func _ready() -> void:
 		"conquered": "%s was overrun and your government fell." % World.The_name(Game.player),
 		"coup": "The army of %s removed you from power." % World.the_name(Game.player),
 		"review": "The party leadership of %s replaced you." % World.the_name(Game.player),
+		"spill": "Your own party voted you out as leader of %s." % World.the_name(Game.player),
 		"daily": "Your four years in today's challenge are up.",
 		"retired": "You stepped down as the constitution requires and handed %s to the next leader." % World.the_name(Game.player),
 	}.get(reason, "You led %s for %.1f years." % [World.the_name(Game.player), float(data.years)])

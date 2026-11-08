@@ -61,8 +61,8 @@ func _build() -> void:
 	add_child(dash)
 	hub([
 		["markets", "landmark", DS.GOLD, "Wealth & firms", "Stock market, wealth fund, state companies", func() -> void: page_requested.emit("firms")],
-		["factory", "factory", DS.ACCENT, "Industries", "Sectors, subsidies, world shocks, partners", func() -> void: page_requested.emit("industries")],
-		["city", "users", DS.TEAL, "People & cities", "Births, ageing, cities and housing", func() -> void: page_requested.emit("population")],
+		["factory", "factory", DS.ACCENT, "Industries & food", "Sectors, food security, robots, partners", func() -> void: page_requested.emit("industries")],
+		["city", "users", DS.TEAL, "People & society", "Regions, health, schools, families, housing", func() -> void: page_requested.emit("population")],
 		["port", "ship", DS.ORANGE, "Trade & tariffs", "Partners, deals and trade wars on the World page", func() -> void: page_requested.emit("diplomacy")],
 	], self, "Explore your country")
 	_goals = GoalsCard.new()

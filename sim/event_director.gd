@@ -186,6 +186,11 @@ static func score(fx: Dictionary) -> float:
 			s += Nuclear.score(str(fx[k]))
 		elif k == "water":
 			s += Water.score(str(fx[k]))
+		elif k == "spill":
+			if str(fx[k]) == "fight":
+				s -= (1.0 - GameEvents.spill_odds()) * 12.0
+			else:
+				s += 1.0 if Capital.can(Economy.SPILL_DEAL_CAPITAL) else -12.0
 		elif k == "term" and str(fx[k]) == "successor":
 			s += 2.0      # the cabinet's advice: keep the party in power, within the rules
 		elif k == "bloc_relations":

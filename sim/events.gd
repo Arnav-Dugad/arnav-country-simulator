@@ -606,6 +606,13 @@ const EVENTS := [
 				"effects": {"spending": -2.0, "income_tax": 2.0, "approval": -8.0, "growth": -0.8}},
 			{"label": "Print money", "detail": "Inflation erodes the debt · prices explode",
 				"effects": {"inflation": 9.0, "debt_gdp": -8.0, "approval": -4.0, "stability": -4.0}}]},
+	{"id": "leadership_challenge", "title": "A leadership challenge", "icon": "swords", "tint": "red", "weight": 4.0, "cond": "spill",
+		"body": "With the polls this bad, rebels in your own party have the signatures to force a vote on your leadership. Lose it and you're out.",
+		"choices": [
+			{"label": "Fight it", "detail": "Win and you're stronger · lose and you're out",
+				"effects": {"spill": "fight"}},
+			{"label": "Buy off the rebels", "detail": "20 political capital · jobs and promises",
+				"effects": {"spill": "deal", "approval": -1.0}}]},
 	# Health, schools and regions (sim/health.gd, sim/education.gd, sim/regions.gd).
 	{"id": "doctors_strike", "title": "Doctors walk out", "icon": "stethoscope", "tint": "red", "weight": 1.4, "cond": "long_waits",
 		"body": "Junior doctors across {country} are on strike over pay and impossible waiting lists. Operations are being cancelled.",
@@ -938,6 +945,11 @@ static func roll(rng: RandomNumberGenerator) -> Dictionary:
 			"cb_overruled":
 				if me.cb_auto or me.interest_rate > Economy.neutral_rate(me.core_inflation) - 1.0:
 					continue
+			"spill":
+				if not Government.kind(Game.player) in ["parliamentary", "monarchy_parl"] or not Government.is_free(Game.player) \
+						or me.approval >= Economy.SPILL_APPROVAL or Game.months_played < 18 or Game.politics.months_left() <= 9 \
+						or Game.months_played - int(Game.dip.get("spill_m", -99)) < 36:
+					continue
 			"long_waits":
 				if not Game.dip.has("hlth") or Health.wait() < float(Health.st().wait0) * 1.2:
 					continue
@@ -983,10 +995,36 @@ static func instance(e: Dictionary, other: int = -1) -> Dictionary:
 		if ch.get("needs", "") == "occupied" and (other < 0 or float(War.with(other).get("occ_them", 0.0)) < 0.03):
 			continue
 		choices.append(ch)
+	if str(e.id) == "leadership_challenge" and not choices.is_empty():
+		choices[0] = (choices[0] as Dictionary).duplicate(true)
+		choices[0].detail = "Win chance about %d%% · lose and you're out" % roundi(spill_odds() * 100.0)
 	return {"id": e.id, "title": e.title, "icon": e.icon, "tint": e.tint, "other": other, "next": e.get("next", {}),
 		"face": e.get("face", ""), "scene_hint": e.get("scene_hint", ""),
 		"body": _sentence(String(e.body).format({"country": World.the_name(Game.player), "other": World.the_name(other) if other >= 0 else "",
 			"project": _building_name()})), "choices": choices}
+
+
+## Leadership challenge: odds of surviving a vote of your own party.
+static func spill_odds() -> float:
+	var c := Game.me()
+	return clampf(0.35 + (c.approval - 20.0) * 0.025 + Capital.value() / 400.0, 0.15, 0.9)
+
+
+static func spill(v: String) -> void:
+	var c := Game.me()
+	Game.dip["spill_m"] = Game.months_played
+	if v == "deal" and Capital.spend(Economy.SPILL_DEAL_CAPITAL):
+		Game.add_feed("The rebels stand down, for now", "users", "accent")
+		return
+	var r := RandomNumberGenerator.new()
+	r.seed = hash([Game.rng.seed, Game.months_played, "spill"])
+	if r.randf() < spill_odds():
+		c.shocks.approval = float(c.shocks.approval) + 3.0
+		Capital.add(10.0)
+		Game.add_milestone("Saw off a leadership challenge", "swords", "gold")
+		Game.intel_news.emit({"text": "You win the leadership vote. The party falls in behind you.", "icon": "swords", "good": true, "big": true})
+	else:
+		Game.dip["spill_lost"] = true
 
 
 ## Capitalise a sentence that starts with "the …" after formatting.
@@ -1110,6 +1148,8 @@ static func apply_effects(fx: Dictionary, other: int, ev_id: String = "") -> voi
 				Nuclear.apply(str(v))
 			"water":
 				Water.apply(str(v))
+			"spill":
+				spill(str(v))
 			"health":
 				if str(v) == "train":
 					Health.set_train("more" if str(Health.st().train) == "current" else "double")
