@@ -54,6 +54,10 @@ static func proposals() -> Array:
 					"why": "The air is %s (%d µg/m³ of fine dust). %s" % [Air.label(Air.pm()).to_lower(), roundi(Air.pm()), str(Air.POLICIES[aid].desc)],
 					"cost": "%s a year" % DS.money(gdp * float(Air.POLICIES[aid].cost) / 100.0)})
 				break
+	elif Game.dip.has("fish") and Fisheries.coastal() and Fisheries.stock() < 45.0 and str(Fisheries.st().quota) != "rebuild":
+		out.append({"id": "fish", "post": "interior", "title": "Let the fish come back",
+			"why": "Fish stocks are down to %d of 100. A few lean years of smaller quotas will save the fishery." % roundi(Fisheries.stock()),
+			"cost": "A smaller catch for a few years"})
 	# Finance (infrastructure).
 	if Game.dip.has("water") and Water.stress() >= 2.8 and Water.can_desal():
 		out.append({"id": "desal", "post": "finance", "title": "Build a desalination plant",
@@ -63,6 +67,14 @@ static func proposals() -> Array:
 		out.append({"id": "drip", "post": "finance", "title": "Drip irrigation for farms",
 			"why": "Farms use most of our water. Drip irrigation saves a lot of it.",
 			"cost": "%s a year" % DS.money(gdp * Economy.WAT_DRIP_COST / 100.0)})
+	elif Game.dip.has("dig_n") and not Digital.has_id() and Capital.can(Economy.DGT_ID_CAPITAL) and Corruption.value(c) < 60.0:
+		out.append({"id": "digital_id", "post": "finance", "title": "A digital ID for every citizen",
+			"why": "Taxes and benefits leak through fake names and middlemen. One digital ID would collect about %s more a year." % DS.money(gdp * Economy.DGT_ID_REVENUE * Digital.online() / 10000.0),
+			"cost": "%d political capital" % int(Economy.DGT_ID_CAPITAL)})
+	elif Game.dip.has("min") and Minerals.survey_wait() == 0 and Capital.can(Economy.MIN_SURVEY_CAPITAL) and Minerals.mine_list().size() < 2:
+		out.append({"id": "survey", "post": "finance", "title": "Survey for minerals",
+			"why": "The world wants lithium, cobalt and copper. Our geologists think there may be deposits nobody has mapped.",
+			"cost": "%d political capital and %s" % [int(Economy.MIN_SURVEY_CAPITAL), DS.money(gdp * Economy.MIN_SURVEY_COST / 100.0)]})
 	elif Game.dip.has("edu") and str(Education.st().fund) == "current" and int(Education.ranks()[0]) > 20 and c.treasury > 0.0:
 		out.append({"id": "uni", "post": "finance", "title": "Invest in the universities",
 			"why": "Our best university ranks #%d in the world. Better funding brings research and talent." % int(Education.ranks()[0]),
@@ -131,4 +143,10 @@ static func approve(id: String) -> void:
 		"air":
 			if not Air.has(p[1]):
 				Air.toggle(p[1])
+		"fish":
+			Fisheries.set_quota("rebuild")
+		"digital_id":
+			Digital.launch_id()
+		"survey":
+			Minerals.survey()
 	Simulation.update_finances(Game.me())
