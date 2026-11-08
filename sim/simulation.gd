@@ -40,6 +40,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 	var hsx: Dictionary = HeadOfState.modifiers() if c.idx == Game.player and Game.has_game() else {}
 	var aux: Dictionary = Automation.modifiers() if c.idx == Game.player and Game.has_game() else {}
 	var csx: Dictionary = Constitution.modifiers() if c.idx == Game.player and Game.has_game() and Game.dip.has("const") else {}
+	var fcx: Dictionary = Factions.modifiers() if c.idx == Game.player and Game.has_game() else {}
 	var anx: Dictionary = Annexation.unrest() if c.idx == Game.player and Game.has_game() and Game.dip.has("integration") else {}
 	var wx: Dictionary = War.effects() if c.idx == Game.player and Game.has_game() and War.at_war() else {}
 	var mx := Game.markets.effects(c)
@@ -89,6 +90,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Black market", float(bmx.get("growth", 0.0))],
 		["Energy & resources", float(egx.get("growth", 0.0))],
 		["Robots & AI", float(aux.get("growth", 0.0))],
+		["Power brokers", float(fcx.get("growth", 0.0))],
 		["Industries", float(idx_m.get("growth", 0.0))],
 		["Tourism", float(tox.get("growth", 0.0))],
 		["State firms", float(enx.get("growth", 0.0))],
@@ -152,6 +154,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Pandemic", float(pdx.get("unemployment", 0.0))],
 		["Energy & resources", float(egx.get("unemployment", 0.0))],
 		["Robots & AI", float(aux.get("unemployment", 0.0))],
+		["Power brokers", float(fcx.get("unemployment", 0.0))],
 		["Industries", float(idx_m.get("unemployment", 0.0))],
 		["Tourism", float(tox.get("unemployment", 0.0))],
 		["State firms", float(enx.get("unemployment", 0.0))],
@@ -252,6 +255,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Housing & families", float(ppx.get("approval", 0.0))],
 		["Head of state", float(hsx.get("approval", 0.0))],
 		["Constitution", float(csx.get("approval", 0.0))],
+		["Power brokers", float(fcx.get("approval", 0.0))],
 		["Your ministers", float(cx.get("approval", 0.0))],
 		["Media", float(mdx.get("approval", 0.0))],
 	]
@@ -274,6 +278,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Black market", float(bmx.get("stability", 0.0))],
 		["Head of state", float(hsx.get("stability", 0.0))],
 		["Constitution", float(csx.get("stability", 0.0))],
+		["Power brokers", float(fcx.get("stability", 0.0))],
 		["Media", float(mdx.get("stability", 0.0))],
 		["War", float(wx.get("stability", 0.0))],
 		["Integrating new lands", float(anx.get("stability", 0.0))],

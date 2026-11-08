@@ -33,6 +33,7 @@ const INDEX := [
 	["Oil, gas, coal & minerals", "build", "", "fuel", "oil gas coal minerals reserves mining explore"],
 	["Laws & reforms", "laws", "", "gavel", "laws reforms pass repeal"],
 	["Your cabinet", "laws", "Your cabinet", "users", "cabinet ministers reshuffle"],
+	["Power brokers: army, business, unions…", "laws", "Power brokers", "shield", "factions army generals business unions strikes religious clergy civil service coup loyalty"],
 	["Constitution", "laws", "Constitution", "scroll-text", "constitution term limits voting age electoral system senate courts federal rights amendment"],
 	["Royal family", "laws", "Royal family", "crown", "royal king queen monarch heir first family spouse"],
 	["Clean government", "laws", "Clean government", "gavel", "corruption crackdown clean"],

@@ -548,6 +548,23 @@ const TOUR_BID_MONTHS := 12        # from bid to vote
 const TOUR_SOFT_RELATIONS := 0.01  # relations a month with everyone per soft power point gained
 
 
+# ---------------------------------------------------------- power brokers ---
+# See sim/factions.gd. Loyalty points (0..100, 60 = content).
+const FAC_ADJUST := 1.0 / 10.0
+const FAC_COURT := 20.0           # loyalty from courting, fading over FAC_FAVOUR_MONTHS
+const FAC_FAVOUR_MONTHS := 24
+const FAC_COURT_CAPITAL := 8.0
+const FAC_PURGE_CAPITAL := 15.0
+const FAC_ANGRY := 30.0           # below this, a faction may act against you
+const FAC_ARMY_STAB := 3.0        # at full loyalty (and -4.5 at zero)
+const FAC_FAITH_STAB := 1.5
+const FAC_BUSINESS_GROWTH := 0.4
+const FAC_FAITH_APPROVAL := 2.0
+const FAC_UNIONS_JOBS := 0.4
+const FAC_CIVIL_SPEED := 0.15     # share faster laws at full loyalty
+const FAC_COUP_PER_POINT := 0.002 # extra monthly coup risk per loyalty point below FAC_ANGRY
+
+
 # ------------------------------------------------------------ constitution ---
 # See sim/constitution.gd.
 const CONST_CAPITAL := 25.0        # political capital per amendment

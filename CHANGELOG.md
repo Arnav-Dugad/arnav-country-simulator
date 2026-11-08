@@ -2,6 +2,15 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.75.0] - 2026-11-09
+
+- **Power brokers:** five groups that can make or break your government whatever the voters think: the army, big business, trade unions, religious leaders and the civil service (Laws page)
+  - Each has a loyalty level, and tapping one shows exactly why it feels that way: budgets, taxes, jobs, wars, laws
+  - Loyal groups help: the army deters coups, business invests, unions keep the peace, the faithful call for calm, officials pass your laws faster
+  - Angry ones push back with plots, capital flight, general strikes, sermons and quiet obstruction
+  - Win a group over with favours, or, outside free democracies, purge it and install loyalists
+- The welcome tour now says "President of the United States"
+
 ## [0.74.1] - 2026-11-08
 
 - **Fix: new players can choose a country again.** Since 0.68.0 the "Choose your nation" list didn't open, so a new game couldn't start (existing saves were unaffected). A new automatic test now guards it

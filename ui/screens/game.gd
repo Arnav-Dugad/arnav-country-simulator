@@ -219,7 +219,7 @@ func start_tour() -> void:
 		goal = "There are no elections here. Your rule rests on stability and public support: if both collapse, the streets (or the army) decide."
 	var g := Guide.new()
 	g.steps = [
-		{"target": _player_rect, "title": "Welcome, %s" % (Government.leader_display(i) if str(Settings.leader_name) != "" else "%s of %s" % [Government.leader_title(i), name]),
+		{"target": _player_rect, "title": "Welcome, %s" % (Government.leader_display(i) if str(Settings.leader_name) != "" else "%s of %s" % [Government.leader_title(i), World.the_name(i)]),
 			"text": "This is your country, a %s. Everything starts from real 2025 data." % Government.system_name(i).to_lower()},
 		{"target": strip.time_rect, "title": "Time moves month by month",
 			"text": "Pause or play here, and tap the speed to go faster. You can also tap the date at the top to pause."},

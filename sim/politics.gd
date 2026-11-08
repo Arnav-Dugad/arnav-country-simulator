@@ -208,6 +208,7 @@ func coup_risk() -> float:
 	var floor_st := minf(E.COUP_STABILITY, float(c.base.get("stability", 50.0)) - E.COLLAPSE_HEADROOM)
 	if c.stability < floor_st:
 		risk += (floor_st - c.stability) * E.COUP_PER_STABILITY
+	risk += Factions.coup_extra()
 	return clampf(risk, 0.0, 0.25)
 
 

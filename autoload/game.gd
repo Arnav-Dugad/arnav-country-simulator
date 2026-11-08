@@ -165,6 +165,7 @@ func new_game(country_index: int, seed_value: int = -1, level: String = "") -> v
 	HeadOfState.st()                # the royal or first family
 	Automation.st()                 # robots and AI
 	Constitution.st()               # the articles your country starts with
+	Factions.st()                   # power brokers
 	headlines_seen = {}
 	last_rating = ""
 	news = []
@@ -327,6 +328,9 @@ func advance_month() -> void:
 		add_feed(str(h.text), str(h.icon), "gold" if bool(h.good) else "orange")
 		if bool(h.big):
 			intel_news.emit(h)
+	for h in Factions.monthly():
+		add_feed(str(h.text), str(h.icon), "red")
+		intel_news.emit(h)
 	for h in Automation.monthly():
 		add_feed(str(h.text), str(h.icon), "orange")
 	for h in Manifesto.monthly():

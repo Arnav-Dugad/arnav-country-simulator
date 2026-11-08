@@ -22,6 +22,7 @@ var _crime: VBoxContainer
 var _black: VBoxContainer
 var _hos: VBoxContainer
 var _const: VBoxContainer
+var _fac: VBoxContainer
 var _capital: Control
 var _cap_value: Label
 var _cap_note: Label
@@ -120,8 +121,9 @@ func _build() -> void:
 	add_child(Illustration.banner("parliament", "gavel", DS.ACCENT, 124.0))
 	_capital = _capital_bar()
 	add_child(_capital)
-	add_child(jump_bar(["Your cabinet", "Royal family", "Constitution", "Clean government", "Media & propaganda", "Crime & justice", "Black market & smuggling"]))
+	add_child(jump_bar(["Your cabinet", "Power brokers", "Royal family", "Constitution", "Clean government", "Media & propaganda", "Crime & justice", "Black market & smuggling"]))
 	_cabinet = section("Your cabinet")
+	_fac = section("Power brokers")
 	_hos = section("Royal family")
 	_const = section("Constitution")
 	_clean = section("Clean government")
@@ -155,6 +157,7 @@ func refresh() -> void:
 	_fill_black()
 	_fill_hos()
 	_fill_const()
+	_fill_fac()
 	var active := 0
 	var passing := 0
 	for l in Laws.ALL:
@@ -841,4 +844,79 @@ func _article(a: String) -> void:
 				(b as Button).disabled = true
 	if why != "":
 		m.body(why + ".")
+	m.choice("Close", "", &"GhostButton", m.dismiss)
+
+
+# ----------------------------------------------------------- power brokers ---
+func _fill_fac() -> void:
+	for ch in _fac.get_children():
+		ch.queue_free()
+	note("Groups that can make or break you, whatever voters think. Tap one to see why it feels that way, or win it over.", _fac)
+	for id in Factions.INFO:
+		var info: Dictionary = Factions.INFO[id]
+		var lv := Factions.loyalty(str(id))
+		var tg := Factions.target(str(id))
+		var col := DS.GREEN if lv >= 60.0 else (DS.ORANGE if lv >= Economy.FAC_ANGRY else DS.RED)
+		var mood := "Loyal" if lv >= 70.0 else ("Content" if lv >= 50.0 else ("Uneasy" if lv >= Economy.FAC_ANGRY else "Angry"))
+		var v := VBoxContainer.new()
+		v.add_theme_constant_override(&"separation", 4)
+		_fac.add_child(v)
+		var row := ListRow.new().setup(str(info.title), "%s%s" % [mood, ("  ·  rising" if tg > lv + 2.0 else ("  ·  falling" if tg < lv - 2.0 else ""))], "%d" % roundi(lv), "loyalty")
+		row.trailing_label.add_theme_color_override(&"font_color", col)
+		row.set_leading(ListRow.icon_tile(str(info.icon), col))
+		var fid := str(id)
+		row.tapped.connect(func() -> void: _faction_card(fid))
+		v.add_child(row)
+		v.add_child(meter(lv / 100.0, 0.0, col, 3.0))
+
+
+func _faction_card(id: String) -> void:
+	var info: Dictionary = Factions.INFO[id]
+	var m := ModalCard.new()
+	get_tree().current_scene.add_child(m)
+	m.header(str(info.icon), DS.ACCENT, "Power brokers", str(info.title))
+	m.body("Loyalty %d / 100. When loyal: %s. When angry: %s." % [roundi(Factions.loyalty(id)), str(info.help).to_lower(), str(info.hurt).to_lower()])
+	var chips: Array = []
+	for t in Factions.terms(id):
+		var val := float(t[1])
+		if absf(val) >= 0.5:
+			chips.append(["%s %+d" % [str(t[0]), roundi(val)], DS.GREEN if val > 0.0 else DS.RED])
+	if not chips.is_empty():
+		var flow := HFlowContainer.new()
+		flow.add_theme_constant_override(&"h_separation", 6)
+		flow.add_theme_constant_override(&"v_separation", 6)
+		m.content.add_child(flow)
+		for ch in chips:
+			var p := PanelContainer.new()
+			p.theme_type_variation = &"ForecastChip"
+			var l := Label.new()
+			l.theme_type_variation = &"ChipValue"
+			l.text = str(ch[0])
+			l.add_theme_color_override(&"font_color", ch[1])
+			p.add_child(l)
+			flow.add_child(p)
+	var wait := Factions.court_wait(id)
+	var ok := wait == 0 and Capital.can(Economy.FAC_COURT_CAPITAL)
+	var c1 := m.choice("Win them over", ("%s  ·  %d political capital" % [str(info.court), int(Economy.FAC_COURT_CAPITAL)]) if wait == 0
+		else "Again in %d months" % wait, &"PrimaryButton", func() -> void:
+			var t := Factions.court(id)
+			m.dismiss()
+			if t != "":
+				Simulation.update_finances(Game.me())
+				Haptics.success()
+				var gs := get_tree().current_scene
+				if gs and gs.has_method("_notify"):
+					gs._notify(t, str(info.icon), DS.GREEN, false)
+			refresh())
+	if not ok:
+		for b in c1.find_children("*", "Button", true, false):
+			(b as Button).disabled = true
+	if Factions.can_purge():
+		m.choice("Purge and replace with loyalists", "Fast, but others grow wary and democracies protest  ·  %d capital" % int(Economy.FAC_PURGE_CAPITAL), &"DestructiveButton", func() -> void:
+			var t2 := Factions.purge(id)
+			m.dismiss()
+			if t2 != "":
+				Haptics.warning()
+				Game.add_feed(t2, str(info.icon), "orange")
+			refresh())
 	m.choice("Close", "", &"GhostButton", m.dismiss)
