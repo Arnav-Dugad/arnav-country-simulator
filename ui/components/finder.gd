@@ -5,6 +5,12 @@ extends RefCounted
 
 ## [title, page, section ("" = top), icon, words people might type]
 const INDEX := [
+	["Map: Air pollution", "map", "12", "wind", "map layer air pollution smog"],
+	["Map: Water stress", "map", "13", "droplets", "map layer water drought"],
+	["Map: People online", "map", "14", "wifi", "map layer internet online"],
+	["Map: World power", "map", "15", "crown", "map layer power strongest"],
+	["Map: Schools", "map", "10", "graduation-cap", "map layer schools education pisa"],
+	["Map: Nuclear weapons", "map", "11", "atom", "map layer nuclear warheads"],
 	["State of the nation dashboard", "dashboard", "", "layout-dashboard", "dashboard overview summary everything stats numbers glance"],
 	["Taxes", "economy", "Taxes", "coins", "income tax business vat property payroll fuel tariff sin tax rates"],
 	["Interest rates & central bank", "economy", "Central bank", "landmark", "interest rate inflation money central bank"],
@@ -142,7 +148,7 @@ static func open(parent: Node) -> void:
 
 static func _where(e: Array) -> String:
 	var page: String = {"economy": "Economy", "firms": "Economy › Wealth & firms", "industries": "Economy › Industries",
-		"population": "Economy › People & society", "budget": "Budget", "build": "Build", "laws": "Laws", "diplomacy": "World",
+		"population": "Economy › People & society", "map": "Map layer", "budget": "Budget", "build": "Build", "laws": "Laws", "diplomacy": "World",
 		"tourism": "World › Tourism", "sports": "World › Sport", "events": "Inbox", "achievements": "Hall of fame",
 		"settings": "Settings", "store": "Store", "dashboard": "Dashboard"}.get(str(e[1]), str(e[1]))
 	return page + (" › " + str(e[2]) if str(e[2]) != "" else "")
@@ -151,6 +157,12 @@ static func _where(e: Array) -> String:
 ## Open a page and scroll to one of its sections.
 static func go(gs: Node, page: String, section: String) -> void:
 	if gs == null or not gs.has_method("open_page"):
+		return
+	if page == "map":
+		gs.sheet.close()
+		gs._on_mode_changed(int(section))
+		if gs.get("layers") != null:
+			gs.layers.select(int(section))
 		return
 	gs.open_page(page)
 	if section == "":
