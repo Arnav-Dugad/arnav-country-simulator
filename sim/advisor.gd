@@ -55,6 +55,12 @@ static func advice(c: CountryState) -> Array:
 			"diplomacy", "swords"))
 	if Security.level() == 2:
 		out.append(_item(1, "Hostile forces near your borders", Security.describe(), "diplomacy", "shield"))
+	if c.idx == Game.player and Game.dip.has("energy") and Energy.shortage() > 0.0:
+		out.append(_item(1, "Power cuts are hurting factories",
+			"Demand has outgrown your grid. Build power plants, solar or wind farms (Build › Energy).", "build", "zap-off"))
+	if c.idx == Game.player and Game.dip.has("crime") and Crime.change() > 6.0:
+		out.append(_item(1, "Crime is rising (%d / 100)" % roundi(Crime.value()),
+			"Jobs, police stations and youth programmes bring it down (Laws › Crime & justice).", "laws", "siren"))
 	if c.idx == Game.player and Game.dip.has("pandemic") and Pandemic.active():
 		var inf := Pandemic.infected()
 		var over := inf > Pandemic.capacity(c)

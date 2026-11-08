@@ -541,6 +541,25 @@ const TOUR_BID_MONTHS := 12        # from bid to vote
 const TOUR_SOFT_RELATIONS := 0.01  # relations a month with everyone per soft power point gained
 
 
+# ------------------------------------------------------- energy & resources ---
+# See sim/energy.gd.
+const EN_WIND_DOWN := 0.6           # production (and depletion) when winding down ...
+const EN_EXPAND := 1.35             # ... and when expanding
+const EN_MINERAL_BOOM := 0.8        # critical-mineral prices rise this much over 20 years (batteries)
+const EN_EXPLORE_COST := 0.05       # % of GDP per exploration campaign
+const EN_GOV_TAKE := 0.5            # share of extra rents that reaches the budget
+const EN_RENT_GROWTH := 0.05        # growth points per point of GDP of extra rents
+const EN_RENT_JOBS := 0.05          # unemployment points removed per point of GDP of extra rents
+## Power: demand index = (GDP / GDP at start)^ELASTICITY x (1 - EFFICIENCY)^years.
+const EN_DEMAND_ELASTICITY := 0.6
+const EN_EFFICIENCY := 0.01
+const EN_PRIVATE_GROWTH := 0.02    # supply added each year without you (private investment)
+const EN_BUILD_SUPPLY := 0.6        # supply per unit of extra coverage of an energy build type
+const EN_MARGIN := 0.08             # spare capacity before blackouts begin
+const EN_BLACKOUT_GROWTH := 1.0     # growth lost at a 10 % shortfall
+const EN_BLACKOUT_HAPPY := 3.0
+
+
 # ---------------------------------------------------------- crime & justice ---
 # See sim/crime.gd. Crime index points.
 const CRIME_UNEMP := 1.2           # per point of unemployment above the start

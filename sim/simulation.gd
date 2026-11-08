@@ -33,6 +33,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 	var tox: Dictionary = Tourism.modifiers() if c.idx == Game.player and Game.has_game() else {}
 	var pdx: Dictionary = Pandemic.effects() if c.idx == Game.player and Game.has_game() and Game.dip.has("pandemic") else {}
 	var crx: Dictionary = Crime.modifiers() if c.idx == Game.player and Game.has_game() else {}
+	var egx: Dictionary = Energy.modifiers() if c.idx == Game.player and Game.has_game() else {}
 	var anx: Dictionary = Annexation.unrest() if c.idx == Game.player and Game.has_game() and Game.dip.has("integration") else {}
 	var wx: Dictionary = War.effects() if c.idx == Game.player and Game.has_game() and War.at_war() else {}
 	var mx := Game.markets.effects(c)
@@ -79,6 +80,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Technology", float(tm.get("growth", 0.0))],
 		["Pandemic", float(pdx.get("growth", 0.0))],
 		["Crime", float(crx.get("growth", 0.0))],
+		["Energy & resources", float(egx.get("growth", 0.0))],
 		["Tourism", float(tox.get("growth", 0.0))],
 		["State firms", float(enx.get("growth", 0.0))],
 		["Media", float(mdx.get("growth", 0.0))],
@@ -139,6 +141,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Other taxes", float(txm.get("unemployment", 0.0))],
 		["Technology", float(tm.get("unemployment", 0.0))],
 		["Pandemic", float(pdx.get("unemployment", 0.0))],
+		["Energy & resources", float(egx.get("unemployment", 0.0))],
 		["Tourism", float(tox.get("unemployment", 0.0))],
 		["State firms", float(enx.get("unemployment", 0.0))],
 		["War mobilization", float(wx.get("unemployment", 0.0))],
@@ -204,6 +207,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Technology", float(tm.get("happiness", 0.0))],
 		["Pandemic", float(pdx.get("happiness", 0.0))],
 		["Crime", float(crx.get("happiness", 0.0))],
+		["Energy & resources", float(egx.get("happiness", 0.0))],
 		["Stock market", float(enx.get("happiness", 0.0))],
 		["Media", float(mdx.get("happiness", 0.0))],
 		["War", float(wx.get("happiness", 0.0))],
@@ -312,6 +316,8 @@ static func update_finances(c: CountryState) -> void:
 	var market_rev := float(Game.markets.effects(c).revenue) if Game.has_game() else 0.0
 	if Game.has_game():
 		market_rev += float(Tariffs.modifiers(c).revenue)
+	if c.idx == Game.player and Game.has_game() and Game.dip.has("energy"):
+		market_rev += float(Energy.modifiers().get("revenue", 0.0))
 	var extra_tax := Taxes.total_pct(c) if not c.taxes.is_empty() else 0.0
 	c.revenue = c.gdp * (rate + (c.other_rev_pct + extra_tax + float(lx.get("revenue", 0.0)) + market_rev) / 100.0) * cycle
 	c.spending = c.gdp * (c.spending_pct + float(lx.get("cost", 0.0)) + Projects.spending_pct(c) + Ageing.pension_cost(c)

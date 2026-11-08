@@ -576,6 +576,8 @@ func _fill_group(c: CountryState, g: String) -> void:
 	else:
 		sub = "%d%% covered on average  ·  %s" % [roundi(Builds.group_coverage(c, g) * 100.0), str(GROUP_BLURB[g])]
 	_units.add_child(photo_header(str(GROUP_SCENE[g]), g, sub, 140.0))
+	if g == "Energy":
+		_energy_card(c)
 	var open: Array = []
 	var locked: Array = []
 	for id in Builds.ids_in(g):
@@ -958,3 +960,87 @@ func _tech_row(id: String) -> Control:
 			Haptics.select()
 			refresh())
 	return row
+
+
+# ------------------------------------------------------- energy & resources ---
+func _energy_card(c: CountryState) -> void:
+	# The grid: demand vs supply.
+	var box := section("Power grid", _units)
+	var dm := Energy.demand()
+	var sp := Energy.supply()
+	var use := dm / maxf(sp + Economy.EN_MARGIN, 0.01)
+	var short := Energy.shortage()
+	var col := DS.GREEN if use < 0.9 else (DS.ORANGE if short <= 0.0 else DS.RED)
+	var r := HBoxContainer.new()
+	r.add_theme_constant_override(&"separation", DS.S3)
+	box.add_child(r)
+	r.add_child(ListRow.icon_tile("zap-off" if short > 0.0 else "zap", col))
+	var cc := VBoxContainer.new()
+	cc.add_theme_constant_override(&"separation", 0)
+	cc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	r.add_child(cc)
+	var t := Label.new()
+	t.theme_type_variation = &"Headline"
+	t.text = "Rolling blackouts" if short > 0.0 else ("Running tight" if use >= 0.9 else "Enough power")
+	cc.add_child(t)
+	var cap := Label.new()
+	cap.theme_type_variation = &"Caption"
+	cap.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	cap.custom_minimum_size = Vector2(40, 0)
+	cap.text = "Demand %+d%% since you took office, supply %+d%%" % [roundi((dm - 1.0) * 100.0), roundi((sp - 1.0) * 100.0)]
+	cc.add_child(cap)
+	var v := Label.new()
+	v.theme_type_variation = &"StatSmall"
+	v.text = "%d%%" % roundi(use * 100.0)
+	v.add_theme_color_override(&"font_color", col)
+	r.add_child(v)
+	box.add_child(meter(minf(use, 1.0), 0.0, col, 4.0))
+	note("A growing economy needs more electricity. Build power plants, solar and wind farms, dams or grid lines below to stay ahead." if short <= 0.0
+		else "Factories and homes are losing power. Every energy build below adds supply.", box)
+	# Natural resources.
+	var res: Dictionary = Energy.st().res
+	var rb := section("Natural resources", _units)
+	if res.is_empty():
+		note("Your country has no big oil, gas, coal or mineral reserves. Exploration might find some.", rb)
+	for id in res:
+		var info: Dictionary = Energy.RESOURCES[id]
+		var rr: Dictionary = res[id]
+		var yrs := float(rr.years)
+		var row := ListRow.new().setup(str(info.title), ("Exhausted" if yrs <= 0.0 else "About %d years left  ·  %s of GDP a year" % [
+			roundi(yrs), DS.pct(Energy.rent(str(id)), 1)]))
+		row.subtitle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		row.subtitle_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+		row.set_leading(ListRow.icon_tile(str(info.icon), DS.TEXT_3 if yrs <= 0.0 else (DS.RED if yrs < 8.0 else DS.GOLD)))
+		rb.add_child(row)
+		if yrs <= 0.0:
+			continue
+		rb.add_child(meter(yrs / maxf(float(rr.years0), 1.0), 0.0, DS.RED if yrs < 8.0 else DS.GOLD, 3.0))
+		var labels := PackedStringArray()
+		for p in Energy.POLICIES:
+			labels.append(str(Energy.POLICY_TITLE[p]))
+		var seg := SegmentedControl.new().setup(labels, [], Energy.POLICIES.find(str(rr.policy)))
+		seg.fill = true
+		seg.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var rid := str(id)
+		seg.changed.connect(func(k: int) -> void:
+			Energy.set_policy(rid, str(Energy.POLICIES[k]))
+			Simulation.update_finances(Game.me())
+			Haptics.select()
+			refresh())
+		rb.add_child(seg)
+	note("Expanding earns more now but runs out sooner and adds emissions. When a reserve runs dry its income stops: save some in the wealth fund.", rb)
+	var wait := Energy.explore_wait()
+	var eb := AppButton.make("Explore  ·  %s" % DS.money(Energy.explore_cost()), &"", "search")
+	eb.disabled = wait > 0
+	eb.pressed.connect(func() -> void:
+		var text := Energy.explore()
+		Simulation.update_finances(Game.me())
+		var gs := get_tree().current_scene
+		if gs and gs.has_method("_notify"):
+			gs._notify(text, "search", DS.GOLD if text.begins_with("Discovery") else DS.TEXT_2, false)
+		if text.begins_with("Discovery"):
+			Haptics.success()
+		refresh())
+	rb.add_child(eb)
+	if wait > 0:
+		note("Next survey possible in %d months." % wait, rb)

@@ -157,6 +157,7 @@ func new_game(country_index: int, seed_value: int = -1, level: String = "") -> v
 	Enterprise.st()                 # state firms, wealth fund, stock index
 	Tourism.st()                    # tourism, heritage, soft power
 	Crime.st()                      # crime index from the country's real profile
+	Energy.st()                     # reserves and the power grid
 	headlines_seen = {}
 	last_rating = ""
 	news = []
@@ -315,6 +316,8 @@ func advance_month() -> void:
 		me().treasury = me().spending
 	for note in War.monthly():
 		war_battle.emit(note)
+	for h in Energy.monthly():
+		add_feed(str(h.text), str(h.icon), "green" if bool(h.good) else "orange")
 	for h in Crime.monthly():
 		add_feed(str(h.text), str(h.icon), "green" if bool(h.good) else "orange")
 	for h in Pandemic.monthly():
