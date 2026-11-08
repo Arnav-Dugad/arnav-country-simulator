@@ -87,6 +87,22 @@ static func _drain_target(e: Dictionary, lvl: float) -> float:
 	return clampf(d, 1.0, 40.0)
 
 
+## Best university's world rank for any country (yours live).
+static func rank_of(i: int) -> int:
+	if i == Game.player and Game.has_game() and Game.dip.has("edu"):
+		return int(ranks()[0])
+	var iso := World.iso(i)
+	if UNI_RANK.has(iso):
+		return int(UNI_RANK[iso])
+	var c: CountryState = Game.state(i)
+	if c == null:
+		return 1500
+	var lvl := Economy.income_level(c.gdp_per_capita())
+	var size := clampf(log(maxf(c.gdp / 1e11, 0.05)) / log(10.0), -1.3, 2.4)
+	var q := clampf(5.0 + 40.0 * lvl + 8.0 * size, 2.0, 95.0)
+	return clampi(roundi(1000.0 * exp(-q / RANK_K)), 1, 1500)
+
+
 ## Learning score of any country (yours live; others from PISA or an income estimate).
 static func score_of(i: int) -> float:
 	if i == Game.player and Game.has_game() and Game.dip.has("edu"):

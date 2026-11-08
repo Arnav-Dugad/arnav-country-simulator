@@ -33,6 +33,11 @@ func _build() -> void:
 	_gov.theme_type_variation = &"Footnote"
 	_gov.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	add_child(_gov)
+	_facts = GridContainer.new()
+	_facts.columns = 2
+	_facts.add_theme_constant_override(&"h_separation", DS.S3)
+	_facts.add_theme_constant_override(&"v_separation", DS.S2)
+	add_child(_facts)
 	_leader_row = ListRow.new()
 	add_child(_leader_row)
 	_traits = HFlowContainer.new()
@@ -65,6 +70,60 @@ func _build() -> void:
 	_status = note("")
 	_est = note("")
 	_est.add_theme_color_override(&"font_color", DS.ORANGE)
+
+
+var _facts: GridContainer
+
+
+## Society & resources at a glance (real data, yours live): two columns of small facts.
+func _fill_facts(i: int, show: bool) -> void:
+	for ch in _facts.get_children():
+		ch.queue_free()
+	_facts.visible = show
+	if not show:
+		return
+	var rk := Education.rank_of(i)
+	var ws := Water.stress_of(i)
+	var items: Array = [
+		["school", "Test scores", "%d  ·  %s" % [roundi(Education.score_of(i)), Education.score_text(Education.score_of(i)).to_lower()]],
+		["graduation-cap", "Best university", ("#%d in the world" % rk) if rk < 1000 else "outside top 1,000"],
+		["droplets", "Water stress", "%s of 5  ·  %s" % [String.num(ws, 1), Water.label(ws).to_lower()]],
+		["wheat", "Food grown at home", "%d%%" % roundi(Food.ss_of(i))],
+	]
+	var wh := Nuclear.warheads(i)
+	if wh > 0:
+		items.append(["atom", "Nuclear warheads", "about %d" % wh])
+	var rm := Diaspora.rate_of(i)
+	if absf(rm) >= 2.0:
+		items.append(["plane-landing" if rm > 0.0 else "plane-takeoff", "Remittances", "%s of GDP %s" % [DS.pct(absf(rm), 0), "in" if rm > 0.0 else "out"]])
+	for it in items:
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override(&"separation", 6)
+		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var ic := TextureRect.new()
+		ic.texture = DS.icon(str(it[0]))
+		ic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		ic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		ic.custom_minimum_size = Vector2(16, 16)
+		ic.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		ic.modulate = DS.TEXT_3
+		row.add_child(ic)
+		var col := VBoxContainer.new()
+		col.add_theme_constant_override(&"separation", 0)
+		col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(col)
+		var t := Label.new()
+		t.theme_type_variation = &"Caption"
+		t.text = str(it[1])
+		col.add_child(t)
+		var v := Label.new()
+		v.theme_type_variation = &"Footnote"
+		v.text = str(it[2])
+		v.clip_text = true
+		v.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		v.custom_minimum_size = Vector2(40, 0)
+		col.add_child(v)
+		_facts.add_child(row)
 
 
 func _tile(parent: Control, t: String, fmt: Callable) -> StatTile:
@@ -129,6 +188,7 @@ func refresh() -> void:
 			lines.append("Inequality: Gini %s (%s)  ·  %s%% aged 65+" % [String.num(st.gini, 1), Inequality.label(st.gini),
 				String.num(Ageing.share(st), 1)])
 		_gov.text = "\n".join(lines)
+	_fill_facts(i, playable and Game.state(i) != null)
 	for ch in _traits.get_children():
 		ch.queue_free()
 	if playable:

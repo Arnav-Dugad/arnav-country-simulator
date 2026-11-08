@@ -43,6 +43,16 @@ static func st() -> Dictionary:
 	return Game.dip.food
 
 
+## Food self-sufficiency of any country (yours live).
+static func ss_of(i: int) -> float:
+	if i == Game.player and Game.has_game() and Game.dip.has("food"):
+		return self_sufficiency()
+	var iso := World.iso(i)
+	if SELF.has(iso):
+		return float(SELF[iso])
+	return clampf(35.0 + 6.0 * World.stat(i, "agriculture_pct", 8.0) - (40.0 if Profiles.food_importer(i) else 0.0), 2.0, 200.0)
+
+
 static func self_sufficiency() -> float:
 	return float(st().ss)
 

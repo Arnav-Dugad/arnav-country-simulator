@@ -59,6 +59,18 @@ static func st() -> Dictionary:
 	return Game.dip.water
 
 
+## Water stress of any country (yours live).
+static func stress_of(i: int) -> float:
+	if i == Game.player and Game.has_game() and Game.dip.has("water"):
+		return stress()
+	var iso := World.iso(i)
+	if STRESS.has(iso):
+		return float(STRESS[iso])
+	var c: CountryState = Game.state(i)
+	var lvl := Economy.income_level(c.gdp_per_capita()) if c != null else 0.5
+	return clampf(1.2 + 0.2 * World.stat(i, "agriculture_pct", 10.0) * (1.0 - lvl) + (1.5 if World.map.subregions[i] in ["Western Asia", "Northern Africa"] else 0.0), 0.2, 4.5)
+
+
 static func stress() -> float:
 	return float(st().s)
 

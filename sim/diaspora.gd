@@ -36,6 +36,14 @@ static func st() -> Dictionary:
 	return Game.dip.dias
 
 
+## Remittances of any country, % of GDP (+ received, - sent; yours live).
+static func rate_of(i: int) -> float:
+	if i == Game.player and Game.has_game() and Game.dip.has("dias"):
+		return rate()
+	var iso := World.iso(i)
+	return float(IN.get(iso, 0.0)) - float(OUT.get(iso, 0.0))
+
+
 static func rate() -> float:
 	return float(st().r)
 
