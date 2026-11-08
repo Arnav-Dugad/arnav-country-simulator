@@ -2,6 +2,10 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.55.0] - 2026-11-08
+
+- **Election night: the chamber fills.** In parliamentary countries, a half-circle of 151 seats fills in your party's colour as the votes are counted, then the smaller parties, then the opposition
+
 ## [0.54.1] - 2026-11-08
 
 - **More realistic starting relations:** countries that share real blocs (EU, NATO, ASEAN, Mercosur, the Gulf states…) start warmer, the Western and Russia–China-aligned camps start cooler toward each other, and key relationships are set by hand (Ukraine with Poland and Belarus, Russia with its European neighbours, Brazil with Portugal and more). Non-aligned BRICS members like Brazil, India and South Africa stay friendly with both sides

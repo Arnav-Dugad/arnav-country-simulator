@@ -922,9 +922,27 @@ func _show_election(r: Dictionary) -> void:
 		bar.draw_style_box(fill, Rect2(0, 4, maxf(w * prog.v / 100.0, 6.0), 6))
 		bar.draw_rect(Rect2(w * 0.5 - 1, 0, 2, 14), Color(1, 1, 1, 0.55)))
 	_modal.content.add_child(bar)
+	# Parliamentary systems: the chamber fills seat by seat as the count goes on.
+	var hemi: Hemicycle = null
+	if Government.kind(Game.player) in ["parliamentary", "monarchy_parl"]:
+		bar.visible = false
+		hemi = Hemicycle.new()
+		var sh := float(r.share)
+		var pct := clampf(sh + (sh - 50.0) * 0.6, 4.0, 92.0)       # winner's bonus, as in real chambers
+		hemi.mine = roundi(hemi.seats * pct / 100.0)
+		if bool(r.won):
+			hemi.mine = maxi(hemi.mine, hemi.seats / 2 + 1)
+		else:
+			hemi.mine = mini(hemi.mine, hemi.seats / 2 - 1)
+		hemi.others = roundi(hemi.seats * 0.07)
+		hemi.mine_color = Settings.PARTY_COLORS[clampi(Settings.party_color, 0, 5)]
+		hemi.progress = 0.0
+		if Screen.landscape:
+			hemi.custom_minimum_size = Vector2(0, 76)
+		_modal.content.add_child(hemi)
 	var cap := Label.new()
 	cap.theme_type_variation = &"Caption"
-	cap.text = "50% to win"
+	cap.text = "%d seats to win" % (hemi.seats / 2 + 1) if hemi != null else "50% to win"
 	cap.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	if r.has("opponent"):
 		var vs := VBoxContainer.new()
@@ -943,6 +961,8 @@ func _show_election(r: Dictionary) -> void:
 	var t := card.create_tween()
 	t.tween_method(func(v: float) -> void:
 		prog.v = v
+		if is_instance_valid(hemi):
+			hemi.progress = v / maxf(float(r.share), 1.0)
 		if is_instance_valid(bar):
 			bar.queue_redraw()
 		if int(v) % 5 == 0:
