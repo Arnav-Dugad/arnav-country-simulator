@@ -402,6 +402,13 @@ static func tax_yield(rate: float, k: float) -> float:
 	return r * k * (1.0 - LAFFER * r * r)
 
 
+# ------------------------------------------------------------------ builds ---
+## Countable builds (sim/builds.gd): each type's fx is the effect of going from
+## 0 to full coverage; this scale makes a build programme about as rewarding per
+## dollar as the national projects. Military and CO2 effects are not scaled.
+const BUILD_FX_SCALE := 3.5
+
+
 # ---------------------------------------------------------------- security ---
 # See sim/security.gd. Military strength is the 0-100 index.
 ## Relations below this count as hostile.

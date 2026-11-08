@@ -62,6 +62,8 @@ var laws_start := {}   # laws in force at the start (baseline; see Laws)
 var laws_ver := 0      # bump when `laws` changes (invalidates the modifier cache)
 var projects := {}     # id -> {state: building|done, progress (months), price (USD), start?}
 var projects_ver := 0
+var builds := {}       # countable builds (see Builds): id -> {n, n0, batches}
+var builds_ver := 0
 var lx_cache := {}
 var lx_ver := -1
 
@@ -215,7 +217,7 @@ const SAVE_FIELDS := ["idx", "population", "gdp", "growth", "growth_anchor", "tr
 	"u_natural", "inflation", "core_inflation", "interest_rate", "debt", "debt_rate", "treasury",
 	"other_rev_pct", "pop_growth", "price_index", "approval", "happiness", "stability", "military", "income_tax",
 	"corp_tax", "spending_pct", "budget", "trade_openness", "trade_deals", "sanctioned_by",
-	"alliances", "base", "shocks", "estimated", "laws", "laws_start", "projects", "cb_auto", "gini"]
+	"alliances", "base", "shocks", "estimated", "laws", "laws_start", "projects", "cb_auto", "gini", "builds"]
 
 
 func to_dict() -> Dictionary:

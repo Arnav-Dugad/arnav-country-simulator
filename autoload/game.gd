@@ -20,6 +20,7 @@ signal review_held(result: Dictionary)
 signal army_warning
 signal game_over(summary: Dictionary)
 signal law_finished(id: String, repealed: bool)
+signal build_finished(id: String, n: int)
 signal project_finished(id: String)
 signal campaign_started
 signal world_news(item: Dictionary)
@@ -142,6 +143,8 @@ func new_game(country_index: int, seed_value: int = -1, level: String = "") -> v
 	for k in HISTORY_KEYS:
 		history[k] = PackedFloat32Array()
 	_init_relations()
+	for bid in Builds.ALL:          # the player's real starting stock of hospitals, schools, forces…
+		Builds.count(me(), str(bid))
 	dip = Diplomacy.fresh_state()
 	for i in relations.size():
 		dip.baseline[str(i)] = relations[i]
@@ -278,6 +281,11 @@ func advance_month() -> void:
 		if not bool(done.repealed) and Leaders.LAW_KIND.has(str(done.id)):
 			Leaders.react(str(Leaders.LAW_KIND[done.id]))
 		law_finished.emit(str(done.id), bool(done.repealed))
+	for done in Builds.monthly(me()):
+		var bs := Builds.spec(str(done[0]))
+		var n := int(done[1])
+		add_milestone("Opened %s %s" % [str(n) if n > 1 else "a", (str(bs.title).to_lower() + ("s" if n > 1 else ""))], str(bs.icon), "green")
+		build_finished.emit(str(done[0]), n)
 	for id in Projects.monthly(me()):
 		add_milestone("Opened the %s" % str(Projects.by_id(id).title).to_lower(), str(Projects.by_id(id).icon), "green")
 		project_finished.emit(str(id))

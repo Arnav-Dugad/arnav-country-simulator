@@ -40,6 +40,8 @@ static func life_target(c: CountryState) -> float:
 		t += 1.2
 	if Laws.is_active(c, "universal_health") and not c.laws_start.has("universal_health"):
 		t += 1.5
+	if not c.builds.is_empty():
+		t += float(Builds.modifiers(c).get("life", 0.0))
 	return clampf(t, 40.0, 90.0)
 
 
@@ -50,6 +52,8 @@ static func lit_target(c: CountryState) -> float:
 	var push := E.LIT_EDUCATION * _log2(c.effort("education"), b.get("education_effort", 0.0))
 	if Projects.is_done(c, "schools") and not bool(c.projects.get("schools", {}).get("start", false)):
 		push += 6.0
+	if not c.builds.is_empty():
+		push += float(Builds.modifiers(c).get("lit", 0.0))
 	return clampf(s0 + push * (100.0 - s0) / 30.0, 10.0, 99.7)
 
 

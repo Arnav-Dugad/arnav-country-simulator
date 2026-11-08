@@ -34,6 +34,8 @@ static func terms(c: CountryState) -> Array:
 		if on != was:
 			laws += float(LAW_GINI[id]) * (1.0 if on else -1.0)
 	out.append(["Laws & reforms", laws])
+	if not c.builds.is_empty():
+		out.append(["Affordable homes", float(Builds.modifiers(c).get("gini", 0.0))])
 	return out
 
 

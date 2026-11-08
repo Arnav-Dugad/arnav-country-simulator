@@ -8,6 +8,10 @@ var _speed: Label
 var _filter: SegmentedControl
 var _list: VBoxContainer
 var _mode := 0
+var _tab := 0               # 0 build, 1 defence, 2 programmes
+var _tabs: SegmentedControl
+var _prog_box: VBoxContainer
+var _units: VBoxContainer
 
 
 func _init() -> void:
@@ -17,24 +21,45 @@ func _init() -> void:
 
 func _build() -> void:
 	add_child(Illustration.banner("construction", "crane", DS.ORANGE, 124.0))
+	_tabs = SegmentedControl.new().setup(["Build", "Defence", "Programmes"], [], 0)
+	_tabs.plain = true
+	_tabs.compact = false
+	_tabs.fill = true
+	_tabs.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_tabs.changed.connect(func(i: int) -> void:
+		_tab = i
+		Haptics.select()
+		refresh())
+	add_child(_tabs)
+	_units = VBoxContainer.new()
+	_units.add_theme_constant_override(&"separation", DS.S4)
+	add_child(_units)
+	_prog_box = VBoxContainer.new()
+	_prog_box.add_theme_constant_override(&"separation", DS.S4)
+	add_child(_prog_box)
 	_summary = Label.new()
 	_summary.theme_type_variation = &"Subhead"
 	_summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	add_child(_summary)
-	_speed = note("")
+	_prog_box.add_child(_summary)
+	_speed = note("", _prog_box)
 	_filter = SegmentedControl.new().setup(["Can build", "Building", "Built"], [], 0)
 	_filter.changed.connect(func(i: int) -> void:
 		_mode = i
 		refresh())
-	add_child(_filter)
+	_prog_box.add_child(_filter)
 	_list = VBoxContainer.new()
 	_list.add_theme_constant_override(&"separation", DS.S4)
-	add_child(_list)
+	_prog_box.add_child(_list)
 
 
 func refresh() -> void:
 	var c := Game.me()
 	if c == null:
+		return
+	_prog_box.visible = _tab == 2
+	_units.visible = _tab != 2
+	if _tab != 2:
+		_fill_units(c)
 		return
 	var building := Projects.count_building(c)
 	var spend := Projects.spending_pct(c)
@@ -210,3 +235,189 @@ func _chip(text: String, color: Color) -> Control:
 	lbl.text = text
 	p.add_child(lbl)
 	return p
+
+
+# ------------------------------------------------------------ countable builds ---
+static func _n(v: float) -> String:
+	return DS.compact(roundf(v)).trim_suffix(".0").replace(".0K", "K").replace(".0M", "M")
+
+
+func _fill_units(c: CountryState) -> void:
+	for ch in _units.get_children():
+		ch.queue_free()
+	var defence := _tab == 1
+	var head := Label.new()
+	head.theme_type_variation = &"Subhead"
+	head.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	head.custom_minimum_size = Vector2(60, 0)
+	var spend := Builds.building_pct(c)
+	if defence:
+		head.text = "Military strength %d / 100. Forces you build add to it; your Military budget keeps them ready." % roundi(c.military)
+	elif spend > 0.0:
+		head.text = "Building now: %s a year." % DS.money(c.gdp * spend / 100.0)
+	else:
+		head.text = "Choose how many of anything to build. Countries that lack something gain the most from it."
+	_units.add_child(head)
+	for g in Builds.GROUPS:
+		if (g == "Defence") != defence:
+			continue
+		var box := section(g, _units)
+		for id in Builds.ids_in(g):
+			box.add_child(_unit_row(c, str(id)))
+
+
+func _unit_row(c: CountryState, id: String) -> Control:
+	var s := Builds.spec(id)
+	var n := Builds.count(c, id)
+	var q := Builds.building(c, id)
+	var cov := Builds.coverage_of(c, id, float(n))
+	var why := Builds.available(c, id)
+	var sub := "%s  ·  %d%% of need" % [_n(n), roundi(cov * 100.0)]
+	if q > 0:
+		sub += "  ·  +%s building" % _n(q)
+	var row := ListRow.new().setup(str(s.title), sub if why == "" else why, "›")
+	row.trailing_label.add_theme_color_override(&"font_color", DS.TEXT_3)
+	var tint := DS.RED if str(s.group) == "Defence" else DS.ACCENT
+	if why != "":
+		tint = DS.TEXT_3
+	elif q > 0:
+		tint = DS.ORANGE
+	elif cov >= 0.8:
+		tint = DS.GREEN
+	row.set_leading(ListRow.icon_tile(str(s.icon), tint))
+	if why == "":
+		row.tapped.connect(_order.bind(id))
+	return row
+
+
+func _order(id: String) -> void:
+	var c := Game.me()
+	var s := Builds.spec(id)
+	var m := ModalCard.new()
+	get_tree().current_scene.add_child(m)
+	m.header(str(s.icon), DS.RED if str(s.group) == "Defence" else DS.ORANGE, str(s.group), str(s.title))
+	var n := Builds.count(c, id)
+	var price := Builds.unit_price(c, id)
+	var months := Builds.months(c, id)
+	m.body("You have %s (%d%% of what %s needs). Each %s costs %s and takes about %d months to build." % [
+		_n(n), roundi(Builds.coverage_of(c, id, float(n)) * 100.0), World.the_name(c.idx),
+		str(s.unit), DS.money(price, 0), months])
+	var most := Builds.max_more(c, id)
+	var info := Label.new()
+	info.theme_type_variation = &"Footnote"
+	info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	info.custom_minimum_size = Vector2(60, 0)
+	var chips := HFlowContainer.new()
+	chips.add_theme_constant_override(&"h_separation", 6)
+	chips.add_theme_constant_override(&"v_separation", 6)
+	var qty := {"v": clampi(int(ceil(Builds.need(c, id) * 0.1)), 1, maxi(most, 1))}
+	var ui := {"confirm": null}
+	var have := n + Builds.building(c, id)
+	var update := func() -> void:
+		var k := int(qty.v)
+		var total := price * k
+		var cov0 := Builds.coverage_of(c, id, float(have))
+		var cov1 := Builds.coverage_of(c, id, float(have + k))
+		info.text = "%s × %s = %s over %d months (%s of GDP a year). Coverage %d%% → %d%%. Upkeep afterwards: %s a year." % [
+			_n(k), DS.money(price, 0), DS.money(total), months,
+			DS.pct(total / float(maxi(months, 1)) * 12.0 / c.gdp * 100.0, 2), roundi(cov0 * 100.0), roundi(cov1 * 100.0),
+			DS.money(total * float(s.upkeep), 0)]
+		for ch in chips.get_children():
+			ch.queue_free()
+		var d := cov1 - cov0
+		for key in s.fx:
+			if key == "relations_soft":
+				continue
+			var v := float(s.fx[key]) * d * Economy.BUILD_FX_SCALE
+			if absf(v) >= 0.01:
+				var good: bool = (v > 0.0) == bool(Laws.FX_GOOD_UP.get(key, true))
+				chips.add_child(_chip("%s %+.2f" % [Laws.FX_LABELS.get(key, key), v], DS.GREEN if good else DS.RED))
+		if s.has("mil"):
+			chips.add_child(_chip("Military %+.1f" % (float(s.mil) * d), DS.GREEN))
+		if s.has("life"):
+			chips.add_child(_chip("Life expectancy %+.2f yrs" % (float(s.life) * d * Economy.BUILD_FX_SCALE), DS.GREEN))
+		if s.has("co2") and float(s.co2) > 0.0:
+			chips.add_child(_chip("CO₂ −%s%%" % String.num(float(s.co2) * d * 100.0, 1), DS.GREEN))
+		var cb: Control = ui.confirm
+		if is_instance_valid(cb):
+			for b in cb.find_children("*", "Button", true, false):
+				(b as Button).text = "Build %s" % _n(k)
+				break
+	if most <= 0:
+		m.body("You already have all the %s your country could use." % str(s.title).to_lower())
+	else:
+		var slider := AppSlider.new().setup("How many", 1, maxf(most, 1), 1, float(qty.v))
+		slider.formatter = func(v: float) -> String: return _n(v)
+		slider.value_changed.connect(func(v: float) -> void:
+			qty.v = maxi(1, roundi(v))
+			update.call())
+		m.content.add_child(slider)
+		var presets := HBoxContainer.new()
+		presets.add_theme_constant_override(&"separation", DS.S2)
+		m.content.add_child(presets)
+		for p in [1, 10, 100, 1000]:
+			if p > most:
+				continue
+			var b := AppButton.make(_n(p), &"Chip")
+			b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			b.pressed.connect(func() -> void:
+				qty.v = p
+				slider.set_value(float(p), false)
+				update.call())
+			presets.add_child(b)
+		var full := mini(most, int(ceil(-Builds.need(c, id) * log(0.1))) - have)
+		if full > 1:
+			var fb := AppButton.make("To 90%", &"Chip")
+			fb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			fb.pressed.connect(func() -> void:
+				qty.v = full
+				slider.set_value(float(full), false)
+				update.call())
+			presets.add_child(fb)
+		m.content.add_child(info)
+		m.content.add_child(chips)
+		ui.confirm = m.choice("Build", "", &"PrimaryButton", func() -> void:
+			if Builds.order(c, id, int(qty.v)):
+				Haptics.success()
+				Simulation.update_finances(c)
+			m.dismiss()
+			refresh())
+		update.call()
+	# Under construction, and demolition.
+	var bt: Array = c.builds.get(id, {}).get("batches", [])
+	for k in bt.size():
+		var bd: Dictionary = bt[k]
+		m.choice("Stop building %s (%d mo left)" % [_n(float(bd.n)), int(ceil(float(bd.left) / Projects.speed(c)))],
+			"Money already spent is lost", &"GhostButton", func() -> void:
+				Builds.cancel(c, id, k)
+				Haptics.tap()
+				Simulation.update_finances(c)
+				m.dismiss()
+				refresh())
+	if n > 0:
+		m.choice("Demolish some", "Saves upkeep; you lose their benefits", &"GhostButton", func() -> void:
+			m.dismiss()
+			_demolish(id))
+	m.choice("Close", "", &"GhostButton", m.dismiss)
+
+
+func _demolish(id: String) -> void:
+	var c := Game.me()
+	var s := Builds.spec(id)
+	var n := Builds.count(c, id)
+	var m := ModalCard.new()
+	get_tree().current_scene.add_child(m)
+	m.header("x", DS.RED, "Demolish", str(s.title))
+	var qty := {"v": maxi(1, n / 10)}
+	var slider := AppSlider.new().setup("How many", 1, maxf(n, 1), 1, float(qty.v))
+	slider.formatter = func(v: float) -> String: return _n(v)
+	slider.value_changed.connect(func(v: float) -> void: qty.v = maxi(1, roundi(v)))
+	m.content.add_child(slider)
+	m.body("Coverage drops and the benefits go with it. Only upkeep for units built since you took office is saved.")
+	m.choice("Demolish", "", &"DestructiveButton", func() -> void:
+		Builds.demolish(c, id, int(qty.v))
+		Haptics.warning()
+		Simulation.update_finances(c)
+		m.dismiss()
+		refresh())
+	m.choice("Cancel", "", &"GhostButton", m.dismiss)

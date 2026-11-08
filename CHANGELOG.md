@@ -2,6 +2,15 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.56.0] - 2026-11-08
+
+- **Build exactly what you want, as many as you want.** The Build page has a new catalog of 41 things you build by the number: highways, rail lines, metro lines, airports and ports; solar, wind, gas, nuclear and hydro power; hospitals, clinics, care homes and water plants; schools, universities and labs; homes, police and fire stations, parks and prisons; industrial parks, data centres, chip factories and more; stadiums, museums and concert halls
+  - Every country starts with its real stock (India has about 2,900 hospitals); each row shows how much of the need you cover
+  - Pick a number with the slider or quick buttons (1, 10, 100, 1K, or "to 90%"), see the exact cost, build time, upkeep and effects first, stop a batch under construction, or demolish
+  - The first units where something is lacking help most; extra ones in a well-served country help little
+- **Defence:** a new tab to raise your armed forces unit by unit: infantry and armoured brigades, fighter squadrons, frigates, submarines, air defence, drones, cyber units, satellites and bases. They add to your military strength
+- National programmes (space, flood defences, a billion trees…) live on under the Programmes tab
+
 ## [0.55.0] - 2026-11-08
 
 - **Election night: the chamber fills.** In parliamentary countries, a half-circle of 151 seats fills in your party's colour as the votes are counted, then the smaller parties, then the opposition

@@ -937,6 +937,8 @@ static func apply_effects(fx: Dictionary, other: int, ev_id: String = "") -> voi
 	sev *= lerpf(1.15, 0.9, Press.credibility() / 100.0)
 	# Flood defences soften natural disasters.
 	var soften := 0.7 if ev_id in DISASTERS and Projects.is_done(c, "flood_defences") else 1.0
+	if ev_id in DISASTERS and not c.builds.is_empty():
+		soften *= clampf(1.0 - float(Builds.modifiers(c).get("disaster", 0.0)), 0.5, 1.0)
 	for k in fx:
 		var v: Variant = fx[k]
 		match k:
