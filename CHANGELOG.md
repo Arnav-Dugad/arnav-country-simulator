@@ -2,6 +2,10 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.45.1] - 2026-11-08
+
+- "Your voters" shows today's race: "If the vote were today: you 54%, Lucas Almeida 46%", with the opposition leader's face
+
 ## [0.45.0] - 2026-11-08
 
 - **TV debates.** Two months before every free election you face the opposition leader live on TV. They go after your weakest record: defend a good record, go on the attack, or promise a tax cut (popular, but it really cuts your revenue)

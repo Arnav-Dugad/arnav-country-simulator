@@ -6,6 +6,7 @@ extends PanelContainer
 var _box: VBoxContainer
 var _bars := {}
 var _vals := {}
+var _race: HBoxContainer     # "If the vote were today": you vs the opposition leader
 
 
 func _ready() -> void:
@@ -17,6 +18,10 @@ func _ready() -> void:
 	t.theme_type_variation = &"Headline"
 	t.text = "Your voters" if Government.has_elections(Game.player) else "Your people"
 	_box.add_child(t)
+	if Opposition.active():
+		_race = HBoxContainer.new()
+		_race.add_theme_constant_override(&"separation", DS.S2)
+		_box.add_child(_race)
 	var sz := Blocs.sizes(Game.player)
 	for g in Blocs.IDS:
 		var row := VBoxContainer.new()
@@ -72,6 +77,7 @@ func refresh() -> void:
 	if _bars.is_empty() or not Game.has_game():
 		return
 	var c := Game.me()
+	_fill_race()
 	var sup := Blocs.support(c)
 	for g in Blocs.IDS:
 		var parts: Array = _bars[g]
@@ -90,3 +96,24 @@ func refresh() -> void:
 		else:
 			_vals[g] = target
 			bar.queue_redraw()
+
+
+## "If the vote were today: you 54% · Arjun Rao 46%" with the rival's face.
+func _fill_race() -> void:
+	if _race == null:
+		return
+	for ch in _race.get_children():
+		ch.queue_free()
+	var opp := Opposition.leader()
+	var me := Game.politics.poll()
+	var l := Label.new()
+	l.theme_type_variation = &"Footnote"
+	l.text = "If the vote were today: you %d%%, %s %d%%" % [roundi(me), str(opp.name), 100 - roundi(me)]
+	l.add_theme_color_override(&"font_color", DS.GREEN if me >= 50.0 else DS.ORANGE)
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	l.custom_minimum_size = Vector2(40, 0)
+	_race.add_child(l)
+	var face := Photo.portrait(str(opp.portrait), 30.0)
+	face.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_race.add_child(face)
