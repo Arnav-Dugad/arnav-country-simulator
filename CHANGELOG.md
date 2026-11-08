@@ -2,6 +2,21 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.68.0] - 2026-11-08
+
+- **Delete saves:** a new "Manage saves" button on the home screen. A deleted game is also removed from your cloud backup, so it never comes back
+- **Smaller text by default**, and a new Tiny size. Choose Tiny, Small, Default, Large or Huge in Settings › Display
+- **Sandbox Cheats** is now a pack in the store (also included in the Complete Edition and the Statesman Pass; the demo store charges nothing). It's bigger, too:
+  - 35 one-tap cheats in 9 categories, with new ones for research, war and spies, wealth and fame, and time: finish research, every technology, enemies capitulate, annex your enemies, master spies, bull market, heritage sites, host the Games, fast-forward a year and more
+  - Exact sliders for approval, happiness, stability, military, inflation and unemployment
+  - Tiles no longer fire by accident while you scroll
+- **Cloud backup polish:**
+  - A live status card (backed up, syncing, waiting for a connection, problems) and which saves are safely in the cloud
+  - A backup line on the home screen
+  - Sign-out now asks first, the password field has a "Show password" switch, and password reset is clearer
+  - Sync backs off gently while you're offline
+- The Android back button on the "Choose your nation" screen now returns to the home screen
+
 ## [0.67.1] - 2026-11-08
 
 - Fixes found while testing on a real phone with a very long sandbox game:
