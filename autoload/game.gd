@@ -38,6 +38,9 @@ const FEED_MAX := 60
 ## Real-world relationship seeds (symmetric). Everything else is derived from
 ## region and neighbourhood with a little noise.
 const RELATION_SEEDS := {
+	"RUS-DEU": -45, "RUS-FIN": -50, "RUS-EST": -60, "RUS-LTU": -60, "RUS-LVA": -60,
+	"UKR-BLR": -40, "UKR-POL": 60, "UKR-GBR": 60, "UKR-DEU": 45, "UKR-LTU": 60, "UKR-CAN": 55,
+	"BRA-PRT": 60, "BRA-USA": 35, "ZAF-USA": 20, "IND-ISR": 40, "IND-FRA": 50, "IND-AFG": 10,
 	"USA-GBR": 75, "USA-CAN": 70, "USA-JPN": 65, "USA-KOR": 65, "USA-AUS": 70, "USA-ISR": 70,
 	"USA-DEU": 55, "USA-FRA": 50, "USA-MEX": 35, "USA-IND": 40, "USA-RUS": -55, "USA-CHN": -35,
 	"USA-IRN": -75, "USA-PRK": -85, "USA-CUB": -45, "USA-VEN": -50, "USA-TWN": 50, "USA-UKR": 50,
@@ -194,6 +197,9 @@ func _init_relations() -> void:
 		# Similar systems get along a little better.
 		if Government.is_free(i) == democracy:
 			r += 4.0
+		# Real alignments: shared blocs warm relations, rival camps cool them.
+		if World.is_playable(i):
+			r += Treaties.seed_affinity(player, i)
 		var key_a := "%s-%s" % [World.map.iso3[player], World.map.iso3[i]]
 		var key_b := "%s-%s" % [World.map.iso3[i], World.map.iso3[player]]
 		if RELATION_SEEDS.has(key_a):

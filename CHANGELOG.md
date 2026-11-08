@@ -2,6 +2,10 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.54.1] - 2026-11-08
+
+- **More realistic starting relations:** countries that share real blocs (EU, NATO, ASEAN, Mercosur, the Gulf states…) start warmer, the Western and Russia–China-aligned camps start cooler toward each other, and key relationships are set by hand (Ukraine with Poland and Belarus, Russia with its European neighbours, Brazil with Portugal and more). Non-aligned BRICS members like Brazil, India and South Africa stay friendly with both sides
+
 ## [0.54.0] - 2026-11-08
 
 - **National security.** A new Security card on the World page weighs the threat from countries that dislike you (their military strength, and whether they're on your border) against your deterrence (your own forces plus your allies'). When the threat wins, investors grow wary and stability slips, and tense border standoffs can break out: talk, mobilize, or call your allies. No battles, just the pressure every leader feels

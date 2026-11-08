@@ -51,7 +51,40 @@ const ALL := [
 ]
 
 ## Camps for UN votes and summits.
-const WEST_EXTRA := ["JPN", "KOR", "AUS", "NZL", "CHE", "ISR"]
+const WEST_EXTRA := ["JPN", "KOR", "AUS", "NZL", "CHE", "ISR", "UKR", "MDA"]
+## Real blocs used to seed starting relations (shared membership warms them).
+const EAST_EXTRA := ["CHN", "IRN", "PRK", "CUB", "VEN", "NIC", "SYR", "ERI"]
+const SEED_BLOCS := ["eu", "nato", "asean", "mercosur", "usmca", "gcc", "brics", "eaeu", "csto"]
+
+
+## Geopolitical camp from real memberships only (usable before a game starts):
+## "west", "east" or "south".
+static func base_camp(i: int) -> String:
+	var iso := World.iso(i)
+	if base_member(i, "nato") or base_member(i, "eu") or iso in WEST_EXTRA:
+		return "west"
+	# BRICS also holds non-aligned democracies (Brazil, India, South Africa):
+	# "east" is the Russia/China-aligned group only.
+	if base_member(i, "csto") or base_member(i, "eaeu") or iso in EAST_EXTRA:
+		return "east"
+	return "south"
+
+
+## Starting-relations nudge between two countries from blocs and camps.
+static func seed_affinity(a: int, b: int) -> float:
+	var v := 0.0
+	var shared := 0
+	for id in SEED_BLOCS:
+		if base_member(a, id) and base_member(b, id):
+			shared += 1
+	v += minf(shared * 7.0, 18.0)
+	var ca := base_camp(a)
+	var cb := base_camp(b)
+	if (ca == "west" and cb == "east") or (ca == "east" and cb == "west"):
+		v -= 30.0
+	elif ca == cb and ca != "south":
+		v += 6.0
+	return v
 const G20 := ["ARG", "AUS", "BRA", "CAN", "CHN", "FRA", "DEU", "IND", "IDN", "ITA", "JPN", "KOR", "MEX", "RUS",
 	"SAU", "ZAF", "TUR", "GBR", "USA"]
 const FORMER_USSR := ["RUS", "BLR", "KAZ", "KGZ", "TJK", "TKM", "UZB", "ARM", "AZE", "GEO", "MDA", "UKR"]
