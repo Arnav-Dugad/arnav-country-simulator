@@ -162,6 +162,10 @@ static func monthly() -> Array:
 			var pace := E.PAN_VAX_RATE * (0.5 + Economy.income_level(c.gdp_per_capita()))
 			if i == Game.player:
 				pace = E.PAN_VAX_RATE * (0.3 + capacity(c) / E.PAN_CAPACITY) if bool(s.get("vaccinating", false)) else 0.0
+				if bool(s.get("donated", false)):
+					pace *= 0.75                       # a quarter of your doses go abroad
+			elif bool(s.get("donated", false)) and Economy.income_level(c.gdp_per_capita()) < 0.4:
+				pace *= 1.5                            # your gift speeds up poorer countries
 			vac[key] = clampf(V + pace * S, 0.0, 0.9)
 		# Deaths and economic damage (player handled in effects()).
 		if i != Game.player and I2 > 0.002:
@@ -235,6 +239,23 @@ static func monthly() -> Array:
 
 
 ## Monthly target offsets on you (growth, unemployment, happiness, approval, stability, cost, trade).
+## Vaccine diplomacy: give a quarter of your doses to poorer countries.
+static func donate() -> bool:
+	var s := st()
+	if not vaccine_ready() or bool(s.get("donated", false)):
+		return false
+	s["donated"] = true
+	Game.dip["vax_gift"] = Game.months_played
+	for i in Game.relations.size():
+		var c: CountryState = Game.state(i)
+		if i != Game.player and c != null and Economy.income_level(c.gdp_per_capita()) < 0.4:
+			Game.relations[i] = clampf(Game.relations[i] + 6.0, -100.0, 100.0)
+	Game.relations_changed.emit()
+	Game.add_milestone("Shared vaccines with poorer countries", "syringe", "gold")
+	Game.add_feed("A quarter of your vaccines go to poorer countries", "syringe", "green")
+	return true
+
+
 static func effects() -> Dictionary:
 	var out := {}
 	if not active():

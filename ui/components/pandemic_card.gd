@@ -64,6 +64,20 @@ func refresh() -> void:
 	else:
 		vnote.text = "A world vaccine is %d%% of the way. Research mRNA vaccines to make your own, much sooner." % roundi(float(s.vaccine_world) * 100.0)
 	v.add_child(vnote)
+	if Pandemic.vaccine_ready() and not bool(s.get("donated", false)):
+		var db := AppButton.make("Share vaccines with poorer countries", &"", "syringe")
+		db.pressed.connect(func() -> void:
+			if Pandemic.donate():
+				Haptics.success()
+				db.disabled = true
+				db.text = "Vaccines shared")
+		v.add_child(db)
+		var dn := Label.new()
+		dn.theme_type_variation = &"Caption"
+		dn.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		dn.custom_minimum_size = Vector2(60, 0)
+		dn.text = "A quarter of your doses go abroad: your own rollout slows, but poorer countries remember it for years."
+		v.add_child(dn)
 	# Lockdown.
 	var lh := Label.new()
 	lh.theme_type_variation = &"Overline"

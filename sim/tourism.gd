@@ -135,6 +135,8 @@ static func soft_power(i: int, details: bool = true) -> float:
 			sp += Diaspora.prestige()
 		if Game.dip.has("fish"):
 			sp += Fisheries.prestige()
+		if Game.months_played - int(Game.dip.get("vax_gift", -999)) < 60:
+			sp += 4.0       # vaccine diplomacy is remembered
 	return clampf(sp, 0.0, 100.0)
 
 

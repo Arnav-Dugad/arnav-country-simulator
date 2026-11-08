@@ -2,6 +2,15 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.92.0] - 2026-11-09
+
+- **At a glance everywhere:** Industries, World and Laws now open with tappable summary tiles that jump to the right section
+  - Industries: minerals, food, fish, robots
+  - World: the Doomsday Clock, water, sea lanes, security, war, CO₂
+  - Laws: power brokers, values, integrity, trust, crime, charter
+- **Vaccine diplomacy:** in a pandemic, share a quarter of your vaccines with poorer countries. Your rollout slows, but they remember it: better relations and soft power for years
+- **Balance:** checked again with all the new systems; Realistic survival 82%, elections won 84%
+
 ## [0.91.0] - 2026-11-09
 
 - **Fisheries & oceans** (Industries, coastal countries):
