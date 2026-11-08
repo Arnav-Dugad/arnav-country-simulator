@@ -46,14 +46,15 @@ static func leader() -> Dictionary:
 	var li: int = absi(hash("%s#opp-last#%d" % [World.iso(i), _gen()])) % (names[1] as Array).size()
 	var female: bool = fi % 2 == 0          # first-name lists alternate female / male
 	var group := Leaders.group_of(i)
-	var portrait := Leaders.portrait_key(group, female)
+	var full := Names.full(i, fi, li)
+	var v := Leaders.variant_for(full)
+	var portrait := Leaders.portrait_key(group, female, v)
 	if portrait == Leaders.player_portrait():
-		# Never the same face as yours: borrow the nearest region's.
-		var near: Array = Leaders.NEAREST.get(group, [group])
-		portrait = Leaders.portrait_key(str(near[1 % near.size()]), female)
+		# Never the same face as yours: the other face for this region.
+		portrait = Leaders.portrait_key(group, female, v + 1)
 	# The party stays; its leaders change.
 	var p: Dictionary = PARTIES[absi(hash("%s#opp-party" % World.iso(i))) % PARTIES.size()]
-	return {"name": Names.full(i, fi, li), "female": female, "portrait": portrait,
+	return {"name": full, "female": female, "portrait": portrait,
 		"party": str(p.party), "pitch": str(p.pitch), "base": p.base}
 
 

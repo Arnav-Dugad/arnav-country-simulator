@@ -2,6 +2,12 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.47.0] - 2026-11-08
+
+- **Settings on the main menu:** a gear in the corner of the home screen opens the settings that make sense outside a game (your profile, display and accessibility, sound and haptics, account and cloud, about and updates)
+- **Twice as many faces:** 14 new AI-generated portraits of original, fictional people (younger ministers and senior statesmen from every region). World leaders, ministers and opposition leaders now look far more varied, and you can pick any of 28 portraits for yourself
+- **New scenes:** a TV debate studio (debates and campaigns), farmland (droughts and discoveries), a factory floor (strikes, investment, automation) and a school (brain drain, youth jobs)
+
 ## [0.46.0] - 2026-11-08
 
 - Balance: a successor candidate now carries some of the party's fatigue after long years in power, so term limits don't make late elections easier (the balance report showed Realistic had become too forgiving)

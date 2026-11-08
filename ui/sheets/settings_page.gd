@@ -25,6 +25,8 @@ var _status: Label
 var _cheat_box: VBoxContainer
 var _account_box: VBoxContainer
 var _about_box: VBoxContainer
+## Opened from the main menu: only app-wide settings (no saves, events, cheats…).
+var menu_mode := false
 
 
 func _init() -> void:
@@ -47,13 +49,8 @@ func _build() -> void:
 	_profile.tapped.connect(func() -> void: _open("Your profile", _build_profile))
 	top.add_child(_profile)
 
-	var game := section("Game", _root)
-	_nav(game, "Save & load", "Slots, main menu, new game", "download", DS.ACCENT, func() -> void: _open("Save & load", _build_saves))
-	_nav(game, "Notifications", "How events and banners reach you", "bell", DS.RED, func() -> void: _open("Notifications", _build_notifications))
-	_ach_row = _nav(game, "Achievements", "%d of %d unlocked" % [Achievements.count(), Achievements.ALL.size()], "crown", DS.GOLD,
-		func() -> void: achievements_requested.emit())
-	_nav(game, "Store", "Map themes, expansions (demo)", "sparkles", DS.ORANGE, func() -> void: store_requested.emit())
-	_nav(game, "Replay the guided tour", "", "map", DS.TEAL, func() -> void: tour_requested.emit())
+	if not menu_mode:
+		_build_game_section()
 
 	var look := section("Look & feel", _root)
 	_nav(look, "Display & accessibility", "Text size, rotation, colours, motion", "layers", DS.PURPLE, func() -> void: _open("Display & accessibility", _build_display))
@@ -61,10 +58,22 @@ func _build() -> void:
 
 	var more := section("More", _root)
 	_nav(more, "Account & cloud", "Backups and your account", "cloud", DS.ACCENT, func() -> void: _open("Account & cloud", _build_account))
-	_nav(more, "Cheats", "A sandbox for experiments", "wand-sparkles", DS.PURPLE, func() -> void: _open("Cheats", _build_cheats))
+	if not menu_mode:
+		_nav(more, "Cheats", "A sandbox for experiments", "wand-sparkles", DS.PURPLE, func() -> void: _open("Cheats", _build_cheats))
 	_nav(more, "About & updates", "Version %s" % ProjectSettings.get_setting("application/config/version", "0.0.0"), "info", DS.TEXT_3,
 		func() -> void: _open("About & updates", _build_about))
 	_refresh_profile()
+
+
+## In-game only: saves, notifications, achievements, store, tour.
+func _build_game_section() -> void:
+	var game := section("Game", _root)
+	_nav(game, "Save & load", "Slots, main menu, new game", "download", DS.ACCENT, func() -> void: _open("Save & load", _build_saves))
+	_nav(game, "Notifications", "How events and banners reach you", "bell", DS.RED, func() -> void: _open("Notifications", _build_notifications))
+	_ach_row = _nav(game, "Achievements", "%d of %d unlocked" % [Achievements.count(), Achievements.ALL.size()], "crown", DS.GOLD,
+		func() -> void: achievements_requested.emit())
+	_nav(game, "Store", "Map themes, expansions (demo)", "sparkles", DS.ORANGE, func() -> void: store_requested.emit())
+	_nav(game, "Replay the guided tour", "", "map", DS.TEAL, func() -> void: tour_requested.emit())
 
 
 ## A row that opens something (with a chevron).

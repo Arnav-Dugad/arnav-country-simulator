@@ -13,7 +13,7 @@ extends Control
 ## Event id -> scene (anything not listed falls back by icon, then "globe").
 const EVENT_ART := {
 	"recession": "chart_down", "recovery_boom": "chart_up", "floods": "flood", "monsoon": "flood",
-	"hurricane": "storm", "heatwave": "heat", "earthquake": "quake", "drought": "drought",
+	"hurricane": "storm", "heatwave": "heat", "earthquake": "quake", "drought": "farm",
 	"tech_boom": "tech", "protests": "crowd", "scandal": "gavel", "inquiry_result": "gavel",
 	"pandemic": "health", "vaccine_race": "health", "oil_shock": "oil", "oil_windfall": "oil", "oil_crash": "oil",
 	"strike": "factory", "resources": "factory", "investment": "money", "sports": "crown", "cyberattack": "tech",
@@ -27,19 +27,20 @@ const EVENT_ART := {
 }
 ## Event id -> painted scene (assets/scenes, AI-generated, no real people).
 const EVENT_SCENE := {
-	"summit": "summit", "cop": "climate", "resource_windfall": "markets", "games_prep": "construction", "games_open": "celebration", "games_mess": "protest", "debate": "election", "term_limit": "parliament", "un_sanctions": "summit", "un_climate": "climate", "un_ceasefire": "summit", "un_rights": "summit",
-	"protests": "protest", "strike": "protest", "democracy_movement": "protest", "dissident": "press",
+	"summit": "summit", "cop": "climate", "resource_windfall": "markets", "games_prep": "construction", "games_open": "celebration", "games_mess": "protest", "debate": "debate", "term_limit": "parliament", "un_sanctions": "summit", "un_climate": "climate", "un_ceasefire": "summit", "un_rights": "summit",
+	"protests": "protest", "strike": "factory", "democracy_movement": "protest", "dissident": "press",
 	"floods": "flood", "monsoon": "flood", "un_ocean": "flood", "hurricane": "hurricane",
-	"overrun": "construction", "investment": "construction", "housing": "construction",
+	"overrun": "construction", "investment": "factory", "housing": "construction",
 	"recession": "markets", "debt_crisis": "markets", "recovery_boom": "markets",
 	"observers": "election", "coalition_crisis": "parliament", "budget_standoff": "parliament",
 	"court_ruling": "parliament", "scandal": "press", "inquiry_result": "press", "party_purge": "parliament",
 	"pensions": "parliament", "succession": "parliament", "pandemic": "hospital", "vaccine_race": "hospital",
-	"oil_shock": "oil", "oil_windfall": "oil", "oil_crash": "oil", "resources": "oil", "blackout": "oil",
-	"drought": "drought", "heatwave": "drought", "tech_boom": "tech", "cyberattack": "tech", "automation": "tech",
-	"brain_drain": "tech", "un_ai": "tech", "sports": "celebration", "games_bid": "celebration",
+	"oil_shock": "oil", "oil_windfall": "oil", "oil_crash": "oil", "resources": "farm", "blackout": "oil",
+	"drought": "drought", "heatwave": "drought", "tech_boom": "tech", "cyberattack": "tech", "automation": "factory",
+	"brain_drain": "school", "un_ai": "tech", "sports": "celebration", "games_bid": "celebration",
 	"royal_wedding": "celebration", "tourism": "celebration", "trade_offer": "port", "sanction_threat": "port",
 	"press": "press", "refugees": "aid", "bank_wobble": "markets", "bank_run": "bank_run", "aid_request": "aid", "earthquake": "quake", "bailout_vote": "parliament",
+	"youth_jobs": "school", "generals": "parliament",
 	"currency_slide": "markets", "currency_crisis": "markets", "imf_review": "summit", "heat_grid": "drought",
 }
 

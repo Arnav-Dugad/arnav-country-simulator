@@ -797,7 +797,7 @@ func _show_campaign() -> void:
 	Haptics.select(false)
 	_modal = ModalCard.new()
 	add_child(_modal)
-	_modal.content.add_child(Illustration.banner("election", "ballot", DS.GOLD))
+	_modal.content.add_child(Illustration.banner("debate", "ballot", DS.GOLD))
 	_modal.header("vote", DS.GOLD, "Election in %d months" % Game.politics.months_to_election, "Plan your campaign")
 	var opp_line := ""
 	if Opposition.active():

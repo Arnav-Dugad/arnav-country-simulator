@@ -53,15 +53,23 @@ func _build() -> void:
 	var titles := VBoxContainer.new()
 	titles.add_theme_constant_override(&"separation", 0)
 	titles.alignment = BoxContainer.ALIGNMENT_CENTER
+	titles.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	brand.add_child(titles)
 	var t := Label.new()
 	t.theme_type_variation = &"Title2"
 	t.text = "Arnav Country Simulator"
+	t.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	t.custom_minimum_size = Vector2(80, 0)
 	titles.add_child(t)
 	var sub := Label.new()
 	sub.theme_type_variation = &"Footnote"
 	sub.text = "Welcome back, leader."
 	titles.add_child(sub)
+	var gear := AppButton.make("", &"IconButton", "settings")
+	gear.custom_minimum_size = Vector2(DS.MIN_TOUCH, DS.MIN_TOUCH)
+	gear.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	gear.pressed.connect(_open_settings)
+	brand.add_child(gear)
 
 	var last := Settings.last_slot
 	var sm := SaveManager.summary(last)
@@ -207,6 +215,41 @@ func _scrim() -> Control:
 	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	r.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	return r
+
+
+## Settings from the main menu: the app-wide ones only (see SettingsPage.menu_mode),
+## in the same glass bottom sheet the game uses.
+var _sheet: BottomSheet
+
+
+func _open_settings() -> void:
+	Haptics.tap()
+	if _sheet == null:
+		_sheet = BottomSheet.new()
+		_sheet.stops = [BottomSheet.Snap.HALF, BottomSheet.Snap.FULL]
+		add_child(_sheet)
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override(&"separation", DS.S3)
+		_sheet.header.add_child(row)
+		var t := Label.new()
+		t.theme_type_variation = &"Title2"
+		t.text = "Settings"
+		t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(t)
+		var close := AppButton.make("", &"IconButton", "x")
+		close.custom_minimum_size = Vector2(DS.MIN_TOUCH, DS.MIN_TOUCH)
+		close.pressed.connect(_sheet.close)
+		row.add_child(close)
+		var scroll := TouchScroll.new()
+		scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		_sheet.body.add_child(scroll)
+		var page := SettingsPage.new()
+		page.menu_mode = true
+		scroll.add_child(page)
+		_sheet.set_meta(&"page", page)
+	(_sheet.get_meta(&"page") as SettingsPage).on_open()
+	_sheet.open(BottomSheet.Snap.FULL)
 
 
 func _layout() -> void:

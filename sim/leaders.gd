@@ -40,8 +40,17 @@ static func group_of(i: int) -> String:
 	return "East"
 
 
-static func portrait_key(group: String, female: bool) -> String:
-	return "%s_%s" % [group.to_lower(), "f" if female else "m"]
+## Two faces per region and gender: variant 0 (40s/50s) and 1 (younger women,
+## older men). Picked from a person's name so they always keep the same face.
+const VARIANTS := 2
+
+
+static func portrait_key(group: String, female: bool, variant: int = 0) -> String:
+	return "%s_%s%s" % [group.to_lower(), "f" if female else "m", "" if variant % VARIANTS == 0 else str(variant % VARIANTS + 1)]
+
+
+static func variant_for(person_name: String) -> int:
+	return absi(hash(person_name + "#face")) % VARIANTS
 
 
 static func _term(i: int) -> int:
@@ -59,8 +68,9 @@ static func leader(i: int) -> Dictionary:
 	var li: int = (h / 7) % lasts.size()
 	var female: bool = fi % 2 == 0          # first-name lists alternate female / male
 	var p: String = KEYS[(h / 131) % KEYS.size()]
-	return {"name": Names.full(i, fi, li), "title": Government.leader_title(i),
-		"female": female, "personality": p, "portrait": portrait_key(g, female)}
+	var full := Names.full(i, fi, li)
+	return {"name": full, "title": Government.leader_title(i),
+		"female": female, "personality": p, "portrait": portrait_key(g, female, variant_for(full))}
 
 
 static func new_leader(i: int) -> Dictionary:
@@ -85,7 +95,7 @@ static func drift(i: int) -> float:
 ## Portrait for a minister or candidate ({name, female, group}).
 static func portrait_for(person: Dictionary) -> String:
 	if person.has("female") and person.has("group"):
-		return portrait_key(str(person.group), bool(person.female))
+		return portrait_key(str(person.group), bool(person.female), variant_for(str(person.get("name", ""))))
 	return portrait_for_name(str(person.get("name", "")))
 
 
@@ -111,11 +121,18 @@ static func cabinet_portraits() -> Dictionary:
 			continue
 		var parts := key.split("_")
 		var g := parts[0].capitalize()
-		var sex := parts[1]
+		var female := parts[1].begins_with("f")
+		var v0 := 0 if parts[1].length() == 1 else int(parts[1].substr(1)) - 1
+		# Same region's other face first, then the nearest regions.
+		var found := false
 		for alt in NEAREST.get(g, [g]):
-			var k2 := "%s_%s" % [str(alt).to_lower(), sex]
-			if not used.has(k2):
-				key = k2
+			for dv in VARIANTS:
+				var k2 := portrait_key(str(alt), female, v0 + dv)
+				if not used.has(k2) and ResourceLoader.exists("res://assets/portraits/%s.webp" % k2):
+					key = k2
+					found = true
+					break
+			if found:
 				break
 		used[key] = true
 		out[post] = key
@@ -131,7 +148,8 @@ static func all_portraits() -> Array:
 	var out: Array = []
 	for g in ["Europe", "Americas", "Africa", "South", "East", "Middle", "Oceania"]:
 		for f in [true, false]:
-			out.append(portrait_key(g, f))
+			for v in VARIANTS:
+				out.append(portrait_key(g, f, v))
 	return out
 
 
