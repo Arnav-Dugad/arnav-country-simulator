@@ -61,7 +61,16 @@ static func proposals() -> Array:
 			"why": "Our best university ranks #%d in the world. Better funding brings research and talent." % int(Education.ranks()[0]),
 			"cost": "%s a year" % DS.money(gdp * float(Education.FUNDING_INFO.boost.cost) / 100.0)})
 	# Foreign affairs.
-	if Game.dip.has("water"):
+	var foreign := false
+	if Game.dip.has("sea") and SeaLanes.can_escort() and c.trade_openness >= 0.4:
+		for id in SeaLanes.st().open:
+			if not (SeaLanes.st().escort as Dictionary).has(id):
+				out.append({"id": "escort:" + str(id), "post": "foreign", "title": "Send the navy to the %s" % str(SeaLanes.LANES[id].title),
+					"why": "Ships are being diverted and freight costs are rising. An escort mission reopens the strait sooner and wins friends.",
+					"cost": "%s a year while it lasts" % DS.money(gdp * Economy.SEA_ESCORT_COST / 100.0)})
+				foreign = true
+				break
+	if Game.dip.has("water") and not foreign:
 		for rv in Water.my_rivers():
 			if not bool(rv.up) and (Water.st().dams as Dictionary).has(rv.id) and not (Water.st().treaty as Dictionary).has(rv.id) and Capital.can(10.0):
 				out.append({"id": "treaty:" + str(rv.id), "post": "foreign", "title": "A water treaty on %s" % str(rv.title),
@@ -110,4 +119,6 @@ static func approve(id: String) -> void:
 			Water.set_drip(true)
 		"treaty":
 			Water.apply(id)
+		"escort":
+			SeaLanes.set_escort(p[1], true)
 	Simulation.update_finances(Game.me())
