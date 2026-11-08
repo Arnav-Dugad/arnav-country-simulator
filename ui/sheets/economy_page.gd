@@ -48,6 +48,8 @@ func _build() -> void:
 	add_child(_health)
 	_disaster = DisasterCard.new()
 	add_child(_disaster)
+	_election = ElectionCard.new()
+	add_child(_election)
 	_pandemic = PandemicCard.new()
 	add_child(_pandemic)
 	_speech = AppButton.make("Address the nation", &"", "mic")
@@ -312,6 +314,7 @@ func _update_balance() -> void:
 
 var _pandemic: PandemicCard
 var _disaster: DisasterCard
+var _election: ElectionCard
 
 
 func refresh() -> void:
@@ -319,6 +322,8 @@ func refresh() -> void:
 		_pandemic.refresh()
 	if _disaster:
 		_disaster.refresh()
+	if _election:
+		_election.refresh()
 	var c := Game.me()
 	if c == null:
 		return

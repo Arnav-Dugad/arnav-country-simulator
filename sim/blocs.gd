@@ -110,6 +110,9 @@ static func reasons(c: CountryState) -> Dictionary:
 			_add(out, str(g), "Lean to the %s" % str(opp.party), float(opp.base[g]))
 	if Projects.is_done(c, "housing") and not bool(c.projects.get("housing", {}).get("start", false)):
 		_add(out, "youth", "Affordable homes", 4.0)
+	if c.idx == Game.player and Game.dip.has("manif"):
+		for g in IDS:
+			_add(out, str(g), "Your campaign rally", Manifesto.rally_bonus(str(g)))
 	return out
 
 

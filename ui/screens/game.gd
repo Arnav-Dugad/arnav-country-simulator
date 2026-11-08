@@ -902,6 +902,7 @@ func _show_campaign() -> void:
 	_modal.body("Pick two themes. Campaigning on your strengths wins votes; a weak record can backfire." + opp_line)
 	var c := Game.me()
 	var picked: Array = []
+	var pledged: Array = []
 	var launch := AppButton.make("Choose 2 themes", &"PrimaryButton", "vote")
 	launch.disabled = true
 	var rows := {}
@@ -927,9 +928,39 @@ func _show_campaign() -> void:
 			launch.text = "Launch campaign" if picked.size() == 2 else "Choose %d more" % (2 - picked.size()))
 		rows[th.id] = row
 		_modal.content.add_child(row)
+	# Manifesto pledges: up to two promises, judged at the next election.
+	var ph := Label.new()
+	ph.theme_type_variation = &"Overline"
+	ph.text = "PROMISES (UP TO 2, OPTIONAL)"
+	_modal.content.add_child(ph)
+	var pflow := HFlowContainer.new()
+	pflow.add_theme_constant_override(&"h_separation", 6)
+	pflow.add_theme_constant_override(&"v_separation", 6)
+	_modal.content.add_child(pflow)
+	var pbtns := {}
+	for pid in Manifesto.PLEDGES:
+		var info: Dictionary = Manifesto.PLEDGES[pid]
+		var pb := AppButton.make(str(info.title), &"Chip", str(info.icon))
+		var key := str(pid)
+		pb.pressed.connect(func() -> void:
+			if key in pledged:
+				pledged.erase(key)
+			elif pledged.size() < 2:
+				pledged.append(key)
+			for k2 in pbtns:
+				(pbtns[k2] as AppButton).theme_type_variation = &"ChipSelected" if k2 in pledged else &"Chip"
+			Haptics.select())
+		pbtns[key] = pb
+		pflow.add_child(pb)
+	var pn := Label.new()
+	pn.theme_type_variation = &"Caption"
+	pn.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	pn.custom_minimum_size = Vector2(60, 0)
+	pn.text = "Promises win votes now. At the next election, kept ones win more and broken ones cost you."
+	_modal.content.add_child(pn)
 	launch.custom_minimum_size = Vector2(0, 50)
 	launch.pressed.connect(func() -> void:
-		var gain := Game.finish_campaign(picked)
+		var gain := Game.finish_campaign(picked) + Manifesto.make(pledged)
 		Haptics.success()
 		_modal.dismiss()
 		Game.set_speed(maxi(prev, 1))
@@ -1037,7 +1068,19 @@ func _show_election(r: Dictionary) -> void:
 		(("A new leader from your party takes office, and your work goes on." if bool(r.get("successor", false)) else "Another term to shape the nation.") + (" Observers call the vote unfair." if managed and float(r.approval) < Economy.DISPUTED_BELOW else ""))
 		if won else ((("After %d terms, many voters wanted a change. " % int(r.terms)) if int(r.get("terms", 0)) >= 2 else "")
 			+ (("%s of the %s takes office." % [str(r.opponent.name), str(r.opponent.party)] if r.has("opponent") else "The opposition takes office.") if not Game.god_mode else "Somehow, you stay in office anyway."))]
+	if int(r.get("kept", 0)) + int(r.get("broken", 0)) > 0:
+		var pl := _modal.body("Promises from your last campaign: %d kept, %d broken." % [int(r.kept), int(r.broken)])
+		pl.add_theme_color_override(&"font_color", DS.GREEN if int(r.broken) == 0 else DS.ORANGE)
 	_election_groups(r)
+	if not won and r.has("coalition"):
+		var offer: Dictionary = r.coalition
+		_modal.body("No one has a majority. The %s offer to govern with you, if you bring in %s within a year." % [str(offer.name), str(offer.ask)])
+		_modal.choice("Form a coalition", "You stay in power with the %s" % str(offer.name), &"PrimaryButton", func() -> void:
+			Game.form_coalition(offer)
+			map.spotlight(-1, false)
+			_modal.dismiss()
+			_notify("Coalition formed with the %s" % str(offer.name), "handshake", DS.GOLD, true)
+			Game.continue_after_election(true))
 	if won:
 		Haptics.success(false)
 		Audio.play("fanfare", -3.0)

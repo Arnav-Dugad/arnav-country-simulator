@@ -548,6 +548,20 @@ const TOUR_BID_MONTHS := 12        # from bid to vote
 const TOUR_SOFT_RELATIONS := 0.01  # relations a month with everyone per soft power point gained
 
 
+# ---------------------------------------------------------------- elections ---
+# See sim/manifesto.gd.
+const MANI_PLEDGE_BOOST := 5.0      # approval from a pledge, x the share of voters in the groups it targets
+const MANI_KEPT := 3.0              # approval at the next election per pledge kept ...
+const MANI_BROKEN := 4.0            # ... and lost per pledge broken
+const MANI_TRAIL_ACTIONS := 3       # campaign-trail actions per campaign
+const MANI_RALLY := 1.5             # group support points from a rally (x 4 within the group)
+const MANI_ADS := 1.2               # approval from TV ads
+const MANI_ADS_COST := 0.02         # % of GDP
+const MANI_DOOR := 0.8              # approval from door knocking (more when you're behind)
+const MANI_COALITION_SHARE := 46.0  # vote share from which a coalition is possible
+const MANI_DEMAND_MONTHS := 12      # months to meet a coalition partner's demand
+
+
 # --------------------------------------------------------- head of state ---
 # See sim/head_of_state.gd.
 const HOS_EVENT_GAP := 14          # months between family events at least

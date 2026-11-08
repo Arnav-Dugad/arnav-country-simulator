@@ -321,6 +321,9 @@ func advance_month() -> void:
 		me().treasury = me().spending
 	for note in War.monthly():
 		war_battle.emit(note)
+	for h in Manifesto.monthly():
+		add_feed(str(h.text), str(h.icon), "red")
+		intel_news.emit(h)
 	for ev in HeadOfState.monthly():
 		director.add(ev, false)
 	for h in UnitedNations.monthly():
@@ -466,7 +469,14 @@ func resolve_decision(ev: Dictionary, choice: int) -> void:
 
 
 func hold_election() -> void:
+	var jk: Array = Manifesto.judge() if Government.has_elections(player) else [0, 0]
 	var r := politics.hold_election()
+	r["kept"] = int(jk[0])
+	r["broken"] = int(jk[1])
+	if not bool(r.won) and not god_mode:
+		var offer := Manifesto.coalition_offer(float(r.share))
+		if not offer.is_empty():
+			r["coalition"] = offer
 	r["opponent"] = Opposition.leader()
 	if bool(r.won):
 		Opposition.replace()
@@ -489,6 +499,15 @@ func finish_campaign(themes: Array) -> float:
 		"choice": ", ".join(themes.map(func(t: String) -> String:
 			return Campaign.title_of(t))) if not themes.is_empty() else "No campaign", "id": "election", "m": months_played})
 	return gain
+
+
+## Accept a coalition offer on election night: you stay in power.
+func form_coalition(offer: Dictionary) -> void:
+	Manifesto.accept_coalition(offer)
+	politics.elections_won += 1
+	Opposition.replace()
+	me().shocks.stability = float(me().shocks.stability) - 1.0
+	add_feed("You form a coalition with the %s, who want %s within a year" % [str(offer.name), str(offer.ask)], "handshake", "accent")
 
 
 ## Call after the election card is dismissed.
