@@ -548,6 +548,23 @@ const TOUR_BID_MONTHS := 12        # from bid to vote
 const TOUR_SOFT_RELATIONS := 0.01  # relations a month with everyone per soft power point gained
 
 
+# ------------------------------------------------------- industries & trade ---
+# See sim/industries.gd. Competitiveness points (50 = average).
+const IND_SKILL := 10.0            # per unit of extra education effort (scaled by how much the sector needs skills)
+const IND_TECH := 8.0              # per helpful technology researched
+const IND_INFRA := 20.0            # per unit of infrastructure coverage above half
+const IND_BLACKOUT := 15.0
+const IND_WAGE := 12.0             # rich countries pay more: labour-heavy sectors feel it
+const IND_CLEAN := 8.0
+const IND_SUBSIDY := 15.0
+const IND_SUBSIDY_COST := 0.25     # % of GDP a year per 10 points of GDP share subsidised
+const IND_CYCLE := 12.0            # world demand swing at its peak
+const IND_SHOCK_CHANCE := 0.012    # monthly chance of a world supply or demand shock
+const IND_SHARE_SPEED := 0.04      # yearly share change at full (100 or 0) competitiveness
+const IND_GROWTH := 0.8            # growth points if the whole economy were at 100 competitiveness
+const IND_JOBS := 0.6              # unemployment points, the same way (labour-heavy sectors count more)
+
+
 # ------------------------------------------------------- energy & resources ---
 # See sim/energy.gd.
 const EN_WIND_DOWN := 0.6           # production (and depletion) when winding down ...

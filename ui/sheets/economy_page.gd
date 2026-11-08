@@ -57,6 +57,12 @@ func _build() -> void:
 	wealth.set_leading(ListRow.icon_tile("landmark", DS.GOLD))
 	wealth.tapped.connect(func() -> void: page_requested.emit("firms"))
 	add_child(wealth)
+	var ind := ListRow.new().setup("Industries & trade", "Sectors, subsidies, world shocks, trading partners", "›")
+	ind.theme_type_variation = &"GroupPanel"
+	ind.trailing_label.add_theme_color_override(&"font_color", DS.TEXT_3)
+	ind.set_leading(ListRow.icon_tile("factory", DS.ACCENT))
+	ind.tapped.connect(func() -> void: page_requested.emit("industries"))
+	add_child(ind)
 	_goals = GoalsCard.new()
 	add_child(_goals)
 	_trend = TrendCard.new()

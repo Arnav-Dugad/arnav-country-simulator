@@ -34,6 +34,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 	var pdx: Dictionary = Pandemic.effects() if c.idx == Game.player and Game.has_game() and Game.dip.has("pandemic") else {}
 	var crx: Dictionary = Crime.modifiers() if c.idx == Game.player and Game.has_game() else {}
 	var egx: Dictionary = Energy.modifiers() if c.idx == Game.player and Game.has_game() else {}
+	var idx_m: Dictionary = Industries.modifiers() if c.idx == Game.player and Game.has_game() else {}
 	var anx: Dictionary = Annexation.unrest() if c.idx == Game.player and Game.has_game() and Game.dip.has("integration") else {}
 	var wx: Dictionary = War.effects() if c.idx == Game.player and Game.has_game() and War.at_war() else {}
 	var mx := Game.markets.effects(c)
@@ -81,6 +82,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Pandemic", float(pdx.get("growth", 0.0))],
 		["Crime", float(crx.get("growth", 0.0))],
 		["Energy & resources", float(egx.get("growth", 0.0))],
+		["Industries", float(idx_m.get("growth", 0.0))],
 		["Tourism", float(tox.get("growth", 0.0))],
 		["State firms", float(enx.get("growth", 0.0))],
 		["Media", float(mdx.get("growth", 0.0))],
@@ -142,6 +144,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Technology", float(tm.get("unemployment", 0.0))],
 		["Pandemic", float(pdx.get("unemployment", 0.0))],
 		["Energy & resources", float(egx.get("unemployment", 0.0))],
+		["Industries", float(idx_m.get("unemployment", 0.0))],
 		["Tourism", float(tox.get("unemployment", 0.0))],
 		["State firms", float(enx.get("unemployment", 0.0))],
 		["War mobilization", float(wx.get("unemployment", 0.0))],
@@ -328,6 +331,7 @@ static func update_finances(c: CountryState) -> void:
 		+ (Tourism.spending_pct() if c.idx == Game.player else 0.0)
 		+ (float(Pandemic.effects().get("cost", 0.0)) if c.idx == Game.player and Game.has_game() and Game.dip.has("pandemic") else 0.0)
 		+ (float(Crime.modifiers().get("cost", 0.0)) if c.idx == Game.player and Game.has_game() and Game.dip.has("crime") else 0.0)
+		+ (Industries.subsidy_pct() if c.idx == Game.player else 0.0)
 		+ (float(War.effects().cost) if c.idx == Game.player and Game.has_game() and War.at_war() else 0.0)) / 100.0
 	# Inflation above the floor erodes local-currency debt, so only the real
 	# part of the rate is a burden in dollar terms.
