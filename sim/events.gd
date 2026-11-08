@@ -274,9 +274,30 @@ const EVENTS := [
 		"body": "{country} has been invited to host a major international sporting event.",
 		"choices": [
 			{"label": "Host it", "detail": "Costs 1% of GDP · pride and tourism",
-				"effects": {"cost": 1.0, "happiness": 3.0, "approval": 3.0, "growth": 0.5, "relations_all": 2.0}},
+				"effects": {"cost": 1.0, "happiness": 3.0, "approval": 3.0, "growth": 0.5, "relations_all": 2.0},
+				"next": {"id": "games_prep", "in": 24}},
 			{"label": "Decline politely", "detail": "No cost",
 				"effects": {}}]},
+	# ---- The world games: bid -> preparations -> opening night (or chaos) ----
+	{"id": "games_prep", "title": "The games are behind schedule", "icon": "trophy", "tint": "orange", "weight": 0.0,
+		"body": "A year before the world games, inspectors warn that {country}'s venues won't be ready in time.",
+		"choices": [
+			{"label": "Pay to finish on time", "detail": "Costs 0.3% of GDP", "effects": {"cost": 0.3},
+				"next": {"id": "games_open", "in": 12}},
+			{"label": "Scale back the venues", "detail": "Saves money · less spectacle",
+				"effects": {"cost": -0.2, "happiness": -0.5}, "next": {"id": "games_open", "in": 12}},
+			{"label": "Hope the crews catch up", "detail": "No cost · risky", "effects": {},
+				"next": {"id": "games_mess", "in": 12}}]},
+	{"id": "games_open", "title": "The world games open", "icon": "trophy", "tint": "gold", "weight": 0.0,
+		"body": "Fireworks light up the sky as the world games open in {country}. Billions are watching.",
+		"choices": [
+			{"label": "Give the opening speech", "effects": {"approval": 2.0, "happiness": 1.5, "relations_all": 2.0}},
+			{"label": "Let the athletes shine", "effects": {"happiness": 2.5, "stability": 1.0}}]},
+	{"id": "games_mess", "title": "Chaos at the world games", "icon": "alert", "tint": "red", "weight": 0.0,
+		"body": "Unfinished venues and broken transport embarrass {country} on live TV as the world games open.",
+		"choices": [
+			{"label": "Apologise and fix it fast", "detail": "Costs 0.25% of GDP", "effects": {"cost": 0.25, "approval": -1.0}},
+			{"label": "Blame the contractors", "effects": {"approval": -0.5, "press_cred": -4.0, "happiness": -1.0}}]},
 	{"id": "tourism", "title": "Tourism boom", "icon": "plane-takeoff", "tint": "green", "weight": 1.0,
 		"body": "{country} is suddenly the world's favourite holiday spot.",
 		"choices": [
@@ -763,6 +784,9 @@ static func _pick_country(rng: RandomNumberGenerator, ok: Callable) -> int:
 const _BAD_UP := {"growth": false, "inflation": true, "unemployment": true, "happiness": false,
 	"approval": false, "stability": false}
 
+
+## Follow-up events that are part of a story, not a worse stage (no "May escalate" chip).
+const GOOD_NEXT := ["games_prep", "games_open", "recovery_boom", "vaccine_race"]
 
 const DISASTERS := ["floods", "monsoon", "hurricane", "heatwave", "earthquake", "drought"]
 ## Event -> the natural risk it needs (Profiles.risks).

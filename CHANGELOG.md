@@ -4,6 +4,7 @@ The release workflow publishes the section that matches the tag as the GitHub Re
 
 ## [0.45.1] - 2026-11-08
 
+- Hosting the **world games** is now a story: preparations fall behind two years later (pay, scale back or hope), then a glorious opening night, or chaos on live TV
 - "Your voters" shows today's race: "If the vote were today: you 54%, Lucas Almeida 46%", with the opposition leader's face
 
 ## [0.45.0] - 2026-11-08
