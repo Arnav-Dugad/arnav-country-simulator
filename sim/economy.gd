@@ -548,6 +548,13 @@ const TOUR_BID_MONTHS := 12        # from bid to vote
 const TOUR_SOFT_RELATIONS := 0.01  # relations a month with everyone per soft power point gained
 
 
+# ------------------------------------------------------------ space colonies ---
+# See sim/space.gd.
+const SPACE_MIN_GDP := 2.0e11      # economy size needed to build an outpost
+const SPACE_GROW_MONTHS := 120     # months for an outpost to reach full size
+const SPACE_ACCIDENT := 0.004      # monthly chance of an accident at each outpost
+
+
 # ---------------------------------------------------------------- automation ---
 # See sim/automation.gd. Automation points (0..100).
 const AUTO_BASE_PACE := 0.8         # points a year (x 0.5..1.5 with income)

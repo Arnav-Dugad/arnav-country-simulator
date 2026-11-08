@@ -123,6 +123,8 @@ static func soft_power(i: int, details: bool = true) -> float:
 			sp += Sports.prestige()
 		if Game.dip.has("un"):
 			sp += UnitedNations.prestige()
+		if Game.dip.has("space"):
+			sp += Space.prestige()
 	return clampf(sp, 0.0, 100.0)
 
 

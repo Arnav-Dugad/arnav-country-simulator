@@ -27,6 +27,7 @@ const INDEX := [
 	["Military forces", "build", "", "shield", "military army tanks fighters navy defence forces"],
 	["Research & technology", "build", "", "flask-conical", "research technology tech science ai fusion"],
 	["Space race", "build", "", "rocket", "space moon mars rockets satellites"],
+	["Space colonies", "build", "Space colonies", "moon", "moon base mars colony asteroid mining orbital space outposts"],
 	["National projects", "build", "", "construction", "projects programmes national"],
 	["Power grid & blackouts", "build", "", "zap", "energy power electricity blackouts grid"],
 	["Oil, gas, coal & minerals", "build", "", "fuel", "oil gas coal minerals reserves mining explore"],

@@ -103,6 +103,8 @@ static func income_terms(c: CountryState) -> Array:
 			+ Builds.coverage_of(c, "research_lab", float(Builds.count(c, "research_lab")))) * 0.5
 	out.append(["Universities & labs", E.RP_LABS * labs])
 	out.append(["Scale of the economy", E.RP_SCALE * clampf(log(maxf(c.gdp / 1e11, 0.1)) / log(10.0) + 1.0, 0.0, 3.0)])
+	if c.idx == Game.player and Game.dip.has("space"):
+		out.append(["Space outposts", Space.research()])
 	if Projects.is_done(c, "universities") and not bool(c.projects.get("universities", {}).get("start", false)):
 		out.append(["Research universities", 1.0])
 	if Projects.is_done(c, "tech_park"):

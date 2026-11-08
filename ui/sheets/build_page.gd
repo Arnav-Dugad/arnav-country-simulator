@@ -912,6 +912,7 @@ func _fill_research(c: CountryState) -> void:
 			parts.append("%s %s" % [str(term[0]).to_lower(), String.num(float(term[1]), 1)])
 	why.text = "From " + ", ".join(parts) + ". Raise the Research budget or build universities and labs for more."
 	hv.add_child(why)
+	_space_outposts()
 	# Space race standings.
 	var firsts: Dictionary = Tech.st().firsts
 	if not firsts.is_empty():
@@ -1044,3 +1045,39 @@ func _energy_card(c: CountryState) -> void:
 	rb.add_child(eb)
 	if wait > 0:
 		note("Next survey possible in %d months." % wait, rb)
+
+
+func _space_outposts() -> void:
+	var box := section("Space colonies", _units)
+	note("After the space race: permanent outposts that bring research, prestige and, in time, money. Each takes years to build and costs upkeep.", box)
+	for id in Space.OUTPOSTS:
+		var spec: Dictionary = Space.OUTPOSTS[id]
+		var stt := Space.status(str(id))
+		var why := Space.blocked(str(id))
+		var sub := ""
+		var col := DS.ACCENT
+		match stt:
+			"done":
+				sub = "Open  ·  %d%% grown  ·  +%s research a month" % [roundi(Space.growth(str(id)) * 100.0), String.num(float(spec.rp) * (0.5 + 0.5 * Space.growth(str(id))), 1)]
+				col = DS.GOLD
+			"building":
+				sub = "Building  ·  %d%%" % roundi(Space.progress(str(id)) * 100.0)
+				col = DS.ORANGE
+			_:
+				sub = why if why != "" else "%s  ·  %d years  ·  %s" % [DS.money(Space.cost(str(id))), int(spec.months) / 12, str(spec.desc)]
+				col = DS.TEXT_3 if why != "" else DS.ACCENT
+		var row := ListRow.new().setup(str(spec.title), sub, "›" if stt == "none" and why == "" else "")
+		row.subtitle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		row.subtitle_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+		row.trailing_label.add_theme_color_override(&"font_color", DS.TEXT_3)
+		row.set_leading(ListRow.icon_tile(str(spec.icon), col))
+		if stt == "none" and why == "":
+			var oid := str(id)
+			row.tapped.connect(func() -> void:
+				if Space.start(oid):
+					Simulation.update_finances(Game.me())
+					Haptics.success()
+				refresh())
+		box.add_child(row)
+		if stt == "building":
+			box.add_child(meter(Space.progress(str(id)), 0.0, DS.ORANGE, 3.0))

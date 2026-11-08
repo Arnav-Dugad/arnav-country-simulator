@@ -39,6 +39,7 @@ const ALL := [
 	{"id": "bloc_member", "icon": "handshake", "title": "Joiner", "desc": "Join a treaty or bloc."},
 	{"id": "globetrotter", "icon": "plane-takeoff", "title": "Globetrotter", "desc": "Make state visits to three countries."},
 	{"id": "moonshot", "icon": "flag", "title": "Moonshot", "desc": "Win the new space race to the Moon."},
+	{"id": "spacefarer", "icon": "rocket", "title": "Spacefarer", "desc": "Open an outpost in space."},
 	{"id": "champions", "icon": "trophy", "title": "Champions", "desc": "Win a World Cup or top a Games medal table."},
 	{"id": "empire", "icon": "crown", "title": "Empire builder", "desc": "Annex a whole country."},
 	{"id": "victor", "icon": "swords", "title": "Victor", "desc": "Win a war on your terms."},

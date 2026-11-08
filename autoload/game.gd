@@ -322,6 +322,10 @@ func advance_month() -> void:
 		me().treasury = me().spending
 	for note in War.monthly():
 		war_battle.emit(note)
+	for h in Space.monthly():
+		add_feed(str(h.text), str(h.icon), "gold" if bool(h.good) else "orange")
+		if bool(h.big):
+			intel_news.emit(h)
 	for h in Automation.monthly():
 		add_feed(str(h.text), str(h.icon), "orange")
 	for h in Manifesto.monthly():

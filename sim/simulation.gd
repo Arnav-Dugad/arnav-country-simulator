@@ -340,6 +340,8 @@ static func update_finances(c: CountryState) -> void:
 		market_rev += float(Smuggling.modifiers().get("revenue", 0.0))
 	if c.idx == Game.player and Game.has_game() and Game.dip.has("auto"):
 		market_rev += float(Automation.modifiers().get("revenue", 0.0))
+	if c.idx == Game.player and Game.has_game() and Game.dip.has("space"):
+		market_rev += Space.income_pct()
 	var extra_tax := Taxes.total_pct(c) if not c.taxes.is_empty() else 0.0
 	c.revenue = c.gdp * (rate + (c.other_rev_pct + extra_tax + float(lx.get("revenue", 0.0)) + market_rev) / 100.0) * cycle
 	c.spending = c.gdp * (c.spending_pct + float(lx.get("cost", 0.0)) + Projects.spending_pct(c) + Ageing.pension_cost(c)
@@ -354,6 +356,7 @@ static func update_finances(c: CountryState) -> void:
 		+ (Smuggling.customs_cost_pct() if c.idx == Game.player else 0.0)
 		+ (UnitedNations.keepers_cost_pct() if c.idx == Game.player else 0.0)
 		+ (Automation.cost_pct() if c.idx == Game.player else 0.0)
+		+ (Space.spending_pct() if c.idx == Game.player else 0.0)
 		+ (float(War.effects().cost) if c.idx == Game.player and Game.has_game() and War.at_war() else 0.0)) / 100.0
 	# Inflation above the floor erodes local-currency debt, so only the real
 	# part of the rate is a burden in dollar terms.

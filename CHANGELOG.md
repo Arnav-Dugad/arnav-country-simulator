@@ -2,6 +2,20 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.73.0] - 2026-11-08
+
+- **Find anything:** a new search button next to the map layers and at the top of every page. Type "taxes", "army" or "world cup" and jump straight there
+- **Section shortcuts:** the long Laws and World pages start with a row of chips that jump to each section
+- **Elections, deeper:**
+  - **Promises:** when you campaign, make up to two pledges (no new taxes, more jobs, stable prices, affordable homes, safer streets and more). They win votes now and are judged at the next election: kept promises win more, broken ones cost you
+  - **The campaign trail:** in the last three months before a vote, hold rallies with a voter group, run TV ads or go door to door
+  - **Coalitions:** in parliamentary systems, a narrow loss can still end in power if you accept a smaller party's demand. Break it within a year and they walk out, forcing an early election
+  - A new election card on the Economy page shows today's poll, your promises and your coalition
+- **The AI & automation era:** robots and AI spread through your economy (faster with AI research). They boost growth but displace workers. Respond with a retraining programme, a robot tax or a four-day working week (Economy › Industries)
+- **Space colonies:** after the space race, build a Moon base, an orbital factory, a Mars colony and asteroid mining. They bring research, prestige and, in time, money (Build › Research)
+- New achievement: Spacefarer
+- Deleting your account now also removes your leaderboard entry
+
 ## [0.72.0] - 2026-11-08
 
 - **Sport, a big new system**, on its own page from the World tab
