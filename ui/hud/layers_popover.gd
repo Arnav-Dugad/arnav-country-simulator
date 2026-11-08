@@ -20,6 +20,10 @@ const LEGEND := {
 	MapModes.Mode.OUTBREAK: ["Where the pandemic is spreading", "Clear", "Hard hit"],
 	MapModes.Mode.SCHOOLS: ["What 15-year-olds can do (PISA-style test)", "Weak", "Strong"],
 	MapModes.Mode.NUCLEAR: ["Nuclear warheads (SIPRI estimates)", "None", "Thousands"],
+	MapModes.Mode.AIR: ["Fine dust in the air (WHO, IQAir)", "Clean", "Hazardous"],
+	MapModes.Mode.WATER: ["Water stress (WRI Aqueduct)", "Plenty", "Scarce"],
+	MapModes.Mode.ONLINE: ["Share of people online (World Bank)", "Few", "Almost all"],
+	MapModes.Mode.POWER: ["Composite world power", "Minor", "Superpower"],
 }
 
 var _card: GlassPanel

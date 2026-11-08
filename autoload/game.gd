@@ -694,7 +694,11 @@ func _record_history() -> void:
 
 # --------------------------------------------------------------- map modes ---
 ## Normalised 0..1 values per map index (NAN = no data) for a data map mode.
+var power_scores := {}
+
+
 func map_values(mode: int) -> PackedFloat32Array:
+	power_scores = {}
 	var out := PackedFloat32Array()
 	out.resize(World.count())
 	for i in World.count():
@@ -727,6 +731,18 @@ func map_values(mode: int) -> PackedFloat32Array:
 			MapModes.Mode.NUCLEAR:       # log scale of warheads
 				var w := Nuclear.warheads(World.owner(i)) if has_game() else int(Nuclear.ARSENAL.get(World.map.iso3[i], 0))
 				out[i] = 0.25 + 0.75 * log(float(w)) / log(6000.0) if w > 0 else 0.0
+			MapModes.Mode.AIR:           # 4 .. 80 µg/m³
+				out[i] = clampf((Air.pm_of(World.owner(i)) - 4.0) / 76.0, 0.0, 1.0)
+			MapModes.Mode.WATER:         # WRI 0 .. 5
+				out[i] = clampf(Water.stress_of(World.owner(i)) / 5.0, 0.0, 1.0)
+			MapModes.Mode.ONLINE:
+				var o := World.owner(i)
+				out[i] = clampf((Digital.online() if o == player and dip.has("dig_n") else World.stat(o, "internet_pct", 50.0)) / 100.0, 0.0, 1.0)
+			MapModes.Mode.POWER:         # composite score 20 .. 95
+				if power_scores.is_empty():
+					for row in PowerIndex.table():
+						power_scores[int(row[0])] = float(row[1])
+				out[i] = clampf((float(power_scores.get(World.owner(i), 0.0)) - 20.0) / 75.0, 0.0, 1.0)
 			MapModes.Mode.EMISSIONS:     # log scale, 0.1 .. 30 t per person
 				out[i] = clampf((log(maxf(Climate.co2_pc(c), 0.1)) / log(10.0) + 1.0) / 2.5, 0.0, 1.0)
 			_:

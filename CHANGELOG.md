@@ -2,6 +2,12 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.97.0] - 2026-11-09
+
+- **World powers** (World): a league table combining economy, military, soft power, nuclear weapons and skills. See where you stand, how far you've climbed since taking office, and try to break into the top three
+- **Four new map layers:** Air pollution, Water stress, People online and World power. The layers panel is now a neat 4×4 grid
+- New achievement: Great power
+
 ## [0.96.0] - 2026-11-09
 
 - **What people are saying** (Economy): short quotes from invented citizens about whatever matters most right now (rents, hospital waits, the smog, a strike, a hit song), so you always know what to look at next
