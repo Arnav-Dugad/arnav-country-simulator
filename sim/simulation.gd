@@ -48,6 +48,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Trade deals", E.TRADE_DEAL_GROWTH * Profiles.mult(i, "deal_growth") * c.trade_deals],
 		["Migration", Migration.growth_effect(c, mig)],
 		["Ageing workforce", Ageing.growth_drag(c)],
+		["Clean government", Corruption.growth_effect(c)],
 		["Trade war", float(tf.growth)],
 		["World oil prices", float(mx.growth)],
 		["Treaties & blocs", float(tx.get("growth", 0.0))],

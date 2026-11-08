@@ -16,9 +16,47 @@ func _init() -> void:
 var _cabinet: VBoxContainer
 
 
+var _clean: VBoxContainer
+
+
+func _fill_clean() -> void:
+	for ch in _clean.get_children():
+		ch.queue_free()
+	var c := Game.me()
+	var v := Corruption.value(c)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override(&"separation", DS.S3)
+	_clean.add_child(row)
+	row.add_child(ListRow.icon_tile("gavel", DS.GREEN if v >= 60.0 else (DS.ORANGE if v >= 35.0 else DS.RED)))
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override(&"separation", 0)
+	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(col)
+	var t := Label.new()
+	t.theme_type_variation = &"Headline"
+	t.text = "%d / 100  ·  %s" % [roundi(v), Corruption.label(v)]
+	col.add_child(t)
+	var d := Corruption.change(c)
+	var sub := Label.new()
+	sub.theme_type_variation = &"Caption"
+	sub.text = ("%+d since you took office" % roundi(d)) if absf(d) >= 0.5 else "Where you started"
+	col.add_child(sub)
+	var wait := Corruption.drive_wait()
+	var b := AppButton.make("Start a corruption crackdown", &"", "gavel")
+	b.disabled = wait > 0
+	b.pressed.connect(func() -> void:
+		Corruption.launch_drive()
+		Haptics.success()
+		refresh())
+	_clean.add_child(b)
+	note(("Next drive possible in %d months. " % wait if wait > 0 else "") +
+		"Officials push back at first (approval and stability dip), then government gets cleaner for years: faster growth, cheaper projects, fewer scandals.", _clean)
+
+
 func _build() -> void:
 	add_child(Illustration.banner("parliament", "gavel", DS.ACCENT, 124.0))
 	_cabinet = section("Your cabinet")
+	_clean = section("Clean government")
 	_summary = note("")
 	_filter = SegmentedControl.new().setup(["All", "In force", "Not yet"], [], 0)
 	_filter.plain = true
@@ -39,6 +77,7 @@ func refresh() -> void:
 	if c == null:
 		return
 	_fill_cabinet()
+	_fill_clean()
 	var active := 0
 	var passing := 0
 	for l in Laws.ALL:

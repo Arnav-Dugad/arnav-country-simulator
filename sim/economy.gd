@@ -400,6 +400,17 @@ static func tax_yield(rate: float, k: float) -> float:
 	return r * k * (1.0 - LAFFER * r * r)
 
 
+# -------------------------------------------------------------- corruption ---
+# See sim/corruption.gd (score 0..100).
+## Target points per point of stability above / below the start.
+const CORR_STABILITY := 0.2
+## Monthly pull toward the target (institutions change over years).
+const CORR_ADJUST := 0.03
+## Growth per 10 points cleaner than at the start (% a year). Mauro (1995) and
+## later work: less corruption, more investment and growth.
+const CORR_GROWTH := 0.12
+
+
 # ---------------------------------------------------- central bank independence ---
 # When the government sets interest rates itself, markets and households trust
 # its inflation promises less (Alesina & Summers 1993; Garriga 2016: more

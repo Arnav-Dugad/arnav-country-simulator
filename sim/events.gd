@@ -684,6 +684,8 @@ static func roll(rng: RandomNumberGenerator) -> Dictionary:
 		w *= Profiles.event_weight(Game.player, str(e.id))
 		if str(e.id) in Climate.WEATHER:
 			w *= Climate.disaster_mult()
+		if str(e.id) == "scandal":
+			w *= Corruption.scandal_mult(me)
 		match e.get("cond", ""):
 			"oil_exporter":
 				if float(World.stats[Game.player].get("fuel_exports_pct", 0.0)) < 30.0:

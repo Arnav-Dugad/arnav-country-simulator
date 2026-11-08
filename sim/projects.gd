@@ -171,11 +171,9 @@ static func price(c: CountryState, p: Dictionary) -> float:
 
 
 static func overrun(c: CountryState) -> float:
-	var cc := World.stat(c.idx, "corruption_wgi", 0.0)
-	var o := clampf((1.0 - cc) / 3.5, 0.0, 1.0) * OVERRUN_MAX
-	if Laws.is_active(c, "anti_corruption"):
-		o *= 0.5
-	return o
+	# Clean-government score (0..100) back on the WGI scale (-2.5 .. 2.5).
+	var cc := (Corruption.value(c) - 50.0) / 20.0
+	return clampf((1.0 - cc) / 3.5, 0.0, 1.0) * OVERRUN_MAX
 
 
 ## Months to build at today's pace.

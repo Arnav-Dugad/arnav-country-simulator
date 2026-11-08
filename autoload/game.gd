@@ -281,6 +281,7 @@ func advance_month() -> void:
 	cabinet.monthly()
 	Rivalry.monthly()
 	Climate.monthly()
+	Corruption.monthly()
 	Opposition.monthly()
 	if months_played == Mandate.MONTHS:
 		var did := Mandate.summary()
