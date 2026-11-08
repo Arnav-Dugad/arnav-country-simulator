@@ -4,6 +4,7 @@ The release workflow publishes the section that matches the tag as the GitHub Re
 
 ## [0.50.0] - 2026-11-08
 
+- **Celebrations on the map:** a skyline rises over your capital when a project opens, and fireworks burst over it when you win an election
 - **"Why is it moving?" now looks back a year:** tap Growth, Inflation, Jobs or Approval to see which causes have grown or faded the most since last year
 - **Coach marks:** the first time you open Economy, Budget, Build, Laws or World, a spotlight points at the most useful control with one sentence on what to do
 

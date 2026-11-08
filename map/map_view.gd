@@ -335,6 +335,11 @@ func _rebuild_glow() -> void:
 var _spot_tween: Tween
 
 
+## A celebration over a country ("skyline" or "fireworks").
+func celebrate(kind: String, i: int) -> void:
+	_overlays.celebrate(kind, i)
+
+
 ## A state visit: frame both countries and draw a flight from a to b.
 func show_flight(a: int, b: int) -> void:
 	_frame(focus_rect(a).merge(focus_rect(b)), 0.7)

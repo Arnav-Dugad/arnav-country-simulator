@@ -129,6 +129,7 @@ func _ready() -> void:
 	Game.project_finished.connect(func(id: String) -> void:
 		var p := Projects.by_id(id)
 		_notify("Now open: %s" % str(p.title).to_lower(), str(p.icon), DS.GREEN, true)
+		map.celebrate("skyline", Game.player)
 		Haptics.success()
 		Audio.play("success", -8.0)
 		map.queue_redraw()
@@ -963,6 +964,7 @@ func _show_election(r: Dictionary) -> void:
 	if won:
 		Haptics.success(false)
 		Audio.play("fanfare", -3.0)
+		map.celebrate("fireworks", Game.player)
 		_modal.sweep(Color(DS.GOLD, 0.28))
 		map.spotlight(Game.player, true, DS.GOLD)
 	else:

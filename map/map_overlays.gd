@@ -24,8 +24,18 @@ func ripple(pos: Vector2, land: bool) -> void:
 		_ripples.append([pos, Time.get_ticks_msec() / 1000.0, land])
 var _icons := {}
 var _flight := {}           # {from, to, start} while a state-visit flight is shown
+var _fx := {}               # {kind: "skyline"|"fireworks", country, start} celebration
+const FX_TIME := 3.2
 const FLIGHT_TIME := 1.8
 const FLIGHT_FADE := 0.8
+
+
+## A short celebration over a country: a rising skyline (project opened) or
+## fireworks (election won). Purely decorative; skipped with Reduce motion.
+func celebrate(kind: String, i: int) -> void:
+	if Settings.reduce_motion:
+		return
+	_fx = {"kind": kind, "country": i, "start": Time.get_ticks_msec() / 1000.0}
 
 
 ## Shows a state-visit flight from country a to country b.
@@ -53,6 +63,7 @@ func _draw() -> void:
 	_draw_tariffs()
 	_draw_projects()
 	_draw_flight()
+	_draw_fx()
 	_draw_ripples()
 
 
@@ -223,6 +234,48 @@ func _draw_tariffs() -> void:
 			a = 0.45 + 0.3 * (0.5 + 0.5 * sin(_t * 3.0))
 		map_line(pts, Color(DS.RED, a), 1.6)
 		draw_circle(from, 3.0, Color(DS.RED, 0.85), true, -1.0, true)
+
+
+func _draw_fx() -> void:
+	if _fx.is_empty():
+		return
+	var el := Time.get_ticks_msec() / 1000.0 - float(_fx.start)
+	if el > FX_TIME:
+		_fx = {}
+		return
+	var c := map.world_to_screen(_anchor(int(_fx.country)))
+	var fade := 1.0 - clampf((el - (FX_TIME - 0.8)) / 0.8, 0.0, 1.0)
+	if str(_fx.kind) == "skyline":
+		# Seven towers rise one after another, lit windows twinkle, then fade.
+		var heights := [22.0, 34.0, 18.0, 46.0, 28.0, 38.0, 16.0]
+		var w := 7.0
+		var x0 := c.x - heights.size() * (w + 2.0) * 0.5
+		draw_circle(c, 46.0, Color(DS.GOLD, 0.10 * fade), true, -1.0, true)
+		for k in heights.size():
+			var t := clampf((el - k * 0.12) / 0.7, 0.0, 1.0)
+			t = 1.0 - pow(1.0 - t, 3.0)
+			var h: float = heights[k] * t
+			var r := Rect2(x0 + k * (w + 2.0), c.y - h, w, h)
+			draw_rect(r, Color(DS.GOLD.lerp(Color.WHITE, 0.25), 0.75 * fade))
+			for wy in int(h / 6.0):
+				if (k + wy + int(el * 3.0)) % 3 != 0:
+					draw_rect(Rect2(r.position.x + 2.0, c.y - 4.0 - wy * 6.0, 3.0, 2.0), Color(1, 1, 1, 0.8 * fade))
+		draw_line(Vector2(x0 - 4.0, c.y), Vector2(x0 + heights.size() * (w + 2.0) + 2.0, c.y), Color(DS.GOLD, 0.8 * fade), 1.5, true)
+	else:
+		# Five bursts at staggered times around the capital.
+		var spots := [Vector2(0, -30), Vector2(-34, -10), Vector2(30, -18), Vector2(-14, -44), Vector2(18, -50)]
+		var cols := [DS.GOLD, DS.ACCENT, DS.GREEN, DS.RED, DS.TEAL]
+		for k in spots.size():
+			var t := el - k * 0.35
+			if t < 0.0 or t > 1.4:
+				continue
+			var p: Vector2 = c + spots[k]
+			var rr := 26.0 * (1.0 - pow(1.0 - clampf(t / 0.9, 0.0, 1.0), 3.0))
+			var a := (1.0 - clampf(t / 1.4, 0.0, 1.0)) * fade
+			for s in 12:
+				var dir := Vector2.RIGHT.rotated(TAU * s / 12.0 + k)
+				draw_line(p + dir * rr * 0.55, p + dir * rr, Color(cols[k], a), 1.6, true)
+				draw_circle(p + dir * rr, 1.6, Color(1, 1, 1, a), true, -1.0, true)
 
 
 func map_line(pts: PackedVector2Array, col: Color, w: float) -> void:
