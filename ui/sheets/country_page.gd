@@ -243,7 +243,7 @@ func _build_actions(i: int, is_me: bool, playable: bool) -> void:
 		_action("Put tariffs on their goods", &"", "ban", func() -> void:
 			var back := Tariffs.impose(i)
 			_done("Tariffs imposed. %s" % ("They hit back with their own." if back else "They chose not to retaliate."), not back),
-			false, "Protects factories, raises prices · %d%% chance they hit back" % roundi(Tariffs.retaliation_chance(i) * 100.0))
+			false, "Prices rise · %d%% chance they hit back" % roundi(Tariffs.retaliation_chance(i) * 100.0))
 	# Sanctions
 	if Diplomacy.is_sanctioning(i):
 		_action("Lift sanctions", &"", "check", func() -> void:
@@ -385,6 +385,8 @@ func _action(text: String, variant: StringName, icon_: String, cb: Callable, dis
 		l.theme_type_variation = &"Caption"
 		l.text = hint
 		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		l.custom_minimum_size = Vector2(60, 0)
 		_actions.add_child(l)
 
 
