@@ -467,6 +467,33 @@ static var CATEGORIES := [
 		["Baby boom", "users", "Population +5%", DS.TEAL, func() -> void:
 			Game.me().population *= 1.05],
 	]],
+	["Crises", [
+		["Cure the pandemic", "syringe", "Vaccines for all; the outbreak ends", DS.GREEN, func() -> void:
+			if Pandemic.active():
+				var s := Pandemic.st()
+				s.vaccine_world = 1.0
+				for k in s.inf.keys():
+					s.vac[k] = 0.9
+				s.inf = {}
+				s.fade = 3
+				for h in Pandemic.monthly():
+					Game.add_feed(str(h.text), str(h.icon), "green")],
+		["Start a pandemic", "biohazard", "A new disease appears abroad", DS.RED, func() -> void:
+			if not Pandemic.active():
+				Pandemic.start()],
+		["Safe streets", "siren", "Crime falls 20 points", DS.ACCENT, func() -> void:
+			var s := Crime.st()
+			s.value = maxf(float(s.value) - 20.0, 2.0)],
+		["Strike oil", "fuel", "Huge new oil fields", DS.GOLD, func() -> void:
+			var res: Dictionary = Energy.st().res
+			if not res.has("oil"):
+				res["oil"] = {"level": 2, "years": 0.0, "years0": 0.0, "policy": "steady"}
+			res.oil.level = maxi(int(res.oil.level), 2)
+			res.oil.years = float(res.oil.years) + 40.0
+			res.oil.years0 = maxf(float(res.oil.years0), float(res.oil.years))],
+		["Power surplus", "zap", "Plenty of electricity for years", DS.GOLD, func() -> void:
+			Energy.st()["bonus"] = float(Energy.st().get("bonus", 0.0)) + 0.4],
+	]],
 	["Time", [
 		["Fast-forward a year", "fast-forward", "Twelve months pass at once", DS.ACCENT, func() -> void:
 			for k in 12:

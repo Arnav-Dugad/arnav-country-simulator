@@ -2,6 +2,25 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.69.0] - 2026-11-08
+
+- **Pandemics.** About once in a long career, a new disease appears abroad and spreads along trade and travel routes, country by country
+  - Watch it on the new Outbreak map view. A pandemic card on the Economy page shows cases, deaths, hospital load and the vaccine race
+  - Choose a partial or full lockdown, masks, mass testing or closed borders. Each slows the spread at a cost to jobs, growth, patience, trade or tourism
+  - Hospitals that overflow mean more deaths, so clinics and hospitals matter
+  - A world vaccine arrives in about 16 months; with mRNA research you can make your own in half the time and win the world's gratitude
+  - Your cabinet steps in with a partial lockdown if you leave it to them
+- **Crime & justice**, a new section on the Laws page with AI-painted art
+  - Every country starts from its real profile, and crime moves with jobs, inequality, police stations and prisons, unrest and war
+  - Choose community, balanced or tough policing, and launch gang crackdowns (fast, but abuses can become a scandal), youth programmes (slow, lasting) or drug treatment
+  - Crime affects happiness, approval, stability, investment and tourists
+- **Energy & resources**, on the Build tab's Energy page:
+  - **Natural resources:** oil, gas, coal and critical minerals, based on real producers. Expand, keep steady or wind down production
+  - Reserves run out, and when they do the income stops. Explore for new deposits and save in the wealth fund for life after oil
+  - **The power grid:** demand grows with your economy; fall behind and rolling blackouts hit growth and happiness. Every power plant, farm, dam and grid line you build adds supply
+- Nation health now warns about pandemics, power cuts and crime waves
+- New cheats: cure the pandemic, start one, safe streets, strike oil, power surplus
+
 ## [0.68.0] - 2026-11-08
 
 - **Delete saves:** a new "Manage saves" button on the home screen. A deleted game is also removed from your cloud backup, so it never comes back

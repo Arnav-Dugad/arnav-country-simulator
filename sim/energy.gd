@@ -132,7 +132,7 @@ static func demand() -> float:
 ## Supply index: the grid you started with, private investment, and what you build.
 static func supply() -> float:
 	var c := Game.me()
-	var s := 1.0 + E.EN_PRIVATE_GROWTH * Game.months_played / 12.0
+	var s := 1.0 + E.EN_PRIVATE_GROWTH * Game.months_played / 12.0 + float(st().get("bonus", 0.0))
 	if not c.builds.is_empty():
 		for id in Builds.ids_in("Energy"):
 			s += E.EN_BUILD_SUPPLY * maxf(Builds.gain(c, str(id)), -0.5) * float(Builds.spec(str(id)).get("power", 1.0))
