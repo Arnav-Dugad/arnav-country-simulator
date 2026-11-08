@@ -39,6 +39,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 	var bmx: Dictionary = Smuggling.modifiers() if c.idx == Game.player and Game.has_game() else {}
 	var hsx: Dictionary = HeadOfState.modifiers() if c.idx == Game.player and Game.has_game() else {}
 	var aux: Dictionary = Automation.modifiers() if c.idx == Game.player and Game.has_game() else {}
+	var csx: Dictionary = Constitution.modifiers() if c.idx == Game.player and Game.has_game() and Game.dip.has("const") else {}
 	var anx: Dictionary = Annexation.unrest() if c.idx == Game.player and Game.has_game() and Game.dip.has("integration") else {}
 	var wx: Dictionary = War.effects() if c.idx == Game.player and Game.has_game() and War.at_war() else {}
 	var mx := Game.markets.effects(c)
@@ -221,6 +222,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Crime", float(crx.get("happiness", 0.0))],
 		["Energy & resources", float(egx.get("happiness", 0.0))],
 		["Robots & AI", float(aux.get("happiness", 0.0))],
+		["Constitution", float(csx.get("happiness", 0.0))],
 		["Housing & families", float(ppx.get("happiness", 0.0))],
 		["Stock market", float(enx.get("happiness", 0.0))],
 		["Media", float(mdx.get("happiness", 0.0))],
@@ -249,6 +251,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Crime", float(crx.get("approval", 0.0))],
 		["Housing & families", float(ppx.get("approval", 0.0))],
 		["Head of state", float(hsx.get("approval", 0.0))],
+		["Constitution", float(csx.get("approval", 0.0))],
 		["Your ministers", float(cx.get("approval", 0.0))],
 		["Media", float(mdx.get("approval", 0.0))],
 	]
@@ -270,6 +273,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Crime", float(crx.get("stability", 0.0))],
 		["Black market", float(bmx.get("stability", 0.0))],
 		["Head of state", float(hsx.get("stability", 0.0))],
+		["Constitution", float(csx.get("stability", 0.0))],
 		["Media", float(mdx.get("stability", 0.0))],
 		["War", float(wx.get("stability", 0.0))],
 		["Integrating new lands", float(anx.get("stability", 0.0))],

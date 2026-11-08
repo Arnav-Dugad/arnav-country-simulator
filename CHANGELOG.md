@@ -2,6 +2,13 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.74.0] - 2026-11-08
+
+- **The constitution:** eight articles you can amend from the Laws page: term limits, voting age, the electoral system, an upper house, the courts, federal or unitary government, emergency powers and a bill of rights
+  - Every option has trade-offs you can see before you choose: faster laws or more checks, happier young voters, cleaner government, easier coalitions, friends abroad
+  - In democracies the people vote in a referendum and can say no; elsewhere it passes by decree, and democracies abroad frown
+- **A living map:** pulsing beacons mark what's happening now: pandemic hot spots, your disaster, your spy operations, peacekeepers and a World Cup you're playing in
+
 ## [0.73.0] - 2026-11-08
 
 - **Find anything:** a new search button next to the map layers and at the top of every page. Type "taxes", "army" or "world cup" and jump straight there

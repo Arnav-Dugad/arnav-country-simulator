@@ -548,6 +548,12 @@ const TOUR_BID_MONTHS := 12        # from bid to vote
 const TOUR_SOFT_RELATIONS := 0.01  # relations a month with everyone per soft power point gained
 
 
+# ------------------------------------------------------------ constitution ---
+# See sim/constitution.gd.
+const CONST_CAPITAL := 25.0        # political capital per amendment
+const CONST_GAP := 18              # months between amendments
+
+
 # ------------------------------------------------------------ space colonies ---
 # See sim/space.gd.
 const SPACE_MIN_GDP := 2.0e11      # economy size needed to build an outpost

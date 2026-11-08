@@ -83,6 +83,8 @@ static func harm_mult(kind: String) -> float:
 	for id in ADAPT:
 		if adapted(str(id)) and kind in ADAPT[id].protects:
 			m *= 1.0 - float(ADAPT[id].cut)
+	if Game.dip.has("const"):
+		m *= 1.0 - Constitution.fx("disaster")
 	if int((st().built_back as Dictionary).get(kind, 0)) > 0:
 		m *= 1.0 - E.DIS_BUILD_BACK_CUT
 	return clampf(m, 0.15, 1.0)

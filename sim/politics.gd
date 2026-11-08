@@ -78,6 +78,9 @@ func fatigue() -> float:
 
 
 func term_limit() -> int:
+	var ct := Constitution.term_limit()
+	if ct >= 0:
+		return ct
 	return 0 if limit_lifted else Government.term_limit(Game.player)
 
 

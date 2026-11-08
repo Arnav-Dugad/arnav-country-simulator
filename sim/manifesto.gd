@@ -180,9 +180,10 @@ const PARTNERS := [
 
 ## A narrow loss in a parliament: a smaller party offers a coalition (or {}).
 static func coalition_offer(share: float) -> Dictionary:
-	if Government.kind(Game.player) not in ["parliamentary", "monarchy_parl", "semi_presidential"]:
+	var pr := Constitution.fx("coalition") if Game.dip.has("const") else 0.0
+	if Government.kind(Game.player) not in ["parliamentary", "monarchy_parl", "semi_presidential"] and pr <= 0.0:
 		return {}
-	if share < E.MANI_COALITION_SHARE or share >= 50.0:
+	if share < E.MANI_COALITION_SHARE - 2.0 * pr or share >= 50.0:
 		return {}
 	var c := Game.me()
 	var cands: Array = []

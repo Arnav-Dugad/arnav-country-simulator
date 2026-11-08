@@ -70,6 +70,7 @@ func _draw() -> void:
 	_draw_flight()
 	_draw_fx()
 	_draw_fronts()
+	_draw_beacons()
 	_draw_ripples()
 
 
@@ -471,3 +472,69 @@ func _draw_projects() -> void:
 		if tex:
 			draw_texture_rect(tex, Rect2(p - Vector2(6.5, 6.5), Vector2(13, 13)), false,
 				Color(1, 1, 1, 0.95) if not building else Color(DS.ORANGE.lightened(0.3), 0.95))
+
+
+# ---------------------------------------------------------------- beacons ----
+## Pulsing markers that show what's happening in the world right now: outbreaks,
+## your disaster, spy operations, peacekeepers and the Games you host.
+func _beacons() -> Array:
+	var out: Array = []          # [country, icon, colour]
+	if Game.dip.has("pandemic") and Pandemic.active():
+		var inf: Dictionary = Pandemic.st().get("inf", {})
+		var hot: Array = []
+		for k in inf:
+			if float(inf[k]) >= 0.002:
+				hot.append([float(inf[k]), int(k)])
+		hot.sort_custom(func(a: Array, b: Array) -> bool: return float(a[0]) > float(b[0]))
+		for h in hot.slice(0, 6):
+			out.append([int(h[1]), "biohazard", DS.RED])
+	if Game.dip.has("dis") and Disasters.active():
+		var d: Dictionary = Disasters.st().active
+		out.append([Game.player, str(Disasters.TYPES[str(d.kind)].icon), DS.ORANGE])
+	if Game.dip.has("intel"):
+		for o in Intel.st().ops:
+			out.append([int(o.target), "eye", DS.PURPLE])
+	if Game.dip.has("un") and bool(UnitedNations.st().get("keepers", false)):
+		for k in WorldWars.all():
+			out.append([int(WorldWars.all()[k].b), "shield", DS.TEAL])
+			break
+	if Game.dip.has("sport") and not (Sports.st().cup as Dictionary).is_empty():
+		out.append([Game.player, "trophy", DS.GOLD])
+	return out
+
+
+func _draw_beacons() -> void:
+	var list := _beacons()
+	if list.is_empty():
+		return
+	var now := Time.get_ticks_msec() / 1000.0
+	var view := Rect2(Vector2.ZERO, size).grow(30)
+	var seen := {}
+	for b in list:
+		var i := int(b[0])
+		var key := "%d-%s" % [i, b[1]]
+		if seen.has(key) or i < 0:
+			continue
+		seen[key] = true
+		# Several beacons on one country sit side by side.
+		var same := 0
+		for k2 in seen:
+			if str(k2).begins_with("%d-" % i):
+				same += 1
+		var p := map.world_to_screen(_anchor(i)) + Vector2(24.0 * float(same - 1), -20.0)
+		if not view.has_point(p):
+			continue
+		var col: Color = b[2]
+		# Two expanding rings, half a beat apart (still when Reduce motion is on).
+		if not Settings.reduce_motion:
+			for k in 2:
+				var u := fposmod(now * 0.55 + k * 0.5 + i * 0.13, 1.0)
+				draw_arc(p, 9.0 + 16.0 * u, 0.0, TAU, 32, Color(col, 0.5 * (1.0 - u)), 1.6, true)
+		draw_circle(p, 10.0, Color(0.04, 0.06, 0.1, 0.88), true, -1.0, true)
+		draw_arc(p, 10.0, 0.0, TAU, 28, Color(col, 0.95), 1.6, true)
+		var tex: Texture2D = _icons.get("b_" + str(b[1]))
+		if tex == null:
+			tex = DS.icon(str(b[1]))
+			_icons["b_" + str(b[1])] = tex
+		if tex:
+			draw_texture_rect(tex, Rect2(p - Vector2(6, 6), Vector2(12, 12)), false, col.lightened(0.25))

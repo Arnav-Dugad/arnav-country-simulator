@@ -164,6 +164,7 @@ func new_game(country_index: int, seed_value: int = -1, level: String = "") -> v
 	UnitedNations.st()              # standing at the UN
 	HeadOfState.st()                # the royal or first family
 	Automation.st()                 # robots and AI
+	Constitution.st()               # the articles your country starts with
 	headlines_seen = {}
 	last_rating = ""
 	news = []

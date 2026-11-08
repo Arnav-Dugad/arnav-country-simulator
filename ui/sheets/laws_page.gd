@@ -21,6 +21,7 @@ var _media: VBoxContainer
 var _crime: VBoxContainer
 var _black: VBoxContainer
 var _hos: VBoxContainer
+var _const: VBoxContainer
 var _capital: Control
 var _cap_value: Label
 var _cap_note: Label
@@ -119,9 +120,10 @@ func _build() -> void:
 	add_child(Illustration.banner("parliament", "gavel", DS.ACCENT, 124.0))
 	_capital = _capital_bar()
 	add_child(_capital)
-	add_child(jump_bar(["Your cabinet", "Royal family", "Clean government", "Media & propaganda", "Crime & justice", "Black market & smuggling"]))
+	add_child(jump_bar(["Your cabinet", "Royal family", "Constitution", "Clean government", "Media & propaganda", "Crime & justice", "Black market & smuggling"]))
 	_cabinet = section("Your cabinet")
 	_hos = section("Royal family")
+	_const = section("Constitution")
 	_clean = section("Clean government")
 	_media = section("Media & propaganda")
 	_crime = section("Crime & justice")
@@ -152,6 +154,7 @@ func refresh() -> void:
 	_fill_crime()
 	_fill_black()
 	_fill_hos()
+	_fill_const()
 	var active := 0
 	var passing := 0
 	for l in Laws.ALL:
@@ -777,3 +780,65 @@ func _fill_hos() -> void:
 static func _face(p: Dictionary) -> String:
 	var key := Leaders.portrait_key(Leaders.group_of(Game.player), bool(p.get("female", false)), Leaders.variant_for(str(p.get("name", ""))))
 	return Leaders.aged(key) if HeadOfState.age(p) >= 60 else key
+
+
+# ------------------------------------------------------------ constitution ---
+func _fill_const() -> void:
+	for ch in _const.get_children():
+		ch.queue_free()
+	var why := Constitution.amend_blocked()
+	note(("Amendments go to a referendum: the people can say no." if Government.is_free(Game.player)
+		else "Amendments pass by decree, but democracies abroad frown.") + " Each costs %d political capital." % int(Economy.CONST_CAPITAL), _const)
+	for a in Constitution.ARTICLES:
+		var art: Dictionary = Constitution.ARTICLES[a]
+		var cur := Constitution.option(str(a), Constitution.choice(str(a)))
+		var row := ListRow.new().setup(str(art.title), str(cur[1]) if not cur.is_empty() else "", "›")
+		row.trailing_label.add_theme_color_override(&"font_color", DS.TEXT_3)
+		row.set_leading(ListRow.icon_tile(str(art.icon), DS.ACCENT))
+		var aid := str(a)
+		row.tapped.connect(func() -> void: _article(aid))
+		_const.add_child(row)
+	if why != "":
+		note(why + ".", _const)
+
+
+func _article(a: String) -> void:
+	var art: Dictionary = Constitution.ARTICLES[a]
+	var m := ModalCard.new()
+	get_tree().current_scene.add_child(m)
+	m.header(str(art.icon), DS.ACCENT, "Constitution", str(art.title))
+	var why := Constitution.amend_blocked()
+	var free := Government.is_free(Game.player)
+	for opt in art.options:
+		var oid := str(opt[0])
+		var current := Constitution.choice(a) == oid
+		var chips: Array = []
+		for k in opt[3]:
+			var v := float(opt[3][k])
+			var lbl: String = {"approval": "Approval", "stability": "Stability", "happiness": "Happiness", "clean": "Clean gov",
+				"law_speed": "Laws pass faster", "coalition": "Coalitions", "youth": "Young voters", "relations": "Relations abroad",
+				"disaster": "Crisis response", "cred": "Credibility", "term": ""}.get(str(k), str(k))
+			if lbl == "" or v == 0.0:
+				continue
+			var good := v > 0.0 if str(k) != "coalition" else true
+			chips.append(["%s %s" % [lbl, ("+" if v > 0 else "") + (String.num(v * 100.0, 0) + "%" if str(k) in ["law_speed", "disaster"] else String.num(v, 1))], DS.GREEN if good else DS.RED])
+		var detail := str(opt[2])
+		if not current and why == "" and free:
+			detail += "  ·  referendum: about %d%% yes" % roundi(Constitution.yes_chance(a, oid) * 100.0)
+		var ch := m.choice(str(opt[1]) + ("  (now)" if current else ""), detail, &"GhostButton" if current else &"", func() -> void:
+			var r := Constitution.amend(a, oid)
+			m.dismiss()
+			var gs := get_tree().current_scene
+			if gs and gs.has_method("_notify"):
+				gs._notify(str(r.text), "scroll-text", DS.GOLD if bool(r.ok) else DS.ORANGE, true)
+			if bool(r.ok):
+				Haptics.success()
+			else:
+				Haptics.warning()
+			refresh(), chips)
+		if current or why != "":
+			for b in ch.find_children("*", "Button", true, false):
+				(b as Button).disabled = true
+	if why != "":
+		m.body(why + ".")
+	m.choice("Close", "", &"GhostButton", m.dismiss)
