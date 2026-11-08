@@ -67,6 +67,16 @@ func terms_served() -> int:
 	return maxi(elections_won - leader_from, 0)
 
 
+## Voter fatigue at the next election: the leader's own terms, or for a new
+## candidate the "fresh face" penalty plus half the party's years in power
+## (voters tire of parties too, not just leaders).
+func fatigue() -> float:
+	var sev := Difficulty.severity()
+	if successor:
+		return E.SUCCESSOR_PENALTY * sev + 0.5 * E.ELECTION_FATIGUE * sev * elections_won
+	return E.ELECTION_FATIGUE * sev * terms_served()
+
+
 func term_limit() -> int:
 	return 0 if limit_lifted else Government.term_limit(Game.player)
 
@@ -122,9 +132,7 @@ func milestone_text() -> String:
 ## Today's opinion poll: the vote share you'd get now (no luck, with voter fatigue).
 func poll() -> float:
 	var i := Game.player
-	var a := Game.me().approval - E.ELECTION_FATIGUE * Difficulty.severity() * terms_served()
-	if successor:
-		a = Game.me().approval - E.SUCCESSOR_PENALTY
+	var a := Game.me().approval - fatigue()
 	if Government.elections(i) == "managed":
 		return clampf(30.0 + a * 0.65, 20.0, 88.0)
 	return clampf(50.0 + (a - 42.5) * 0.9, 22.0, 78.0)
@@ -205,12 +213,10 @@ func hold_election() -> Dictionary:
 	var i := Game.player
 	var a := Game.me().approval
 	# Voters tire of long-serving leaders; a new candidate is fresh but less known.
-	var fatigue := E.ELECTION_FATIGUE * Difficulty.severity() * terms_served()
+	var tired := fatigue()
 	var was_successor := successor
-	if successor:
-		fatigue = E.SUCCESSOR_PENALTY
-	var won := Game.rng.randf() < Government.win_chance(i, a - fatigue)
-	var share := Government.vote_share(i, a - fatigue, Game.rng)
+	var won := Game.rng.randf() < Government.win_chance(i, a - tired)
+	var share := Government.vote_share(i, a - tired, Game.rng)
 	share = maxf(share, 50.6) if won else minf(share, 49.4)
 	months_to_election = _cycle_months(i)
 	var managed := Government.elections(i) == "managed"

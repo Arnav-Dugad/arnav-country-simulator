@@ -946,7 +946,7 @@ static func effect_chips(fx: Dictionary) -> Array:
 				out.append(["Pledge: cut CO₂ %d%%" % roundi(float(v) * 100.0), true, 10.0])
 			"term":
 				var t: Array = {"retire": ["Legacy +%d" % roundi(Economy.HANDOVER_LEGACY), true],
-					"successor": ["New candidate: approval −%d at the vote" % roundi(Economy.SUCCESSOR_PENALTY), false],
+					"successor": ["Keep playing if your party wins", true],
 					"amend": ["%d%% chance it passes" % roundi(Game.politics.amend_chance() * 100.0), true]}.get(str(v), ["", true])
 				out.append([t[0], t[1], 10.0])
 			"gdp":
