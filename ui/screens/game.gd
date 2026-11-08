@@ -633,8 +633,8 @@ func _refresh_next() -> void:
 			"icon": "calendar", "tint": DS.GOLD, "sub": str(_review.title)}
 	elif Meeting.available():
 		var n := Meeting.proposals().size()
-		item = {"kind": "meeting", "key": "meeting%d" % int(Meeting.st().open), "title": "Cabinet meeting", "icon": "users", "tint": DS.ACCENT,
-			"sub": "%d proposal%s · tap to decide" % [n, "" if n == 1 else "s"]}
+		item = {"kind": "meeting", "key": "meeting%d" % int(Meeting.st().open), "title": "Cabinet", "icon": "users", "tint": DS.ACCENT,
+			"sub": "Meeting · %d proposal%s" % [n, "" if n == 1 else "s"]}
 	elif not Learn.finished() and Game.months_played < 48:
 		var st := Learn.next_step()
 		var n := Learn.STEPS.find(st) + 1
