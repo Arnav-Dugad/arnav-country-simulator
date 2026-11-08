@@ -178,6 +178,7 @@ func new_game(country_index: int, seed_value: int = -1, level: String = "") -> v
 	Air.st()                        # air quality
 	SeaLanes.st()                   # straits and canals
 	DigitalMoney.st()               # crypto market
+	Minerals.st()                   # lithium, cobalt, rare earths…
 	headlines_seen = {}
 	last_rating = ""
 	news = []
@@ -347,6 +348,8 @@ func advance_month() -> void:
 	Air.monthly()
 	Food.monthly()
 	Diaspora.monthly()
+	for h in Minerals.monthly():
+		add_feed(str(h.text), str(h.icon), "accent")
 	for h in SeaLanes.monthly():
 		add_feed(str(h.text), str(h.icon), "green" if bool(h.good) else "orange")
 		if bool(h.big):

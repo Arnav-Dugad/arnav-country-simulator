@@ -2,6 +2,15 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.90.0] - 2026-11-09
+
+- **Critical minerals** (Industries), from USGS data: lithium (Australia, Chile), cobalt (DR Congo), rare earths (China), nickel (Indonesia) and copper (Chile, Peru, DR Congo)
+  - Prices swing as the world electrifies, and your export earnings swing with them
+  - Open new mines for more output, at the cost of local protests and dust
+  - Sign a supply deal with the West or with China: better prices and a friend, but the other side cools
+  - Refine at home: ban raw exports as Indonesia did with nickel. Earnings dip for three years, then refineries and factories arrive
+  - Survey for new deposits; sometimes you strike it rich
+
 ## [0.89.0] - 2026-11-09
 
 - **People & society at a glance:** six tiles at the top (unity, hospital waits, air, schools, births, housing); tap one to jump straight to it

@@ -559,6 +559,25 @@ const TOUR_BID_MONTHS := 12        # from bid to vote
 const TOUR_SOFT_RELATIONS := 0.01  # relations a month with everyone per soft power point gained
 
 
+# ---------------------------------------------------------- critical minerals ---
+# See sim/minerals.gd.
+const MIN_DRIFT := 0.003            # monthly price drift (the world electrifies)
+const MIN_VOL := 0.04               # monthly price volatility
+const MIN_STATE_TAKE := 0.3         # share of extra export earnings the state collects (royalties, taxes)
+const MIN_DEAL_PREMIUM := 0.08      # better prices under a supply deal
+const MIN_DEAL_FRIEND := 6.0        # relations with the camp you sign with
+const MIN_DEAL_RIVAL := 4.0         # relations lost with the other camp
+const MIN_BAN_DIP := 0.4            # earnings lost in the first years of a raw-export ban
+const MIN_BAN_DIP_MONTHS := 36
+const MIN_PROCESSING_GROWTH := 0.25 # growth from refineries once a ban has worked
+const MIN_EXPAND_MONTHS := 36
+const MIN_EXPAND_COST := 0.1        # % of GDP a year while new mines are built
+const MIN_PROTEST := 1.0            # approval lost when new mines open
+const MIN_SURVEY_CAPITAL := 5.0
+const MIN_SURVEY_COST := 0.02       # % of GDP
+const MIN_SURVEY_CHANCE := 0.25
+
+
 # --------------------------------------------------------------- air quality ---
 # See sim/air.gd. PM2.5 in µg/m³.
 const AIR_EMISSION_LINK := 0.7      # PM follows fossil emissions per person (elasticity)

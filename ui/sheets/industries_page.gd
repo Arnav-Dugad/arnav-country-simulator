@@ -45,6 +45,7 @@ func refresh() -> void:
 	for id in ids:
 		box.add_child(_sector_row(c, str(id)))
 	note("Tap a sector to see what drives it and to subsidise it. Competitive sectors grow and hire; struggling ones shrink. Skills, research, infrastructure and clean government help every sector.", box)
+	_minerals()
 	_food()
 	_automation()
 	# Partners.
@@ -262,3 +263,89 @@ func _food_tile(icon: String, color: Color, head: String, value: String, sub: St
 	sl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	v.add_child(sl)
 	return p
+
+
+# ---------------------------------------------------------- critical minerals ---
+func _minerals() -> void:
+	var box := section("Critical minerals", _box)
+	var mine := Minerals.mine_list()
+	note("Batteries, wind turbines and chips need a handful of minerals, and a few countries mine most of them. Demand climbs as the world electrifies." +
+		("" if not mine.is_empty() else "  You produce none yet: a survey may find some."), box)
+	for m in mine:
+		var info: Dictionary = Minerals.ALL[m]
+		var s := Minerals.st()
+		var sh := Minerals.share(m)
+		var bits := PackedStringArray(["%s of world output" % DS.pct(sh, 0), ("%s of GDP in exports" % DS.pct(Minerals.earnings_pct(m), 1)) if Minerals.earnings_pct(m) >= 0.05 else "under 0.1% of GDP",
+			"price %d" % roundi(float(s.price[m]))])
+		if (s.deal as Dictionary).has(m):
+			bits.append("deal with %s" % ("the West" if str(s.deal[m]) == "west" else "China"))
+		if (s.ban as Dictionary).has(m):
+			bits.append("refined at home")
+		if Minerals.expanding(m):
+			bits.append("new mines in %d months" % (Economy.MIN_EXPAND_MONTHS - (Game.months_played - int(s.build[m]))))
+		var row := ListRow.new().setup(str(info.title), "  ·  ".join(bits), "›")
+		row.subtitle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		row.subtitle_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+		row.set_leading(ListRow.icon_tile(str(info.icon), DS.GOLD))
+		var mid := str(m)
+		row.tapped.connect(func() -> void: _mineral_actions(mid))
+		box.add_child(row)
+	var wait := Minerals.survey_wait()
+	var sb := AppButton.make(("Mineral survey  ·  %d capital" % int(Economy.MIN_SURVEY_CAPITAL)) if wait == 0 else "Next survey in %d months" % wait, &"", "search")
+	sb.disabled = wait > 0 or not Capital.can(Economy.MIN_SURVEY_CAPITAL)
+	sb.pressed.connect(func() -> void:
+		var found := Minerals.survey()
+		if found != "":
+			Simulation.update_finances(Game.me())
+			Haptics.success() if found != "-" else Haptics.select()
+		refresh())
+	box.add_child(sb)
+
+
+func _mineral_actions(m: String) -> void:
+	var info: Dictionary = Minerals.ALL[m]
+	var s := Minerals.st()
+	var c := Game.me()
+	var mm := ModalCard.new()
+	get_tree().current_scene.add_child(mm)
+	mm.header(str(info.icon), DS.GOLD, "Critical minerals", str(info.title))
+	var top := PackedStringArray()
+	for iso in info.producers:
+		var j := World.index_of(str(iso))
+		if j >= 0:
+			top.append("%s %d%%" % [World.map.names[j], int(info.producers[iso])])
+		if top.size() >= 4:
+			break
+	mm.body("You mine %s of the world's %s. Biggest producers: %s." % [DS.pct(Minerals.share(m), 0), str(info.title).to_lower(), ", ".join(top)])
+	var ex := mm.choice("Open new mines", "%s a year for 3 years · more output, local protests" % DS.money(c.gdp * Economy.MIN_EXPAND_COST / 100.0), &"PrimaryButton", func() -> void:
+		if Minerals.expand(m):
+			Simulation.update_finances(Game.me())
+			Haptics.success()
+		mm.dismiss()
+		refresh())
+	if not Minerals.can_expand(m):
+		for bb in ex.find_children("*", "Button", true, false):
+			(bb as Button).disabled = true
+	var deal := str((s.deal as Dictionary).get(m, ""))
+	if deal != "west":
+		mm.choice("Supply deal with the West", "Better prices · the West warms, China cools", &"GhostButton", func() -> void:
+			Minerals.set_deal(m, "west")
+			Simulation.update_finances(Game.me())
+			Haptics.select()
+			mm.dismiss()
+			refresh())
+	if deal != "east":
+		mm.choice("Supply deal with China", "Better prices · China warms, the West cools", &"GhostButton", func() -> void:
+			Minerals.set_deal(m, "east")
+			Simulation.update_finances(Game.me())
+			Haptics.select()
+			mm.dismiss()
+			refresh())
+	var banned := (s.ban as Dictionary).has(m)
+	mm.choice("Sell raw ore again" if banned else "Refine it at home", "Exports recover now" if banned else "Ban raw exports · earnings dip for 3 years, then refineries and factories come", &"GhostButton", func() -> void:
+		Minerals.ban(m)
+		Simulation.update_finances(Game.me())
+		Haptics.select()
+		mm.dismiss()
+		refresh())
+	mm.choice("Close", "", &"GhostButton", mm.dismiss)
