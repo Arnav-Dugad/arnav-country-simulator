@@ -78,6 +78,68 @@ func refresh() -> void:
 		var g := grid(_box, 2)
 		for sp in group[1]:
 			g.add_child(_tile(sp))
+	_trends()
+
+
+var _trend_key := "gdp"
+
+
+## Trends explorer: any indicator's whole history since you took office.
+func _trends() -> void:
+	var head := Label.new()
+	head.theme_type_variation = &"Overline"
+	head.text = "TRENDS SINCE YOU TOOK OFFICE"
+	_box.add_child(head)
+	var specs: Array = []
+	for group in _specs():
+		for sp in group[1]:
+			if str(sp[1]) != "":
+				specs.append(sp)
+	var flow := HFlowContainer.new()
+	flow.add_theme_constant_override(&"h_separation", 6)
+	flow.add_theme_constant_override(&"v_separation", 6)
+	_box.add_child(flow)
+	var cur: Array = specs[0]
+	for sp in specs:
+		if str(sp[1]) == _trend_key:
+			cur = sp
+		var b := AppButton.make(str(sp[0]), &"ChipSelected" if str(sp[1]) == _trend_key else &"Chip")
+		var key := str(sp[1])
+		b.pressed.connect(func() -> void:
+			_trend_key = key
+			Haptics.select()
+			refresh())
+		flow.add_child(b)
+	var hist: PackedFloat32Array = Game.history.get(str(cur[1]), PackedFloat32Array())
+	var fmt: Callable = cur[3]
+	var up_good := bool(cur[4])
+	var ch := LineChart.new()
+	ch.window = 1200
+	ch.formatter = fmt
+	ch.custom_minimum_size = Vector2(0, 170)
+	var n := hist.size()
+	ch.date_of = func(i: int) -> String:
+		var back := n - 1 - i
+		var m := Game.month - 1 - back
+		var y := Game.year + floori(m / 12.0)
+		const N := ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+		return "%s %d" % [N[posmod(m, 12)], y]
+	var first := float(hist[0]) if n > 0 else 0.0
+	var last := float(hist[n - 1]) if n > 0 else 0.0
+	var better := (last > first) == up_good
+	ch.set_color(DS.TEXT_3 if n < 2 or absf(last - first) < absf(first) * 0.005 else (DS.GREEN if better else DS.RED))
+	_box.add_child(ch)
+	ch.set_data(hist, true)
+	if n >= 2:
+		var lo := first
+		var hi := first
+		for v in hist:
+			lo = minf(lo, v)
+			hi = maxf(hi, v)
+		note("%s: %s when you took office, %s now  ·  low %s, high %s. Touch the chart to read any month." % [
+			str(cur[0]), str(fmt.call(first)), str(fmt.call(last)), str(fmt.call(lo)), str(fmt.call(hi))], _box)
+	else:
+		note("Play a few months to see the trend.", _box)
 
 
 func _tile(sp: Array) -> Control:
