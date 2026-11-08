@@ -336,6 +336,7 @@ static func update_finances(c: CountryState) -> void:
 		+ (float(Crime.modifiers().get("cost", 0.0)) if c.idx == Game.player and Game.has_game() and Game.dip.has("crime") else 0.0)
 		+ (Industries.subsidy_pct() if c.idx == Game.player else 0.0)
 		+ (Population.family_cost_pct() if c.idx == Game.player else 0.0)
+		+ (Sports.funding_cost_pct() if c.idx == Game.player else 0.0)
 		+ (float(War.effects().cost) if c.idx == Game.player and Game.has_game() and War.at_war() else 0.0)) / 100.0
 	# Inflation above the floor erodes local-currency debt, so only the real
 	# part of the rate is a burden in dollar terms.

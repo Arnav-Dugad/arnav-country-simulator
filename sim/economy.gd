@@ -548,6 +548,19 @@ const TOUR_BID_MONTHS := 12        # from bid to vote
 const TOUR_SOFT_RELATIONS := 0.01  # relations a month with everyone per soft power point gained
 
 
+# ------------------------------------------------------------------- sport ---
+# See sim/sports.gd. Strength points (most nations 30..80).
+const SPORT_FOCUS := 10.0          # an academy focus on one sport, at full ramp (4 years)
+const SPORT_FOCUS_COST := 0.03     # % of GDP a year
+const SPORT_BUILDS := 10.0         # at full extra coverage of stadiums and sports centres
+const SPORT_DOPING := 6.0          # extra strength if you look the other way ...
+const SPORT_DOPING_RISK := 0.35    # ... and the chance a Games ends in a scandal
+const SPORT_HOST := 8.0            # home advantage when you host
+const SPORT_TITLE_PRIDE := 6.0     # happiness (and 60 % of it in approval) for a world title
+const SPORT_EXIT_PRIDE := -1.5     # an early exit
+const SPORT_MEDAL_PRIDE := 3.0     # beating (or missing) the medals people expected
+
+
 # ---------------------------------------------- disasters & climate adaptation ---
 # See sim/disasters.gd.
 const DIS_EMERGENCY_MONTHS := 3

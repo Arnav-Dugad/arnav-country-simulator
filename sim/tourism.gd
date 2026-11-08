@@ -119,6 +119,8 @@ static func soft_power(i: int, details: bool = true) -> float:
 			sp -= 2.0 * float(Intel.st().lost)
 		if Game.dip.has("tech"):
 			sp += 4.0 * float((Tech.st().firsts as Dictionary).values().count(World.map.iso3[Game.player]))
+		if Game.dip.has("sport"):
+			sp += Sports.prestige()
 	return clampf(sp, 0.0, 100.0)
 
 

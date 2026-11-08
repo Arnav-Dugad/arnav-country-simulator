@@ -27,6 +27,8 @@ func _build() -> void:
 	hub([
 		["tourism", "plane-takeoff", DS.TEAL, "Tourism & fame", "Visitors, heritage, host the Games", func() -> void: page_requested.emit("tourism")],
 		["intel", "eye", DS.PURPLE, "Intelligence", "Your spies and their operations", func() -> void: _scroll_to(_intel)],
+		["stadium", "trophy", DS.GOLD, "Sport", "World Cup, the Games, medals", func() -> void: page_requested.emit("sports")],
+		["summit", "landmark", DS.ACCENT, "Treaties", "Blocs, alliances and votes", func() -> void: _scroll_to(_treaties)],
 	], self)
 	_rival = section("Your rival")
 	_markets = section("World markets")
