@@ -668,10 +668,10 @@ static func debate_event() -> Dictionary:
 	var opp := Opposition.leader()
 	var weak := Opposition.weakness(Game.me())
 	var attack: String = (Opposition.ATTACKS[weak] as Array)[0] if weak != "" else str(opp.pitch) + "."
-	var who := "your candidate" if Game.politics.successor else "you"
+	var who := "your candidate faces" if Game.politics.successor else "you face"
 	var e := {"id": "debate", "title": "TV debate with %s" % str(opp.name), "icon": "mic", "tint": "gold", "weight": 0.0,
 		"face": str(opp.portrait), "scene_hint": "election",
-		"body": "Two months before the vote, %s face %s of the %s live on TV. Their opening line: “%s”" % [
+		"body": "Two months before the vote, %s %s of the %s live on TV. Their opening line: “%s”" % [
 			who, str(opp.name), str(opp.party), attack],
 		"choices": [
 			{"label": "Defend your record", "detail": "Works when the numbers are on your side",
