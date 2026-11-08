@@ -320,9 +320,12 @@ func _build_notifications() -> void:
 # ---------------------------------------------------------------- display ---
 func _build_display() -> void:
 	var box := section("Text", _sub)
-	var sizes := [0.9, 1.0, 1.15, 1.3]
-	var ts := SegmentedControl.new().setup(["Small", "Default", "Large", "Larger"], [],
-		maxi(0, sizes.find(Settings.text_scale)))
+	var sizes: Array = Settings.TEXT_SCALES
+	var cur := 2
+	for k in sizes.size():
+		if absf(float(sizes[k]) - Settings.text_scale) < 0.005:
+			cur = k
+	var ts := SegmentedControl.new().setup(["Tiny", "Small", "Default", "Large", "Huge"], [], cur)
 	ts.plain = true
 	ts.compact = false
 	ts.fill = true

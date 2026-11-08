@@ -5,6 +5,7 @@ extends Node
 
 signal saved(slot: int)
 signal slots_changed
+signal deleted(slot: int)        # the cloud copy goes too (see CloudSync)
 
 const DIR := "user://saves/"
 const SLOTS := 3
@@ -145,6 +146,7 @@ func delete_slot(slot: int) -> void:
 	if FileAccess.file_exists(path(slot)):
 		DirAccess.remove_absolute(path(slot))
 		slots_changed.emit()
+	deleted.emit(slot)
 
 
 func has_any() -> bool:

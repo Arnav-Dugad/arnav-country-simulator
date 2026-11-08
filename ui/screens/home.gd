@@ -117,6 +117,10 @@ func _build() -> void:
 		SaveManager.active_slot = _free_slot()
 		Router.goto(PICKER))
 	_col.add_child(new_game)
+	if not sm.is_empty():
+		var manage := AppButton.make("Manage saves", &"GhostButton", "folder")
+		manage.pressed.connect(_manage_saves)
+		_col.add_child(manage)
 
 
 func _resume_card(slot: int, sm: Dictionary) -> Control:
@@ -261,3 +265,46 @@ func _layout() -> void:
 	_card.size = Vector2(w, _card.get_combined_minimum_size().y)
 	_card.position = Vector2((size.x - w) * 0.5, size.y - Screen.bottom - DS.S4 - _card.size.y)
 	Screen.fit_card(_card, self)
+
+
+# ------------------------------------------------------------- manage saves ---
+func _manage_saves() -> void:
+	var m := ModalCard.new()
+	add_child(m)
+	m.header("folder", DS.ACCENT, "Saves", "Your games")
+	m.body("Tap a game to delete it%s." % (" from this phone and your cloud backup" if Firebase.enabled() and Firebase.signed_in() else ""))
+	for s in range(1, SaveManager.SLOTS + 1):
+		var o := SaveManager.summary(s)
+		if o.is_empty():
+			continue
+		var detail := "Slot %d  ·  %s  ·  approval %s%%" % [s, _pretty_date(str(o.get("date", ""))),
+			String.num(clampf(float(o.get("approval", 0.0)), 0.0, 100.0), 0)]
+		if CloudSync.is_backed_up(s):
+			detail += "  ·  backed up"
+		m.choice("Delete %s" % str(o.get("name", "?")), detail, &"GhostButton", func() -> void:
+			m.dismiss()
+			_confirm_delete(s, o))
+	m.choice("Done", "", &"GhostButton", m.dismiss)
+
+
+func _confirm_delete(slot: int, o: Dictionary) -> void:
+	var m := ModalCard.new()
+	add_child(m)
+	m.header("trash-2", DS.RED, "Delete save", "%s, %s" % [str(o.get("name", "?")), _pretty_date(str(o.get("date", "")))])
+	m.body("This game will be gone for good%s. It can't be undone." % (", including its cloud backup" if Firebase.enabled() and Firebase.signed_in() else ""))
+	m.choice("Delete", "", &"DestructiveButton", func() -> void:
+		SaveManager.delete_slot(slot)
+		if Settings.last_slot == slot:
+			Settings.set_value("last_slot", 1)
+		Haptics.warning()
+		m.dismiss()
+		_rebuild())
+	m.choice("Keep it", "", &"GhostButton", m.dismiss)
+
+
+func _rebuild() -> void:
+	for ch in _col.get_children():
+		ch.queue_free()
+	await get_tree().process_frame
+	_build()
+	_layout()

@@ -18,13 +18,13 @@ func _ready() -> void:
 	var pad: StyleBox = sheet.panel.get_theme_stylebox(&"panel")
 	var avail := VIEW_W - BottomSheet.SIDE_INSET * 2.0 - pad.content_margin_left - pad.content_margin_right
 	var fails := 0
-	for scale in [1.0, 1.3]:
+	for scale in [0.8, 0.92, 1.18]:
 		Settings.text_scale = scale
 		Settings._apply_text_scale()
 		await get_tree().process_frame
 		print("-- text size %d%%" % int(scale * 100))
 		fails += await _check_pages(game, avail)
-	Settings.text_scale = 1.0
+	Settings.text_scale = Settings.TEXT_DEFAULT
 	Settings._apply_text_scale()
 	var top_w: float = game.top_bar.get_combined_minimum_size().x
 	var dock_w: float = game.dock.get_combined_minimum_size().x

@@ -16,6 +16,9 @@ func _ready() -> void:
 func _build() -> void:
 	for ch in get_children():
 		ch.queue_free()
+	if not Store.owns("cheats"):
+		_paywall()
+		return
 	if not Settings.cheats:
 		_locked()
 		return
@@ -28,6 +31,8 @@ func _build() -> void:
 	add_child(_hero())
 	add_child(_section_title("Always on"))
 	add_child(_switches())
+	add_child(_section_title("Set exact values"))
+	add_child(_sliders())
 	for cat in CATEGORIES:
 		add_child(_section_title(str(cat[0])))
 		add_child(_grid(cat[1]))
@@ -88,7 +93,7 @@ func _hero() -> Control:
 	_status.theme_type_variation = &"Caption"
 	_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_status.custom_minimum_size = Vector2(40, 0)
-	_status.text = "Cheats used this game: achievements are off." if Game.cheats_used else "No cheats used yet: achievements still count."
+	_status.text = ("%d cheats used this game: achievements are off." % int(Game.dip.get("cheats_count", 1))) if Game.cheats_used else "No cheats used yet: achievements still count."
 	_status.add_theme_color_override(&"font_color", DS.ORANGE if Game.cheats_used else DS.GREEN)
 	v.add_child(_status)
 	return card
@@ -163,9 +168,18 @@ func _tile(it: Array) -> Control:
 	d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	d.custom_minimum_size = Vector2(40, 0)
 	v.add_child(d)
+	var st := {"p": Vector2.ZERO, "down": false}
 	p.gui_input.connect(func(e: InputEvent) -> void:
-		if e is InputEventMouseButton and e.button_index == MOUSE_BUTTON_LEFT and not e.pressed:
-			_run(it, p, ic))
+		if e is InputEventMouseButton and e.button_index == MOUSE_BUTTON_LEFT:
+			if e.pressed:
+				st.p = e.global_position
+				st.down = true
+			elif st.down:
+				st.down = false
+				if e.global_position.distance_to(st.p) < 10.0:      # a tap, not a scroll
+					_run(it, p, ic)
+		elif e is InputEventMouseMotion and st.down and e.global_position.distance_to(st.p) >= 10.0:
+			st.down = false)
 	return p
 
 
@@ -192,6 +206,110 @@ func _run(it: Array, tile: Control, ic: TextureRect) -> void:
 
 func _used() -> void:
 	Game.cheats_used = true
+	Game.dip["cheats_count"] = int(Game.dip.get("cheats_count", 0)) + 1
+
+
+## Not bought yet: what the pack contains and a buy button (demo store).
+func _paywall() -> void:
+	var card := PanelContainer.new()
+	card.theme_type_variation = &"GroupPanel"
+	add_child(card)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override(&"separation", DS.S3)
+	card.add_child(v)
+	if Photo.has_scene("store"):
+		v.add_child(Photo.scene("store", 120.0))
+	var t := Label.new()
+	t.theme_type_variation = &"Title2"
+	t.text = "Sandbox Cheats"
+	v.add_child(t)
+	var d := Label.new()
+	d.theme_type_variation = &"Footnote"
+	d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	d.custom_minimum_size = Vector2(60, 0)
+	var n := 0
+	for cat in CATEGORIES:
+		n += (cat[1] as Array).size()
+	d.text = "%d one-tap cheats in %d categories, exact sliders for approval, stability, happiness and more, and lasting switches like never losing power. Bend the world to your will: games where you cheat don't earn achievements." % [n, CATEGORIES.size()]
+	v.add_child(d)
+	var flow := HFlowContainer.new()
+	flow.add_theme_constant_override(&"h_separation", 6)
+	flow.add_theme_constant_override(&"v_separation", 6)
+	v.add_child(flow)
+	for cat in CATEGORIES:
+		var chip := PanelContainer.new()
+		chip.theme_type_variation = &"ForecastChip"
+		var l := Label.new()
+		l.theme_type_variation = &"ChipValue"
+		l.text = str(cat[0])
+		l.add_theme_color_override(&"font_color", DS.PURPLE)
+		chip.add_child(l)
+		flow.add_child(chip)
+	var b := AppButton.make("Unlock for %s" % Store.price_text("cheats"), &"PrimaryButton", "wand-sparkles")
+	b.pressed.connect(func() -> void:
+		b.disabled = true
+		b.text = "Purchasing…"
+		var r: Dictionary = await Store.purchase("cheats")
+		if r.ok:
+			Settings.set_value("cheats", true)
+			Haptics.success()
+			Audio.play("success", -6.0)
+		else:
+			Haptics.warning()
+		_build())
+	v.add_child(b)
+	var note := Label.new()
+	note.theme_type_variation = &"Caption"
+	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	note.custom_minimum_size = Vector2(60, 0)
+	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	note.text = "Included in the Complete Edition and the Statesman Pass." + ("  Demo store: nothing is charged." if Store.DEMO else "")
+	v.add_child(note)
+
+
+## Sliders that set a number right now (policies then pull it gently back).
+func _sliders() -> Control:
+	var box := PanelContainer.new()
+	box.theme_type_variation = &"GroupPanel"
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override(&"separation", DS.S3)
+	box.add_child(v)
+	var m := Game.me()
+	var specs := [
+		["Approval", "approval", 0.0, 100.0],
+		["Happiness", "happiness", 0.0, 100.0],
+		["Stability", "stability", 0.0, 100.0],
+		["Military strength", "military", 1.0, 100.0],
+		["Inflation", "inflation", -2.0, 30.0],
+		["Unemployment", "unemployment", 1.0, 30.0],
+	]
+	for sp in specs:
+		var key := str(sp[1])
+		var sl := AppSlider.new().setup(str(sp[0]), float(sp[2]), float(sp[3]), 1.0, clampf(float(m.get(key)), float(sp[2]), float(sp[3])))
+		sl.formatter = (func(x: float) -> String: return "%d%%" % roundi(x)) if key in ["inflation", "unemployment"] else (func(x: float) -> String: return str(roundi(x)))
+		sl.drag_ended.connect(func(x: float) -> void:
+			_used()
+			var c := Game.me()
+			var before := float(c.get(key))
+			c.set(key, x)
+			# Hold it for a while: a shock the size of the change, fading as usual.
+			if c.shocks.has(key):
+				c.shocks[key] = float(c.shocks[key]) + (x - before)
+			if key == "inflation":
+				c.core_inflation = x
+			if key == "unemployment":
+				c.u_natural = clampf(x, Economy.UNEMP_MIN, Economy.UNEMP_MAX)
+			Simulation.update_finances(c)
+			Game.month_passed.emit()
+			Haptics.select())
+		v.add_child(sl)
+	var n := Label.new()
+	n.theme_type_variation = &"Caption"
+	n.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	n.custom_minimum_size = Vector2(60, 0)
+	n.text = "Your policies slowly pull these back toward what they support. Pair them with the switches above to make them last."
+	v.add_child(n)
+	return box
 
 
 # --------------------------------------------------------------- catalogue ---
@@ -289,7 +407,70 @@ static var CATEGORIES := [
 			for k in War.wars().keys():
 				War.make_peace(int(k), "status_quo")],
 	]],
+	["Research", [
+		["Eureka", "flask-conical", "Finish the current research now", DS.PURPLE, func() -> void:
+			var s := Tech.st()
+			if str(s.current) != "":
+				s.progress = float(Tech.ALL[str(s.current)].cost)
+				for n in Tech.monthly():
+					Game.tech_news.emit(n)],
+		["Future tech", "atom", "Every technology researched", DS.PURPLE, func() -> void:
+			var s := Tech.st()
+			for id in Tech.ALL:
+				if not (s.done as Array).has(id):
+					(s.done as Array).append(id)
+			s.current = ""
+			s.progress = 0.0],
+	]],
+	["War & spies", [
+		["They surrender", "flag", "Every enemy capitulates", DS.RED, func() -> void:
+			for k in War.wars().keys():
+				var w: Dictionary = War.wars()[k]
+				w.capitulated = true
+				w.occ_them = maxf(float(w.occ_them), 0.92)
+				w.morale_them = 0.15],
+		["Annex your enemies", "crown", "Absorb every country you're at war with", DS.GOLD, func() -> void:
+			for k in War.wars().keys():
+				War.with(int(k)).capitulated = true
+				War.make_peace(int(k), "annex_all")],
+		["Rally the nation", "megaphone", "War support to 100%", DS.ORANGE, func() -> void:
+			for k in War.wars().keys():
+				War.wars()[k].support = 100.0
+				War.wars()[k].morale_me = 1.2],
+		["Master spies", "eye", "Massive agency; operations finish now", DS.PURPLE, func() -> void:
+			var s := Intel.st()
+			s.level = 3
+			for o in s.ops:
+				o.start = Game.months_played - int(o.months)
+				o.p = 1.0
+				o.x = 0.0],
+	]],
+	["Wealth & fame", [
+		["Bull market", "trending-up", "Share prices double", DS.GREEN, func() -> void:
+			Enterprise.st().index = float(Enterprise.st().index) * 2.0
+			(Enterprise.st().hist as Array).append(float(Enterprise.st().index))],
+		["Sovereign riches", "piggy-bank", "+100% of GDP in your wealth fund", DS.GOLD, func() -> void:
+			Enterprise.fund().value = float(Enterprise.fund().value) + Game.me().gdp],
+		["Trusted voice", "newspaper", "Credibility to 100", DS.ACCENT, func() -> void:
+			Game.dip["credibility"] = 100.0],
+		["World heritage", "landmark", "Three new heritage sites listed", DS.GOLD, func() -> void:
+			var s := Tourism.st()
+			var kinds: Array = Tourism.SITES.keys()
+			for k in 3:
+				var kind := str(kinds[(k + (s.sites as Array).size()) % kinds.size()])
+				var names: Array = Tourism.SITES[kind][2]
+				(s.sites as Array).append({"kind": kind, "name": str(names[0]) % World.map.names[Game.player], "year": Game.year})],
+		["Host the Games", "medal", "The Summer Games open in a year", DS.GOLD, func() -> void:
+			var s := Tourism.st()
+			s.bid = {}
+			s.host = {"ev": "games", "year_m": Game.months_played + 12}],
+		["Baby boom", "users", "Population +5%", DS.TEAL, func() -> void:
+			Game.me().population *= 1.05],
+	]],
 	["Time", [
+		["Fast-forward a year", "fast-forward", "Twelve months pass at once", DS.ACCENT, func() -> void:
+			for k in 12:
+				Game.advance_month()],
 		["Skip to the election", "vote", "The next vote is next month", DS.GOLD, func() -> void:
 			if Game.politics.months_to_election > 1:
 				Game.politics.months_to_election = 1],

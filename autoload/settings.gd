@@ -15,7 +15,11 @@ var skipped_version: String = ""
 var last_slot: int = 1
 var map_theme: String = "default"
 var tutorial_done: bool = false
-var text_scale: float = 1.0          # 0.9 / 1.0 / 1.15 / 1.3
+## Text size steps (Settings > Text). The default is a little under the theme's
+## base sizes: denser, calmer screens on phones.
+const TEXT_SCALES := [0.8, 0.86, 0.92, 1.04, 1.18]
+const TEXT_DEFAULT := 0.92
+var text_scale: float = TEXT_DEFAULT
 var colorblind: bool = false         # colour-blind friendly data map palettes
 var solid_panels: bool = false       # "Reduce transparency": no glass blur
 ## Events: "inbox" (decisions wait above the dock; the cabinet answers when time
@@ -55,7 +59,13 @@ func _ready() -> void:
 		last_slot = _cfg.get_value("prefs", "last_slot", 1)
 		map_theme = _cfg.get_value("prefs", "map_theme", "default")
 		tutorial_done = _cfg.get_value("prefs", "tutorial_done", false)
-		text_scale = _cfg.get_value("prefs", "text_scale", 1.0)
+		text_scale = _cfg.get_value("prefs", "text_scale", TEXT_DEFAULT)
+		if not _cfg.get_value("prefs", "text_v2", false):
+			# Older builds had 0.9 / 1.0 / 1.15 / 1.3: map each to its new step.
+			text_scale = {0.9: 0.86, 1.0: TEXT_DEFAULT, 1.15: 1.04, 1.3: 1.18}.get(snappedf(text_scale, 0.01), text_scale)
+			_cfg.set_value("prefs", "text_v2", true)
+			_cfg.set_value("prefs", "text_scale", text_scale)
+			_cfg.save(PATH)
 		colorblind = _cfg.get_value("prefs", "colorblind", false)
 		solid_panels = _cfg.get_value("prefs", "solid_panels", false)
 		for k in EXTRA_KEYS:

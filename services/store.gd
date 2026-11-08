@@ -15,9 +15,13 @@ const CATALOG := [
 	{"id": "complete", "section": "Featured", "kind": "pack", "price": 9.99, "icon": "crown", "tint": "gold",
 		"title": "Complete Edition", "badge": "Best value",
 		"desc": "Everything in the store, forever. Less than buying each item.",
-		"includes": ["All 3 expansions", "All 4 map themes", "Supporter badge"],
+		"includes": ["All 3 expansions", "All 4 map themes", "Sandbox Cheats", "Supporter badge"],
 		"grants": ["scen_crossroads", "events_turbulent", "reformer", "theme_gold", "theme_aurora",
-			"theme_graphite", "theme_ember", "supporter"]},
+			"theme_graphite", "theme_ember", "supporter", "cheats"]},
+	{"id": "cheats", "section": "Featured", "kind": "pack", "price": 2.99, "icon": "wand-sparkles", "tint": "purple",
+		"title": "Sandbox Cheats", "badge": "New",
+		"desc": "35 one-tap cheats across money, people, economy, building, research, war, spies, wealth, tourism and time, plus exact sliders and lasting switches.",
+		"includes": ["35 one-tap cheats", "Exact-value sliders", "Lasting switches"], "grants": ["cheats"]},
 	{"id": "scen_crossroads", "section": "Expansions", "kind": "pack", "price": 2.99, "icon": "map", "tint": "accent",
 		"title": "Crossroads Scenarios", "desc": "6 scenarios with clear goals, from taming inflation to winning three terms.",
 		"includes": ["6 scenarios", "Goal tracking"], "grants": ["scen_crossroads"], "soon": true},
@@ -40,7 +44,7 @@ const CATALOG := [
 		"grants": ["theme_gold", "theme_aurora", "theme_graphite", "theme_ember"]},
 	{"id": "pass_monthly", "section": "Statesman Pass", "kind": "subscription", "price": 1.99, "period": "month",
 		"icon": "crown", "tint": "gold", "title": "Statesman Pass · Monthly",
-		"desc": "A new map theme each month, early access to scenarios, 10 cloud save slots. Cancel any time.",
+		"desc": "A new map theme each month, early access to scenarios, Sandbox Cheats, 10 cloud save slots. Cancel any time.",
 		"grants": ["pass"]},
 	{"id": "pass_yearly", "section": "Statesman Pass", "kind": "subscription", "price": 14.99, "period": "year",
 		"icon": "crown", "tint": "gold", "title": "Statesman Pass · Yearly", "badge": "Save 37%",
@@ -82,7 +86,13 @@ func sections() -> PackedStringArray:
 
 
 func owns(entitlement: String) -> bool:
+	if entitlement == "cheats" and _active_pass():
+		return true
 	return _owned.has(entitlement)
+
+
+func _active_pass() -> bool:
+	return _bought.has("pass_monthly") or _bought.has("pass_yearly")
 
 
 ## A product counts as owned when every entitlement it grants is owned

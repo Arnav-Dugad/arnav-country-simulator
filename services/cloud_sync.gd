@@ -8,6 +8,7 @@ signal status_changed
 
 const QUEUE_PATH := "user://sync_queue.cfg"
 const RETRY_SECONDS := 45.0
+const RETRY_MAX := 600.0          # back off up to 10 minutes while offline
 
 var online := true
 var last_sync := 0
@@ -19,11 +20,15 @@ var _dirty := {}  # slot -> true
 ## cloud copy is newer): never auto-overwritten; the player picks (conflict picker).
 var _conflicts := {}  # slot -> cloud data
 var _retry_timer: Timer
+## Saves deleted on this phone whose cloud copy still has to go (tombstones), so
+## a deleted game never comes back from the backup.
+var _deleted := {}  # slot -> true
 
 
 func _ready() -> void:
 	_load_queue()
 	SaveManager.saved.connect(_on_saved)
+	SaveManager.deleted.connect(_on_deleted)
 	Firebase.auth_changed.connect(_on_auth_changed)
 	_retry_timer = Timer.new()
 	_retry_timer.wait_time = RETRY_SECONDS
@@ -47,13 +52,27 @@ func _notification(what: int) -> void:
 
 
 func pending() -> int:
-	return _dirty.size()
+	return _dirty.size() + _deleted.size()
 
 
 func _on_saved(slot: int) -> void:
 	_dirty[slot] = true
+	_deleted.erase(slot)        # a new game in this slot replaces the cloud copy anyway
 	_save_queue()
 	flush()
+
+
+func _on_deleted(slot: int) -> void:
+	_dirty.erase(slot)
+	_conflicts.erase(slot)
+	_deleted[slot] = true
+	_save_queue()
+	flush()
+
+
+## Is this slot safely in the cloud (no upload waiting)?
+func is_backed_up(slot: int) -> bool:
+	return Firebase.enabled() and Firebase.signed_in() and last_sync > 0 and not _dirty.has(slot)
 
 
 func _on_auth_changed() -> void:
@@ -64,11 +83,21 @@ func _on_auth_changed() -> void:
 
 ## Upload every queued slot.
 func flush() -> void:
-	if busy or not Firebase.enabled() or not Firebase.signed_in() or _dirty.is_empty():
+	if busy or not Firebase.enabled() or not Firebase.signed_in() or (_dirty.is_empty() and _deleted.is_empty()):
 		return
 	busy = true
 	status_changed.emit()
-	for slot in _dirty.keys():
+	var failed := false
+	for slot in _deleted.keys():
+		var dr: Dictionary = await Firebase.delete_save(int(slot))
+		online = dr.ok or dr.code != 0
+		if dr.ok or dr.code == 404:
+			_deleted.erase(slot)
+		else:
+			last_error = dr.error
+			failed = true
+			break
+	for slot in (_dirty.keys() if not failed else []):
 		if _conflicts.has(slot):
 			continue   # waiting for the player to choose
 		if SaveManager.is_busy(slot):
@@ -85,9 +114,12 @@ func flush() -> void:
 			last_error = ""
 		else:
 			last_error = r.error
+			failed = true
 			break
 	_save_queue()
 	busy = false
+	# Back off while uploads fail (offline), back to normal once they work.
+	_retry_timer.wait_time = minf(_retry_timer.wait_time * 2.0, RETRY_MAX) if failed else RETRY_SECONDS
 	status_changed.emit()
 
 
@@ -102,7 +134,7 @@ func pull_newer() -> void:
 		status_changed.emit()
 		return
 	for slot in r.data:
-		if int(slot) < 1 or int(slot) > SaveManager.SLOTS:
+		if int(slot) < 1 or int(slot) > SaveManager.SLOTS or _deleted.has(int(slot)):
 			continue
 		var local := SaveManager.read_slot(slot)
 		var local_t := int(local.get("saved_at", 0))
@@ -207,6 +239,7 @@ func status_text() -> String:
 func _save_queue() -> void:
 	var cfg := ConfigFile.new()
 	cfg.set_value("queue", "slots", _dirty.keys())
+	cfg.set_value("queue", "deleted", _deleted.keys())
 	cfg.set_value("queue", "last_sync", last_sync)
 	cfg.save(QUEUE_PATH)
 
@@ -216,4 +249,6 @@ func _load_queue() -> void:
 	if cfg.load(QUEUE_PATH) == OK:
 		for s in cfg.get_value("queue", "slots", []):
 			_dirty[int(s)] = true
+		for s2 in cfg.get_value("queue", "deleted", []):
+			_deleted[int(s2)] = true
 		last_sync = int(cfg.get_value("queue", "last_sync", 0))
