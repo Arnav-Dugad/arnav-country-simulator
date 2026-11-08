@@ -1269,6 +1269,9 @@ func _show_meeting(list: Array, k: int, yes: int) -> void:
 	_modal.content.add_child(who)
 	_modal.header(str(Cabinet.POST_ICONS.get(post, "users")), DS.ACCENT, "Cabinet meeting  ·  %d of %d" % [k + 1, list.size()], str(p.title))
 	_modal.body(str(p.why))
+	if k == 0 and Meeting.tight():
+		var tl := _modal.body("The finance ministry warns that the budget is stretched (deficit %s of GDP), so only ideas that cost no money are on the table." % DS.pct(-Game.me().balance_pct(), 1))
+		tl.add_theme_color_override(&"font_color", DS.ORANGE)
 	var m := _modal
 	m.choice("Approve", str(p.cost), &"PrimaryButton", func() -> void:
 		Meeting.approve(str(p.id))

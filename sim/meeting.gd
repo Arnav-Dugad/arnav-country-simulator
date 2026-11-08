@@ -95,7 +95,20 @@ static func proposals() -> Array:
 				out.append({"id": "treaty:" + str(rv.id), "post": "foreign", "title": "A water treaty on %s" % str(rv.title),
 					"why": "A dam upstream is cutting our share. A treaty halves the loss.", "cost": "10 political capital"})
 				break
+	# A tight budget: the finance ministry blocks anything that costs money every year.
+	if tight():
+		var keep: Array = []
+		for p in out:
+			if str(p.id).split(":")[0] in ["digital_id", "survey", "treaty", "fish"]:
+				keep.append(p)
+		return keep
 	return out
+
+
+## The deficit or the debt is too high for new spending.
+static func tight() -> bool:
+	var c := Game.me()
+	return -c.balance_pct() > 5.0 or c.debt_pct() > maxf(100.0, float(Game.start_snapshot.get("debt_pct", 0.0)) + 15.0)
 
 
 static func available() -> bool:
