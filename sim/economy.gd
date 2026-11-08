@@ -548,6 +548,16 @@ const TOUR_BID_MONTHS := 12        # from bid to vote
 const TOUR_SOFT_RELATIONS := 0.01  # relations a month with everyone per soft power point gained
 
 
+# ---------------------------------------------------- diaspora & remittances ---
+# See sim/diaspora.gd. Remittances in % of GDP.
+const DIAS_FEES_COST := 0.03        # % of GDP a year to subsidise cheap transfers
+const DIAS_FEES_BOOST := 0.08       # share more that arrives when transfers are cheap
+const DIAS_VOTE_CAPITAL := 15.0
+const DIAS_BOND_SHARE := 0.5        # a bond raises half a year's remittances
+const DIAS_TAX_RATE := 0.02         # revenue (% of GDP) per point of outflow taxed
+const DIAS_TAX_DETER := 0.1         # outflow falls this much under the tax
+
+
 # ------------------------------------------------------- leadership challenge ---
 # See GameEvents.spill (parliamentary democracies only).
 const SPILL_APPROVAL := 30.0        # approval below which rebels can force a vote

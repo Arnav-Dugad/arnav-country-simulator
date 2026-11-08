@@ -32,10 +32,11 @@ func refresh() -> void:
 	var af := Population.afford()
 	g.add_child(_tile("house", DS.GREEN if af >= 95.0 else (DS.ORANGE if af >= 80.0 else DS.RED), "Housing", "%d" % roundi(af),
 		"affordability  ·  100 = at start"))
-	_box.add_child(jump_bar(["Regions", "Health system", "Schools & universities", "Age structure", "Family policy", "Cities & housing"]))
+	_box.add_child(jump_bar(["Regions", "Health system", "Schools & universities", "Diaspora & remittances", "Age structure", "Family policy", "Cities & housing"]))
 	_regions()
 	_health()
 	_education()
+	_diaspora()
 	# Age structure.
 	var st := Population.structure(c)
 	var ab := section("Age structure", _box)
@@ -383,3 +384,60 @@ func _health() -> void:
 	hb.add_child(dseg)
 	var di: Dictionary = Health.DRUGS_INFO[str(s.drugs)]
 	note("Medicine prices: %s%s" % [str(di.desc), ("  Saves %s a year." % DS.money(c.gdp * float(di.save) / 100.0)) if float(di.save) > 0.0 else ""], hb)
+
+
+# ---------------------------------------------------- diaspora & remittances ---
+func _diaspora() -> void:
+	var db := section("Diaspora & remittances", _box)
+	var s := Diaspora.st()
+	var c := Game.me()
+	var r := Diaspora.rate()
+	if absf(float(s.r0)) < 0.5:
+		note("Few families here depend on money from relatives abroad, and few foreign workers send money home.", db)
+		return
+	var d := r - float(s.r0)
+	var hl := ListRow.new().setup("Money sent home" if not Diaspora.host() else "Money sent abroad",
+		"%s of GDP  ·  %s a year" % [DS.pct(absf(r), 1), DS.money(c.gdp * absf(r) / 100.0)] + (("  ·  %+.1f pts since you took office" % d) if absf(d) >= 0.1 else ""))
+	hl.subtitle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	hl.subtitle_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	hl.set_leading(ListRow.icon_tile("plane-landing" if not Diaspora.host() else "plane-takeoff", DS.TEAL))
+	db.add_child(hl)
+	if Diaspora.host():
+		note("Many foreign workers live here and send part of their pay home. A tax on outgoing transfers raises money, but the countries they come from resent it.", db)
+		var tt := AppToggle.new().setup("Tax money sent abroad  ·  +%s a year" % DS.money(c.gdp * absf(r) * Economy.DIAS_TAX_RATE / 100.0), bool(s.tax), "receipt")
+		tt.toggled.connect(func(on: bool) -> void:
+			Diaspora.set_tax(on)
+			Simulation.update_finances(Game.me())
+			Haptics.select())
+		db.add_child(tt)
+		return
+	note("Citizens working abroad support their families at home. More arrives when transfers are cheap and when the economies they work in are booming.", db)
+	var ft := AppToggle.new().setup("Cheaper money transfers  ·  %s a year" % DS.money(c.gdp * Economy.DIAS_FEES_COST / 100.0), bool(s.fees), "hand-coins")
+	ft.toggled.connect(func(on: bool) -> void:
+		Diaspora.set_fees(on)
+		Simulation.update_finances(Game.me())
+		Haptics.select())
+	db.add_child(ft)
+	if not bool(s.vote):
+		var vb := AppButton.make("Overseas vote  ·  %d capital" % int(Economy.DIAS_VOTE_CAPITAL), &"", "vote")
+		vb.disabled = not Diaspora.can_vote()
+		vb.pressed.connect(func() -> void:
+			if Diaspora.give_vote():
+				Haptics.success()
+			refresh())
+		db.add_child(vb)
+	else:
+		note("Citizens abroad vote and keep both passports: they stay close to home.", db)
+	if not bool(s.vote):
+		note("Voting from abroad and dual citizenship keep emigrants close: a little more money home, approval and soft power.", db)
+	if r >= 1.0:
+		var wait := Diaspora.bond_wait()
+		var bb := AppButton.make(("Diaspora bonds  ·  raise %s" % DS.money(Diaspora.bond_size())) if wait == 0 else "Diaspora bonds again in %d months" % wait, &"", "landmark")
+		bb.disabled = wait > 0
+		bb.pressed.connect(func() -> void:
+			if Diaspora.issue_bond():
+				Simulation.update_finances(Game.me())
+				Haptics.success()
+			refresh())
+		db.add_child(bb)
+		note("Your people abroad lend to their country at a low rate. It adds to the debt, so use it wisely.", db)

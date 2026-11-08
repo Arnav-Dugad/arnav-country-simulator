@@ -48,6 +48,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 	var hlx: Dictionary = Health.modifiers() if c.idx == Game.player and Game.has_game() else {}
 	var wtx: Dictionary = Water.modifiers() if c.idx == Game.player and Game.has_game() else {}
 	var fdx: Dictionary = Food.modifiers() if c.idx == Game.player and Game.has_game() else {}
+	var dsx: Dictionary = Diaspora.modifiers() if c.idx == Game.player and Game.has_game() else {}
 	var anx: Dictionary = Annexation.unrest() if c.idx == Game.player and Game.has_game() and Game.dip.has("integration") else {}
 	var wx: Dictionary = War.effects() if c.idx == Game.player and Game.has_game() and War.at_war() else {}
 	var mx := Game.markets.effects(c)
@@ -103,6 +104,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Schools & universities", float(edx.get("growth", 0.0))],
 		["Water", float(wtx.get("growth", 0.0))],
 		["Farm support", float(fdx.get("growth", 0.0))],
+		["Remittances", float(dsx.get("growth", 0.0))],
 		["Doomsday Clock", float(nkx.get("growth", 0.0))],
 		["Industries", float(idx_m.get("growth", 0.0))],
 		["Tourism", float(tox.get("growth", 0.0))],
@@ -246,6 +248,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Doomsday Clock", float(nkx.get("happiness", 0.0))],
 		["Health system", float(hlx.get("happiness", 0.0))],
 		["Water", float(wtx.get("happiness", 0.0))],
+		["Remittances", float(dsx.get("happiness", 0.0))],
 		["Housing & families", float(ppx.get("happiness", 0.0))],
 		["Stock market", float(enx.get("happiness", 0.0))],
 		["Media", float(mdx.get("happiness", 0.0))],
@@ -278,6 +281,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Power brokers", float(fcx.get("approval", 0.0))],
 		["Health system", float(hlx.get("approval", 0.0))],
 		["Farm support", float(fdx.get("approval", 0.0))],
+		["Remittances", float(dsx.get("approval", 0.0))],
 		["Your ministers", float(cx.get("approval", 0.0))],
 		["Media", float(mdx.get("approval", 0.0))],
 	]
@@ -375,6 +379,8 @@ static func update_finances(c: CountryState) -> void:
 		market_rev += float(Automation.modifiers().get("revenue", 0.0))
 	if c.idx == Game.player and Game.has_game() and Game.dip.has("space"):
 		market_rev += Space.income_pct()
+	if c.idx == Game.player and Game.has_game() and Game.dip.has("dias"):
+		market_rev += Diaspora.revenue_pct()
 	var extra_tax := Taxes.total_pct(c) if not c.taxes.is_empty() else 0.0
 	c.revenue = c.gdp * (rate + (c.other_rev_pct + extra_tax + float(lx.get("revenue", 0.0)) + market_rev) / 100.0) * cycle
 	c.spending = c.gdp * (c.spending_pct + float(lx.get("cost", 0.0)) + Projects.spending_pct(c) + Ageing.pension_cost(c)
@@ -397,6 +403,7 @@ static func update_finances(c: CountryState) -> void:
 		+ (Health.spending_pct() if c.idx == Game.player else 0.0)
 		+ (Water.spending_pct() if c.idx == Game.player else 0.0)
 		+ (Food.spending_pct() if c.idx == Game.player else 0.0)
+		+ (Diaspora.spending_pct() if c.idx == Game.player else 0.0)
 		+ (float(War.effects().cost) if c.idx == Game.player and Game.has_game() and War.at_war() else 0.0)) / 100.0
 	# Inflation above the floor erodes local-currency debt, so only the real
 	# part of the rate is a burden in dollar terms.
