@@ -38,6 +38,19 @@ func _ready() -> void:
 	_build_header()
 	_build_list()
 	_build_footer()
+	get_tree().root.go_back_requested.connect(_on_back)
+
+
+## Android back: close an open card first, then return to the home screen.
+func _on_back() -> void:
+	for m in get_children():          # modal cards are added to this screen
+		if m is ModalCard and is_instance_valid(m):
+			(m as ModalCard).dismiss()
+			return
+	if _search != null and _search.has_focus():
+		_search.release_focus()
+		return
+	Router.goto("res://ui/screens/home.tscn")
 	_sheet.snapped.connect(func(_s: int) -> void: _frame_map())
 	resized.connect(_frame_map)
 
