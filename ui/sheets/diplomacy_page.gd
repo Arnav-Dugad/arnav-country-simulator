@@ -449,7 +449,9 @@ func _fill_ranks() -> void:
 	var specs := [["GDP", func(c: CountryState) -> float: return c.gdp],
 		["Per person", func(c: CountryState) -> float: return c.gdp_per_capita()],
 		["Happiness", func(c: CountryState) -> float: return c.happiness],
-		["Stability", func(c: CountryState) -> float: return c.stability]]
+		["Stability", func(c: CountryState) -> float: return c.stability],
+		["Schools", func(c: CountryState) -> float: return Education.score_of(c.idx)],
+		["Clean air", func(c: CountryState) -> float: return -Air.pm_of(c.idx)]]
 	var me := Game.me()
 	for sp in specs:
 		var mine: float = sp[1].call(me)

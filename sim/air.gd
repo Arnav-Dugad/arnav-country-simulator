@@ -36,6 +36,18 @@ static func st() -> Dictionary:
 	return Game.dip.air
 
 
+## PM2.5 of any country (yours live).
+static func pm_of(i: int) -> float:
+	if i == Game.player and Game.has_game() and Game.dip.has("air"):
+		return pm()
+	var iso := World.iso(i)
+	if PM.has(iso):
+		return float(PM[iso])
+	var c: CountryState = Game.state(i)
+	var lvl := Economy.income_level(c.gdp_per_capita()) if c != null else 0.5
+	return clampf(8.0 + 32.0 * (1.0 - lvl) + (12.0 if World.map.subregions[i] in ["Southern Asia", "Western Asia", "Northern Africa"] else 0.0), 4.0, 90.0)
+
+
 static func pm() -> float:
 	return float(st().pm)
 
