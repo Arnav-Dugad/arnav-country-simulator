@@ -42,7 +42,7 @@ func _fill_clean() -> void:
 	sub.text = ("%+d since you took office" % roundi(d)) if absf(d) >= 0.5 else "Where you started"
 	col.add_child(sub)
 	var wait := Corruption.drive_wait()
-	var b := AppButton.make("Start a corruption crackdown", &"", "gavel")
+	var b := AppButton.make("Crack down on corruption", &"", "gavel")
 	b.disabled = wait > 0
 	b.pressed.connect(func() -> void:
 		Corruption.launch_drive()
