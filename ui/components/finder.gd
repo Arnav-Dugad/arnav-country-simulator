@@ -16,6 +16,8 @@ const INDEX := [
 	["State firms: privatise or nationalise", "firms", "State firms", "landmark", "privatise nationalise state firms companies oil airline bank"],
 	["Industries & subsidies", "industries", "", "factory", "industry industries sectors subsidies factories chips farming"],
 	["Trading partners", "industries", "Biggest trading partners", "ship", "partners exports imports"],
+	["Robots, AI & jobs", "industries", "Robots & AI", "bot", "robots ai automation jobs retraining robot tax four day week"],
+	["Elections, promises & campaign", "economy", "", "vote", "election poll campaign promises pledges rally coalition"],
 	["People, births & ageing", "population", "", "users", "population births fertility ageing pensions old"],
 	["Family policy", "population", "Family policy", "baby", "family childcare child benefit babies"],
 	["Housing & zoning", "population", "Cities & housing", "house", "housing rent homes zoning cities urban"],

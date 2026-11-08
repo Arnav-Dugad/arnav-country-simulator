@@ -163,6 +163,7 @@ func new_game(country_index: int, seed_value: int = -1, level: String = "") -> v
 	Smuggling.st()                  # the shadow economy
 	UnitedNations.st()              # standing at the UN
 	HeadOfState.st()                # the royal or first family
+	Automation.st()                 # robots and AI
 	headlines_seen = {}
 	last_rating = ""
 	news = []
@@ -321,6 +322,8 @@ func advance_month() -> void:
 		me().treasury = me().spending
 	for note in War.monthly():
 		war_battle.emit(note)
+	for h in Automation.monthly():
+		add_feed(str(h.text), str(h.icon), "orange")
 	for h in Manifesto.monthly():
 		add_feed(str(h.text), str(h.icon), "red")
 		intel_news.emit(h)

@@ -45,6 +45,7 @@ func refresh() -> void:
 	for id in ids:
 		box.add_child(_sector_row(c, str(id)))
 	note("Tap a sector to see what drives it and to subsidise it. Competitive sectors grow and hire; struggling ones shrink. Skills, research, infrastructure and clean government help every sector.", box)
+	_automation()
 	# Partners.
 	var pb := section("Biggest trading partners", _box)
 	for pr in Industries.partners(5):
@@ -130,3 +131,51 @@ func _sector_card(id: String) -> void:
 			m.dismiss()
 			refresh())
 	m.choice("Close", "", &"GhostButton", m.dismiss)
+
+
+# ------------------------------------------------------------- automation ---
+func _automation() -> void:
+	var s := Automation.st()
+	var c := Game.me()
+	var box := section("Robots & AI", _box)
+	var lv := Automation.level()
+	var disp := float(s.displaced)
+	var r := HBoxContainer.new()
+	r.add_theme_constant_override(&"separation", DS.S3)
+	box.add_child(r)
+	r.add_child(ListRow.icon_tile("bot", DS.PURPLE))
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override(&"separation", 0)
+	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	r.add_child(col)
+	var t := Label.new()
+	t.theme_type_variation = &"Headline"
+	t.text = "Automation %d / 100" % roundi(lv)
+	col.add_child(t)
+	var cap := Label.new()
+	cap.theme_type_variation = &"Caption"
+	cap.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	cap.custom_minimum_size = Vector2(40, 0)
+	cap.text = "+%s a year  ·  %s of workers displaced and still looking" % [String.num(Automation.pace(), 1), DS.pct(disp, 1)]
+	col.add_child(cap)
+	box.add_child(meter(lv / 100.0, 0.0, DS.PURPLE, 4.0))
+	note("Robots and AI make the economy more productive, but some jobs vanish faster than new ones appear. Research (AI, automation) speeds it up.", box)
+	for row in [["retraining", "Retraining programme", "graduation-cap", "Moves displaced workers into new jobs faster. Costs %s a year." % DS.money(c.gdp * Economy.AUTO_RETRAIN_COST / 100.0)],
+			["robot_tax", "Robot tax", "coins", "Raises revenue from automation, but slows it down."],
+			["short_week", "Four-day working week", "calendar", "Happier people and shared work; a little less output."]]:
+		var key := str(row[0])
+		var tg := AppToggle.new().setup(str(row[1]), bool(s.get(key, false)), str(row[2]))
+		tg.toggled.connect(func(on: bool) -> void:
+			Automation.set_policy(key, on)
+			Simulation.update_finances(Game.me())
+			Haptics.select()
+			refresh())
+		box.add_child(tg)
+		var d := Label.new()
+		d.theme_type_variation = &"Caption"
+		d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		d.custom_minimum_size = Vector2(60, 0)
+		d.text = str(row[3])
+		box.add_child(d)
+	if not Laws.is_active(c, "basic_income"):
+		note("A basic income (Laws page) also cushions people who lose their jobs to machines.", box)

@@ -548,6 +548,22 @@ const TOUR_BID_MONTHS := 12        # from bid to vote
 const TOUR_SOFT_RELATIONS := 0.01  # relations a month with everyone per soft power point gained
 
 
+# ---------------------------------------------------------------- automation ---
+# See sim/automation.gd. Automation points (0..100).
+const AUTO_BASE_PACE := 0.8         # points a year (x 0.5..1.5 with income)
+const AUTO_TECH_PACE := 0.5         # per automation-related technology researched
+const AUTO_ROBOT_TAX_SLOW := 0.35   # share of the pace a robot tax removes
+const AUTO_ROBOT_TAX_REV := 0.3     # % of GDP a year at automation 50
+const AUTO_DISPLACE := 0.25         # unemployment points per automation point, before people find new work
+const AUTO_ABSORB := 0.25           # share of displaced workers who find new work each year
+const AUTO_RETRAIN_ABSORB := 0.35   # more with a retraining programme
+const AUTO_RETRAIN_COST := 0.25     # % of GDP a year
+const AUTO_GROWTH := 0.35           # growth points per 10 points of automation gained
+const AUTO_GINI := 0.6              # inequality points per point of displaced workers
+const AUTO_SHORT_HAPPY := 3.0
+const AUTO_SHORT_GROWTH := 0.5
+
+
 # ---------------------------------------------------------------- elections ---
 # See sim/manifesto.gd.
 const MANI_PLEDGE_BOOST := 5.0      # approval from a pledge, x the share of voters in the groups it targets
