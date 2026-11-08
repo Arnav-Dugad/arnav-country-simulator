@@ -167,7 +167,7 @@ func refresh() -> void:
 	_caption.text = "Paused · tap to resume" if paused else Game.politics.milestone_text()
 	_caption.add_theme_color_override(&"font_color", DS.ORANGE if paused else DS.TEXT_2)
 	_treasury.value = c.treasury
-	_appr_value = c.approval
+	_appr_value = clampf(c.approval, 0.0, 100.0)
 	_approval.queue_redraw()
 	refresh_badge()
 

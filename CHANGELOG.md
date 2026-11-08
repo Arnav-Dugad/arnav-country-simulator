@@ -13,6 +13,7 @@ The release workflow publishes the section that matches the tag as the GitHub Re
 - **Capitulation and new peace terms:** a beaten enemy can be annexed outright or made a vassal that pays you tribute every year and fights beside you, though it may break free if your army weakens
 - Other countries' wars can now end with a small country swallowed whole, redrawing the map
 - New achievement: Empire builder
+- Fixes: approval can no longer show above 100%, and enormous sandbox numbers stay short (Q for quadrillions, then scientific notation) instead of pushing cards off the screen
 
 - **Tourism & soft power**, a new page from the World tab with new AI-painted art
 - **Tourism** starts from real data and grows with stability, peace, heritage sites, culture builds and your reputation. Extra visitors bring growth and jobs

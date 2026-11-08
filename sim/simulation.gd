@@ -224,7 +224,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Media", float(mdx.get("approval", 0.0))],
 	]
 	var a := clampf(_sum(a_terms), 0.0, 100.0)
-	c.approval += (a - c.approval) * E.APPROVAL_ADJUST
+	c.approval = clampf(c.approval + (a - c.approval) * E.APPROVAL_ADJUST, 0.0, 100.0)
 
 	var st_terms := [
 		["Starting stability", float(b.stability)],

@@ -92,7 +92,13 @@ static func icon(icon_name: String) -> Texture2D:
 static func compact(v: float, decimals: int = 1) -> String:
 	var a := absf(v)
 	var s := ""
-	if a >= 1e12:
+	if a >= 1e18:
+		# Runaway sandbox economies: scientific notation keeps it short.
+		var e := int(floor(log(a) / log(10.0)))
+		s = String.num(v / pow(10.0, e), 1) + "e" + str(e)
+	elif a >= 1e15:
+		s = String.num(v / 1e15, decimals) + "Q"
+	elif a >= 1e12:
 		s = String.num(v / 1e12, decimals) + "T"
 	elif a >= 1e9:
 		s = String.num(v / 1e9, decimals) + "B"

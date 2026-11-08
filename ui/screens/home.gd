@@ -146,7 +146,7 @@ func _resume_card(slot: int, sm: Dictionary) -> Control:
 	var stats := HBoxContainer.new()
 	stats.add_theme_constant_override(&"separation", DS.S2)
 	v.add_child(stats)
-	for pair in [["DATE", _pretty_date(str(sm.get("date", "")))], ["APPROVAL", DS.pct(float(sm.get("approval", 0.0)), 0)],
+	for pair in [["DATE", _pretty_date(str(sm.get("date", "")))], ["APPROVAL", DS.pct(clampf(float(sm.get("approval", 0.0)), 0.0, 100.0), 0)],
 			["GDP", DS.money(float(sm.get("gdp", 0.0)))]]:
 		var tile := PanelContainer.new()
 		tile.theme_type_variation = &"TilePanel"
@@ -161,6 +161,9 @@ func _resume_card(slot: int, sm: Dictionary) -> Control:
 		var val := Label.new()
 		val.theme_type_variation = &"StatSmall"
 		val.text = pair[1]
+		val.clip_text = true                        # never widen the card
+		val.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		val.custom_minimum_size = Vector2(30, 0)
 		tvb.add_child(val)
 		stats.add_child(tile)
 	var go := AppButton.make("Continue", &"PrimaryButton", "play")
