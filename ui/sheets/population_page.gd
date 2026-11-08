@@ -32,7 +32,9 @@ func refresh() -> void:
 	var af := Population.afford()
 	g.add_child(_tile("house", DS.GREEN if af >= 95.0 else (DS.ORANGE if af >= 80.0 else DS.RED), "Housing", "%d" % roundi(af),
 		"affordability  ·  100 = at start"))
+	_box.add_child(jump_bar(["Regions", "Schools & universities", "Age structure", "Family policy", "Cities & housing"]))
 	_regions()
+	_education()
 	# Age structure.
 	var st := Population.structure(c)
 	var ab := section("Age structure", _box)
@@ -248,3 +250,79 @@ func _region_actions(k: int) -> void:
 			m.dismiss()
 			refresh())
 	m.choice("Close", "", &"GhostButton", m.dismiss)
+
+
+# ---------------------------------------------------- schools & universities ---
+func _education() -> void:
+	var eb := section("Schools & universities", _box)
+	var e := Education.st()
+	var c := Game.me()
+	var g := grid(eb, 2)
+	var sc := Education.score()
+	var ds := sc - float(e.score0)
+	g.add_child(_tile("school", DS.GREEN if sc >= 490.0 else (DS.ACCENT if sc >= 450.0 else DS.ORANGE), "Learning score", "%d" % roundi(sc),
+		"%s  ·  %s since you took office" % [Education.score_text(sc), ("%+d" % roundi(ds)) if absf(ds) >= 1.0 else "no change"]))
+	var dr := Education.drain()
+	g.add_child(_tile("plane-takeoff", DS.GREEN if dr < 8.0 else (DS.ORANGE if dr < 18.0 else DS.RED), "Brain drain", "%d%%" % roundi(dr),
+		"of graduates leave each year"))
+	var tg := Education.score_target()
+	note("An international test of what 15-year-olds can do (300-600). It moves slowly: today's pupils are tomorrow's workforce. %s" % (
+		("Heading to %d with your current choices." % roundi(tg)) if absf(tg - sc) >= 3.0 else "More education budget or a reform will raise it."), eb)
+	# Universities: world ranks.
+	var ranks := Education.ranks()
+	var ranks0 := Education.ranks(true)
+	for k in Education.UNIS.size():
+		var rk := int(ranks[k])
+		var r0 := int(ranks0[k])
+		var sub := "World rank"
+		if rk != r0 and r0 < 1000:
+			sub += "  ·  %s from #%d" % ["up" if rk < r0 else "down", r0]
+		var row := ListRow.new().setup(str(Education.UNIS[k]), sub, "#%d" % rk if rk < 1000 else "1000+")
+		row.trailing_label.add_theme_color_override(&"font_color", DS.GOLD if rk <= 10 else (DS.GREEN if rk <= 100 else DS.TEXT_2))
+		row.set_leading(ListRow.icon_tile("graduation-cap", DS.GOLD if rk <= 10 else (DS.ACCENT if rk <= 100 else DS.TEXT_3)))
+		eb.add_child(row)
+	var fl := PackedStringArray()
+	for f in Education.FUNDING:
+		fl.append(str(Education.FUNDING_INFO[f].title))
+	var seg := SegmentedControl.new().setup(fl, [], Education.FUNDING.find(str(e.fund)))
+	seg.fill = true
+	seg.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	seg.changed.connect(func(k: int) -> void:
+		Education.set_fund(str(Education.FUNDING[k]))
+		Simulation.update_finances(Game.me())
+		Haptics.select()
+		refresh())
+	eb.add_child(seg)
+	var fc := float(Education.FUNDING_INFO[str(e.fund)].cost)
+	note("University funding%s. Better universities climb the world table over years and bring research, foreign students and prestige. The research budget and campuses help too." % (
+		"  ·  %s a year" % DS.money(c.gdp * fc / 100.0) if fc > 0.0 else ""), eb)
+	# Reforms.
+	for id in Education.REFORMS:
+		var r: Dictionary = Education.REFORMS[id]
+		var on := Education.has_reform(str(id))
+		var bits := PackedStringArray([str(r.desc)])
+		if float(r.cost) > 0.0:
+			bits.append("%s a year" % DS.money(c.gdp * float(r.cost) / 100.0))
+		if float(r.capital) > 0.0 and not on:
+			bits.append("%d political capital" % int(r.capital))
+		if r.has("score"):
+			bits.append("score +%d" % int(r.score))
+		if r.has("drain"):
+			bits.append("brain drain %d pts" % int(r.drain))
+		var row := ListRow.new().setup(str(r.title), "  ·  ".join(bits), "On" if on else "›")
+		row.subtitle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		row.subtitle_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+		row.trailing_label.add_theme_color_override(&"font_color", DS.GREEN if on else DS.TEXT_3)
+		row.set_leading(ListRow.icon_tile(str(r.icon), DS.GREEN if on else DS.ACCENT))
+		var rid := str(id)
+		row.tapped.connect(func() -> void:
+			if Education.has_reform(rid):
+				if float(Education.REFORMS[rid].cost) > 0.0:
+					Education.cancel(rid)
+					Haptics.select()
+			elif Education.reform(rid):
+				Haptics.success()
+			Simulation.update_finances(Game.me())
+			refresh())
+		eb.add_child(row)
+	note("Tap a reform to start it. Reforms that cost money each year can be stopped again; a new curriculum stays.", eb)

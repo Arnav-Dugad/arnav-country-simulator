@@ -9,7 +9,14 @@ The release workflow publishes the section that matches the tag as the GitHub Re
   - Act on any region: a three-year development fund, autonomy with its own parliament, or a crackdown on separatists
   - A region that stays separatist for a year demands an independence referendum: let the people vote, offer autonomy, or refuse. Lose the vote and the region leaves, taking its people and its share of the economy
   - A colour strip shows national unity at a glance
-- New achievement: One nation
+- **Schools & universities** (People & cities):
+  - A learning score from real PISA results that moves slowly with your education budget and reforms; a better-schooled workforce grows faster, a generation later
+  - Your three flagship universities have world ranks, starting from the real tables (from #1 in the US to 1000+); fund them to climb, bringing research, foreign students and prestige
+  - Brain drain: the share of graduates who leave each year
+  - Reforms: pay teachers more, a modern curriculum, a laptop for every pupil, talent return grants
+  - Your scientists can win the World Science Prize
+- New achievements: One nation, Ivory tower, Laureate
+- People & cities has a jump bar to each section
 
 ## [0.77.0] - 2026-11-09
 

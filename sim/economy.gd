@@ -548,6 +548,16 @@ const TOUR_BID_MONTHS := 12        # from bid to vote
 const TOUR_SOFT_RELATIONS := 0.01  # relations a month with everyone per soft power point gained
 
 
+# ---------------------------------------------------- schools & universities ---
+# See sim/education.gd. Effects count only the change since you took office.
+const EDU_SCORE_PER_SHARE := 6.0    # learning-score points per +1 pt of education budget share
+const EDU_SCORE_SPEED := 0.012      # share of the gap closed each month (about half in five years)
+const EDU_Q_PER_RESEARCH := 2.5     # university quality per +1 pt of research budget share
+const EDU_Q_SPEED := 0.02
+const EDU_GROWTH_PER_40 := 0.3      # growth points per +40 learning-score points
+const EDU_RP_PER_10 := 0.6          # research points a month per +10 university quality
+
+
 # ---------------------------------------------------------- regions & separatism ---
 # See sim/regions.gd.
 const REG_DISTINCT_CHANCE := 0.12   # chance a country not on the list still has a region with its own identity

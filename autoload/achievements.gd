@@ -39,6 +39,8 @@ const ALL := [
 	{"id": "bloc_member", "icon": "handshake", "title": "Joiner", "desc": "Join a treaty or bloc."},
 	{"id": "globetrotter", "icon": "plane-takeoff", "title": "Globetrotter", "desc": "Make state visits to three countries."},
 	{"id": "moonshot", "icon": "flag", "title": "Moonshot", "desc": "Win the new space race to the Moon."},
+	{"id": "ivory_tower", "icon": "graduation-cap", "title": "Ivory tower", "desc": "Have a university in the world top 10."},
+	{"id": "prize", "icon": "award", "title": "Laureate", "desc": "One of your scientists wins the World Science Prize."},
 	{"id": "one_nation", "icon": "map-pin", "title": "One nation", "desc": "Win back a separatist region: every region loyal (70+)."},
 	{"id": "wonder", "icon": "landmark", "title": "Wonder of the world", "desc": "Complete a world wonder."},
 	{"id": "spacefarer", "icon": "rocket", "title": "Spacefarer", "desc": "Open an outpost in space."},

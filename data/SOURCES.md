@@ -97,3 +97,7 @@ from income level and region, not a legal database. Only *changes* from that sta
 Entities of Natural Earth type *Sovereign country*, *Country* or *Disputed* that have
 real (non-estimated) population data, more than 50,000 people, and are their own
 sovereign. Territories and autonomous regions are shown on the map but not playable.
+
+## Schools & universities (sim/education.gd)
+- Learning score: OECD PISA 2022 results, mean of mathematics, reading and science (rounded). China and India did not take part nationally; values are estimates.
+- Best university rank: approximate position of each country's top university across the major international tables (QS, THE) for 2024-25, rounded. Countries not listed use an estimate from income and economy size.
