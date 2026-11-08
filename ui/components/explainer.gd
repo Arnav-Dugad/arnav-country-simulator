@@ -87,6 +87,30 @@ func _ready() -> void:
 		if rest.is_empty():
 			note_label("Nothing is pushing it away from its usual level right now.")
 
+	# Over the past year: which causes grew or faded the most.
+	var hist: Array = Game.dip.get("why_log", [])
+	if hist.size() >= 7 and not terms.is_empty():
+		var old: Dictionary = (hist[0] as Dictionary).get(metric, {})
+		var moves: Array = []
+		for t in terms.slice(1):
+			var d := float(t[1]) - float(old.get(str(t[0]), 0.0))
+			if absf(d) >= 0.1:
+				moves.append([str(t[0]), d])
+		moves.sort_custom(func(x: Array, y: Array) -> bool: return absf(float(x[1])) > absf(float(y[1])))
+		if not moves.is_empty():
+			var ycap := Label.new()
+			ycap.theme_type_variation = &"Overline"
+			ycap.text = "CHANGE SINCE %s" % str(hist[0].get("date", "")).to_upper()
+			content.add_child(ycap)
+			var big := 0.1
+			for mv in moves:
+				big = maxf(big, absf(float(mv[1])))
+			for mv in moves.slice(0, 4):
+				var v := float(mv[1])
+				var good: bool = (v > 0.0) == bool(info.good_up)
+				content.add_child(_row(str(mv[0]), ("+" if v > 0.0 else "−") + _fmt(absf(v), info.unit),
+					absf(v) / big, DS.GREEN if good else DS.RED, false))
+
 	# Tips
 	var tip_cap := Label.new()
 	tip_cap.theme_type_variation = &"Overline"

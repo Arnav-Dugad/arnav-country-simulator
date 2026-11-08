@@ -256,6 +256,7 @@ func advance_month() -> void:
 	if me().cb_auto and month % 3 == 0:
 		AI.central_bank(me())
 	var my_crisis := Simulation.tick(me(), rng, true)
+	_log_why()
 	if my_crisis:
 		debt_crisis.emit(player)
 	Diplomacy.monthly()
@@ -467,6 +468,23 @@ func unread_count() -> int:
 func mark_feed_read() -> void:
 	for f in feed:
 		f.read = true
+
+
+## The causes behind each headline number, once a month for the last 13 months
+## (Explainer: "Over the past year"). Kept in dip so it survives saving.
+func _log_why() -> void:
+	var snap := {"date": date_text()}
+	for metric in me().why:
+		var terms := {}
+		for t in me().why[metric]:
+			terms[str(t[0])] = snappedf(float(t[1]), 0.01)
+		snap[metric] = terms
+	if not dip.has("why_log"):
+		dip["why_log"] = []
+	var log_: Array = dip.why_log
+	log_.append(snap)
+	while log_.size() > 13:
+		log_.pop_front()
 
 
 func _record_history() -> void:
