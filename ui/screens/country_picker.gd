@@ -69,6 +69,9 @@ func _build_header() -> void:
 	var daily := AppButton.make("Daily", &"Chip", "calendar")
 	daily.pressed.connect(_show_daily)
 	chips.add_child(daily)
+	var weekly := AppButton.make("Weekly", &"Chip", "trophy")
+	weekly.pressed.connect(_show_weekly)
+	chips.add_child(weekly)
 	var chall := AppButton.make("Challenges", &"Chip", "crown")
 	chall.pressed.connect(_show_challenges)
 	chips.add_child(chall)
@@ -263,6 +266,28 @@ func _show_daily() -> void:
 		Haptics.success()
 		_ask.dismiss()
 		Daily.start()
+		Router.goto(NEXT))
+	_ask.choice("Not now", "", &"GhostButton", func() -> void: _ask.dismiss())
+
+
+func _show_weekly() -> void:
+	if is_instance_valid(_ask):
+		return
+	Haptics.tap()
+	var sc := Weekly.scenario()
+	var i: int = sc.country
+	_ask = ModalCard.new()
+	add_child(_ask)
+	_ask.header("trophy", DS.GOLD, "Weekly challenge · %d %s left" % [Weekly.days_left(), "day" if Weekly.days_left() == 1 else "days"],
+		World.map.names[i])
+	_ask.body("%s: %s You have %d years. Everyone plays the same country and twist this week, and the best legacy scores top the leaderboard." % [
+		str(sc.twist.title), str(sc.twist.desc), Daily.YEARS])
+	var board := WeeklyBoard.new()
+	_ask.content.add_child(board)
+	_ask.choice("Play this week's challenge", "", &"PrimaryButton", func() -> void:
+		Haptics.success()
+		_ask.dismiss()
+		Weekly.start()
 		Router.goto(NEXT))
 	_ask.choice("Not now", "", &"GhostButton", func() -> void: _ask.dismiss())
 

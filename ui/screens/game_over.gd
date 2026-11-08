@@ -4,6 +4,17 @@ extends Control
 var data: Dictionary = {}
 
 
+## Sends a new best to the weekly leaderboard in the background, then reloads it.
+func _submit_weekly(wk: String, score: float, grade: String, board: WeeklyBoard, note_label: Label) -> void:
+	var r: Dictionary = await Firebase.submit_weekly(wk, Weekly.board_name(), World.iso(Game.player), score, grade)
+	if not is_instance_valid(board):
+		return
+	if r.ok:
+		board._load()
+	elif is_instance_valid(note_label):
+		note_label.text += " (Couldn't reach the leaderboard right now.)"
+
+
 func _ready() -> void:
 	if not Game.has_game():
 		Game.new_game(World.index_of("IND"))
@@ -58,7 +69,22 @@ func _ready() -> void:
 	if not has_meta(&"recorded"):
 		set_meta(&"recorded", true)
 		Career.record(data, grade)
-		if str(data.get("daily", "")) != "":
+		if Weekly.is_weekly(str(data.get("daily", ""))):
+			var wk := str(data.daily)
+			var better := Weekly.record(wk, score)
+			var wl := Label.new()
+			wl.theme_type_variation = &"Subhead"
+			wl.add_theme_color_override(&"font_color", DS.GOLD)
+			wl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			wl.text = ("Weekly challenge: %d points, your best this week!" if better else "Weekly challenge: %d points. Your best stays %d.") % (
+				[roundi(score)] if better else [roundi(score), roundi(Weekly.best(wk))])
+			col.add_child(wl)
+			var board := WeeklyBoard.new()
+			board.week = wk
+			col.add_child(board)
+			if better and not bool(data.get("cheats", false)):
+				_submit_weekly(wk, score, grade, board, wl)
+		elif str(data.get("daily", "")) != "":
 			var improved := Daily.record(str(data.daily), grade)
 			var dl := Label.new()
 			dl.theme_type_variation = &"Subhead"

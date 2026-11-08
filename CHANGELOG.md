@@ -4,6 +4,7 @@ The release workflow publishes the section that matches the tag as the GitHub Re
 
 ## [0.49.0] - 2026-11-08
 
+- **Weekly challenge with a leaderboard.** One country and one twist for everyone, all week. Your legacy score goes to a shared top-10 board (find it under the Weekly chip in the country list)
 - **Health and schooling results.** Life expectancy and adult literacy start at real values and slowly respond to your health and education budgets, rising incomes, hospitals, clean water, new schools and universal healthcare. Longer lives make people happier; a more literate workforce grows faster. Both are new tiles on the Economy page
 
 ## [0.48.0] - 2026-11-08

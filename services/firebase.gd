@@ -260,6 +260,50 @@ func delete_account() -> Dictionary:
 	return {"ok": true}
 
 
+# --------------------------------------------------------- weekly board -----
+## Posts (or improves) this player's score for a weekly challenge.
+func submit_weekly(week: String, player_name: String, country: String, score: float, grade: String) -> Dictionary:
+	if not signed_in():
+		return _fail(0, "Not signed in")
+	var body := {"fields": {
+		"name": {"stringValue": player_name.left(24)},
+		"country": {"stringValue": country.left(3)},
+		"score": {"doubleValue": snappedf(clampf(score, 0.0, 200.0), 0.1)},
+		"grade": {"stringValue": grade.left(2)},
+		"at": {"integerValue": str(int(Time.get_unix_time_from_system()))},
+	}}
+	var headers: PackedStringArray = await _auth_headers()
+	return await _http(_doc_url("weekly/%s/scores/%s" % [week, uid]), HTTPClient.METHOD_PATCH, headers, JSON.stringify(body))
+
+
+## The top `n` scores for a week: [{name, country, score, grade, me}, ...].
+func top_weekly(week: String, n: int = 10) -> Dictionary:
+	var headers := PackedStringArray(["Content-Type: application/json"])
+	if signed_in():
+		headers = await _auth_headers()
+	var q := {"structuredQuery": {"from": [{"collectionId": "scores"}],
+		"orderBy": [{"field": {"fieldPath": "score"}, "direction": "DESCENDING"}], "limit": n}}
+	var r := await _http(_doc_url("weekly/%s:runQuery" % week), HTTPClient.METHOD_POST, headers, JSON.stringify(q))
+	if not r.ok:
+		return r
+	var out: Array = []
+	var rows: Variant = r.data
+	if rows is Array:
+		for row in rows:
+			var doc: Dictionary = row.get("document", {})
+			if doc.is_empty():
+				continue
+			var f: Dictionary = doc.get("fields", {})
+			var sv: Dictionary = f.get("score", {})
+			out.append({"name": str(f.get("name", {}).get("stringValue", "")),
+				"country": str(f.get("country", {}).get("stringValue", "")),
+				"score": float(sv.get("doubleValue", sv.get("integerValue", 0))),
+				"grade": str(f.get("grade", {}).get("stringValue", "")),
+				"me": str(doc.get("name", "")).ends_with("/" + uid)})
+	r.data = out
+	return r
+
+
 # ------------------------------------------------------------------ http -----
 func _http(url: String, method: int, headers: PackedStringArray, body: String = "") -> Dictionary:
 	var req := HTTPRequest.new()
