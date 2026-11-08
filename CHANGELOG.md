@@ -2,6 +2,13 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.84.0] - 2026-11-09
+
+- **Leadership challenges** (parliamentary democracies): when your approval sinks below 30%, rebels in your own party can force a vote on your leadership. Fight it, with your odds shown, or buy them off with political capital
+- **Proliferation:** once in a while a threshold state (Iran, Saudi Arabia, Türkiye, Egypt or South Korea) tests its first nuclear weapon. It joins the World page list, and the Doomsday Clock moves closer to midnight
+- **People & society:** the page formerly called People & cities, with clearer tiles on the Economy page
+- **Balance:** regions, hospital waits and water stress drift more gently when you leave them alone
+
 ## [0.83.0] - 2026-11-09
 
 - **Food security** (Industries), starting from real FAO data, from Argentina and Australia (big exporters) to Japan, Saudi Arabia and Singapore (nearly everything imported):
