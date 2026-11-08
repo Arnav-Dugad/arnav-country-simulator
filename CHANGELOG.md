@@ -4,18 +4,15 @@ The release workflow publishes the section that matches the tag as the GitHub Re
 
 ## [0.48.0] - 2026-11-08
 
-- **Inequality.** Every country starts at its real Gini index (World Bank). It shifts slowly with welfare spending, income tax, joblessness and laws (minimum wage, wealth tax, basic income narrow the gap; privatisation widens it). A growing gap costs happiness and stability; a shrinking one wins both
-- **Ageing.** Each country starts at its real share of people over 65, which rises every year (fastest in rich countries with few births, slower where young migrants arrive). Every extra point adds pension and care costs and shrinks the workforce. Raising the pension age softens both. The Budget page shows what ageing costs you
-- **Corruption.** A clean-government score (0–100) starts from each country's real World Bank rating. Anti-corruption laws, press freedom and stability raise it; cleaner government means faster growth, cheaper projects and fewer scandals. Once every two years you can launch an anti-corruption drive from the Laws page: officials push back at first, then it pays off for years
-- **Central bank independence matters.** Taking control of interest rates yourself now worries markets (higher borrowing costs) and, if you keep rates too low, makes inflation expectations climb faster. The governor may even threaten to resign: give the bank its independence back, fire them, or promise to raise rates
-- **Trade wars.** Put tariffs on any country from its page: your factories get shelter and the treasury collects duties, but prices rise. Big, proud or unfriendly countries often hit back, slowing your growth and angering rural voters, whose exports suffer first. Tariffs show on the map as red arcs
-- Law cards show their effect on inequality, country pages show each country's Gini, very unequal countries get a "A fairer society" goal, and your advisors warn when the gap grows
-
-## [0.47.1] - 2026-11-08
-
 - **Realistic is properly harder now:** voters are tougher and crises bite harder (the balance report showed it had become almost as forgiving as Standard)
 - Your avatar in the main-menu Settings shows your last country's flag instead of a question mark
 - Calmer Inbox: foreign leaders ask for disaster aid at most once a year
+- **Inequality.** Every country starts at its real Gini index (World Bank). It shifts slowly with welfare spending, income tax, joblessness and laws (minimum wage, wealth tax, basic income narrow the gap; privatisation widens it). A growing gap costs happiness and stability; a shrinking one wins both
+- **Ageing.** Each country starts at its real share of people over 65, which rises every year (fastest in rich countries with few births, slower where young migrants arrive). Every extra point adds pension and care costs and shrinks the workforce. Raising the pension age softens both. The Budget page shows what ageing costs you
+- **Corruption.** A clean-government score (0–100) starts from each country's real World Bank rating. Anti-corruption laws, press freedom and stability raise it; cleaner government means faster growth, cheaper projects and fewer scandals. Once every two years you can crack down on corruption from the Laws page: officials push back at first, then it pays off for years
+- **Central bank independence matters.** Taking control of interest rates yourself now worries markets (higher borrowing costs) and, if you keep rates too low, makes inflation expectations climb faster. The governor may even threaten to resign: give the bank its independence back, fire them, or promise to raise rates
+- **Trade wars.** Put tariffs on any country from its page: your factories get shelter and the treasury collects duties, but prices rise. Big, proud or unfriendly countries often hit back, slowing your growth and angering rural voters, whose exports suffer first. Tariffs show on the map as red arcs
+- Law cards show their effect on inequality, country pages show each country's Gini, very unequal countries get a "Fairer society" goal, and your advisors warn when the gap grows
 
 ## [0.47.0] - 2026-11-08
 
