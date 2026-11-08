@@ -2,6 +2,11 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.53.0] - 2026-11-08
+
+- **Events grow out of your country.** New dilemmas appear when your own numbers call for them: marches against inequality when the gap widens, pension strikes as the country ages, farmers blocking highways in a trade war, doctors leaving when emigration rises, bribery scandals where corruption runs deep, and wildfire seasons in a warming world
+- Press conferences come less often (about every 15 months), leaving room for the decisions that matter
+
 ## [0.52.2] - 2026-11-08
 
 - **Smooth map again.** Fixed three causes of lag:

@@ -421,6 +421,67 @@ const EVENTS := [
 				"effects": {"cost": 0.05, "happiness": 2.5, "approval": 1.5, "growth": 0.1}},
 			{"label": "Keep it modest", "detail": "No cost · respectful",
 				"effects": {"approval": 0.5}}]},
+	# --- Grown from your own country's state (systemic events) ----------------------
+	{"id": "gap_protests", "title": "Marches against inequality", "icon": "scale", "tint": "orange", "weight": 3.0,
+		"cond": "gap_rising",
+		"body": "As the gap between rich and poor widens in {country}, tens of thousands march for fairer pay and lower rents.",
+		"choices": [
+			{"label": "Raise the minimum wage", "detail": "Workers cheer · business grumbles",
+				"effects": {"happiness": 1.5, "approval": 1.5, "unemployment": 0.2, "inflation": 0.2}},
+			{"label": "Fund housing and welfare", "detail": "Costs 0.4% of GDP",
+				"effects": {"cost": 0.4, "share_welfare": 2.0, "happiness": 1.2, "stability": 1.0}},
+			{"label": "Wait for growth to lift everyone", "detail": "No cost · anger may grow",
+				"effects": {"stability": -1.5, "approval": -1.0}}]},
+	{"id": "pension_strike", "title": "Pensioners take to the streets", "icon": "users", "tint": "orange", "weight": 2.6,
+		"cond": "pension_strain",
+		"body": "Pension and care costs keep climbing in {country}. Unions call a general strike over plans to trim benefits.",
+		"choices": [
+			{"label": "Protect pensions, borrow", "detail": "Debt +1% of GDP",
+				"effects": {"debt_gdp": 1.0, "approval": 1.0}},
+			{"label": "Raise contributions", "detail": "Income tax +1 pt",
+				"effects": {"income_tax": 1.0, "approval": -1.5, "stability": 0.5}},
+			{"label": "Phase in a later pension age", "detail": "Saves money for years · deeply unpopular",
+				"effects": {"cost": -0.4, "approval": -3.0, "happiness": -1.5}}]},
+	{"id": "farm_protest", "title": "Farmers block the highways", "icon": "tractor", "tint": "red", "weight": 3.5,
+		"cond": "trade_war",
+		"body": "Counter-tariffs have shut {country}'s farmers out of a key market. Tractors block the roads into the capital.",
+		"choices": [
+			{"label": "Compensate the farmers", "detail": "Costs 0.25% of GDP",
+				"effects": {"cost": 0.25, "stability": 1.0, "approval": 0.5}},
+			{"label": "Promise to end the trade war", "detail": "Hawks call it a retreat",
+				"effects": {"approval": 0.5, "press_cred": -2.0}},
+			{"label": "Clear the roads", "detail": "Order restored · the countryside is furious",
+				"effects": {"stability": 0.5, "approval": -2.5, "happiness": -1.0}}]},
+	{"id": "doctor_exodus", "title": "Doctors and nurses are leaving", "icon": "stethoscope", "tint": "orange", "weight": 3.0,
+		"cond": "emigration",
+		"body": "Hospitals in {country} warn they're losing staff to better-paid jobs abroad. Waiting lists are growing.",
+		"choices": [
+			{"label": "Raise health-worker pay", "detail": "Costs 0.3% of GDP",
+				"effects": {"cost": 0.3, "share_health": 2.0, "happiness": 1.0}},
+			{"label": "Recruit from abroad", "detail": "Cheaper · some resent it",
+				"effects": {"cost": 0.1, "happiness": 0.3, "stability": -0.5}},
+			{"label": "Train more at home", "detail": "Slow, but lasting",
+				"effects": {"share_education": 2.0, "happiness": -0.5}}]},
+	{"id": "bribery", "title": "Bribes for building permits", "icon": "gavel", "tint": "red", "weight": 3.0,
+		"cond": "corrupt",
+		"body": "Leaked recordings show officials in {country} selling building permits. The public is disgusted.",
+		"choices": [
+			{"label": "Prosecute everyone involved", "detail": "Some are your allies",
+				"effects": {"stability": -1.0, "approval": 1.5, "press_cred": 4.0, "clean": 3.0}},
+			{"label": "Quietly fire a few", "detail": "Limits the damage",
+				"effects": {"approval": -0.5, "press_cred": -1.0, "clean": 1.0}},
+			{"label": "Call it fake news", "detail": "Your credibility will suffer",
+				"effects": {"press_cred": -6.0, "approval": -1.0}}]},
+	{"id": "wildfires", "title": "Wildfire season", "icon": "flame", "tint": "red", "weight": 2.5,
+		"cond": "warming",
+		"body": "In a hotter world, wildfires burn across {country} for weeks. Smoke reaches the cities.",
+		"choices": [
+			{"label": "Fund firefighting and recovery", "detail": "Costs 0.3% of GDP",
+				"effects": {"cost": 0.3, "stability": 0.5, "happiness": 0.5}},
+			{"label": "Ask allies for help", "detail": "Cheaper · relies on friends",
+				"effects": {"cost": 0.1, "relations_all": 0.5}},
+			{"label": "Let local services cope", "detail": "No cost · people suffer",
+				"effects": {"happiness": -2.0, "approval": -1.5, "growth": -0.1}}]},
 	# --- Shaped by the country itself -----------------------------------------------
 	{"id": "pensions", "title": "Pension funds run short", "icon": "users", "tint": "orange", "weight": 1.3,
 		"cond": "ageing",
@@ -754,6 +815,24 @@ static func roll(rng: RandomNumberGenerator) -> Dictionary:
 					continue
 				if Profiles.at_risk(Game.player, "heatwave") == -1 and not World.map.subregions[Game.player] in ["Southern Asia", "Western Asia", "Northern Africa", "Southern Europe", "South-Eastern Asia"]:
 					continue
+			"gap_rising":
+				if Inequality.change(me) < 1.5 and me.gini < 45.0:
+					continue
+			"pension_strain":
+				if Ageing.pension_cost(me) < 0.6:
+					continue
+			"trade_war":
+				if not Game.dip.has("tariffs_back") or (Game.dip.tariffs_back as Dictionary).is_empty():
+					continue
+			"emigration":
+				if Migration.rate(me) > -2.0:
+					continue
+			"corrupt":
+				if Corruption.value(me) > 42.0:
+					continue
+			"warming":
+				if Climate.disaster_mult() < 1.12 or Profiles.at_risk(Game.player, "heatwave") == 0:
+					continue
 			"cb_overruled":
 				if me.cb_auto or me.interest_rate > Economy.neutral_rate(me.core_inflation) - 1.0:
 					continue
@@ -888,6 +967,8 @@ static func apply_effects(fx: Dictionary, other: int, ev_id: String = "") -> voi
 				Climate.make_pledge(float(v))
 			"cb_independent":
 				c.cb_auto = true
+			"clean":
+				Corruption.boost(float(v))
 			"term":
 				Game.politics.term_choice(str(v))
 			"project_delay":
@@ -963,6 +1044,8 @@ static func effect_chips(fx: Dictionary) -> Array:
 				out.append(["Pledge: cut CO₂ %d%%" % roundi(float(v) * 100.0), true, 10.0])
 			"cb_independent":
 				out.append(["Bank independent again", true, 6.0])
+			"clean":
+				out.append(["Cleaner government +%d" % roundi(float(v)), true, float(v)])
 			"term":
 				var t: Array = {"retire": ["Legacy +%d" % roundi(Economy.HANDOVER_LEGACY), true],
 					"successor": ["Keep playing if your party wins", true],

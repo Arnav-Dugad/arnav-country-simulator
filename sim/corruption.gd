@@ -68,6 +68,12 @@ static func scandal_mult(c: CountryState) -> float:
 	return clampf(1.0 - change(c) / 40.0, 0.3, 1.8)
 
 
+## A one-off nudge to the score (e.g. prosecuting a bribery ring).
+static func boost(points: float) -> void:
+	var st := _st()
+	st.value = clampf(float(st.value) + points, 2.0, 98.0)
+
+
 static func drive_wait() -> int:
 	var d: Array = _st().drives
 	if d.is_empty():
