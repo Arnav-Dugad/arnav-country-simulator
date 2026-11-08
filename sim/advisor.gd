@@ -48,12 +48,23 @@ static func advice(c: CountryState) -> Array:
 	if Government.army_rules(c.idx) and Game.politics.coup_risk() > 0.0:
 		out.append(_item(2, "The army is restless",
 			"Keep the military budget near where it started and stability up, or the generals may act.", "budget", "shield"))
+	var pledge := Climate.pledge()
+	if not pledge.is_empty() and int(pledge.due) - Game.months_played <= 36 			and Climate.pledge_done() < float(pledge.cut) * 0.5:
+		out.append(_item(1, "Your climate pledge is off track",
+			"You promised to cut emissions %d%% by %d; so far %s. Solar, wind, a coal phase-out or a carbon tax work fastest." % [
+				roundi(float(pledge.cut) * 100.0), int(pledge.year), Climate._pct(-Climate.pledge_done())], "build", "leaf"))
+	if Migration.rate(c) < -3.0 and Migration.delta(c) < -1.0:
+		out.append(_item(1, "People are leaving",
+			"Emigration is rising. Better jobs, calmer prices and happier lives keep people at home.", "economy", "plane-takeoff"))
 	if Projects.count_building(c) == 0 and c.treasury > c.spending / 12.0 * 1.5 and -c.balance_pct() < 6.0:
 		out.append(_item(0, "Build something lasting",
 			"Roads, power and hospitals create jobs now and growth for decades.", "build", "hammer"))
 	if c.trade_deals == 0 and m_left > 6:
 		out.append(_item(0, "Sign a trade deal",
 			"Trade deals add growth and goodwill. Friendly countries are most likely to say yes.", "diplomacy", "handshake"))
+	if Visits.wait() == 0 and Game.months_played >= 12:
+		out.append(_item(0, "Plan a state visit",
+			"Once a year you can fly abroad and meet a leader. Tap a friendly country on the map, then Visit.", "diplomacy", "plane-takeoff"))
 	if out.is_empty() or out.all(func(x: Dictionary) -> bool: return int(x.level) == 0):
 		out.append(_item(0, "Things are steady",
 			"A good moment to invest in research or education for long-term growth.", "budget", "sparkles"))

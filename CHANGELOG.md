@@ -4,6 +4,8 @@ The release workflow publishes the section that matches the tag as the GitHub Re
 
 ## [0.42.1] - 2026-11-08
 
+- Your advisors now warn when a climate pledge is off track or people start leaving, and suggest a state visit when one is available
+- Stepping down at your term limit now ends with "A peaceful handover"
 - Fixed cabinet banners like "your cabinet chose to security": choices that aren't actions now read "your cabinet went with “Security”"
 
 ## [0.42.0] - 2026-11-08

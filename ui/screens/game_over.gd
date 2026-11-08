@@ -32,7 +32,7 @@ func _ready() -> void:
 	col.add_child(over)
 	var title := Label.new()
 	title.theme_type_variation = &"LargeTitle"
-	title.text = "Your term has ended"
+	title.text = "A peaceful handover" if reason == "retired" else "Your term has ended"
 	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	col.add_child(title)
 	var sub := Label.new()
