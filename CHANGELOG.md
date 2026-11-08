@@ -2,6 +2,16 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.87.0] - 2026-11-09
+
+- **Sea lanes** (World › Sea lanes): the Strait of Hormuz, the Suez Canal, Bab el-Mandeb, the Panama Canal, the Strait of Malacca and the Bosporus can be disrupted by blockades, attacks, a stuck container ship or drought
+  - Freight, oil and food costs rise, hitting trading nations and oil importers hardest
+  - Send your navy on an escort mission to reopen a strait sooner
+  - Egypt and Panama set their canal tolls: low to win friends, high to earn more
+- **Digital money** (Economy › Wealth & firms):
+  - Launch a central bank digital currency, make crypto legal tender as El Salvador did, or ban it
+  - Put part of the treasury into a crypto reserve and ride a wild market of booms, winters and crashes
+
 ## [0.86.0] - 2026-11-09
 
 - **Diaspora & remittances** (People & society), from World Bank data:
