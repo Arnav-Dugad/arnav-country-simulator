@@ -18,6 +18,8 @@ const LEGEND := {
 	MapModes.Mode.BLOCS: ["Alliances and trade blocs", "", ""],
 	MapModes.Mode.EMISSIONS: ["CO₂ emissions per person", "Low", "High"],
 	MapModes.Mode.OUTBREAK: ["Where the pandemic is spreading", "Clear", "Hard hit"],
+	MapModes.Mode.SCHOOLS: ["What 15-year-olds can do (PISA-style test)", "Weak", "Strong"],
+	MapModes.Mode.NUCLEAR: ["Nuclear warheads (SIPRI estimates)", "None", "Thousands"],
 }
 
 var _card: GlassPanel

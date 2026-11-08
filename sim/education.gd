@@ -87,6 +87,18 @@ static func _drain_target(e: Dictionary, lvl: float) -> float:
 	return clampf(d, 1.0, 40.0)
 
 
+## Learning score of any country (yours live; others from PISA or an income estimate).
+static func score_of(i: int) -> float:
+	if i == Game.player and Game.has_game() and Game.dip.has("edu"):
+		return score()
+	var iso := World.iso(i)
+	if PISA.has(iso):
+		return float(PISA[iso])
+	var c: CountryState = Game.state(i)
+	var lvl := Economy.income_level(c.gdp_per_capita()) if c != null else 0.4
+	return clampf(335.0 + 175.0 * lvl + 0.9 * (World.stat(i, "literacy_pct", 60.0 + 40.0 * lvl) - 85.0), 300.0, 560.0)
+
+
 static func has_reform(id: String) -> bool:
 	return (st().reforms as Dictionary).has(id)
 
