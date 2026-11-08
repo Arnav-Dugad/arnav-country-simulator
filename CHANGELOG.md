@@ -2,6 +2,23 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.70.0] - 2026-11-08
+
+- **War and annexation, fixed and overhauled**
+  - **Your new borders count:** after annexing a country you border its neighbours too (France, after taking Belgium, borders the Netherlands), for wars, unions and threats alike
+  - **Capitulation now asks you what to do:** annex the whole country, make it a vassal, take reparations or offer a generous peace
+  - **No more endless wars:** after years of stalemate, or when both armies are spent, the enemy proposes a ceasefire
+  - Keeping more than half of a beaten country now takes all of it; "Keep the land you hold" no longer appears when you hold nothing
+  - Annexed countries' overseas territories come with them
+  - Fixed a crash when starting a new game during a war
+- **Your empire**, a new section on the World page: every land you've absorbed, with its integration progress, and every vassal with its tribute
+  - **Grant independence** to a conquered country, and the world applauds
+  - **Annex a vassal peacefully** after five years: a quiet union with little unrest
+  - **Set a vassal free** for goodwill everywhere
+- **Peaceful unions:** propose a union to a friendly, smaller neighbour. They hold a referendum; if they vote yes, the two countries become one with far less unrest and no world outrage
+- **The front, month by month:** the War Room shows a chart of the ground won and lost through the war
+- The TV debate reads correctly when your party's successor is running
+
 ## [0.69.0] - 2026-11-08
 
 - **Pandemics.** About once in a long career, a new disease appears abroad and spreads along trade and travel routes, country by country

@@ -154,7 +154,14 @@ func _ready() -> void:
 		if bool(note.big):
 			_notify(str(note.text), "swords", DS.GREEN if bool(note.win) else DS.RED, true, false)
 		var w := War.with(int(note.enemy))
-		if bool(w.get("they_sue", false)) and not bool(w.get("sue_asked", false)):
+		if bool(w.get("capitulated", false)) and not bool(w.get("cap_asked", false)):
+			w["cap_asked"] = true
+			w["sue_asked"] = true
+			Game.director.add(GameEvents.peace_offer(int(note.enemy), true, "capitulate"), true)
+		elif bool(w.get("stalemate", false)) and not bool(w.get("stale_asked", false)):
+			w["stale_asked"] = true
+			Game.director.add(GameEvents.peace_offer(int(note.enemy), false, "stalemate"), true)
+		elif bool(w.get("they_sue", false)) and not bool(w.get("sue_asked", false)):
 			w["sue_asked"] = true
 			Game.director.add(GameEvents.peace_offer(int(note.enemy), true), true)
 		elif bool(w.get("we_lose", false)) and not bool(w.get("lose_asked", false)):
@@ -770,7 +777,7 @@ func _on_world_news(item: Dictionary) -> void:
 	if _dev_fast or Settings.banners != "all":
 		return
 	var i := World.index_of(str(item.country))
-	var big := Diplomacy.has_alliance(i) or Diplomacy.has_deal(i) or i in World.map.neighbours[Game.player] \
+	var big := Diplomacy.has_alliance(i) or Diplomacy.has_deal(i) or i in World.neighbours_of(Game.player) \
 		or (Game.state(i) != null and Game.state(i).gdp > 3e12)
 	if big:
 		Toast.show_headline(self, str(item.text), str(item.icon), DS.GREEN if item.good else DS.ORANGE, _toast_top())

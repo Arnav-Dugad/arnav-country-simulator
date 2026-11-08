@@ -14,7 +14,7 @@ static func is_notable(i: int) -> bool:
 		return false
 	if Diplomacy.has_deal(i) or Diplomacy.has_alliance(i) or Diplomacy.is_sanctioning(i) or Diplomacy.sanctions_me(i):
 		return true
-	if i in World.map.neighbours[Game.player]:
+	if i in World.neighbours_of(Game.player):
 		return true
 	var c: CountryState = Game.state(i)
 	return c != null and c.gdp > 8e11   # roughly the world's top ~20 economies

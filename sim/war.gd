@@ -39,7 +39,7 @@ static func is_at_war_with(i: int) -> bool:
 ## military can project power (or you're allied with one of their neighbours).
 static func can_reach(i: int) -> bool:
 	var me := Game.player
-	for j in World.map.neighbours[me]:
+	for j in World.neighbours_of(me):
 		var s := World.sovereign_of(j)
 		if j == i or s == i:
 			return true
@@ -47,7 +47,7 @@ static func can_reach(i: int) -> bool:
 
 
 static func is_neighbour(i: int) -> bool:
-	for j in World.map.neighbours[Game.player]:
+	for j in World.neighbours_of(Game.player):
 		if j == i or World.sovereign_of(j) == i:
 			return true
 	return false
@@ -240,6 +240,11 @@ static func monthly() -> Array:
 		if (w.log as Array).size() > 12:
 			(w.log as Array).pop_back()
 		w["last"] = {"win": win, "m": Game.months_played}
+		if not w.has("hist"):
+			w["hist"] = []
+		(w.hist as Array).append(float(w.occ_them) - float(w.occ_me))
+		if (w.hist as Array).size() > 72:
+			(w.hist as Array).remove_at(0)
 		Game.add_feed(line, "swords", "green" if win else "red")
 		notes.append({"text": line, "big": big, "win": win, "enemy": i})
 		# Endgames.
@@ -251,6 +256,11 @@ static func monthly() -> Array:
 				notes.append({"text": "%s capitulates! Its government asks for terms" % World.The_name(i), "big": true, "win": true, "enemy": i})
 		if float(w.occ_me) >= E.WAR_SURRENDER_OCC or float(w.morale_me) <= 0.2:
 			w["we_lose"] = true
+		# Stalemate: both armies spent, or years without a result. They offer a ceasefire.
+		var age := Game.months_played - int(w.start)
+		if not bool(w.get("stalemate", false)) and not bool(w.get("capitulated", false)) \
+				and ((float(w.morale_me) <= 0.35 and float(w.morale_them) <= 0.35) or age >= E.WAR_STALEMATE_MONTHS):
+			w["stalemate"] = true
 	return notes
 
 
@@ -259,7 +269,7 @@ static func _maybe_attacked() -> void:
 	if Game.months_played < 12 or Game.no_events or Game.sandbox:
 		return
 	var me := Game.me()
-	for j in World.map.neighbours[Game.player]:
+	for j in World.neighbours_of(Game.player):
 		var i := World.sovereign_of(j) if World.sovereign_of(j) >= 0 else j
 		if i == Game.player or is_at_war_with(i) or not World.is_playable(i):
 			continue
@@ -276,6 +286,8 @@ static func _maybe_attacked() -> void:
 ## Month-by-month effects on you: {growth, inflation, unemployment, approval, stability, happiness, cost}.
 static func effects() -> Dictionary:
 	var out := {"growth": 0.0, "inflation": 0.0, "unemployment": 0.0, "approval": 0.0, "stability": 0.0, "happiness": 0.0, "cost": 0.0}
+	if Game.me() == null:
+		return out
 	for k in wars():
 		var w: Dictionary = wars()[k]
 		var them: CountryState = Game.state(int(k))
@@ -301,11 +313,11 @@ static func accepts(i: int, terms: String) -> bool:
 	var their_morale := float(w.morale_them)
 	match terms:
 		"status_quo":
-			return winning > -0.15 or their_morale < 0.8 or Game.months_played - int(w.start) > 18
+			return winning > -0.15 or their_morale < 0.8 or Game.months_played - int(w.start) > 18 or bool(w.get("stalemate", false))
 		"reparations":
 			return winning > 0.08 and their_morale < 0.75
 		"annex":
-			return float(w.occ_them) >= 0.1 and (their_morale < 0.6 or bool(w.get("they_sue", false)))
+			return float(w.occ_them) >= 0.1 and (their_morale < 0.6 or bool(w.get("they_sue", false)) or bool(w.get("capitulated", false)))
 		"annex_all":
 			return bool(w.get("capitulated", false))
 		"vassal":
@@ -321,6 +333,8 @@ static func make_peace(i: int, terms: String) -> String:
 	var me := Game.me()
 	var them: CountryState = Game.state(i)
 	var text := ""
+	if terms == "annex" and float(w.occ_them) * E.WAR_ANNEX_SHARE >= E.WAR_FULL_ANNEX_SHARE:
+		terms = "annex_all"         # what's left of them can't stand alone
 	match terms:
 		"annex_all":
 			wars().erase(str(i))

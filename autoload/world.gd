@@ -60,6 +60,7 @@ func set_owners(d: Dictionary) -> void:
 		if not owner_of.has(i):
 			keep.append(i)
 	playable = keep
+	_nb_cache.clear()
 	owners_changed.emit()
 
 
@@ -77,6 +78,29 @@ func is_absorbed(i: int) -> bool:
 	return owner_of.has(i)
 
 
+var _nb_cache := {}
+
+
+## Map indexes bordering country i, including the borders of land it has
+## absorbed (France after taking Belgium borders the Netherlands).
+func neighbours_of(i: int) -> PackedInt32Array:
+	if owner_of.is_empty():
+		return map.neighbours[i]
+	if _nb_cache.has(i):
+		return _nb_cache[i]
+	var mine := {i: true}
+	for k in owner_of:
+		if owner(int(k)) == i:
+			mine[int(k)] = true
+	var out := PackedInt32Array()
+	for j in mine:
+		for n in map.neighbours[int(j)]:
+			if not mine.has(n) and owner(n) != i and not out.has(n):
+				out.append(n)
+	_nb_cache[i] = out
+	return out
+
+
 func count() -> int:
 	return map.count()
 
@@ -87,6 +111,11 @@ func index_of(code: String) -> int:
 
 func name_of(i: int) -> String:
 	return map.names[i] if i >= 0 else ""
+
+
+## Playable in the real world (ignores who owns it in this game).
+func is_playable_raw(i: int) -> bool:
+	return i >= 0 and stats[i].get("playable", false)
 
 
 func is_playable(i: int) -> bool:

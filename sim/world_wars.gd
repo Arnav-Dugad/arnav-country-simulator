@@ -96,7 +96,7 @@ static func _maybe_start(out: Array) -> void:
 		var a: int = World.playable[Game.rng.randi() % World.playable.size()]
 		if a == Game.player or at_war(a):
 			continue
-		var nb := World.map.neighbours[a]
+		var nb := World.neighbours_of(a)
 		if nb.is_empty():
 			continue
 		var b := World.sovereign_of(nb[Game.rng.randi() % nb.size()])

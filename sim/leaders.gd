@@ -275,7 +275,7 @@ static func _commentators(target: int, n: int) -> Array:
 		var w := 0.0
 		if Diplomacy.has_deal(i) or Diplomacy.has_alliance(i):
 			w += 3.0
-		if i in World.map.neighbours[Game.player]:
+		if i in World.neighbours_of(Game.player):
 			w += 2.0
 		if Game.state(i).gdp > 1e12:
 			w += 1.5

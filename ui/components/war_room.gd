@@ -47,6 +47,46 @@ static func open(parent: Node, i: int) -> void:
 		parts.append("The front hasn't moved")
 	held.text = ", ".join(parts) + ". Gold mark: your war goal (%d%%)." % roundi(goal_occ * 100.0)
 	m.content.add_child(held)
+	# The front over time (above the line: you're gaining ground).
+	var hist: Array = w.get("hist", [])
+	if hist.size() >= 2:
+		var fh := Label.new()
+		fh.theme_type_variation = &"Overline"
+		fh.text = "THE FRONT, MONTH BY MONTH"
+		m.content.add_child(fh)
+		var ch := Control.new()
+		ch.custom_minimum_size = Vector2(0, 64)
+		ch.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		ch.draw.connect(func() -> void:
+			var wd := ch.size.x
+			var hh := ch.size.y
+			var mid := hh * 0.5
+			ch.draw_line(Vector2(0, mid), Vector2(wd, mid), Color(1, 1, 1, 0.18), 1.0)
+			var top := 0.05
+			for v in hist:
+				top = maxf(top, absf(float(v)))
+			var pts := PackedVector2Array()
+			for k in hist.size():
+				pts.append(Vector2(wd * k / float(hist.size() - 1), mid - mid * 0.9 * float(hist[k]) / top))
+			# Fill each segment to the midline (green where you're ahead, red behind),
+			# split where it crosses so no polygon ever twists.
+			for k in pts.size() - 1:
+				var a := pts[k]
+				var b := pts[k + 1]
+				var da := a.y - mid
+				var db := b.y - mid
+				if da * db < 0.0:
+					var x := a.x + (b.x - a.x) * da / (da - db)
+					ch.draw_colored_polygon(PackedVector2Array([a, Vector2(x, mid), Vector2(a.x, mid)]), Color(DS.GREEN if da < 0.0 else DS.RED, 0.18))
+					ch.draw_colored_polygon(PackedVector2Array([Vector2(x, mid), b, Vector2(b.x, mid)]), Color(DS.GREEN if db < 0.0 else DS.RED, 0.18))
+				elif absf(da) + absf(db) > 0.5:
+					ch.draw_colored_polygon(PackedVector2Array([a, b, Vector2(b.x, mid), Vector2(a.x, mid)]),
+						Color(DS.GREEN if (da + db) < 0.0 else DS.RED, 0.18))
+			var last := float(hist[hist.size() - 1])
+			var col := DS.GREEN if last >= 0.0 else DS.RED
+			ch.draw_polyline(pts, Color(1, 1, 1, 0.75), 2.0, true)
+			ch.draw_circle(pts[pts.size() - 1], 3.5, col))
+		m.content.add_child(ch)
 	# Numbers.
 	var grid := GridContainer.new()
 	grid.columns = 2

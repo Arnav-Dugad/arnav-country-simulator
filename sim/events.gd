@@ -684,14 +684,33 @@ static func debate_event() -> Dictionary:
 
 
 ## War endgames: the enemy sues for peace (we_win) or you're losing badly.
-static func peace_offer(i: int, we_win: bool) -> Dictionary:
+static func peace_offer(i: int, we_win: bool, kind: String = "") -> Dictionary:
 	var w := War.with(i)
 	var e: Dictionary
+	if kind == "capitulate":
+		var c: CountryState = Game.state(i)
+		e = {"id": "peace_offer", "title": "%s capitulates" % World.map.names[i], "icon": "crown", "tint": "gold", "weight": 0.0,
+			"body": "{other}'s government has collapsed and its army laid down arms. You hold %d%% of the country. Its fate is yours to decide." % roundi(float(w.occ_them) * 100.0),
+			"choices": [
+				{"label": "Annex the whole country", "detail": "%s new citizens · borders vanish · years of unrest · the world is alarmed" % DS.compact(c.population if c != null else 0.0),
+					"effects": {"peace": "annex_all"}},
+				{"label": "Make them a vassal", "detail": "They keep their flag, pay tribute and fight beside you", "effects": {"peace": "vassal"}},
+				{"label": "Demand reparations", "detail": "They pay %s of their GDP" % DS.pct(Economy.WAR_REPARATIONS * 100.0, 0), "effects": {"peace": "reparations"}},
+				{"label": "Generous peace", "detail": "Old borders · the world respects it", "effects": {"peace": "status_quo", "relations_all": 4.0}}]}
+		return instance(e, i)
+	if kind == "stalemate":
+		e = {"id": "peace_offer", "title": "Stalemate with %s" % World.map.names[i], "icon": "flag", "tint": "orange", "weight": 0.0,
+			"body": "Both armies are exhausted and the front barely moves. {other} proposes a ceasefire on the old borders.",
+			"choices": [
+				{"label": "Accept the ceasefire", "detail": "Everyone goes home", "effects": {"peace": "status_quo"}},
+				{"label": "Fight on", "detail": "Support at home keeps falling", "effects": {"stability": -1.0}}]}
+		return instance(e, i)
 	if we_win:
 		e = {"id": "peace_offer", "title": "%s sues for peace" % World.map.names[i], "icon": "flag", "tint": "gold", "weight": 0.0,
 			"body": "Beaten and exhausted, {other} asks to end the war. Your forces hold %d%% of their country." % roundi(float(w.occ_them) * 100.0),
 			"choices": [
-				{"label": "Keep the land you hold", "detail": "They cede it · the world disapproves", "effects": {"peace": "annex"}},
+				{"label": "Keep the land you hold", "detail": "They cede %d%% of their country · the world disapproves" % roundi(float(w.occ_them) * Economy.WAR_ANNEX_SHARE * 100.0),
+					"effects": {"peace": "annex"}, "needs": "occupied"},
 				{"label": "Demand reparations", "detail": "They pay %s of their GDP" % DS.pct(Economy.WAR_REPARATIONS * 100.0, 0), "effects": {"peace": "reparations"}},
 				{"label": "Generous peace", "detail": "Old borders · goodwill", "effects": {"peace": "status_quo", "relations_all": 2.0}},
 				{"label": "Fight on", "detail": "Push for more", "effects": {}}]}
@@ -902,6 +921,8 @@ static func instance(e: Dictionary, other: int = -1) -> Dictionary:
 	for ch in e.choices:
 		if ch.get("needs", "") == "ally" and Diplomacy.summary().alliances == 0:
 			continue
+		if ch.get("needs", "") == "occupied" and (other < 0 or float(War.with(other).get("occ_them", 0.0)) < 0.03):
+			continue
 		choices.append(ch)
 	return {"id": e.id, "title": e.title, "icon": e.icon, "tint": e.tint, "other": other, "next": e.get("next", {}),
 		"face": e.get("face", ""), "scene_hint": e.get("scene_hint", ""),
@@ -1095,7 +1116,8 @@ static func effect_chips(fx: Dictionary) -> Array:
 			"capital":
 				out.append(["Political capital −%d" % roundi(float(v)), false, 8.0])
 			"peace":
-				out.append([{"annex": "Gain territory", "reparations": "Reparations", "status_quo": "Old borders", "surrender": "Lose territory"}.get(str(v), "Peace"),
+				out.append([{"annex": "Gain territory", "annex_all": "Annex the country", "vassal": "Vassal", "reparations": "Reparations",
+					"status_quo": "Old borders", "surrender": "Lose territory"}.get(str(v), "Peace"),
 					str(v) != "surrender", 9.0])
 			"term":
 				var t: Array = {"retire": ["Legacy +%d" % roundi(Economy.HANDOVER_LEGACY), true],

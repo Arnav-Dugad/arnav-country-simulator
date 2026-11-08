@@ -467,6 +467,13 @@ const WAR_AI_ADVANTAGE := 1.4        # ... if its military is this much stronger
 const WAR_AI_CHANCE := 0.003         # monthly chance then
 const WAR_OFFENSIVE_STRENGTH := 1.15
 const WAR_DEFENSIVE_STRENGTH := 0.92
+const WAR_STALEMATE_MONTHS := 36  # after this long without a result, a ceasefire is offered
+const WAR_FULL_ANNEX_SHARE := 0.55  # keeping this much of a country = taking all of it
+const UNION_RELATION := 80.0        # relations needed to propose a peaceful union
+const UNION_MAX_SIZE := 0.35        # their population at most this share of yours
+const UNION_CAPITAL := 40.0
+const VASSAL_ANNEX_MONTHS := 60     # a vassal can be annexed peacefully after this long
+const VASSAL_ANNEX_CAPITAL := 25.0
 const WAR_CAPITULATE_OCC := 0.92     # holding this much (total war) makes them capitulate
 const WAR_BLOCKADE_GROWTH := 0.8     # their growth lost per month of blockade
 const WAR_SUPPORT_WIN := 1.5         # home support per battle won ...

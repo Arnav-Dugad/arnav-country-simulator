@@ -34,6 +34,7 @@ func _build() -> void:
 	_markets = section("World markets")
 	_war = section("At war")
 	_wwars = section("Wars around the world")
+	_empire = section("Your empire")
 	_security = section("Security")
 	_intel = section("Intelligence")
 	_climate = section("Climate")
@@ -56,6 +57,7 @@ func _build() -> void:
 var _markets: VBoxContainer
 var _climate: VBoxContainer
 var _security: VBoxContainer
+var _empire: VBoxContainer
 var _intel: VBoxContainer
 var _war: VBoxContainer
 var _wwars: VBoxContainer
@@ -70,6 +72,7 @@ func refresh() -> void:
 	_fill_rival()
 	_fill_markets()
 	_fill_climate()
+	_fill_empire()
 	_fill_security()
 	_fill_intel()
 	_fill_war()
@@ -86,7 +89,7 @@ func refresh() -> void:
 	for ch in _list.get_children():
 		ch.queue_free()
 	var idx: Array[int] = []
-	var neigh := World.map.neighbours[Game.player]
+	var neigh := World.neighbours_of(Game.player)
 	for i in World.playable:
 		if i == Game.player:
 			continue
@@ -464,3 +467,89 @@ func _fill_intel() -> void:
 		r.title_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 		r.set_leading(ListRow.icon_tile("check" if bool(e.good) else "x", DS.GREEN if bool(e.good) else DS.RED))
 		_intel.add_child(r)
+
+
+# ------------------------------------------------------------------ empire ---
+## Lands you've absorbed and vassals you rule. Hidden when you have neither.
+func _fill_empire() -> void:
+	for ch in _empire.get_children():
+		ch.queue_free()
+	var lands := Annexation.my_lands()
+	var vas := Annexation.vassals()
+	_empire.get_parent().visible = not lands.is_empty() or not vas.is_empty()
+	if lands.is_empty() and vas.is_empty():
+		return
+	for l in lands:
+		var i := int(l.i)
+		var t := float(l.integration)
+		var sub := ("United peacefully" if bool(l.peaceful) else "Conquered") + "  ·  %s people" % DS.compact(float(l.pop))
+		sub += "  ·  integrated" if t >= 1.0 else "  ·  %d%% integrated" % roundi(t * 100.0)
+		var row := ListRow.new().setup(World.map.names[i], sub, "›")
+		row.trailing_label.add_theme_color_override(&"font_color", DS.TEXT_3)
+		row.subtitle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		row.subtitle_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+		row.set_leading(Flag.new().show_country(i, 22.0))
+		row.tapped.connect(_land_card.bind(i))
+		_empire.add_child(row)
+		_empire.add_child(meter(t, 0.0, DS.GREEN if t >= 1.0 else DS.ORANGE, 3.0))
+	for k in vas:
+		var i2 := int(k)
+		var v: CountryState = Game.state(i2)
+		if v == null:
+			continue
+		var row2 := ListRow.new().setup(World.map.names[i2], "Vassal  ·  pays %s a year  ·  relations %d" % [
+			DS.money(v.gdp * Economy.ANNEX_TRIBUTE), roundi(Game.relations[i2])], "›")
+		row2.trailing_label.add_theme_color_override(&"font_color", DS.TEXT_3)
+		row2.subtitle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		row2.subtitle_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+		row2.set_leading(Flag.new().show_country(i2, 22.0))
+		row2.tapped.connect(_vassal_card.bind(i2))
+		_empire.add_child(row2)
+	note("Newly absorbed people resist for a few years; integration ends the unrest. Vassals pay tribute and fight beside you, but may break free if your army weakens.", _empire)
+
+
+func _land_card(i: int) -> void:
+	var m := ModalCard.new()
+	get_tree().current_scene.add_child(m)
+	m.header("flag", DS.GOLD, "Your lands", World.map.names[i])
+	var info: Dictionary = Game.dip.get("absorbed_info", {}).get(str(i), {})
+	m.body("Part of %s since %d months ago. %s people." % [World.the_name(Game.player), Game.months_played - int(info.get("m", Game.months_played)),
+		DS.compact(float(info.get("pop", 0.0)))])
+	m.choice("Grant independence", "Its people and economy leave; the world and they will be grateful", &"DestructiveButton", func() -> void:
+		var t := Annexation.release(i)
+		m.dismiss()
+		var gs := get_tree().current_scene
+		if gs and gs.has_method("_notify"):
+			gs._notify(t, "flag", DS.GREEN, true)
+		Haptics.success()
+		refresh())
+	m.choice("Close", "", &"GhostButton", m.dismiss)
+
+
+func _vassal_card(i: int) -> void:
+	var m := ModalCard.new()
+	get_tree().current_scene.add_child(m)
+	m.header("crown", DS.GOLD, "Vassal", World.map.names[i])
+	var wait := Annexation.vassal_annex_wait(i)
+	m.body("Pays you tribute every year and adds its army to yours in war. Its people resent it slowly.")
+	var ok := wait == 0 and Capital.can(Economy.VASSAL_ANNEX_CAPITAL)
+	var ch := m.choice("Annex peacefully", ("A quiet union: little unrest, mild world concern  ·  %d capital" % int(Economy.VASSAL_ANNEX_CAPITAL)) if wait == 0
+		else "Possible after %d more months as your vassal" % wait, &"PrimaryButton", func() -> void:
+			var t := Annexation.annex_vassal(i)
+			m.dismiss()
+			var gs := get_tree().current_scene
+			if t != "" and gs and gs.has_method("_notify"):
+				gs._notify(t, "crown", DS.GOLD, true)
+				if "map" in gs and gs.map != null:
+					gs.map.celebrate("fireworks", Game.player)
+			Haptics.success()
+			refresh())
+	if not ok:
+		for b in ch.find_children("*", "Button", true, false):
+			(b as Button).disabled = true
+	m.choice("Set them free", "No more tribute; goodwill everywhere", &"", func() -> void:
+		Annexation.free_vassal(i)
+		m.dismiss()
+		Haptics.tap()
+		refresh())
+	m.choice("Close", "", &"GhostButton", m.dismiss)

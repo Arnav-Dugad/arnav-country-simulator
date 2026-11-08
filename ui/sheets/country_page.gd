@@ -243,6 +243,12 @@ func _build_actions(i: int, is_me: bool, playable: bool) -> void:
 		var wb := War.blocked(i)
 		_action("Declare war", &"DestructiveButton", "swords", _declare_war.bind(i), wb != "",
 			wb if wb != "" else "Battle odds %d%% · costs %d political capital" % [roundi(War.odds(i) * 100.0), int(Economy.WAR_DECLARE_CAPITAL)])
+	# Peaceful union (friendly, smaller neighbours)
+	if War.is_neighbour(i) and not War.is_at_war_with(i):
+		var ub := Annexation.union_blocked(i)
+		if ub == "" or Game.relations[i] >= 50.0 or Annexation.is_vassal(i):
+			_action("Propose a union", &"", "handshake", _union.bind(i), ub != "",
+				ub if ub != "" else "They vote on joining you: about %d%% chance" % roundi(Annexation.union_chance(i) * 100.0))
 	# Covert operations
 	var run := Intel.running_against(i)
 	_action("Covert operations", &"", "eye", _covert.bind(i), not run.is_empty(),
@@ -487,3 +493,27 @@ func _covert(i: int) -> void:
 			for b in ch.find_children("*", "Button", true, false):
 				(b as Button).disabled = true
 	m.choice("Close", "", &"GhostButton", m.dismiss)
+
+
+func _union(i: int) -> void:
+	var m := ModalCard.new()
+	get_tree().current_scene.add_child(m)
+	m.header("handshake", DS.GOLD, "Peaceful union", "Unite with %s?" % World.map.names[i])
+	m.body("%s holds a referendum on joining %s. If they vote yes, the two countries become one: no war, little unrest, and the world shrugs. If no, relations cool." % [
+		World.The_name(i), World.the_name(Game.player)])
+	m.choice("Propose the union", "Chance of a yes: %d%%  ·  %d political capital" % [roundi(Annexation.union_chance(i) * 100.0), int(Economy.UNION_CAPITAL)],
+		&"PrimaryButton", func() -> void:
+			var r := Annexation.propose_union(i)
+			m.dismiss()
+			var gs := get_tree().current_scene
+			if gs and gs.has_method("_notify"):
+				gs._notify(str(r.text), "handshake", DS.GOLD if bool(r.ok) else DS.ORANGE, true)
+				if bool(r.ok) and "map" in gs and gs.map != null:
+					gs.map.celebrate("fireworks", Game.player)
+					gs.map.focus_country(Game.player)
+			if bool(r.ok):
+				Haptics.success()
+				Audio.play("fanfare", -5.0)
+			else:
+				Haptics.warning())
+	m.choice("Not now", "", &"GhostButton", m.dismiss)

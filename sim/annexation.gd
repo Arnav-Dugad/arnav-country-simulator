@@ -49,6 +49,17 @@ static func absorb(loser: int, winner: int) -> String:
 	for k in owners().keys():                # earlier conquests of the loser pass on
 		if int(owners()[k]) == loser:
 			owners()[k] = winner
+	# Its overseas territories go too (Greenland with Denmark).
+	var terr: Array = []
+	var liso := World.iso(loser)
+	for t in World.count():
+		if t != loser and str(World.stats[t].get("sovereign", "")) == liso and not owners().has(str(t)):
+			owners()[str(t)] = winner
+			terr.append(t)
+	if not Game.dip.has("absorbed_info"):
+		Game.dip["absorbed_info"] = {}
+	Game.dip.absorbed_info[str(loser)] = {"pop": a.population, "gdp_share": a.gdp * E.ANNEX_GDP_KEEP / maxf(b.gdp, 1.0),
+		"terr": terr, "m": Game.months_played, "peaceful": bool(Game.dip.get("_peaceful_absorb", false))}
 	Game.countries[loser] = null
 	World.set_owners(owners())
 	var text := ""
@@ -56,10 +67,14 @@ static func absorb(loser: int, winner: int) -> String:
 		if not Game.dip.has("integration"):
 			Game.dip["integration"] = {}
 		Game.dip.integration[str(loser)] = {"start": Game.months_played, "share": share}
-		for j in World.playable:
-			if j != Game.player:
-				var hit := E.ANNEX_WORLD_ANGER * (1.5 if Treaties.base_camp(j) == Treaties.base_camp(loser) else 1.0)
-				Game.relations[j] = clampf(Game.relations[j] - hit, -100.0, 100.0)
+		var peaceful := bool(Game.dip.get("_peaceful_absorb", false))
+		if not peaceful:
+			for j in World.playable:
+				if j != Game.player:
+					var hit := E.ANNEX_WORLD_ANGER * (1.5 if Treaties.base_camp(j) == Treaties.base_camp(loser) else 1.0)
+					Game.relations[j] = clampf(Game.relations[j] - hit, -100.0, 100.0)
+		else:
+			Game.dip.integration[str(loser)].share = share * 0.3      # they chose this: far less unrest
 		Game.relations_changed.emit()
 		b.shocks.approval = float(b.shocks.approval) + E.ANNEX_APPROVAL
 		text = "%s is now part of %s: %s new citizens" % [World.The_name(loser), World.the_name(winner), DS.compact(a.population)]
@@ -70,6 +85,137 @@ static func absorb(loser: int, winner: int) -> String:
 	Game.add_feed(text, "flag", "gold" if winner == Game.player else "red")
 	Simulation.update_finances(b)
 	return text
+
+
+## Your conquered or united lands: [{i, name, months, integration (0..1), peaceful}].
+static func my_lands() -> Array:
+	var out: Array = []
+	for k in owners():
+		if int(owners()[k]) != Game.player or not World.is_playable_raw(int(k)):
+			continue
+		var info: Dictionary = Game.dip.get("absorbed_info", {}).get(str(k), {})
+		var it: Dictionary = Game.dip.get("integration", {}).get(str(k), {})
+		var t := 1.0
+		if not it.is_empty():
+			t = clampf(float(Game.months_played - int(it.start)) / float(E.ANNEX_INTEGRATION_MONTHS), 0.0, 1.0)
+		out.append({"i": int(k), "months": Game.months_played - int(info.get("m", Game.months_played)), "integration": t,
+			"peaceful": bool(info.get("peaceful", false)), "pop": float(info.get("pop", 0.0))})
+	return out
+
+
+## Give a conquered country its independence back. Its people and a share of
+## the economy leave; the world and the freed country are grateful.
+static func release(i: int) -> String:
+	if int(owners().get(str(i), -1)) != Game.player:
+		return ""
+	var me := Game.me()
+	var info: Dictionary = Game.dip.get("absorbed_info", {}).get(str(i), {})
+	var pop := minf(float(info.get("pop", me.population * 0.1)), me.population * 0.5)
+	var gshare := clampf(float(info.get("gdp_share", 0.1)), 0.0, 0.5)
+	var c := CountryState.new().init_from_stats(i, World.stats[i])
+	var scale := pop / maxf(c.population, 1.0)
+	c.population = pop
+	c.gdp = me.gdp * gshare
+	c.debt *= scale
+	me.population = maxf(me.population - pop, 1.0)
+	me.gdp = maxf(me.gdp - c.gdp, 1.0)
+	Game.countries[i] = c
+	owners().erase(str(i))
+	for t in info.get("terr", []):
+		owners().erase(str(t))
+	Game.dip.get("integration", {}).erase(str(i))
+	Game.dip.get("absorbed_info", {}).erase(str(i))
+	World.set_owners(owners())
+	Game.relations[i] = 45.0
+	for j in World.playable:
+		if j != Game.player and j != i:
+			Game.relations[j] = clampf(Game.relations[j] + 4.0, -100.0, 100.0)
+	Game.relations_changed.emit()
+	me.shocks.approval = float(me.shocks.approval) - 2.0
+	Simulation.update_finances(me)
+	Simulation.update_finances(c)
+	Game.add_milestone("Granted independence to %s" % World.map.names[i], "flag", "accent")
+	var text := "%s is independent again. The world applauds" % World.The_name(i)
+	Game.add_feed(text, "flag", "green")
+	return text
+
+
+## "" if you can propose a peaceful union with country i, else why not.
+static func union_blocked(i: int) -> String:
+	var me := Game.me()
+	var c: CountryState = Game.state(i)
+	if c == null or i == Game.player:
+		return "Not possible"
+	if not War.is_neighbour(i):
+		return "Only with a neighbour"
+	if Game.relations[i] < E.UNION_RELATION:
+		return "Needs relations of %d+ (now %d)" % [int(E.UNION_RELATION), roundi(Game.relations[i])]
+	if c.population > me.population * E.UNION_MAX_SIZE:
+		return "They're too big to join you"
+	if War.at_war():
+		return "Not while you're at war"
+	if not Capital.can(E.UNION_CAPITAL):
+		return "Needs %d political capital" % int(E.UNION_CAPITAL)
+	return ""
+
+
+## Chance their people vote yes: relations, your wealth and stability vs theirs.
+static func union_chance(i: int) -> float:
+	var me := Game.me()
+	var c: CountryState = Game.state(i)
+	var richer := clampf(me.gdp_per_capita() / maxf(c.gdp_per_capita(), 1.0), 0.3, 3.0)
+	var p := 0.25 + (Game.relations[i] - E.UNION_RELATION) / 30.0 + 0.15 * log(richer) / log(2.0) + (me.stability - c.stability) / 200.0
+	if is_vassal(i):
+		p += 0.25
+	return clampf(p, 0.05, 0.9)
+
+
+## Propose a union: they hold a referendum. Returns {ok, text}.
+static func propose_union(i: int) -> Dictionary:
+	if union_blocked(i) != "":
+		return {"ok": false, "text": union_blocked(i)}
+	Capital.spend(E.UNION_CAPITAL)
+	if Game.rng.randf() < union_chance(i):
+		Game.dip["_peaceful_absorb"] = true
+		var t := absorb(i, Game.player)
+		Game.dip.erase("_peaceful_absorb")
+		Achievements.unlock("empire")
+		return {"ok": true, "text": "Referendum passed! " + t}
+	Game.relations[i] = Game.relations[i] - 15.0
+	Game.relations_changed.emit()
+	var text := "%s votes no to joining %s" % [World.The_name(i), World.the_name(Game.player)]
+	Game.add_feed(text, "vote", "orange")
+	return {"ok": false, "text": text}
+
+
+static func vassal_annex_wait(i: int) -> int:
+	var v: Dictionary = vassals().get(str(i), {})
+	if v.is_empty():
+		return -1
+	return maxi(0, int(v.since) + E.VASSAL_ANNEX_MONTHS - Game.months_played)
+
+
+## Absorb a long-time vassal without a war.
+static func annex_vassal(i: int) -> String:
+	if vassal_annex_wait(i) != 0 or not Capital.spend(E.VASSAL_ANNEX_CAPITAL):
+		return ""
+	Game.dip["_peaceful_absorb"] = true
+	var t := absorb(i, Game.player)
+	Game.dip.erase("_peaceful_absorb")
+	for j in World.playable:
+		if j != Game.player:
+			Game.relations[j] = clampf(Game.relations[j] - E.ANNEX_WORLD_ANGER * 0.3, -100.0, 100.0)
+	return t
+
+
+static func free_vassal(i: int) -> void:
+	vassals().erase(str(i))
+	Game.relations[i] = clampf(Game.relations[i] + 25.0, -100.0, 100.0)
+	for j in World.playable:
+		if j != Game.player and j != i:
+			Game.relations[j] = clampf(Game.relations[j] + 1.5, -100.0, 100.0)
+	Game.relations_changed.emit()
+	Game.add_feed("%s is free: no more tribute" % World.The_name(i), "flag", "green")
 
 
 ## Integration unrest on you (stability, approval points), fading out.
