@@ -124,6 +124,7 @@ func refresh() -> void:
 			lines.append("Emits %s t of CO₂ a person  ·  %d%% renewable energy" % [String.num(Climate.co2_pc(st), 1),
 				roundi(Climate.renewables(st))])
 			lines.append(Migration.describe(st))
+			lines.append("Inequality: Gini %s (%s)" % [String.num(st.gini, 1), Inequality.label(st.gini)])
 		_gov.text = "\n".join(lines)
 	for ch in _traits.get_children():
 		ch.queue_free()

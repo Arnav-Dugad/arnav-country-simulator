@@ -137,6 +137,8 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		c.treasury -= repay
 
 	# --- Society & politics ---------------------------------------------------
+	Inequality.tick(c)
+	var d_gini := Inequality.change(c)
 	var real_pc := c.real_gdp_per_capita()
 	var h_terms := [
 		["Starting mood", float(b.happiness)],
@@ -147,6 +149,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Jobs", -E.UNEMP_HAPPY * (c.unemployment - float(b.unemployment))],
 		["Prices", -E.INFLATION_HAPPY * (minf(c.inflation, 60.0) - minf(float(b.inflation), 60.0))],
 		["Income tax", -E.TAX_HAPPY * d_inc],
+		["Inequality", -E.INEQ_HAPPY * d_gini],
 		["Food prices", float(mx.happiness)],
 		["Treaties & blocs", float(tx.get("happiness", 0.0))],
 		["Recent events", float(c.shocks.happiness)],
@@ -181,6 +184,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Security forces" if autocracy else "Military spending", E.STABILITY_MILITARY
 			* (E.AUTOCRACY_MILITARY_WEIGHT if autocracy else 1.0) * c.share_delta("military") / 10.0],
 		["Jobs", -0.3 * (c.unemployment - float(b.unemployment))],
+		["Inequality", -E.INEQ_STABILITY * d_gini],
 		["Recent events", float(c.shocks.stability)],
 		["Laws & reforms", float(lx.get("stability", 0.0))],
 		["Projects you built", float(px.get("stability", 0.0))],

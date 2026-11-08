@@ -48,6 +48,10 @@ static func advice(c: CountryState) -> Array:
 	if Government.army_rules(c.idx) and Game.politics.coup_risk() > 0.0:
 		out.append(_item(2, "The army is restless",
 			"Keep the military budget near where it started and stability up, or the generals may act.", "budget", "shield"))
+	if Inequality.change(c) > 2.5:
+		out.append(_item(1, "The gap between rich and poor is growing",
+			"Inequality is up %s points. Welfare spending, a minimum wage or a wealth tax narrow it." % String.num(Inequality.change(c), 1),
+			"budget", "scale"))
 	var pledge := Climate.pledge()
 	if not pledge.is_empty() and int(pledge.due) - Game.months_played <= 36 			and Climate.pledge_done() < float(pledge.cut) * 0.5:
 		out.append(_item(1, "Your climate pledge is off track",

@@ -38,6 +38,7 @@ var approval := 50.0
 var happiness := 50.0
 var stability := 50.0
 var military := 30.0
+var gini := 0.0                # income inequality (see Inequality); 0 = not set yet
 
 # Policy levers
 var income_tax := 20.0         # %
@@ -104,6 +105,7 @@ func init_from_stats(i: int, s: Dictionary) -> CountryState:
 	stability = Economy.start_stability(s)
 	approval = Economy.start_approval(happiness, stability)
 	military = Economy.military_index(gdp * s.get("military_pct", 1.8) / 100.0)
+	gini = clampf(float(s.get("gini", 35.0)), 20.0, 65.0)
 
 	laws_start = Laws.starting_set(self)
 	for id in laws_start:
@@ -213,7 +215,7 @@ const SAVE_FIELDS := ["idx", "population", "gdp", "growth", "growth_anchor", "tr
 	"u_natural", "inflation", "core_inflation", "interest_rate", "debt", "debt_rate", "treasury",
 	"other_rev_pct", "pop_growth", "price_index", "approval", "happiness", "stability", "military", "income_tax",
 	"corp_tax", "spending_pct", "budget", "trade_openness", "trade_deals", "sanctioned_by",
-	"alliances", "base", "shocks", "estimated", "laws", "laws_start", "projects", "cb_auto"]
+	"alliances", "base", "shocks", "estimated", "laws", "laws_start", "projects", "cb_auto", "gini"]
 
 
 func to_dict() -> Dictionary:

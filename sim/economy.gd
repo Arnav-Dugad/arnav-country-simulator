@@ -400,6 +400,22 @@ static func tax_yield(rate: float, k: float) -> float:
 	return r * k * (1.0 - LAFFER * r * r)
 
 
+# -------------------------------------------------------------- inequality ---
+# See sim/inequality.gd. Gini points per unit of change from the start.
+## Welfare: per extra 1 % of GDP spent (OECD: transfers cut market-income Gini
+## by about 1 point per 1 % of GDP on average across member countries).
+const GINI_WELFARE := 1.0
+## Income tax: per percentage point of the (mostly progressive) income-tax rate.
+const GINI_INCOME_TAX := 0.12
+## Joblessness: per point of unemployment above the start.
+const GINI_UNEMP := 0.35
+## Monthly pull toward the target (inequality moves over years, not months).
+const GINI_ADJUST := 0.025
+## Happiness and stability lost per Gini point above the start (gained below it).
+const INEQ_HAPPY := 0.35
+const INEQ_STABILITY := 0.3
+
+
 # --------------------------------------------------------------- migration ---
 # See sim/migration.gd. Rates are net migrants per 1,000 people a year.
 ## Starting rates and changes are capped (war-time outflows like Ukraine's

@@ -2,6 +2,11 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.48.0] - 2026-11-08
+
+- **Inequality.** Every country starts at its real Gini index (World Bank). It shifts slowly with welfare spending, income tax, joblessness and laws (minimum wage, wealth tax, basic income narrow the gap; privatisation widens it). A growing gap costs happiness and stability; a shrinking one wins both
+- Law cards show their effect on inequality, country pages show each country's Gini, very unequal countries get a "A fairer society" goal, and your advisors warn when the gap grows
+
 ## [0.47.1] - 2026-11-08
 
 - **Realistic is properly harder now:** voters are tougher and crises bite harder (the balance report showed it had become almost as forgiving as Standard)

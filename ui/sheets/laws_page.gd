@@ -122,6 +122,9 @@ func _card(c: CountryState, l: Dictionary) -> Control:
 		chips.add_child(_chip(text, DS.GREEN if good else DS.RED))
 	if Climate.CUTS.has(l.id) and not c.laws_start.has(l.id):
 		chips.add_child(_chip("CO₂ −%d%%" % roundi(float(Climate.CUTS[l.id]) * 100.0), DS.GREEN))
+	if Inequality.LAW_GINI.has(l.id):
+		var gv := float(Inequality.LAW_GINI[l.id])
+		chips.add_child(_chip("Inequality %+.1f" % gv, DS.GREEN if gv < 0.0 else DS.RED))
 	if l.id == "skilled_visas":
 		chips.add_child(_chip("Migrants +%s per 1,000" % String.num(Economy.MIG_VISAS, 0), DS.TEXT_2))
 	elif l.id == "border_control":
