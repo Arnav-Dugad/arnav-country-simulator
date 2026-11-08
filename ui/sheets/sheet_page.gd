@@ -64,6 +64,62 @@ func grid(parent: Control, columns: int = 2) -> GridContainer:
 	return g
 
 
+## At a glance: a grid of small tiles [icon, colour, head, value, section]; tapping one scrolls to its section.
+func glance(items: Array, parent: Control = self) -> GridContainer:
+	var g := grid(parent, 3 if Settings.text_scale < 1.0 and items.size() % 3 == 0 else 2)
+	for t in items:
+		var p := PanelContainer.new()
+		p.theme_type_variation = &"TilePanel"
+		p.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		p.mouse_filter = Control.MOUSE_FILTER_PASS
+		var v := VBoxContainer.new()
+		v.add_theme_constant_override(&"separation", 2)
+		v.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		p.add_child(v)
+		var h := HBoxContainer.new()
+		h.add_theme_constant_override(&"separation", 6)
+		h.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		v.add_child(h)
+		var ic := TextureRect.new()
+		ic.texture = DS.icon(str(t[0]))
+		ic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		ic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		ic.custom_minimum_size = Vector2(16, 16)
+		ic.modulate = t[1]
+		h.add_child(ic)
+		var hl := Label.new()
+		hl.theme_type_variation = &"Caption"
+		hl.text = str(t[2]).to_upper()
+		hl.clip_text = true
+		hl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		hl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		hl.custom_minimum_size = Vector2(20, 0)
+		h.add_child(hl)
+		var vl := Label.new()
+		vl.theme_type_variation = &"StatValue"
+		vl.text = str(t[3])
+		vl.clip_text = true
+		vl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		vl.custom_minimum_size = Vector2(20, 0)
+		v.add_child(vl)
+		var sec := str(t[4])
+		var stt := {"p": Vector2.ZERO, "down": false}
+		p.gui_input.connect(func(e: InputEvent) -> void:
+			if e is InputEventMouseButton and e.button_index == MOUSE_BUTTON_LEFT:
+				if e.pressed:
+					stt.p = e.global_position
+					stt.down = true
+				elif stt.down:
+					stt.down = false
+					if e.global_position.distance_to(stt.p) < 10.0:
+						Haptics.tap()
+						scroll_to_section(sec)
+			elif e is InputEventMouseMotion and stt.down and e.global_position.distance_to(stt.p) >= 10.0:
+				stt.down = false)
+		g.add_child(p)
+	return g
+
+
 ## Thin progress meter: solid fill to a, lighter "pending" fill to b.
 func meter(a: float, b: float, color: Color, h: float = 6.0) -> Control:
 	var bar := Control.new()

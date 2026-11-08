@@ -30,6 +30,8 @@ func _build() -> void:
 		["stadium", "trophy", DS.GOLD, "Sport", "World Cup, the Games, medals", func() -> void: page_requested.emit("sports")],
 		["summit", "landmark", DS.ACCENT, "United Nations", "Security Council, resolutions", func() -> void: _scroll_to(_un)],
 	], self)
+	_glance_box = VBoxContainer.new()
+	add_child(_glance_box)
 	add_child(jump_bar(["Your rival", "World markets", "At war", "Your empire", "Security", "Nuclear weapons", "Intelligence", "Climate", "Water", "Sea lanes", "United Nations", "Treaties & blocs"]))
 	_rival = section("Your rival")
 	_markets = section("World markets")
@@ -65,6 +67,7 @@ var _climate: VBoxContainer
 var _adapt: VBoxContainer
 var _security: VBoxContainer
 var _nuke: VBoxContainer
+var _glance_box: VBoxContainer
 var _water: VBoxContainer
 var _sea: VBoxContainer
 var _empire: VBoxContainer
@@ -80,6 +83,7 @@ func refresh() -> void:
 	if not Game.has_game():
 		return
 	_fill_ranks()
+	_fill_glance()
 	_fill_rival()
 	_fill_markets()
 	_fill_climate()
@@ -322,6 +326,24 @@ func _world_war_actions(k: String) -> void:
 				m.dismiss()
 				refresh())
 	m.choice("Stay neutral", "", &"GhostButton", m.dismiss)
+
+
+func _fill_glance() -> void:
+	for ch in _glance_box.get_children():
+		ch.queue_free()
+	var clock := Nuclear.clock()
+	var ws := Water.stress()
+	var shut := (SeaLanes.st().open as Dictionary).size()
+	var lv := Security.level()
+	var cc := Climate.change(Game.me())
+	glance([
+		["clock", DS.RED if clock < 100.0 else (DS.ORANGE if clock < 200.0 else DS.GREEN), "Clock", "%d s" % roundi(clock), "Nuclear weapons"],
+		["droplets", Water.color(ws), "Water", String.num(ws, 1), "Water"],
+		["ship", DS.RED if shut > 0 else DS.TEAL, "Sea lanes", ("%d shut" % shut) if shut > 0 else "Open", "Sea lanes"],
+		["shield", [DS.GREEN, DS.ORANGE, DS.RED][lv], "Security", str(Security.LEVEL_TEXT[lv]), "Security"],
+		["swords", DS.RED if War.at_war() else DS.GREEN, "War", "At war" if War.at_war() else "At peace", "At war"],
+		["leaf", DS.GREEN if cc < -0.02 else (DS.RED if cc > 0.02 else DS.TEXT_2), "CO₂", ("%+d%%" % roundi(cc * 100.0)) if absf(cc) >= 0.005 else "Same", "Climate"],
+	], _glance_box)
 
 
 func _fill_security() -> void:

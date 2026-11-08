@@ -31,6 +31,19 @@ func refresh() -> void:
 			best = float(s.sec[id].share)
 			top = str(Industries.SECTORS[id].title)
 	_box.add_child(photo_header("factory", "Industries & trade", "Biggest industry: %s  ·  %d subsidised" % [top.to_lower(), Industries.subsidy_count()], 132.0))
+	var me_ := Minerals.mine_list()
+	var mx := 0.0
+	for m in me_:
+		mx += Minerals.earnings_pct(str(m))
+	var ss := Food.self_sufficiency()
+	var items: Array = [
+		["battery-charging", DS.GOLD if not me_.is_empty() else DS.TEXT_3, "Minerals", DS.pct(mx, 1) if not me_.is_empty() else "None", "Critical minerals"],
+		["wheat", DS.GREEN if ss >= 90.0 else (DS.ORANGE if ss >= 40.0 else DS.RED), "Food", "%d%%" % roundi(ss), "Food security"],
+	]
+	if Fisheries.coastal():
+		items.append(["fish", Fisheries.color(Fisheries.stock()), "Fish", "%d" % roundi(Fisheries.stock()), "Fisheries & oceans"])
+	items.append(["bot", DS.PURPLE, "Robots", "%d" % roundi(Automation.level()), "Robots & AI"])
+	glance(items, _box)
 	var sh: Dictionary = s.shock
 	if not sh.is_empty():
 		var r := ListRow.new().setup("World shock", "%s  ·  %d months left" % [str(sh.text), maxi(0, int(sh.until) - Game.months_played)])
