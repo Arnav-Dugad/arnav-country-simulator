@@ -548,6 +548,17 @@ const TOUR_BID_MONTHS := 12        # from bid to vote
 const TOUR_SOFT_RELATIONS := 0.01  # relations a month with everyone per soft power point gained
 
 
+# --------------------------------------------------------- united nations ---
+# See sim/united_nations.gd.
+const UN_SEAT_CAPITAL := 15.0
+const UN_RES_CAPITAL := 10.0
+const UN_RES_GAP := 12            # months between your own resolutions
+const UN_PASS_STANDING := 4.0     # standing gained when your resolution passes
+const UN_FUND_COST := 0.05        # % of GDP you pay into a fund you propose
+const UN_KEEPERS_COST := 0.03     # % of GDP a year for peacekeepers
+const UN_KEEPERS_RISK := 0.015    # monthly chance of losing soldiers on a mission
+
+
 # ------------------------------------------------------------ black market ---
 # See sim/smuggling.gd. Shadow economy points (0..100).
 const BLACK_SIN := 1.2             # per point of tobacco & alcohol tax above the start

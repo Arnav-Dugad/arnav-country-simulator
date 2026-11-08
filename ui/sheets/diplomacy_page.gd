@@ -28,7 +28,7 @@ func _build() -> void:
 		["tourism", "plane-takeoff", DS.TEAL, "Tourism & fame", "Visitors, heritage, host the Games", func() -> void: page_requested.emit("tourism")],
 		["intel", "eye", DS.PURPLE, "Intelligence", "Your spies and their operations", func() -> void: _scroll_to(_intel)],
 		["stadium", "trophy", DS.GOLD, "Sport", "World Cup, the Games, medals", func() -> void: page_requested.emit("sports")],
-		["summit", "landmark", DS.ACCENT, "Treaties", "Blocs, alliances and votes", func() -> void: _scroll_to(_treaties)],
+		["summit", "landmark", DS.ACCENT, "United Nations", "Security Council, resolutions", func() -> void: _scroll_to(_un)],
 	], self)
 	_rival = section("Your rival")
 	_markets = section("World markets")
@@ -39,6 +39,7 @@ func _build() -> void:
 	_intel = section("Intelligence")
 	_climate = section("Climate")
 	_adapt = section("Climate adaptation")
+	_un = section("United Nations")
 	_treaties = section("Treaties & blocs")
 	_summary = note("")
 	_filter = SegmentedControl.new().setup(["Friends", "Rivals", "Neighbours", "Partners"], [], 0)
@@ -65,6 +66,7 @@ var _war: VBoxContainer
 var _wwars: VBoxContainer
 var _rival: VBoxContainer
 var _treaties: VBoxContainer
+var _un: VBoxContainer
 
 
 func refresh() -> void:
@@ -80,6 +82,7 @@ func refresh() -> void:
 	_fill_intel()
 	_fill_war()
 	_fill_world_wars()
+	_fill_un()
 	_fill_treaties()
 	var d := Diplomacy.summary()
 	var parts: PackedStringArray = ["%d %s" % [d.alliances, "ally" if d.alliances == 1 else "allies"],
@@ -609,3 +612,88 @@ func _fill_adapt() -> void:
 		var e: Dictionary = lg[0]
 		note("Last disaster: %s, %d months ago  ·  %s lives lost" % [str(Disasters.TYPES[str(e.kind)].title).to_lower(),
 			Game.months_played - int(e.m), DS.compact(float(e.deaths))], _adapt)
+
+
+# --------------------------------------------------------------- united nations ---
+func _fill_un() -> void:
+	for ch in _un.get_children():
+		ch.queue_free()
+	var s := UnitedNations.st()
+	var sd := UnitedNations.standing()
+	var col := DS.GREEN if sd >= 60.0 else (DS.ACCENT if sd >= 40.0 else DS.ORANGE)
+	var seat := "Permanent member with a veto" if UnitedNations.permanent() else (
+		"Security Council member for %d more months" % (int(s.council_until) - Game.months_played) if UnitedNations.on_council() else "Not on the Security Council")
+	_stat_line(_un, "landmark", col, "Standing %d / 100" % roundi(sd), seat)
+	if not UnitedNations.permanent() and not UnitedNations.on_council():
+		var why := UnitedNations.seat_blocked()
+		var b := AppButton.make("Run for the Security Council  ·  %d" % int(Economy.UN_SEAT_CAPITAL), &"", "vote")
+		b.disabled = why != ""
+		b.pressed.connect(func() -> void:
+			var r := UnitedNations.campaign()
+			if not r.is_empty():
+				var gs := get_tree().current_scene
+				if gs and gs.has_method("_notify"):
+					gs._notify(str(r.text), "landmark", DS.GOLD if bool(r.ok) else DS.ORANGE, true)
+				if bool(r.ok):
+					Haptics.success()
+			refresh())
+		_un.add_child(b)
+		note(why if why != "" else "About %d%% chance of winning the vote. Friends abroad and a good standing help." % roundi(UnitedNations.seat_chance() * 100.0), _un)
+	var rb := AppButton.make("Propose a resolution", &"PrimaryButton", "gavel")
+	rb.pressed.connect(_un_resolutions)
+	_un.add_child(rb)
+	var tg := AppToggle.new().setup("Send peacekeepers", bool(s.keepers), "shield")
+	tg.toggled.connect(func(on: bool) -> void:
+		UnitedNations.set_keepers(on)
+		Simulation.update_finances(Game.me())
+		Haptics.select()
+		refresh())
+	_un.add_child(tg)
+	note("Peacekeepers cost %s a year and raise your standing; now and then soldiers are lost." % DS.money(Game.me().gdp * Economy.UN_KEEPERS_COST / 100.0), _un)
+	for e in (s.log as Array).slice(0, 2):
+		var r := ListRow.new().setup(str(e.text), "%d months ago" % (Game.months_played - int(e.m)) if Game.months_played > int(e.m) else "This month")
+		r.title_label.theme_type_variation = &"Subhead"
+		r.title_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		r.title_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+		r.set_leading(ListRow.icon_tile("check" if bool(e.ok) else "x", DS.GREEN if bool(e.ok) else DS.RED))
+		_un.add_child(r)
+
+
+func _un_resolutions() -> void:
+	var m := ModalCard.new()
+	get_tree().current_scene.add_child(m)
+	m.header("gavel", DS.ACCENT, "United Nations", "Propose a resolution")
+	m.body("It needs a majority in the General Assembly; anything with teeth can be vetoed by a permanent member. Costs %d political capital." % int(Economy.UN_RES_CAPITAL))
+	var wars := UnitedNations.world_wars()
+	for id in UnitedNations.RESOLUTIONS:
+		var info: Dictionary = UnitedNations.RESOLUTIONS[id]
+		var why := UnitedNations.res_blocked(str(id))
+		var key := ""
+		var target := -1
+		var detail := str(info.desc)
+		if bool(info.get("needs_war", false)) and not wars.is_empty():
+			key = str(wars[0][0])
+			target = int(wars[0][1])
+			detail = ("Sanctions on %s for invading %s" if id == "condemn" else "End the war between %s and %s") % [World.map.names[int(wars[0][1])], World.map.names[int(wars[0][2])]]
+		var chips: Array = []
+		if why == "":
+			chips.append(["Passes %d%%" % roundi(UnitedNations.pass_chance(str(id)) * 100.0), DS.GREEN])
+			var v := UnitedNations.veto_by(str(id), target)
+			if v >= 0:
+				chips.append(["%s may veto" % World.map.names[v], DS.RED])
+		var rid := str(id)
+		var ch := m.choice(str(info.title), why if why != "" else detail, &"GhostButton", func() -> void:
+			var r := UnitedNations.propose(rid, key)
+			m.dismiss()
+			var gs := get_tree().current_scene
+			if gs and gs.has_method("_notify"):
+				gs._notify(str(r.text), "landmark", DS.GOLD if bool(r.ok) else DS.ORANGE, true)
+			if bool(r.ok):
+				Haptics.success()
+			else:
+				Haptics.warning()
+			refresh(), chips)
+		if why != "":
+			for b in ch.find_children("*", "Button", true, false):
+				(b as Button).disabled = true
+	m.choice("Close", "", &"GhostButton", m.dismiss)
