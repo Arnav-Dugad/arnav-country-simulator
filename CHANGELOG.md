@@ -11,8 +11,6 @@ The release workflow publishes the section that matches the tag as the GitHub Re
   - Their strength depends on how far state media reaches and how much people trust you, and repeating a message wears it thin
   - A smear campaign can leak, and a free press is far more likely to dig it up
 
-## [0.62.0] - 2026-11-08
-
 - **A redesigned Build tab.** It opens on a dashboard with a new AI-painted header, then shows eight category cards with their own artwork and coverage bars (Transport, Energy, Health & care, Education, Housing & cities, Economy, Culture & sport, Defence). Each category page lists every build with how many you have, the price of one, and a bar showing coverage now and once the work under way is finished
 - **Best value now:** the three civilian builds that would do the most for your country per dollar right now, one tap away
 - **Builders have a capacity.** Your construction sector can take on only so much work a year (more with a bigger Infrastructure budget). Go over it and every site slows down, and the building boom pushes up inflation

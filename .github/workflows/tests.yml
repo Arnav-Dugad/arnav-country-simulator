@@ -29,7 +29,8 @@ jobs:
         run: |
           BASE="https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}-${GODOT_STATUS}"
           mkdir -p ~/godot
-          curl -fsSL --retry 6 --retry-delay 20 --retry-all-errors -o /tmp/godot.zip "$BASE/Godot_v${GODOT_VERSION}-${GODOT_STATUS}_linux.x86_64.zip"
+          curl -fsSL --retry 2 --retry-delay 10 --retry-all-errors -o /tmp/godot.zip "$BASE/Godot_v${GODOT_VERSION}-${GODOT_STATUS}_linux.x86_64.zip" \
+            || curl -fsSL --retry 4 --retry-delay 15 --retry-all-errors -o /tmp/godot.zip "https://downloads.godotengine.org/?version=${GODOT_VERSION}&flavor=${GODOT_STATUS}&slug=linux.x86_64.zip&platform=linux.64"   # official mirror
           unzip -q /tmp/godot.zip -d ~/godot
           mv ~/godot/Godot_v${GODOT_VERSION}-${GODOT_STATUS}_linux.x86_64 ~/godot/godot
 
