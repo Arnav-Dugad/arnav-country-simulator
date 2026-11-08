@@ -23,6 +23,7 @@ var _black: VBoxContainer
 var _hos: VBoxContainer
 var _const: VBoxContainer
 var _fac: VBoxContainer
+var _glance_box: VBoxContainer
 var _cult: VBoxContainer
 var _capital: Control
 var _cap_value: Label
@@ -122,6 +123,8 @@ func _build() -> void:
 	add_child(Illustration.banner("parliament", "gavel", DS.ACCENT, 124.0))
 	_capital = _capital_bar()
 	add_child(_capital)
+	_glance_box = VBoxContainer.new()
+	add_child(_glance_box)
 	add_child(jump_bar(["Your cabinet", "Power brokers", "Culture & values", "Royal family", "Constitution", "Clean government", "Media & propaganda", "Crime & justice", "Black market & smuggling"]))
 	_cabinet = section("Your cabinet")
 	_fac = section("Power brokers")
@@ -147,11 +150,34 @@ func _build() -> void:
 	add_child(_list)
 
 
+func _fill_glance() -> void:
+	for ch in _glance_box.get_children():
+		ch.queue_free()
+	var c := Game.me()
+	var loy := 0.0
+	for id in Factions.INFO:
+		loy += Factions.loyalty(str(id))
+	loy /= float(Factions.INFO.size())
+	var cl := Corruption.value(c)
+	var cr := Crime.value() if Game.dip.has("crime") else 0.0
+	var cred := Press.credibility()
+	var cv := Culture.value("progress")
+	glance([
+		["users", DS.GREEN if loy >= 60.0 else (DS.ORANGE if loy >= 40.0 else DS.RED), "Brokers", "%d" % roundi(loy), "Power brokers"],
+		["sparkles", DS.ACCENT, "Values", "Modern" if cv > 15.0 else ("Classic" if cv < -15.0 else "Mixed"), "Culture & values"],
+		["gavel", DS.GREEN if cl >= 65.0 else (DS.ORANGE if cl >= 40.0 else DS.RED), "Integrity", "%d" % roundi(cl), "Clean government"],
+		["newspaper", DS.GREEN if cred >= 60.0 else (DS.ORANGE if cred >= 40.0 else DS.RED), "Trust", "%d" % roundi(cred), "Media & propaganda"],
+		["siren", DS.GREEN if cr < 35.0 else (DS.ORANGE if cr < 55.0 else DS.RED), "Crime", "%d" % roundi(cr), "Crime & justice"],
+		["scroll-text", DS.GOLD, "Charter", "%d articles" % Constitution.ARTICLES.size(), "Constitution"],
+	], _glance_box)
+
+
 func refresh() -> void:
 	var c := Game.me()
 	if c == null:
 		return
 	_fill_capital()
+	_fill_glance()
 	_fill_cabinet()
 	_fill_clean()
 	_fill_media()
