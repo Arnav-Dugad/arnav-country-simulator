@@ -2,6 +2,14 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.65.0] - 2026-11-08
+
+- **Spies & intelligence.** An Intelligence section on the World page, with a new AI-painted operations room
+  - Set your agency's budget (Small to Massive). A bigger agency is stronger, runs more operations at once and catches more foreign spies
+- **Covert operations** from any country's page: gather intelligence (an edge in any war with them), steal technology (research points), sabotage, meddle in their politics, or arm their rebels
+  - Each operation shows its odds of success and of exposure. Exposed operations mean expelled diplomats, angry neighbours and bad headlines at home
+- **Hostile countries spy on you too:** spy rings caught, hackers stealing research, sabotage at refineries and banks
+
 ## [0.64.0] - 2026-11-08
 
 - **Wealth & state firms**, a new page from the Economy tab

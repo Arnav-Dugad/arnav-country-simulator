@@ -128,6 +128,10 @@ func _ready() -> void:
 		Haptics.success()
 		Audio.play("success", -4.0)
 		_confetti())
+	Game.intel_news.connect(func(h: Dictionary) -> void:
+		_notify(str(h.text), str(h.icon), DS.GREEN if bool(h.good) else DS.RED, true, false)
+		if _current == "diplomacy":
+			_pages["diplomacy"].refresh())
 	Game.tech_news.connect(func(n: Dictionary) -> void:
 		_notify(str(n.text), str(n.icon), DS.GOLD if bool(n.first) else (DS.ACCENT if bool(n.good) else DS.ORANGE), true, false)
 		if bool(n.first):

@@ -88,6 +88,7 @@ static func strength(side: int, enemy: int, w: Dictionary) -> float:
 	var s := pow(maxf(c.military, 1.0), 1.3) * morale
 	if mine:
 		s *= 1.0 + float(w.get("allies", 0.0)) * E.WAR_ALLY_SHARE / maxf(c.military, 1.0)
+		s *= Intel.war_edge(enemy)
 		if Game.months_played < int(w.get("mobilized_until", -1)):
 			s *= E.WAR_MOBILIZE_BOOST
 	var defending := (mine and not bool(w.attacker_me)) or (not mine and bool(w.attacker_me))

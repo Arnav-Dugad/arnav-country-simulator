@@ -502,6 +502,23 @@ const CAPITAL_MEDIA_CONTROL := 20.0   # per step toward state control of the med
 const CAPITAL_FIRM_REFORM := 10.0     # professional managers for a state firm
 
 
+# ------------------------------------------------------------ intelligence ---
+# See sim/intel.gd. Per budget level (Small, Standard, Large, Massive):
+const INTEL_COST := [0.03, 0.08, 0.18, 0.35]       # % of GDP a year (Standard is the baseline)
+const INTEL_LEVEL_MULT := [0.6, 1.0, 1.35, 1.7]   # agency strength multiplier
+const INTEL_MAX_OPS := [1, 2, 3, 4]               # operations at once
+const INTEL_WAR_EDGE := 1.15                      # war strength vs a country you've studied
+const INTEL_TECH_POINTS := 25.0                   # research points from a successful theft (scaled by their wealth)
+const INTEL_SABOTAGE_GROWTH := 1.0                # one-off growth hit
+const INTEL_SABOTAGE_MIL := 3.0                   # military strength points
+const INTEL_MEDDLE_REL := 18.0
+const INTEL_REBELS_STAB := 10.0
+const INTEL_EXPOSED_REL := 35.0                   # relations lost with the target when caught
+const INTEL_EXPOSED_FRIENDS := 6.0                # with its friendly neighbours
+const INTEL_EXPOSED_APPROVAL := 2.0
+const INTEL_FOREIGN_CHANCE := 0.06                # monthly chance a hostile country spies on you
+
+
 # -------------------------------------------------------- state firms & fund ---
 # See sim/enterprise.gd.
 const ENT_RETURN := 0.08           # yearly profit of a well-run firm, share of its value

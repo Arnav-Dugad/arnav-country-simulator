@@ -243,6 +243,11 @@ func _build_actions(i: int, is_me: bool, playable: bool) -> void:
 		var wb := War.blocked(i)
 		_action("Declare war", &"DestructiveButton", "swords", _declare_war.bind(i), wb != "",
 			wb if wb != "" else "Battle odds %d%% · costs %d political capital" % [roundi(War.odds(i) * 100.0), int(Economy.WAR_DECLARE_CAPITAL)])
+	# Covert operations
+	var run := Intel.running_against(i)
+	_action("Covert operations", &"", "eye", _covert.bind(i), not run.is_empty(),
+		("Under way: %s, %d months left" % [str(Intel.OPS[str(run.op)].title).to_lower(), Intel.months_left(run)]) if not run.is_empty()
+		else "Spy, steal technology, sabotage or meddle")
 	# Tariffs (trade war)
 	if Tariffs.has(i):
 		_action("Lift tariffs", &"", "check", func() -> void:
@@ -446,3 +451,29 @@ func _draw_rel_bar() -> void:
 	_rel_bar.draw_rect(Rect2(minf(mid, x), h * 0.5 - 3, absf(x - mid), 6), col)
 	_rel_bar.draw_rect(Rect2(mid - 1, 0, 2, h), Color(1, 1, 1, 0.3))
 	_rel_bar.draw_circle(Vector2(x, h * 0.5), 5.0, col, true, -1.0, true)
+
+
+# ------------------------------------------------------------------- intel ---
+func _covert(i: int) -> void:
+	var m := ModalCard.new()
+	get_tree().current_scene.add_child(m)
+	m.header("eye", DS.PURPLE, "Covert operations", World.map.names[i])
+	m.body("Your agency %d vs their counter-intelligence %d. Exposure means expelled diplomats, angry neighbours and headlines at home." % [
+		roundi(Intel.strength(Game.player)), roundi(Intel.strength(i))])
+	for op in Intel.OPS:
+		var info: Dictionary = Intel.OPS[op]
+		var why := Intel.can_launch(str(op), i)
+		var chips: Array = []
+		if why == "":
+			chips = [["Success %d%%" % roundi(Intel.success_chance(str(op), i) * 100.0), DS.GREEN],
+				["Exposure %d%%" % roundi(Intel.exposure_chance(str(op), i) * 100.0), DS.RED],
+				["%d months" % int(info.months), DS.TEXT_2]]
+		var ch := m.choice(str(info.title), why if why != "" else str(info.desc), &"GhostButton", func() -> void:
+			if Intel.launch(str(op), i):
+				Haptics.success()
+				_done("Operation under way: %s." % str(info.title).to_lower(), true)
+			m.dismiss(), chips)
+		if why != "":
+			for b in ch.find_children("*", "Button", true, false):
+				(b as Button).disabled = true
+	m.choice("Close", "", &"GhostButton", m.dismiss)

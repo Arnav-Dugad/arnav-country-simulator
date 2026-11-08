@@ -24,6 +24,7 @@ signal build_finished(id: String, n: int)
 signal war_battle(note: Dictionary)
 signal world_war_news(h: Dictionary)
 signal tech_news(n: Dictionary)
+signal intel_news(h: Dictionary)
 signal project_finished(id: String)
 signal campaign_started
 signal world_news(item: Dictionary)
@@ -311,6 +312,10 @@ func advance_month() -> void:
 		me().treasury = me().spending
 	for note in War.monthly():
 		war_battle.emit(note)
+	for h in Intel.monthly():
+		add_feed(str(h.text), str(h.icon), "green" if bool(h.good) else "red")
+		if bool(h.big):
+			intel_news.emit(h)
 	for h in Enterprise.monthly():
 		add_feed(str(h.text), str(h.icon), "green" if bool(h.good) else "orange")
 	for h in Media.monthly():

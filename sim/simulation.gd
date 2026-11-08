@@ -298,6 +298,7 @@ static func update_finances(c: CountryState) -> void:
 	c.revenue = c.gdp * (rate + (c.other_rev_pct + extra_tax + float(lx.get("revenue", 0.0)) + market_rev) / 100.0) * cycle
 	c.spending = c.gdp * (c.spending_pct + float(lx.get("cost", 0.0)) + Projects.spending_pct(c) + Ageing.pension_cost(c)
 		+ (Builds.spending_pct(c) if not c.builds.is_empty() else 0.0)
+		+ (Intel.spending_pct() if c.idx == Game.player and Game.has_game() and Game.dip.has("intel") else 0.0)
 		+ (float(War.effects().cost) if c.idx == Game.player and Game.has_game() and War.at_war() else 0.0)) / 100.0
 	# Inflation above the floor erodes local-currency debt, so only the real
 	# part of the rate is a burden in dollar terms.

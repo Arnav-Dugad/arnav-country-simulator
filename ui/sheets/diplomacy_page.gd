@@ -28,6 +28,7 @@ func _build() -> void:
 	_war = section("At war")
 	_wwars = section("Wars around the world")
 	_security = section("Security")
+	_intel = section("Intelligence")
 	_climate = section("Climate")
 	_treaties = section("Treaties & blocs")
 	_summary = note("")
@@ -48,6 +49,7 @@ func _build() -> void:
 var _markets: VBoxContainer
 var _climate: VBoxContainer
 var _security: VBoxContainer
+var _intel: VBoxContainer
 var _war: VBoxContainer
 var _wwars: VBoxContainer
 var _rival: VBoxContainer
@@ -62,6 +64,7 @@ func refresh() -> void:
 	_fill_markets()
 	_fill_climate()
 	_fill_security()
+	_fill_intel()
 	_fill_war()
 	_fill_world_wars()
 	_fill_treaties()
@@ -416,3 +419,41 @@ func _fill_ranks() -> void:
 		t.number.set_instant(rank)
 		t.delta_label.text = "of %d" % total
 		_ranks.add_child(t)
+
+
+# ------------------------------------------------------------------- intel ---
+func _fill_intel() -> void:
+	for ch in _intel.get_children():
+		ch.queue_free()
+	var s := Intel.st()
+	var lv := Intel.level()
+	_intel.add_child(photo_header("intel", "Intelligence agency", "Strength %d  ·  %d spies caught  ·  %d operations exposed" % [
+		roundi(Intel.strength(Game.player)), int(s.caught), int(s.lost)], 118.0))
+	var seg := SegmentedControl.new().setup(PackedStringArray(Intel.LEVELS), [], lv)
+	seg.fill = true
+	seg.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	seg.changed.connect(func(k: int) -> void:
+		Intel.st().level = k
+		Simulation.update_finances(Game.me())
+		Haptics.select()
+		refresh())
+	_intel.add_child(seg)
+	var extra := Intel.spending_pct()
+	note("Budget: %s a year%s. A bigger agency runs more operations at once, succeeds more often and catches more foreign spies." % [
+		DS.money(Game.me().gdp * float(Economy.INTEL_COST[lv]) / 100.0),
+		("  (%s more than usual)" % DS.money(Game.me().gdp * extra / 100.0)) if extra > 0.0 else ""], _intel)
+	for o in s.ops:
+		var info: Dictionary = Intel.OPS[str(o.op)]
+		var row := ListRow.new().setup(str(info.title), "%s  ·  %d %s left" % [World.map.names[int(o.target)], Intel.months_left(o), "month" if Intel.months_left(o) == 1 else "months"])
+		row.set_leading(ListRow.icon_tile(str(info.icon), DS.PURPLE))
+		_intel.add_child(row)
+		_intel.add_child(meter(1.0 - float(Intel.months_left(o)) / maxf(float(o.months), 1.0), 0.0, DS.PURPLE, 4.0))
+	if (s.ops as Array).is_empty():
+		note("No operations running. Open any country to plan one.", _intel)
+	for e in (s.log as Array).slice(0, 3):
+		var r := ListRow.new().setup(str(e.text), "This month" if Game.months_played - int(e.m) <= 0 else "%d months ago" % (Game.months_played - int(e.m)))
+		r.title_label.theme_type_variation = &"Subhead"
+		r.title_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		r.title_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+		r.set_leading(ListRow.icon_tile("check" if bool(e.good) else "x", DS.GREEN if bool(e.good) else DS.RED))
+		_intel.add_child(r)
