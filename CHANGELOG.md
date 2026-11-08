@@ -2,6 +2,22 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.72.0] - 2026-11-08
+
+- **Sport, a big new system**, on its own page from the World tab
+  - National teams in eight sports (football, athletics, swimming, basketball, tennis, cycling, cricket, winter sports). Each team's strength comes from your country's size, wealth and real sporting tradition
+  - **The World Cup** every four years: 32 teams, a knockout you follow round by round with scores, and the bracket on your Sport page
+  - **The Summer and Winter Games** with a real medal table, and the **Cricket World Cup** for cricket nations
+  - Fund your sports programme, give one sport an academy focus, and build stadiums and sports centres. Hosting the Games gives home advantage
+  - Doing better than expected makes the nation proud; flops sting. Titles go in a trophy cabinet and add soft power
+  - Look the other way on doping for extra strength, until a scandal strips the medals
+- **Interactive disasters:** when a flood, hurricane, earthquake, heatwave, drought or wildfire strikes, an emergency card opens. Send the army, release emergency funds, ask for foreign aid and visit the area, and lives are saved. Then rebuild quickly, or build back better to soften the next one
+- **Climate adaptation:** early-warning systems, sea walls, earthquake-proof buildings, firebreaks and drought-proof farming. As the world warms, climate refugees ask you for shelter
+- **The United Nations:** your standing at the UN, campaigns for a Security Council seat, five kinds of resolution you can propose (with the permanent members' veto), and peacekeepers
+- **Black market & smuggling:** high taxes, tariffs, trade wars and bans feed a shadow economy that eats tax revenue. Fight back with a customs agency and crackdowns, or legalise cannabis, gambling or street trade and tax them
+- **The royal family or first family:** monarchs age, heirs marry, babies are born, jubilees are celebrated and scandals break. Kings and queens die or abdicate, and a deeply unpopular monarchy may face a referendum on becoming a republic. In republics, your own family is in the public eye
+- New achievement: Champions
+
 ## [0.71.0] - 2026-11-08
 
 - **Industries & trade**, a new page from the Economy tab. Your economy as eight sectors, starting from real data: farming, energy and mining, factories and cars, chips and electronics, medicine and biotech, banking, tourism, and shops and services
