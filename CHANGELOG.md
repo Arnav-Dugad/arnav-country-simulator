@@ -9,6 +9,8 @@ The release workflow publishes the section that matches the tag as the GitHub Re
   - Loyal groups help: the army deters coups, business invests, unions keep the peace, the faithful call for calm, officials pass your laws faster
   - Angry ones push back with plots, capital flight, general strikes, sermons and quiet obstruction
   - Win a group over with favours, or, outside free democracies, purge it and install loyalists
+- **State of the nation:** a new dashboard (top of the Economy page, or search "dashboard") with 18 key numbers at a glance: the economy, people, the world and the planet
+  - Each tile has a 12-month sparkline, an arrow coloured green or red for good or bad, and opens the page where you can act on it
 - The welcome tour now says "President of the United States"
 
 ## [0.74.1] - 2026-11-08

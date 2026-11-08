@@ -5,6 +5,7 @@ extends RefCounted
 
 ## [title, page, section ("" = top), icon, words people might type]
 const INDEX := [
+	["State of the nation dashboard", "dashboard", "", "layout-dashboard", "dashboard overview summary everything stats numbers glance"],
 	["Taxes", "economy", "Taxes", "coins", "income tax business vat property payroll fuel tariff sin tax rates"],
 	["Interest rates & central bank", "economy", "Central bank", "landmark", "interest rate inflation money central bank"],
 	["Trade policy", "economy", "Trade policy", "ship", "trade openness tariffs protection"],
@@ -126,7 +127,7 @@ static func _where(e: Array) -> String:
 	var page: String = {"economy": "Economy", "firms": "Economy › Wealth & firms", "industries": "Economy › Industries",
 		"population": "Economy › People & cities", "budget": "Budget", "build": "Build", "laws": "Laws", "diplomacy": "World",
 		"tourism": "World › Tourism", "sports": "World › Sport", "events": "Inbox", "achievements": "Hall of fame",
-		"settings": "Settings", "store": "Store"}.get(str(e[1]), str(e[1]))
+		"settings": "Settings", "store": "Store", "dashboard": "Dashboard"}.get(str(e[1]), str(e[1]))
 	return page + (" › " + str(e[2]) if str(e[2]) != "" else "")
 
 

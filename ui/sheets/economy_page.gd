@@ -55,6 +55,10 @@ func _build() -> void:
 	_speech = AppButton.make("Address the nation", &"", "mic")
 	_speech.pressed.connect(_address)
 	add_child(_speech)
+	var dash := AppButton.make("State of the nation: everything at a glance", &"PrimaryButton", "layout-dashboard")
+	dash.custom_minimum_size = Vector2(0, 50)
+	dash.pressed.connect(func() -> void: page_requested.emit("dashboard"))
+	add_child(dash)
 	hub([
 		["markets", "landmark", DS.GOLD, "Wealth & firms", "Stock market, wealth fund, state companies", func() -> void: page_requested.emit("firms")],
 		["factory", "factory", DS.ACCENT, "Industries", "Sectors, subsidies, world shocks, partners", func() -> void: page_requested.emit("industries")],

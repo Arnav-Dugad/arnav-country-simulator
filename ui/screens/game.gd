@@ -15,7 +15,7 @@ const PAGES := {
 	"achievements": "res://ui/sheets/achievements_page.gd", "build": "res://ui/sheets/build_page.gd",
 	"firms": "res://ui/sheets/firms_page.gd", "industries": "res://ui/sheets/industries_page.gd",
 	"population": "res://ui/sheets/population_page.gd",
-	"sports": "res://ui/sheets/sports_page.gd", "tourism": "res://ui/sheets/tourism_page.gd",
+	"sports": "res://ui/sheets/sports_page.gd", "dashboard": "res://ui/sheets/dashboard_page.gd", "tourism": "res://ui/sheets/tourism_page.gd",
 }
 ## How long the "year in review" stays in the pill (months).
 const REVIEW_MONTHS := 3

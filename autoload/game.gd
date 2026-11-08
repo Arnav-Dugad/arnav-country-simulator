@@ -36,7 +36,7 @@ signal goal_reached(goal: Dictionary)
 const START_YEAR := Calendar.START_YEAR
 const HISTORY_MAX := 1200
 const HISTORY_KEYS := ["gdp", "growth", "approval", "inflation", "debt_pct", "unemployment",
-	"happiness", "stability", "treasury"]
+	"happiness", "stability", "treasury", "military", "crime", "co2", "life", "gini", "gdp_pc"]
 const SPEEDS := Calendar.SPEEDS
 const FEED_MAX := 60
 
@@ -614,7 +614,9 @@ func _record_history() -> void:
 		return
 	var vals := {"gdp": c.gdp, "growth": c.growth, "approval": c.approval, "inflation": c.inflation,
 		"debt_pct": c.debt_pct(), "unemployment": c.unemployment, "happiness": c.happiness,
-		"stability": c.stability, "treasury": c.treasury}
+		"stability": c.stability, "treasury": c.treasury, "military": c.military,
+		"crime": Crime.value() if dip.has("crime") else 0.0, "co2": Climate.co2_pc(c),
+		"life": Outcomes.life(c), "gini": c.gini, "gdp_pc": c.gdp_per_capita()}
 	for k in HISTORY_KEYS:
 		var arr: PackedFloat32Array = history[k]
 		arr.append(vals[k])
