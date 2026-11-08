@@ -343,6 +343,10 @@ func advance_month() -> void:
 	Health.monthly()
 	Food.monthly()
 	Diaspora.monthly()
+	for h in SeaLanes.monthly():
+		add_feed(str(h.text), str(h.icon), "green" if bool(h.good) else "orange")
+		if bool(h.big):
+			intel_news.emit(h)
 	for h in DigitalMoney.monthly():
 		add_feed(str(h.text), str(h.icon), "green" if bool(h.good) else "orange")
 		intel_news.emit(h)

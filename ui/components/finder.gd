@@ -33,6 +33,7 @@ const INDEX := [
 	["Digital money", "firms", "Digital money", "bitcoin", "crypto bitcoin digital currency cbdc legal tender ban reserve blockchain"],
 	["Diaspora & remittances", "population", "Diaspora & remittances", "plane-landing", "diaspora remittances migrants abroad money sent home bonds vote abroad"],
 	["Food security", "industries", "Food security", "wheat", "food farming farms grain reserve harvest subsidies export ban hunger"],
+	["Sea lanes", "diplomacy", "Sea lanes", "ship", "sea lanes shipping suez panama hormuz malacca canal strait navy escort tolls"],
 	["Water", "diplomacy", "Water", "droplets", "water drought rivers dams desalination irrigation shortage nile indus mekong"],
 	["Nuclear weapons", "diplomacy", "Nuclear weapons", "atom", "nuclear weapons bomb warheads deterrence treaty npt doomsday clock disarmament arms control"],
 	["Health system", "population", "Health system", "stethoscope", "health hospitals doctors waiting times coverage medicine drug prices nurses"],

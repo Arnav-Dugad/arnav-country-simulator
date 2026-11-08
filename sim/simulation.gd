@@ -50,6 +50,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 	var fdx: Dictionary = Food.modifiers() if c.idx == Game.player and Game.has_game() else {}
 	var dsx: Dictionary = Diaspora.modifiers() if c.idx == Game.player and Game.has_game() else {}
 	var dgx: Dictionary = DigitalMoney.modifiers() if c.idx == Game.player and Game.has_game() else {}
+	var slx: Dictionary = SeaLanes.modifiers() if c.idx == Game.player and Game.has_game() else {}
 	var anx: Dictionary = Annexation.unrest() if c.idx == Game.player and Game.has_game() and Game.dip.has("integration") else {}
 	var wx: Dictionary = War.effects() if c.idx == Game.player and Game.has_game() and War.at_war() else {}
 	var mx := Game.markets.effects(c)
@@ -107,6 +108,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Farm support", float(fdx.get("growth", 0.0))],
 		["Remittances", float(dsx.get("growth", 0.0))],
 		["Digital money", float(dgx.get("growth", 0.0))],
+		["Sea lanes", float(slx.get("growth", 0.0))],
 		["Doomsday Clock", float(nkx.get("growth", 0.0))],
 		["Industries", float(idx_m.get("growth", 0.0))],
 		["Tourism", float(tox.get("growth", 0.0))],
@@ -148,6 +150,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Other taxes", float(txm.get("inflation", 0.0))],
 		["Technology", float(tm.get("inflation", 0.0))],
 		["World wonders", float(wnx.get("inflation", 0.0))],
+		["Sea lanes", float(slx.get("inflation", 0.0))],
 		["War", float(wx.get("inflation", 0.0))],
 	]
 	var pi := clampf(_sum(pi_terms), -5.0, 500.0)
@@ -312,6 +315,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Power brokers", float(fcx.get("stability", 0.0))],
 		["World wonders", float(wnx.get("stability", 0.0))],
 		["Regions", float(rgx.get("stability", 0.0))],
+		["Sea lanes", float(slx.get("stability", 0.0))],
 		["Media", float(mdx.get("stability", 0.0))],
 		["War", float(wx.get("stability", 0.0))],
 		["Integrating new lands", float(anx.get("stability", 0.0))],
@@ -388,6 +392,8 @@ static func update_finances(c: CountryState) -> void:
 		market_rev += Diaspora.revenue_pct()
 	if c.idx == Game.player and Game.has_game() and Game.dip.has("dig"):
 		market_rev += float(DigitalMoney.modifiers().get("revenue", 0.0))
+	if c.idx == Game.player and Game.has_game() and Game.dip.has("sea"):
+		market_rev += SeaLanes.revenue_pct()
 	var extra_tax := Taxes.total_pct(c) if not c.taxes.is_empty() else 0.0
 	c.revenue = c.gdp * (rate + (c.other_rev_pct + extra_tax + float(lx.get("revenue", 0.0)) + market_rev) / 100.0) * cycle
 	c.spending = c.gdp * (c.spending_pct + float(lx.get("cost", 0.0)) + Projects.spending_pct(c) + Ageing.pension_cost(c)
@@ -411,6 +417,7 @@ static func update_finances(c: CountryState) -> void:
 		+ (Water.spending_pct() if c.idx == Game.player else 0.0)
 		+ (Food.spending_pct() if c.idx == Game.player else 0.0)
 		+ (Diaspora.spending_pct() if c.idx == Game.player else 0.0)
+		+ (SeaLanes.spending_pct() if c.idx == Game.player else 0.0)
 		+ (float(War.effects().cost) if c.idx == Game.player and Game.has_game() and War.at_war() else 0.0)) / 100.0
 	# Inflation above the floor erodes local-currency debt, so only the real
 	# part of the rate is a burden in dollar terms.

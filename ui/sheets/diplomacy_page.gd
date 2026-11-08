@@ -30,7 +30,7 @@ func _build() -> void:
 		["stadium", "trophy", DS.GOLD, "Sport", "World Cup, the Games, medals", func() -> void: page_requested.emit("sports")],
 		["summit", "landmark", DS.ACCENT, "United Nations", "Security Council, resolutions", func() -> void: _scroll_to(_un)],
 	], self)
-	add_child(jump_bar(["Your rival", "World markets", "At war", "Your empire", "Security", "Nuclear weapons", "Intelligence", "Climate", "Water", "United Nations", "Treaties & blocs"]))
+	add_child(jump_bar(["Your rival", "World markets", "At war", "Your empire", "Security", "Nuclear weapons", "Intelligence", "Climate", "Water", "Sea lanes", "United Nations", "Treaties & blocs"]))
 	_rival = section("Your rival")
 	_markets = section("World markets")
 	_war = section("At war")
@@ -42,6 +42,7 @@ func _build() -> void:
 	_climate = section("Climate")
 	_adapt = section("Climate adaptation")
 	_water = section("Water")
+	_sea = section("Sea lanes")
 	_un = section("United Nations")
 	_treaties = section("Treaties & blocs")
 	_summary = note("")
@@ -65,6 +66,7 @@ var _adapt: VBoxContainer
 var _security: VBoxContainer
 var _nuke: VBoxContainer
 var _water: VBoxContainer
+var _sea: VBoxContainer
 var _empire: VBoxContainer
 var _intel: VBoxContainer
 var _war: VBoxContainer
@@ -83,6 +85,7 @@ func refresh() -> void:
 	_fill_climate()
 	_fill_adapt()
 	_fill_water()
+	_fill_sea()
 	_fill_empire()
 	_fill_security()
 	_fill_nuke()
@@ -971,3 +974,65 @@ func _dam_modal(id: String) -> void:
 		for bb in ch.find_children("*", "Button", true, false):
 			(bb as Button).disabled = true
 	m.choice("Not now", "", &"GhostButton", m.dismiss)
+
+
+# ----------------------------------------------------------------- sea lanes ---
+func _fill_sea() -> void:
+	for ch in _sea.get_children():
+		ch.queue_free()
+	var s := SeaLanes.st()
+	var c := Game.me()
+	var mods := SeaLanes.modifiers()
+	var n := (s.open as Dictionary).size()
+	note(("%d strait%s disrupted: growth %s, prices %s." % [n, "" if n == 1 else "s", DS.pct(float(mods.get("growth", 0.0)), 1, true), DS.pct(float(mods.get("inflation", 0.0)), 1, true)])
+		if n > 0 else "Most of the world's trade squeezes through a few narrow straits. All are open; a blockade or attack would raise freight costs and prices.", _sea)
+	for id in SeaLanes.LANES:
+		var l: Dictionary = SeaLanes.LANES[id]
+		var bad := SeaLanes.disrupted(str(id))
+		var esc := (s.escort as Dictionary).has(id)
+		var sub := ""
+		if bad:
+			sub = "Disrupted  ·  about %d months to clear%s" % [SeaLanes.months_left(str(id)), "  ·  your navy is escorting" if esc else ""]
+		else:
+			sub = "Open  ·  %s" % ("oil tankers" if float(l.oil) >= 0.5 else ("grain ships" if l.has("food") else "container ships"))
+		var row := ListRow.new().setup(str(l.title), sub, "›" if bad and not esc and SeaLanes.can_escort() else "")
+		row.set_leading(ListRow.icon_tile("ship", DS.RED if bad else DS.TEAL))
+		var lid := str(id)
+		if bad and not esc:
+			row.tapped.connect(func() -> void:
+				var m := ModalCard.new()
+				get_tree().current_scene.add_child(m)
+				m.header("ship", DS.TEAL, "Naval escort", str(SeaLanes.LANES[lid].title))
+				m.body("Join the international mission to protect ships and reopen the strait sooner. %s" % (
+					"Costs %s a year while it lasts." % DS.money(Game.me().gdp * Economy.SEA_ESCORT_COST / 100.0) if SeaLanes.can_escort()
+					else "Your navy is too small (military %d of %d needed)." % [roundi(Game.me().military), int(Economy.SEA_ESCORT_MIL)]))
+				var ch := m.choice("Send the navy", "", &"PrimaryButton", func() -> void:
+					SeaLanes.set_escort(lid, true)
+					for i in Game.relations.size():
+						if i != Game.player and Game.relations[i] > 0.0:
+							Game.relations[i] = clampf(Game.relations[i] + 2.0, -100.0, 100.0)
+					Simulation.update_finances(Game.me())
+					Haptics.success()
+					m.dismiss()
+					refresh())
+				if not SeaLanes.can_escort():
+					for bb in ch.find_children("*", "Button", true, false):
+						(bb as Button).disabled = true
+				m.choice("Not now", "", &"GhostButton", m.dismiss))
+		_sea.add_child(row)
+	var canal := SeaLanes.my_canal()
+	if canal != "":
+		var tl := PackedStringArray()
+		for t in SeaLanes.TOLLS:
+			tl.append(str(SeaLanes.TOLL_INFO[t].title))
+		var seg := SegmentedControl.new().setup(tl, [], SeaLanes.TOLLS.find(str(s.toll)))
+		seg.fill = true
+		seg.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		seg.changed.connect(func(k: int) -> void:
+			SeaLanes.set_toll(str(SeaLanes.TOLLS[k]))
+			Simulation.update_finances(Game.me())
+			Haptics.select()
+			refresh())
+		_sea.add_child(seg)
+		note("Tolls on the %s bring in about %s of GDP. Low tolls win friends among trading nations; high tolls earn more per ship." % [
+			str(SeaLanes.LANES[canal].title), DS.pct(float(SeaLanes.LANES[canal].rev) + SeaLanes.revenue_pct(), 1)], _sea)

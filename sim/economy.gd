@@ -548,6 +548,19 @@ const TOUR_BID_MONTHS := 12        # from bid to vote
 const TOUR_SOFT_RELATIONS := 0.01  # relations a month with everyone per soft power point gained
 
 
+# ----------------------------------------------------------------- sea lanes ---
+# See sim/sea_lanes.gd. Disruptions touch only the player's targets.
+const SEA_CHANCE := 0.012           # monthly chance a strait is disrupted
+const SEA_MIN_MONTHS := 2
+const SEA_MAX_MONTHS := 9
+const SEA_TRADE_HIT := 0.35         # growth points lost per unit of trade share × openness
+const SEA_PRICE_HIT := 0.5          # inflation points (freight, oil, food)
+const SEA_OIL_GAIN := 0.3           # growth for oil exporters elsewhere when a tanker route closes
+const SEA_CANAL_LOSS := 0.6         # share of canal tolls lost while traffic is diverted
+const SEA_ESCORT_MIL := 40.0        # military strength needed to join an escort mission
+const SEA_ESCORT_COST := 0.05       # % of GDP a year per mission
+
+
 # ------------------------------------------------------------- digital money ---
 # See sim/digital_money.gd. Crypto price: monthly log-normal steps.
 const DIG_DRIFT := 0.01             # average monthly rise
