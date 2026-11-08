@@ -441,6 +441,8 @@ const WAR_SYMPATHY := 5.0            # relations gained when you are attacked
 const WAR_AI_HOSTILITY := -70.0      # relations at or below which a neighbour may attack
 const WAR_AI_ADVANTAGE := 1.4        # ... if its military is this much stronger
 const WAR_AI_CHANCE := 0.003         # monthly chance then
+const WORLD_WAR_CHANCE := 0.025      # monthly chance a war breaks out between two other countries
+const WORLD_WARS_MAX := 3            # at most this many at once
 
 
 # ---------------------------------------------------------------- security ---

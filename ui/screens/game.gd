@@ -127,6 +127,10 @@ func _ready() -> void:
 		Haptics.success()
 		Audio.play("success", -4.0)
 		_confetti())
+	Game.world_war_news.connect(func(h: Dictionary) -> void:
+		map.refresh_war_marks()
+		if bool(h.get("start", false)):
+			_notify(str(h.text), "swords", DS.ORANGE, true, false))
 	Game.war_battle.connect(func(note: Dictionary) -> void:
 		map.refresh_war_marks()
 		map.battle_flash(int(note.enemy))

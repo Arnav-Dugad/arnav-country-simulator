@@ -242,9 +242,63 @@ func _draw_tariffs() -> void:
 		draw_circle(from, 3.0, Color(DS.RED, 0.85), true, -1.0, true)
 
 
+## Small unit icons (army, navy, air) that march along a front. The front sits
+## part-way between the two capitals and moves toward the side losing ground;
+## each side's units hover on its side of it.
+const UNIT_ICONS := ["shield", "ship", "plane"]
+var _unit_tex := {}
+
+
+func _unit_icon(name: String) -> Texture2D:
+	if not _unit_tex.has(name):
+		_unit_tex[name] = DS.icon(name)
+	return _unit_tex[name]
+
+
+func _draw_units(a: int, b: int, occ_a: float, occ_b: float, col_a: Color, col_b: Color) -> void:
+	var pa := map.world_to_screen(_anchor(a))
+	var pb := map.world_to_screen(_anchor(b))
+	var d := pb - pa
+	if d.length() < 24.0:
+		return
+	# Front position: 0.5 = halfway; ground taken pushes it toward the loser.
+	var f := clampf(0.5 + occ_b * 0.6 - occ_a * 0.6, 0.15, 0.85)
+	var front := pa.lerp(pb, f)
+	var dir := d.normalized()
+	var n := dir.orthogonal()
+	var sz := clampf(d.length() * 0.08, 17.0, 24.0)
+	var coastal := not World.landlocked(a) and not World.landlocked(b)
+	for side in 2:
+		var col: Color = col_a if side == 0 else col_b
+		var back := -dir if side == 0 else dir
+		for k in 3:
+			var kind: String = UNIT_ICONS[k]
+			if kind == "ship" and not coastal:
+				kind = "shield"
+			var t := _t * (0.6 + 0.1 * k) + k * 2.1 + side * 1.3
+			var march := sin(t) * 0.5 + 0.5                  # 0..1 advance and fall back
+			var lateral := (k - 1) * sz * 1.4 + sin(t * 0.7) * 3.0
+			var dist := sz * (1.1 + 0.9 * (1.0 - march))
+			if kind == "plane":
+				dist = sz * (0.4 + 2.4 * (0.5 + 0.5 * sin(t * 1.3)))      # jets range further
+			var p := front + back * dist + n * lateral
+			var r := Rect2(p - Vector2(sz, sz) * 0.5, Vector2(sz, sz))
+			draw_circle(p, sz * 0.62, Color(0.04, 0.06, 0.1, 0.75), true, -1.0, true)
+			draw_texture_rect(_unit_icon(kind), r.grow(-sz * 0.12), false, col)
+
+
 ## War fronts: a pulsing red line between the capitals at war, with crossed
-## sparks at the front (midpoint) and a flash after each battle.
+## sparks at the front and a flash after each battle; units march along it.
 func _draw_fronts() -> void:
+	var world_wars: Dictionary = Game.dip.get("world_wars", {})
+	for k in world_wars:
+		var ww: Dictionary = world_wars[k]
+		var a := int(ww.a)
+		var b := int(ww.b)
+		var pa := map.world_to_screen(_anchor(a))
+		var pb := map.world_to_screen(_anchor(b))
+		draw_dashed_line(pa, pb, Color(DS.ORANGE, 0.35), 1.5, 6.0, true, true)
+		_draw_units(a, b, float(ww.occ_a), float(ww.occ_b), Color(1, 1, 1, 0.9), DS.ORANGE)
 	if not Game.dip.has("wars") or (Game.dip.wars as Dictionary).is_empty():
 		_battles.clear()
 		return
@@ -259,6 +313,8 @@ func _draw_fronts() -> void:
 		for s in 2:
 			var d := Vector2.RIGHT.rotated(PI * 0.25 + s * PI * 0.5) * 7.0
 			draw_line(mid - d, mid + d, Color(1, 1, 1, 0.85), 2.0, true)
+		var w: Dictionary = Game.dip.wars[k]
+		_draw_units(Game.player, int(k), float(w.occ_me), float(w.occ_them), DS.GOLD, DS.RED)
 	var keep: Array = []
 	for b in _battles:
 		var el := now - float(b[2])

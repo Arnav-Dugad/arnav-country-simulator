@@ -2,6 +2,12 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.60.0] - 2026-11-08
+
+- **Wars around the world.** Other countries now go to war with each other, mostly hostile neighbours from rival camps. Their fronts move month by month and end in ceasefires or conquests that redraw the map with stripes
+  - From the World page you can broker peace (once both sides tire), sell arms to either side for cash, or join the war on one side
+- **Animated armies on the map.** Army, navy and air icons march along every front, edging forward as ground changes hands: gold for you, red for your enemy, white and orange in other countries' wars
+
 ## [0.59.0] - 2026-11-08
 
 - **A new Cheats page.** A sandbox header that shows whether achievements still count, four always-on switches (never lose power, no random events, unlimited political capital, unlimited money) and 22 one-tap cheats in six categories: Money, People, Economy, Building, World and Time. Tiles glow when you use them. New cheats include full employment, a fair society, an economic miracle, stable prices, undo warming, "modern nation" (+25% coverage on every build), a superpower army, win every war, peace everywhere, skip to the election and clear the inbox

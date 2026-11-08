@@ -22,6 +22,7 @@ signal game_over(summary: Dictionary)
 signal law_finished(id: String, repealed: bool)
 signal build_finished(id: String, n: int)
 signal war_battle(note: Dictionary)
+signal world_war_news(h: Dictionary)
 signal project_finished(id: String)
 signal campaign_started
 signal world_news(item: Dictionary)
@@ -307,6 +308,10 @@ func advance_month() -> void:
 		me().treasury = me().spending
 	for note in War.monthly():
 		war_battle.emit(note)
+	for h in WorldWars.monthly():
+		add_feed(str(h.text), "swords" if not bool(h.get("end", false)) else "flag", "orange" if bool(h.get("start", false)) else "accent")
+		WorldNews.add(int(h.a), str(h.text), "swords", bool(h.good))
+		world_war_news.emit(h)
 	Opposition.monthly()
 	if months_played == Mandate.MONTHS:
 		var did := Mandate.summary()

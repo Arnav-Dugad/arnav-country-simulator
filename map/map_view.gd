@@ -384,7 +384,7 @@ func refresh_war_marks() -> void:
 	for i in marks:
 		var by := int(marks[i][1])
 		var frac := clampf(float(marks[i][0]), 0.0, 1.0)
-		var col := DS.GOLD if by == Game.player else DS.RED
+		var col := DS.GOLD if by == Game.player else (DS.RED if War.is_at_war_with(by) or i == Game.player else DS.ORANGE)
 		_war_img.set_pixel(int(i), 0, Color(col.r, col.g, col.b, frac))
 		# Held land is the side facing the occupier: threshold along that axis so
 		# the striped share of the country's extent matches what is held.

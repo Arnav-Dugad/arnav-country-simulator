@@ -344,6 +344,12 @@ static func map_marks() -> Dictionary:
 	for k in Game.dip.get("annexed", {}):
 		var a: Dictionary = Game.dip.annexed[k]
 		out[int(k)] = [float(a.frac), int(a.by)]
+	for k in WorldWars.all():
+		var ww: Dictionary = WorldWars.all()[k]
+		if float(ww.occ_b) > 0.0:
+			out[int(ww.b)] = [float(ww.occ_b), int(ww.a)]
+		if float(ww.occ_a) > 0.0:
+			out[int(ww.a)] = [float(ww.occ_a), int(ww.b)]
 	for k in wars():
 		var w: Dictionary = wars()[k]
 		if float(w.occ_them) > 0.0:

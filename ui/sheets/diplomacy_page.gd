@@ -26,6 +26,7 @@ func _build() -> void:
 	_rival = section("Your rival")
 	_markets = section("World markets")
 	_war = section("At war")
+	_wwars = section("Wars around the world")
 	_security = section("Security")
 	_climate = section("Climate")
 	_treaties = section("Treaties & blocs")
@@ -48,6 +49,7 @@ var _markets: VBoxContainer
 var _climate: VBoxContainer
 var _security: VBoxContainer
 var _war: VBoxContainer
+var _wwars: VBoxContainer
 var _rival: VBoxContainer
 var _treaties: VBoxContainer
 
@@ -61,6 +63,7 @@ func refresh() -> void:
 	_fill_climate()
 	_fill_security()
 	_fill_war()
+	_fill_world_wars()
 	_fill_treaties()
 	var d := Diplomacy.summary()
 	var parts: PackedStringArray = ["%d %s" % [d.alliances, "ally" if d.alliances == 1 else "allies"],
@@ -233,6 +236,63 @@ func _fill_war() -> void:
 		row.set_leading(ListRow.icon_tile("swords", DS.RED))
 		row.tapped.connect(func() -> void: WarRoom.open(get_tree().current_scene, i))
 		_war.add_child(row)
+
+
+func _fill_world_wars() -> void:
+	for ch in _wwars.get_children():
+		ch.queue_free()
+	var all := WorldWars.all()
+	_wwars.get_parent().visible = not all.is_empty()
+	for k in all:
+		var w: Dictionary = all[k]
+		var a := int(w.a)
+		var b := int(w.b)
+		var lead := "%s holds %d%% of %s" % [World.map.names[a], roundi(float(w.occ_b) * 100.0), World.map.names[b]] if float(w.occ_b) > 0.005 			else ("%s holds %d%% of %s" % [World.map.names[b], roundi(float(w.occ_a) * 100.0), World.map.names[a]] if float(w.occ_a) > 0.005 else "Front unchanged")
+		var row := ListRow.new().setup("%s vs %s" % [World.map.names[a], World.map.names[b]],
+			"%s  ·  month %d" % [lead, Game.months_played - int(w.start) + 1], "›")
+		row.set_leading(ListRow.icon_tile("swords", DS.ORANGE))
+		row.tapped.connect(_world_war_actions.bind(str(k)))
+		_wwars.add_child(row)
+
+
+func _world_war_actions(k: String) -> void:
+	var w: Dictionary = WorldWars.all().get(k, {})
+	if w.is_empty():
+		return
+	var a := int(w.a)
+	var b := int(w.b)
+	var m := ModalCard.new()
+	get_tree().current_scene.add_child(m)
+	m.content.add_child(Illustration.banner("war", "swords", DS.ORANGE, 96.0))
+	m.header("swords", DS.ORANGE, "A war abroad", "%s vs %s" % [World.map.names[a], World.map.names[b]])
+	m.body("%s attacked %s. You can stay out of it, try to broker peace, sell arms to one side, or join the fight." % [World.The_name(a), World.the_name(b)])
+	if WorldWars.can_mediate(w):
+		m.choice("Broker a peace", "Both sides are tiring · relations with both rise", &"PrimaryButton", func() -> void:
+			var text := WorldWars.mediate(k)
+			Haptics.success()
+			m.dismiss()
+			Game.add_feed(text, "flag", "gold")
+			refresh())
+	else:
+		m.choice("Broker a peace", "Too soon: neither side is tired yet", &"GhostButton", func() -> void: pass)
+	for side in [a, b]:
+		m.choice("Sell arms to %s" % World.map.names[side], "Money for you · angers %s" % World.map.names[b if side == a else a], &"", func() -> void:
+			var amt := WorldWars.sell_arms(k, side)
+			Haptics.select()
+			m.dismiss()
+			refresh())
+	for side in [a, b]:
+		var foe := b if side == a else a
+		var why := War.blocked(foe)
+		if why == "":
+			m.choice("Join on %s's side" % World.map.names[side], "Declare war on %s" % World.map.names[foe], &"DestructiveButton", func() -> void:
+				War.declare(foe)
+				var gs := get_tree().current_scene
+				if gs and "map" in gs:
+					gs.map.refresh_war_marks()
+				m.dismiss()
+				refresh())
+	m.choice("Stay neutral", "", &"GhostButton", m.dismiss)
 
 
 func _fill_security() -> void:
