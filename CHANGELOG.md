@@ -2,6 +2,16 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.94.0] - 2026-11-09
+
+- **Three new global agreements** (World › Treaties & blocs), with their real members:
+  - The High Seas Treaty (in force since January 2026): fish stocks recover faster
+  - The WHO Pandemic Agreement: members get vaccines sooner; nobody has ratified it yet, so you can be first
+  - The Treaty on the Prohibition of Nuclear Weapons: closed to nuclear powers, it rules out the bomb for good and the nuclear powers resent it
+- **World rank:** two new tiles, Schools and Clean air, ranked among 184 countries
+- **Cabinet meetings** respect a stretched budget: when the deficit or debt is too high, only no-cost ideas come up, with a warning from the finance ministry
+- Treaties you can't join now show as "Not open" instead of "Can join"
+
 ## [0.93.0] - 2026-11-09
 
 - **Digital nation** (Industries):

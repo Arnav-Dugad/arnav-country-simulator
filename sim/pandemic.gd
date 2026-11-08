@@ -193,7 +193,7 @@ static func monthly() -> Array:
 	# Vaccines.
 	var months := Game.months_played - int(s.start)
 	if float(s.vaccine_world) < 1.0:
-		s.vaccine_world = minf(float(s.vaccine_world) + 1.0 / E.PAN_VACCINE_MONTHS, 1.0)
+		s.vaccine_world = minf(float(s.vaccine_world) + 1.0 / E.PAN_VACCINE_MONTHS * (1.3 if Treaties.is_member(Game.player, "pandemic_accord") else 1.0), 1.0)
 		if float(s.vaccine_world) >= 1.0:
 			out.append({"text": "A vaccine against the %s is approved worldwide" % str(s.name), "icon": "syringe", "good": true, "big": true})
 	if own_vaccine_possible() and float(s.vaccine_own) < 1.0 and float(s.vaccine_world) < 1.0:

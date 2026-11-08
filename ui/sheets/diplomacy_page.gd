@@ -392,9 +392,10 @@ func _fill_treaties() -> void:
 	for t in mine + others:
 		var member := Treaties.is_member(Game.player, t.id)
 		var pend := Treaties.pending_months(t.id)
-		var status := "Member" if member else ("Joining · %d mo" % pend if pend > 0 else "Can join")
+		var blocked := not member and pend == 0 and Treaties.join_blocker(t.id) != ""
+		var status := "Member" if member else ("Joining · %d mo" % pend if pend > 0 else ("Not open" if blocked else "Can join"))
 		var row := ListRow.new().setup(str(t.title), "%s · %d members" % [t.kind, Treaties.members(t.id).size()], status)
-		row.trailing_label.add_theme_color_override(&"font_color", DS.GREEN if member else (DS.ORANGE if pend > 0 else DS.ACCENT_SOFT))
+		row.trailing_label.add_theme_color_override(&"font_color", DS.GREEN if member else (DS.ORANGE if pend > 0 else (DS.TEXT_3 if blocked else DS.ACCENT_SOFT)))
 		row.set_leading(ListRow.icon_tile(str(t.icon), DS.GOLD if member else DS.ACCENT))
 		row.tapped.connect(_treaty_card.bind(t))
 		_treaties.add_child(row)
@@ -407,8 +408,10 @@ func _treaty_card(t: Dictionary) -> void:
 	get_tree().current_scene.add_child(m)
 	var member := Treaties.is_member(Game.player, t.id)
 	m.header(str(t.icon), DS.GOLD, str(t.kind), str(t.title))
-	m.body("%s %d members, including %s." % [str(t.desc), Treaties.members(t.id).size(),
-		", ".join(Treaties.members(t.id).slice(0, 4).map(func(i: int) -> String: return World.map.names[i]))])
+	var mem := Treaties.members(t.id)
+	m.body(("%s %d members, including %s." % [str(t.desc), mem.size(),
+		", ".join(mem.slice(0, 4).map(func(i: int) -> String: return World.map.names[i]))]) if not mem.is_empty()
+		else "%s No country has ratified it yet: be the first." % str(t.desc))
 	var chips := HFlowContainer.new()
 	chips.add_theme_constant_override(&"h_separation", 6)
 	chips.add_theme_constant_override(&"v_separation", 6)

@@ -97,6 +97,8 @@ static func blocked() -> String:
 		return "You already have nuclear weapons"
 	if building():
 		return "Your programme is under way"
+	if Treaties.is_member(Game.player, "tpnw"):
+		return "You signed the Nuclear Weapons Ban"
 	if Game.me().gdp < E.NUC_MIN_GDP:
 		return "Needs an economy above %s" % DS.money(E.NUC_MIN_GDP)
 	if not Capital.can(E.NUC_CAPITAL):

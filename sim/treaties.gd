@@ -10,6 +10,24 @@ const ALL := [
 		"desc": "Nearly every country's promise to cut emissions.", "open": "all", "months": 3,
 		"fx": {"happiness": 0.6, "growth": -0.05}, "join_rel": 3.0, "leave_rel": -6.0,
 		"members_except": ["USA", "IRN", "LBY", "YEM"]},
+	{"id": "high_seas", "title": "High Seas Treaty", "icon": "fish", "kind": "Ocean protection",
+		"desc": "Marine reserves on the two-thirds of the ocean no country owns. In force since January 2026: fish stocks recover a little faster.",
+		"open": "all", "months": 6, "fx": {"happiness": 0.2}, "join_rel": 2.0, "leave_rel": -3.0,
+		"members": ["CHL", "PLW", "BLZ", "SYC", "MUS", "MCO", "FSM", "CUB", "MEX", "BRA", "VUT", "FJI", "BGD", "TLS",
+			"FRA", "ESP", "PRT", "BEL", "SVN", "FIN", "HUN", "CYP", "GRC", "ROU", "SVK", "LVA", "MLT", "DNK", "SWE",
+			"IRL", "DEU", "NLD", "AUT", "LUX", "EST", "LTU", "CZE", "HRV", "POL", "ITA", "BGR", "NOR", "SEN", "GHA",
+			"MAR", "SLE", "LBR", "CIV", "TGO", "MDV", "SLB", "TUV", "WSM", "KIR", "MHL", "NRU", "COL", "PAN", "CRI", "URY"]},
+	{"id": "pandemic_accord", "title": "Pandemic Agreement", "icon": "syringe", "kind": "Global health",
+		"desc": "The WHO's 2025 accord to share pathogens, data and vaccines in the next pandemic. Members get vaccines sooner.",
+		"open": "all", "months": 6, "fx": {"stability": 0.2}, "join_rel": 2.0, "leave_rel": -3.0, "members": []},
+	{"id": "tpnw", "title": "Nuclear Weapons Ban", "icon": "handshake", "kind": "Disarmament",
+		"desc": "The Treaty on the Prohibition of Nuclear Weapons. Members give up the bomb for good; the nuclear powers boycott it.",
+		"open": "all", "months": 6, "fx": {"happiness": 0.3}, "join_rel": 3.0, "leave_rel": -4.0, "rivals": ["USA", "RUS", "CHN", "FRA", "GBR"],
+		"members": ["ATG", "AUT", "BGD", "BLZ", "BEN", "BOL", "BWA", "CPV", "KHM", "CHL", "COM", "COG", "CRI", "CIV", "CUB",
+			"DMA", "DOM", "ECU", "SLV", "FJI", "GMB", "GHA", "GRD", "GTM", "GUY", "HND", "IDN", "IRL", "JAM", "KAZ", "KIR",
+			"LAO", "LSO", "MWI", "MDV", "MLT", "MEX", "MNG", "MOZ", "NAM", "NRU", "NZL", "NIC", "NGA", "PLW", "PSE", "PAN",
+			"PRY", "PER", "PHL", "KNA", "LCA", "VCT", "WSM", "SMR", "STP", "SYC", "SLE", "ZAF", "THA", "TLS", "TTO", "TUV",
+			"URY", "VAT", "VEN", "VNM"]},
 	{"id": "eu", "title": "European Union", "icon": "landmark", "kind": "Single market",
 		"desc": "A single market of 27 countries, with shared rules and budgets.", "open": "Europe", "months": 24,
 		"min_relation": 30.0, "fx": {"growth": 0.3, "inflation": -0.1, "stability": 0.5}, "join_rel": 6.0, "leave_rel": -10.0,
@@ -186,6 +204,8 @@ static func join_blocker(id: String) -> String:
 		var ri := World.index_of(str(r))
 		if ri == p:
 			return "Not open to you"
+	if id == "tpnw" and (Nuclear.armed() or Nuclear.building()):
+		return "Give up your nuclear weapons first"
 	return ""
 
 

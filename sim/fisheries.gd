@@ -93,6 +93,8 @@ static func monthly() -> Array:
 		return out
 	var s := st()
 	var d := float(QUOTA_INFO[str(s.quota)].stock) + float(s.mpa) / 10.0 * 0.4
+	if Treaties.is_member(Game.player, "high_seas"):
+		d += 0.3
 	if Game.dip.has("water") and Climate.warming() > float(Water.st().get("w0", Climate.warming())) + 0.2:
 		d -= 0.3      # warmer seas
 	s.stock = clampf(float(s.stock) + d / 12.0, 5.0, 100.0)
