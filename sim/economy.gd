@@ -502,6 +502,22 @@ const CAPITAL_MEDIA_CONTROL := 20.0   # per step toward state control of the med
 const CAPITAL_FIRM_REFORM := 10.0     # professional managers for a state firm
 
 
+# ------------------------------------------------------- tourism & soft power ---
+# See sim/tourism.gd. Appeal (1 = as at the start) sets tourism's share of GDP.
+const TOUR_SITE := 0.05            # appeal per world heritage site
+const TOUR_STABILITY := 0.05       # per 10 points of stability above/below the start
+const TOUR_CULTURE := 0.6          # at full extra coverage of culture & sport builds
+const TOUR_WAR := 0.35             # appeal lost while at war
+const TOUR_SOFT := 0.04            # per 10 points of soft power gained
+const TOUR_ADJUST := 1.0 / 18.0    # monthly drift toward the target
+const TOUR_GROWTH := 0.6           # growth points per point of GDP of extra tourism
+const TOUR_JOBS := 0.25            # unemployment points removed per point of GDP
+const TOUR_NOMINATE_COST := 0.01   # % of GDP per heritage nomination
+const TOUR_NOMINATE_MONTHS := 18
+const TOUR_BID_MONTHS := 12        # from bid to vote
+const TOUR_SOFT_RELATIONS := 0.01  # relations a month with everyone per soft power point gained
+
+
 # ------------------------------------------------------------ intelligence ---
 # See sim/intel.gd. Per budget level (Small, Standard, Large, Massive):
 const INTEL_COST := [0.03, 0.08, 0.18, 0.35]       # % of GDP a year (Standard is the baseline)

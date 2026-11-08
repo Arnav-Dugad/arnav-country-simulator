@@ -13,7 +13,7 @@ const PAGES := {
 	"settings": "res://ui/sheets/settings_page.gd", "country": "res://ui/sheets/country_page.gd",
 	"store": "res://ui/sheets/store_page.gd", "laws": "res://ui/sheets/laws_page.gd",
 	"achievements": "res://ui/sheets/achievements_page.gd", "build": "res://ui/sheets/build_page.gd",
-	"firms": "res://ui/sheets/firms_page.gd",
+	"firms": "res://ui/sheets/firms_page.gd", "tourism": "res://ui/sheets/tourism_page.gd",
 }
 ## How long the "year in review" stays in the pill (months).
 const REVIEW_MONTHS := 3
@@ -130,6 +130,11 @@ func _ready() -> void:
 		_confetti())
 	Game.intel_news.connect(func(h: Dictionary) -> void:
 		_notify(str(h.text), str(h.icon), DS.GREEN if bool(h.good) else DS.RED, true, false)
+		if bool(h.get("celebrate", false)):
+			map.celebrate("fireworks", Game.player)
+			Audio.play("fanfare", -5.0)
+		if _current == "tourism":
+			_pages["tourism"].refresh()
 		if _current == "diplomacy":
 			_pages["diplomacy"].refresh())
 	Game.tech_news.connect(func(n: Dictionary) -> void:
@@ -474,6 +479,7 @@ func _wire_page(page: String, p: SheetPage) -> void:
 	match page:
 		"diplomacy":
 			p.country_requested.connect(func(i: int) -> void: _open_country(i, true))
+			p.page_requested.connect(open_page)
 		"economy":
 			p.page_requested.connect(open_page)
 		"country":

@@ -3,6 +3,7 @@ extends SheetPage
 ## Relations overview: allies, partners and rivals. Tap a country to open it.
 
 signal country_requested(index: int)
+signal page_requested(page: String)
 
 var _summary: Label
 var _ranks: GridContainer
@@ -23,6 +24,12 @@ func _build() -> void:
 	rank_head.text = "YOUR WORLD RANK"
 	add_child(rank_head)
 	_ranks = grid(self, 2)
+	var tour := ListRow.new().setup("Tourism & soft power", "Visitors, world heritage, host the World Cup or the Games", "›")
+	tour.theme_type_variation = &"GroupPanel"
+	tour.trailing_label.add_theme_color_override(&"font_color", DS.TEXT_3)
+	tour.set_leading(ListRow.icon_tile("plane-takeoff", DS.TEAL))
+	tour.tapped.connect(func() -> void: page_requested.emit("tourism"))
+	add_child(tour)
 	_rival = section("Your rival")
 	_markets = section("World markets")
 	_war = section("At war")

@@ -2,6 +2,14 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.66.0] - 2026-11-08
+
+- **Tourism & soft power**, a new page from the World tab with new AI-painted art
+- **Tourism** starts from real data and grows with stability, peace, heritage sites, culture builds and your reputation. Extra visitors bring growth and jobs
+- **World heritage:** nominate old towns, national parks, ancient ruins, coasts and reefs, sacred sites or modern landmarks. A committee decides 18 months later
+- **Host world events:** bid for a World Expo, a Football World Cup or the Summer Games. Win the vote and you spend years preparing, then enjoy a year in the spotlight with fireworks, pride and tourists
+- **Soft power:** a 0–100 score and a world rank. A higher score slowly warms every country toward you, while wars, media crackdowns and exposed spies cost you
+
 ## [0.65.0] - 2026-11-08
 
 - **Spies & intelligence.** An Intelligence section on the World page, with a new AI-painted operations room
