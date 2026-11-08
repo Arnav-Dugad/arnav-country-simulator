@@ -981,6 +981,8 @@ static func apply_effects(fx: Dictionary, other: int, ev_id: String = "") -> voi
 	var soften := 0.7 if ev_id in DISASTERS and Projects.is_done(c, "flood_defences") else 1.0
 	if ev_id in DISASTERS and not c.builds.is_empty():
 		soften *= clampf(1.0 - float(Builds.modifiers(c).get("disaster", 0.0)), 0.5, 1.0)
+	if Disasters.TYPES.has(ev_id):
+		soften *= Disasters.harm_mult(ev_id)
 	for k in fx:
 		var v: Variant = fx[k]
 		match k:
@@ -1036,6 +1038,9 @@ static func apply_effects(fx: Dictionary, other: int, ev_id: String = "") -> voi
 			"peace":
 				if other >= 0 and War.is_at_war_with(other):
 					War.make_peace(other, str(v))
+			"refugees":
+				c.population *= 1.0 + float(v)
+				c.shocks.unemployment = float(c.shocks.unemployment) + float(v) * 150.0
 			"term":
 				Game.politics.term_choice(str(v))
 			"project_delay":
@@ -1115,6 +1120,8 @@ static func effect_chips(fx: Dictionary) -> Array:
 				out.append(["Cleaner government +%d" % roundi(float(v)), true, float(v)])
 			"capital":
 				out.append(["Political capital −%d" % roundi(float(v)), false, 8.0])
+			"refugees":
+				out.append(["%s people arrive" % DS.compact(Game.me().population * float(v)), true, 7.0])
 			"peace":
 				out.append([{"annex": "Gain territory", "annex_all": "Annex the country", "vassal": "Vassal", "reparations": "Reparations",
 					"status_quo": "Old borders", "surrender": "Lose territory"}.get(str(v), "Peace"),

@@ -36,6 +36,7 @@ func _build() -> void:
 	_security = section("Security")
 	_intel = section("Intelligence")
 	_climate = section("Climate")
+	_adapt = section("Climate adaptation")
 	_treaties = section("Treaties & blocs")
 	_summary = note("")
 	_filter = SegmentedControl.new().setup(["Friends", "Rivals", "Neighbours", "Partners"], [], 0)
@@ -54,6 +55,7 @@ func _build() -> void:
 
 var _markets: VBoxContainer
 var _climate: VBoxContainer
+var _adapt: VBoxContainer
 var _security: VBoxContainer
 var _empire: VBoxContainer
 var _intel: VBoxContainer
@@ -70,6 +72,7 @@ func refresh() -> void:
 	_fill_rival()
 	_fill_markets()
 	_fill_climate()
+	_fill_adapt()
 	_fill_empire()
 	_fill_security()
 	_fill_intel()
@@ -565,3 +568,42 @@ func _vassal_card(i: int) -> void:
 		Haptics.tap()
 		refresh())
 	m.choice("Close", "", &"GhostButton", m.dismiss)
+
+
+# -------------------------------------------------------------- adaptation ---
+func _fill_adapt() -> void:
+	for ch in _adapt.get_children():
+		ch.queue_free()
+	var mult := Climate.disaster_mult()
+	note("Warming has made disasters %d%% more frequent since records began. Protect your people before the next one: each project softens the disasters it guards against." % roundi((mult - 1.0) * 100.0)
+		if mult > 1.01 else "Protect your people before the next disaster: each project softens the disasters it guards against.", _adapt)
+	for id in Disasters.ADAPT:
+		var a: Dictionary = Disasters.ADAPT[id]
+		var done := Disasters.adapted(str(id))
+		var bld := Disasters.building(str(id))
+		var sub := ""
+		if done:
+			sub = "Built  ·  %d%% less harm" % roundi(float(a.cut) * 100.0)
+		elif bld:
+			var left := int(a.months) - (Game.months_played - int(Disasters.st().adapt[id].start))
+			sub = "Under construction  ·  %d months left" % maxi(left, 0)
+		else:
+			sub = "%s  ·  %d months  ·  %s" % [DS.money(Disasters.adapt_cost(str(id))), int(a.months), str(a.desc)]
+		var row := ListRow.new().setup(str(a.title), sub, "›" if not done and not bld else "")
+		row.subtitle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		row.subtitle_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+		row.trailing_label.add_theme_color_override(&"font_color", DS.TEXT_3)
+		row.set_leading(ListRow.icon_tile(str(a.icon), DS.GREEN if done else (DS.ORANGE if bld else DS.TEAL)))
+		if not done and not bld:
+			var aid := str(id)
+			row.tapped.connect(func() -> void:
+				if Disasters.start_adapt(aid):
+					Simulation.update_finances(Game.me())
+					Haptics.success()
+				refresh())
+		_adapt.add_child(row)
+	var lg: Array = Disasters.st().log
+	if not lg.is_empty():
+		var e: Dictionary = lg[0]
+		note("Last disaster: %s, %d months ago  ·  %s lives lost" % [str(Disasters.TYPES[str(e.kind)].title).to_lower(),
+			Game.months_played - int(e.m), DS.compact(float(e.deaths))], _adapt)

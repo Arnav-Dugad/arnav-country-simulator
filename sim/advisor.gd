@@ -56,6 +56,10 @@ static func advice(c: CountryState) -> Array:
 			"diplomacy", "swords"))
 	if Security.level() == 2:
 		out.append(_item(1, "Hostile forces near your borders", Security.describe(), "diplomacy", "shield"))
+	if c.idx == Game.player and Game.dip.has("dis") and Disasters.active():
+		var d: Dictionary = Disasters.st().active
+		out.append(_item(2 if str(d.phase) == "emergency" else 1, ("%s emergency" if str(d.phase) == "emergency" else "Rebuild after the %s") % str(Disasters.TYPES[str(d.kind)].title).to_lower().capitalize() if str(d.phase) == "emergency" else "Rebuild after the %s" % str(Disasters.TYPES[str(d.kind)].title).to_lower(),
+			"Send help now: the army, emergency funds, foreign aid. See the disaster card below." if str(d.phase) == "emergency" else "Choose how to rebuild on the disaster card below.", "economy", str(Disasters.TYPES[str(d.kind)].icon)))
 	if c.idx == Game.player and Game.dip.has("pop") and Population.afford() < 90.0:
 		out.append(_item(1, "Homes are getting unaffordable",
 			"Build affordable homes, or reform zoning so builders can keep up (Economy › People & cities).", "economy", "house"))

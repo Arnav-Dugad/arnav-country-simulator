@@ -548,6 +548,19 @@ const TOUR_BID_MONTHS := 12        # from bid to vote
 const TOUR_SOFT_RELATIONS := 0.01  # relations a month with everyone per soft power point gained
 
 
+# ---------------------------------------------- disasters & climate adaptation ---
+# See sim/disasters.gd.
+const DIS_EMERGENCY_MONTHS := 3
+const DIS_DEATH_RATE := 0.002        # share of the affected who die each emergency month, with no relief
+const DIS_FUND_COST := 0.1           # % of GDP for emergency funds
+const DIS_QUICK_COST := 0.5          # rebuild cost, x the damage (in % of GDP)
+const DIS_BETTER_COST := 1.0
+const DIS_BUILD_BACK_CUT := 0.25     # harm cut from future disasters of that kind after building back better
+const DIS_REFUGEE_WARMING := 0.3     # degrees of warming before climate refugees arrive
+const DIS_REFUGEE_CHANCE := 0.03     # monthly chance then
+const DIS_REFUGEE_SHARE := 0.002     # population share arriving if you welcome them
+
+
 # ------------------------------------------------------ population & cities ---
 # See sim/population.gd. Fertility in children per woman.
 const POPC_SUPPORT_TFR := 0.12      # fertility added by family support (over a few years) ...

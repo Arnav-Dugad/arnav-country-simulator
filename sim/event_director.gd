@@ -124,6 +124,8 @@ func resolve(ev: Dictionary, choice: int, by_cabinet: bool = false) -> void:
 	choice = clampi(choice, 0, ev.choices.size() - 1)
 	var ch: Dictionary = ev.choices[choice]
 	GameEvents.apply_effects(ch.effects, int(ev.other), str(ev.id))
+	if Disasters.TYPES.has(str(ev.id)) and int(ev.get("other", -1)) < 0:
+		Disasters.start(str(ev.id))          # the emergency response begins
 	var nxt: Dictionary = ch.get("next", ev.get("next", {}))
 	if not nxt.is_empty():
 		scheduled.append({"id": str(nxt.id), "due": Game.months_played + int(nxt.get("in", 6)), "other": int(ev.other)})

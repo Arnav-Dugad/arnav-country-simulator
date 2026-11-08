@@ -318,6 +318,14 @@ func advance_month() -> void:
 		me().treasury = me().spending
 	for note in War.monthly():
 		war_battle.emit(note)
+	for h in Disasters.monthly():
+		if bool(h.get("refugees", false)):
+			var rev := Disasters.refugee_event()
+			if not rev.is_empty():
+				director.add(rev, false)
+			continue
+		add_feed(str(h.text), str(h.icon), "green" if bool(h.good) else "orange")
+		intel_news.emit({"text": str(h.text), "icon": str(h.icon), "good": bool(h.good)})
 	for h in Population.monthly():
 		add_feed(str(h.text), str(h.icon), "green" if bool(h.good) else "orange")
 	for h in Industries.monthly():

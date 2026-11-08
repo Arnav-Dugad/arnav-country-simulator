@@ -310,6 +310,8 @@ func _dev_open() -> void:
 		Game.politics.campaign_open = true
 		Game.campaign_started.emit()
 		_show_campaign()
+	if DevTools.arg("disaster") != null:
+		Disasters.start(str(DevTools.arg("disaster")))
 	if DevTools.arg("pandemic") != null:
 		Pandemic.start()
 		for k in int(str(DevTools.arg("pandemic"))):
