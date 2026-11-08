@@ -29,6 +29,7 @@ func refresh() -> void:
 		String.num(idx, 0), _signed_pct(idx / 100.0 - 1.0)], 132.0))
 	_market(s)
 	_fund()
+	_digital()
 	_firms()
 
 
@@ -241,3 +242,66 @@ func _firm_card(id: String) -> void:
 			m.dismiss()
 			refresh())
 	m.choice("Close", "", &"GhostButton", m.dismiss)
+
+
+# ------------------------------------------------------------- digital money ---
+func _digital() -> void:
+	var box := section("Digital money", _box)
+	var s := DigitalMoney.st()
+	var c := Game.me()
+	var yc := DigitalMoney.year_change()
+	var hl := ListRow.new().setup("Crypto market %d" % roundi(DigitalMoney.price()),
+		("%s over the past year" % _signed_pct(yc)) if absf(yc) > 0.0001 else "Index: 100 when you took office")
+	hl.set_leading(ListRow.icon_tile("bitcoin", DS.ORANGE))
+	box.add_child(hl)
+	var ch := LineChart.new()
+	ch.custom_minimum_size = Vector2(0, 54)
+	ch.minimal = true
+	ch.line_width = 1.8
+	ch.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ch.set_color(DS.GREEN if yc >= 0.0 else DS.RED)
+	box.add_child(ch)
+	ch.set_data(PackedFloat32Array(s.hist))
+	var ml := PackedStringArray()
+	for m in DigitalMoney.SHORT:
+		ml.append(str(m))
+	var seg := SegmentedControl.new().setup(ml, [], DigitalMoney.MODES.find(DigitalMoney.mode()))
+	seg.fill = true
+	seg.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	seg.changed.connect(func(k: int) -> void:
+		var want := str(DigitalMoney.MODES[k])
+		if not DigitalMoney.set_mode(want):
+			Haptics.warning()
+		else:
+			Simulation.update_finances(Game.me())
+			Haptics.select()
+		refresh())
+	box.add_child(seg)
+	var mi: Dictionary = DigitalMoney.MODE_INFO[DigitalMoney.mode()]
+	note("%s: %s" % [str(mi.title), str(mi.desc)] + "  A new policy costs political capital: 10, or 20 for legal tender (you have %d)." % roundi(Capital.value()), box)
+	# Reserve.
+	var units := float(s.units)
+	if units > 0.0:
+		var gain := DigitalMoney.holding() - float(s.cost)
+		var rr := ListRow.new().setup("Crypto reserve: %s" % DS.money(DigitalMoney.holding()),
+			"Bought for %s  ·  %s%s" % [DS.money(float(s.cost)), "+" if gain >= 0.0 else "−", DS.money(absf(gain))])
+		rr.set_leading(ListRow.icon_tile("wallet", DS.GREEN if gain >= 0.0 else DS.RED))
+		box.add_child(rr)
+		var sb := AppButton.make("Sell the reserve", &"", "hand-coins")
+		sb.pressed.connect(func() -> void:
+			var v := DigitalMoney.sell_all()
+			Simulation.update_finances(Game.me())
+			Haptics.success()
+			Game.add_feed("Crypto reserve sold for %s" % DS.money(v), "bitcoin", "accent")
+			refresh())
+		box.add_child(sb)
+	var amt := c.gdp * 0.005
+	var bb := AppButton.make("Buy crypto  ·  %s" % DS.money(amt), &"", "bitcoin")
+	bb.disabled = c.treasury < amt
+	bb.pressed.connect(func() -> void:
+		DigitalMoney.buy(amt)
+		Simulation.update_finances(Game.me())
+		Haptics.select()
+		refresh())
+	box.add_child(bb)
+	note("Half a percent of GDP from the treasury each tap. Prices can double or halve in a year; only gamble what you can lose.", box)

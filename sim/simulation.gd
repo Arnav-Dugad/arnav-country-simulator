@@ -49,6 +49,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 	var wtx: Dictionary = Water.modifiers() if c.idx == Game.player and Game.has_game() else {}
 	var fdx: Dictionary = Food.modifiers() if c.idx == Game.player and Game.has_game() else {}
 	var dsx: Dictionary = Diaspora.modifiers() if c.idx == Game.player and Game.has_game() else {}
+	var dgx: Dictionary = DigitalMoney.modifiers() if c.idx == Game.player and Game.has_game() else {}
 	var anx: Dictionary = Annexation.unrest() if c.idx == Game.player and Game.has_game() and Game.dip.has("integration") else {}
 	var wx: Dictionary = War.effects() if c.idx == Game.player and Game.has_game() and War.at_war() else {}
 	var mx := Game.markets.effects(c)
@@ -105,6 +106,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Water", float(wtx.get("growth", 0.0))],
 		["Farm support", float(fdx.get("growth", 0.0))],
 		["Remittances", float(dsx.get("growth", 0.0))],
+		["Digital money", float(dgx.get("growth", 0.0))],
 		["Doomsday Clock", float(nkx.get("growth", 0.0))],
 		["Industries", float(idx_m.get("growth", 0.0))],
 		["Tourism", float(tox.get("growth", 0.0))],
@@ -198,6 +200,8 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 	var premium := minf(E.RISK_PREMIUM_PER_DEBT * maxf(0.0, debt_pct - debt_ok) \
 		+ E.RISK_PREMIUM_INSTABILITY * maxf(0.0, stab_ok - c.stability), E.RISK_PREMIUM_CAP)
 	premium *= Profiles.mult(i, "risk_premium")
+	if i == Game.player and Game.has_game() and Game.dip.has("dig"):
+		premium += float(DigitalMoney.modifiers().get("debt_rate", 0.0))
 	if not c.cb_auto:
 		premium += E.CB_CAPTURE_PREMIUM
 	if c.idx == Game.player and Game.has_game() and bool(Game.dip.get("cheat_aaa", false)):
@@ -282,6 +286,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Health system", float(hlx.get("approval", 0.0))],
 		["Farm support", float(fdx.get("approval", 0.0))],
 		["Remittances", float(dsx.get("approval", 0.0))],
+		["Digital money", float(dgx.get("approval", 0.0))],
 		["Your ministers", float(cx.get("approval", 0.0))],
 		["Media", float(mdx.get("approval", 0.0))],
 	]
@@ -381,6 +386,8 @@ static func update_finances(c: CountryState) -> void:
 		market_rev += Space.income_pct()
 	if c.idx == Game.player and Game.has_game() and Game.dip.has("dias"):
 		market_rev += Diaspora.revenue_pct()
+	if c.idx == Game.player and Game.has_game() and Game.dip.has("dig"):
+		market_rev += float(DigitalMoney.modifiers().get("revenue", 0.0))
 	var extra_tax := Taxes.total_pct(c) if not c.taxes.is_empty() else 0.0
 	c.revenue = c.gdp * (rate + (c.other_rev_pct + extra_tax + float(lx.get("revenue", 0.0)) + market_rev) / 100.0) * cycle
 	c.spending = c.gdp * (c.spending_pct + float(lx.get("cost", 0.0)) + Projects.spending_pct(c) + Ageing.pension_cost(c)

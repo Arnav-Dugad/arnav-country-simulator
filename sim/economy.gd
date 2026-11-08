@@ -548,6 +548,17 @@ const TOUR_BID_MONTHS := 12        # from bid to vote
 const TOUR_SOFT_RELATIONS := 0.01  # relations a month with everyone per soft power point gained
 
 
+# ------------------------------------------------------------- digital money ---
+# See sim/digital_money.gd. Crypto price: monthly log-normal steps.
+const DIG_DRIFT := 0.01             # average monthly rise
+const DIG_VOL := 0.11               # monthly volatility
+const DIG_CRASH := 0.012            # monthly chance of a crash
+const DIG_BOOM := 0.01              # monthly chance of a mania
+const DIG_CBDC_REVENUE := 0.15      # % of GDP: less tax evasion with digital cash
+const DIG_LEGAL_GROWTH := 0.1       # tech investment and tourism
+const DIG_LEGAL_RATE := 0.6         # extra points lenders charge
+
+
 # ---------------------------------------------------- diaspora & remittances ---
 # See sim/diaspora.gd. Remittances in % of GDP.
 const DIAS_FEES_COST := 0.03        # % of GDP a year to subsidise cheap transfers
