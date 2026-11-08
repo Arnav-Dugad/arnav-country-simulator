@@ -180,6 +180,8 @@ static func score(fx: Dictionary) -> float:
 			s += v * (0.12 + 0.25 * (1.0 - Press.credibility() / 100.0))
 		elif k == "deal":
 			s += 1.5
+		elif k == "region":
+			s += Regions.score(str(fx[k]))
 		elif k == "term" and str(fx[k]) == "successor":
 			s += 2.0      # the cabinet's advice: keep the party in power, within the rules
 		elif k == "bloc_relations":

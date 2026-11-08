@@ -2,6 +2,15 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.78.0] - 2026-11-09
+
+- **Regions & separatism:** your country is now made of 3 to 5 home regions (People & cities), each with its own share of the people, its own incomes and its own loyalty
+  - The capital pulls ahead unless you invest elsewhere; poor regions and regions with their own language and history (Spain, the UK, Canada, India, Iraq and many more) drift away
+  - Act on any region: a three-year development fund, autonomy with its own parliament, or a crackdown on separatists
+  - A region that stays separatist for a year demands an independence referendum: let the people vote, offer autonomy, or refuse. Lose the vote and the region leaves, taking its people and its share of the economy
+  - A colour strip shows national unity at a glance
+- New achievement: One nation
+
 ## [0.77.0] - 2026-11-09
 
 - **World wonders:** eight one-of-a-kind megaprojects (Build › Projects): the Grand Canal, a World Digital Library, an Arcology City, a Continental Fusion Grid, a Human Genome Vault, a Space Elevator, the Great Green Wall and an Eternal Games City

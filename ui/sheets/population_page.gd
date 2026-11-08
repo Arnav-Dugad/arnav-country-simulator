@@ -32,6 +32,7 @@ func refresh() -> void:
 	var af := Population.afford()
 	g.add_child(_tile("house", DS.GREEN if af >= 95.0 else (DS.ORANGE if af >= 80.0 else DS.RED), "Housing", "%d" % roundi(af),
 		"affordability  ·  100 = at start"))
+	_regions()
 	# Age structure.
 	var st := Population.structure(c)
 	var ab := section("Age structure", _box)
@@ -135,3 +136,115 @@ func _tile(icon: String, color: Color, head: String, value: String, sub: String)
 	c.custom_minimum_size = Vector2(30, 0)
 	v.add_child(c)
 	return p
+
+
+# ------------------------------------------------------------------- regions ---
+func _regions() -> void:
+	var rb := section("Regions", _box)
+	var regs := Regions.list()
+	var u := Regions.unity()
+	note("Each region has its own wealth and loyalty. The capital pulls ahead unless you invest elsewhere; poor or neglected regions, and regions with their own identity, drift away. Tap a region to act.", rb)
+	var head := HBoxContainer.new()
+	head.add_theme_constant_override(&"separation", DS.S3)
+	rb.add_child(head)
+	var ul := Label.new()
+	ul.theme_type_variation = &"Subhead"
+	ul.text = "National unity"
+	ul.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	head.add_child(ul)
+	var uv := Label.new()
+	uv.theme_type_variation = &"StatSmall"
+	uv.text = "%d" % roundi(u)
+	uv.add_theme_color_override(&"font_color", DS.GREEN if u >= 70.0 else (DS.ACCENT if u >= 55.0 else DS.ORANGE))
+	head.add_child(uv)
+	# A proportional strip: each region's share of the people, coloured by mood.
+	var strip := Control.new()
+	strip.custom_minimum_size = Vector2(0, 14)
+	strip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	strip.draw.connect(func() -> void:
+		var x := 0.0
+		for g in regs:
+			var w := strip.size.x * float(g.share)
+			var col: Color = Color(1, 1, 1, 0.08) if bool(g.lost) else Regions.mood_color(g)
+			strip.draw_rect(Rect2(x + 1.0, 0, maxf(w - 2.0, 1.0), 14), Color(col, 0.85))
+			x += w)
+	rb.add_child(strip)
+	for k in regs.size():
+		var g: Dictionary = regs[k]
+		var tags := PackedStringArray()
+		if bool(g.lost):
+			tags.append("Independent")
+		else:
+			tags.append("%d%% of people" % roundi(float(g.share) * 100.0))
+			tags.append("incomes %d%% of avg" % roundi(float(g.wealth) * 100.0))
+			if bool(g.distinct):
+				tags.append("own identity")
+			if bool(g.autonomy):
+				tags.append("autonomous")
+			if Regions.fund_active(g):
+				tags.append("fund: %d months left" % (Economy.REG_FUND_MONTHS - (Game.months_played - int(g.fund))))
+			if int(g.tension) > 0:
+				tags.append("separatists gaining")
+		var econ: Dictionary = Regions.ECON.get(str(g.econ), Regions.ECON.farming)
+		var row := ListRow.new().setup(str(g.name), str(econ.text).left(1).to_upper() + str(econ.text).substr(1) + "  ·  " + "  ·  ".join(tags),
+			"" if bool(g.lost) else "%s %d" % [Regions.mood(g), roundi(float(g.loyalty))])
+		row.subtitle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		row.subtitle_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+		row.trailing_label.add_theme_color_override(&"font_color", DS.TEXT_3 if bool(g.lost) else Regions.mood_color(g))
+		row.set_leading(ListRow.icon_tile(str(econ.icon), DS.TEXT_3 if bool(g.lost) else Regions.mood_color(g)))
+		rb.add_child(row)
+		if not bool(g.lost):
+			rb.add_child(meter(float(g.loyalty) / 100.0, 0.0, Regions.mood_color(g), 4.0))
+			var kk := k
+			row.tapped.connect(func() -> void: _region_actions(kk))
+
+
+func _region_actions(k: int) -> void:
+	var g: Dictionary = Regions.list()[k]
+	var c := Game.me()
+	var m := ModalCard.new()
+	get_tree().current_scene.add_child(m)
+	m.header("map-pin", Regions.mood_color(g), "Region", str(g.name))
+	var why := PackedStringArray()
+	if float(g.wealth) < 0.85:
+		why.append("it is poorer than the rest of the country")
+	if bool(g.distinct):
+		why.append("it has its own language and history")
+	if c.approval < 45.0:
+		why.append("the government is unpopular")
+	if Game.months_played - int(g.crack) < 36:
+		why.append("the crackdown is remembered")
+	m.body("%s  ·  loyalty %d, heading to %d%s.%s" % [Regions.mood(g), roundi(float(g.loyalty)), roundi(Regions.target(g)),
+		(" (%s)" % ", ".join(why)) if not why.is_empty() else "",
+		("  A referendum now: about %d%% would vote to leave." % roundi(Regions.yes_share(g))) if float(g.loyalty) < 45.0 else ""])
+	var fund_note := "%s a year for 3 years · the region catches up" % DS.money(c.gdp * Economy.REG_FUND_COST / 100.0)
+	if Regions.fund_active(g):
+		fund_note = "Running · %d months left" % (Economy.REG_FUND_MONTHS - (Game.months_played - int(g.fund)))
+	elif not Regions.can_fund(g):
+		fund_note = "At most %d funds at once" % Economy.REG_FUND_MAX
+	var f := m.choice("Development fund", fund_note, &"PrimaryButton", func() -> void:
+		if Regions.fund(k):
+			Simulation.update_finances(Game.me())
+			Haptics.success()
+		m.dismiss()
+		refresh())
+	if not Regions.can_fund(g):
+		for bb in f.find_children("*", "Button", true, false):
+			(bb as Button).disabled = true
+	if not bool(g.autonomy):
+		var a := m.choice("Grant autonomy", "Own parliament · %d political capital · much more loyal" % int(Economy.REG_AUTONOMY_CAPITAL), &"GhostButton", func() -> void:
+			if Regions.grant_autonomy(k):
+				Simulation.update_finances(Game.me())
+				Haptics.success()
+			m.dismiss()
+			refresh())
+		if not Capital.can(Economy.REG_AUTONOMY_CAPITAL):
+			for bb in a.find_children("*", "Button", true, false):
+				(bb as Button).disabled = true
+	if Regions.can_crack(g):
+		m.choice("Crack down on separatists", "Quiet for a while · loyalty falls, approval −2", &"DestructiveButton", func() -> void:
+			if Regions.crack(k):
+				Haptics.warning()
+			m.dismiss()
+			refresh())
+	m.choice("Close", "", &"GhostButton", m.dismiss)

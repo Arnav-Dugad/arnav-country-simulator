@@ -548,6 +548,23 @@ const TOUR_BID_MONTHS := 12        # from bid to vote
 const TOUR_SOFT_RELATIONS := 0.01  # relations a month with everyone per soft power point gained
 
 
+# ---------------------------------------------------------- regions & separatism ---
+# See sim/regions.gd.
+const REG_DISTINCT_CHANCE := 0.12   # chance a country not on the list still has a region with its own identity
+const REG_LOYALTY_SPEED := 0.04     # share of the gap to its target loyalty a region closes each month
+const REG_CAPITAL_PULL := 0.0006    # monthly relative wealth gain of the capital (agglomeration)
+const REG_FUND_MONTHS := 36
+const REG_FUND_COST := 0.25         # % of GDP per year while a development fund runs
+const REG_FUND_WEALTH := 0.004      # monthly relative wealth gain of a funded region
+const REG_FUND_GROWTH := 0.08       # national growth per running fund (catch-up)
+const REG_FUND_MAX := 2
+const REG_AUTONOMY_CAPITAL := 20.0
+const REG_AUTONOMY_COST := 0.08     # % of GDP per year (regional government)
+const REG_AUTONOMY_LOYALTY := 15.0
+const REG_CRACK_LOYALTY := 14.0     # loyalty target penalty right after a crackdown (fades over 3 years)
+const REG_TENSION_MONTHS := 12      # months of separatist loyalty before a referendum is demanded
+
+
 # ------------------------------------------------------------- world wonders ---
 # See sim/wonders.gd.
 const WON_MIN_GDP := 1.0e11        # economy size needed to start a wonder

@@ -1045,6 +1045,8 @@ static func apply_effects(fx: Dictionary, other: int, ev_id: String = "") -> voi
 				c.shocks.unemployment = float(c.shocks.unemployment) + float(v) * 150.0
 			"term":
 				Game.politics.term_choice(str(v))
+			"region":
+				Regions.apply(str(v))
 			"project_delay":
 				for id in c.projects:
 					if str(c.projects[id].state) == "building":
