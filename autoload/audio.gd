@@ -3,7 +3,7 @@ extends Node
 ## Separate SFX / Music buses; music ducks under modal cards. Toggles in Settings.
 
 const SFX := ["tap", "select", "toggle_on", "toggle_off", "sheet_up", "sheet_down", "tick",
-	"success", "warning", "event", "election"]
+	"success", "warning", "event", "election", "fanfare"]
 const POOL := 6
 const MIN_GAP := 0.04              # seconds between repeats of the same sound
 const MUSIC_DB := -14.0

@@ -2,6 +2,10 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.45.2] - 2026-11-08
+
+- An original fanfare plays when you win an election and when the world games open
+
 ## [0.45.1] - 2026-11-08
 
 - Hosting the **world games** is now a story: preparations fall behind two years later (pay, scale back or hope), then a glorious opening night, or chaos on live TV

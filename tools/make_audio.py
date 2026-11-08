@@ -169,6 +169,33 @@ def sfx():
     write("election", reverb(tail(elect, 0.6), mix=0.3), peak=0.5)
 
 
+def brass(freq, dur, attack=0.04, release=0.18):
+    """Warm brass-like tone: odd/even harmonics that brighten as it swells."""
+    out = []
+    n = int(SR * dur)
+    for i in range(n):
+        t = i / SR
+        a = min(1.0, t / attack) * min(1.0, (dur - t) / release)
+        bright = 0.35 + 0.4 * min(1.0, t / 0.25)
+        vib = 1.0 + 0.004 * math.sin(TAU * 5.2 * t) * min(1.0, t / 0.4)
+        s = sum((bright ** (k - 1)) / k * math.sin(TAU * freq * k * vib * t) for k in range(1, 7))
+        out.append(s * a)
+    return out
+
+
+def fanfare():
+    """Original 3-second fanfare (election win, games opening): a rising
+    call-and-answer in C major over a held chord, ending on a bright bell."""
+    melody = [(67, 0.0, 0.22), (67, 0.24, 0.12), (72, 0.38, 0.5), (76, 0.92, 0.22), (74, 1.16, 0.2),
+              (72, 1.38, 0.22), (79, 1.62, 1.1)]
+    tracks = [(brass(note(n), d), t) for n, t, d in melody]
+    for n in (48, 55, 60, 64):            # low C-major pad under the call
+        tracks.append(([v * 0.35 for v in brass(note(n), 2.6, attack=0.5, release=0.6)], 0.15))
+    tracks.append((bell(note(91), 1.4, 0.7), 1.62))
+    out = lowpass(mix(*tracks), 4200)
+    write("fanfare", reverb(tail(out, 0.6), mix=0.3, room=0.85), peak=0.55)
+
+
 def music():
     """64-second calm ambient loop: pads + sparse piano, seamless."""
     sr = 22050
@@ -265,10 +292,14 @@ def music_tense():
 if __name__ == "__main__":
     import sys
     os.makedirs(OUT, exist_ok=True)
+    if "--only=fanfare" in sys.argv:
+        fanfare()
+        raise SystemExit
     if "--tense-only" in sys.argv:
         music_tense()
         raise SystemExit
     sfx()
+    fanfare()
     music()
     music_tense()
     with open(os.path.join(OUT, "LICENSE.txt"), "w", encoding="utf-8") as f:

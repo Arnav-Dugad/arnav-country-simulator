@@ -733,7 +733,10 @@ func _show_event(ev: Dictionary) -> void:
 		Game.pause_for_modal()
 		paused_here = true
 	Haptics.warning(false)
-	Audio.play("event")
+	if str(ev.get("id", "")) == "games_open":
+		Audio.play("fanfare", -4.0)
+	else:
+		Audio.play("event")
 	_modal = ModalCard.new()
 	add_child(_modal)
 	var other := int(ev.get("other", -1))
@@ -920,7 +923,8 @@ func _show_election(r: Dictionary) -> void:
 			+ (("%s of the %s takes office." % [str(r.opponent.name), str(r.opponent.party)] if r.has("opponent") else "The opposition takes office.") if not Game.god_mode else "Somehow, you stay in office anyway."))]
 	_election_groups(r)
 	if won:
-		Haptics.success()
+		Haptics.success(false)
+		Audio.play("fanfare", -3.0)
 		_modal.sweep(Color(DS.GOLD, 0.28))
 		map.spotlight(Game.player, true, DS.GOLD)
 	else:
