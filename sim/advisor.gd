@@ -91,6 +91,28 @@ static func advice(c: CountryState) -> Array:
 	if Migration.rate(c) < -3.0 and Migration.delta(c) < -1.0:
 		out.append(_item(1, "People are leaving",
 			"Emigration is rising. Better jobs, calmer prices and happier lives keep people at home.", "economy", "plane-takeoff"))
+	if c.idx == Game.player and Game.dip.has("reg") and Regions.weakest() >= 0:
+		var g: Dictionary = Regions.list()[Regions.weakest()]
+		if float(g.loyalty) < 40.0:
+			var it := _item(2 if int(g.tension) >= 6 else 1, "%s is drifting away (loyalty %d)" % [str(g.name), roundi(float(g.loyalty))],
+				"Separatists are gaining. A development fund or autonomy wins it back; a year of this and they demand a referendum.", "population", "map-pin")
+			it["section"] = "Regions"
+			out.append(it)
+	if c.idx == Game.player and Game.dip.has("hlth") and Health.wait() > float(Health.st().wait0) * 1.25:
+		var it2 := _item(1, "Hospital waits are growing (%d weeks)" % roundi(Health.wait()),
+			"Train or recruit more doctors, or raise the health budget.", "population", "hourglass")
+		it2["section"] = "Health system"
+		out.append(it2)
+	if c.idx == Game.player and Game.dip.has("water") and Water.stress() > float(Water.st().s0) + 0.3:
+		var it3 := _item(1, "Water is running short",
+			"Water stress is up to %s of 5. Desalination, drip irrigation and recycling help." % String.num(Water.stress(), 1), "diplomacy", "droplets")
+		it3["section"] = "Water"
+		out.append(it3)
+	if c.idx == Game.player and Game.dip.has("edu") and Education.drain() > 15.0 and not Education.has_reform("return"):
+		var it4 := _item(0, "Your graduates are leaving",
+			"%d%% of graduates emigrate each year. Better universities and talent return grants keep them." % roundi(Education.drain()), "population", "plane-takeoff")
+		it4["section"] = "Schools & universities"
+		out.append(it4)
 	if Projects.count_building(c) == 0 and c.treasury > c.spending / 12.0 * 1.5 and -c.balance_pct() < 6.0:
 		out.append(_item(0, "Build something lasting",
 			"Roads, power and hospitals create jobs now and growth for decades.", "build", "hammer"))

@@ -672,10 +672,11 @@ func _show_tip(t: Dictionary) -> void:
 	_modal.body(str(t.detail))
 	var page := str(t.page)
 	var names := {"economy": "Open Economy", "budget": "Open Budget", "build": "Open Build", "diplomacy": "Open World", "laws": "Open Laws"}
-	_modal.choice(str(names.get(page, "Show me")), "", &"PrimaryButton", func() -> void:
+	var sec := str(t.get("section", ""))
+	_modal.choice(str(names.get(page, "Show me")) if sec == "" else "Show me", "", &"PrimaryButton", func() -> void:
 		_modal.dismiss()
 		if PAGES.has(page):
-			open_page(page))
+			Finder.go(self, page, sec))
 	_modal.choice("Not now", "", &"GhostButton", func() -> void:
 		_tip_snooze_until = Game.months_played + 6
 		_modal.dismiss()

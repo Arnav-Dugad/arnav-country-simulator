@@ -62,5 +62,9 @@ func refresh() -> void:
 		row.title_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 		var tint: Color = [DS.ACCENT, DS.ORANGE, DS.RED][int(a.level)]
 		row.set_leading(ListRow.icon_tile(str(a.icon), tint))
-		row.tapped.connect(func() -> void: page_requested.emit(str(a.page)))
+		row.tapped.connect(func() -> void:
+			if a.has("section"):
+				Finder.go(get_tree().current_scene, str(a.page), str(a.section))
+			else:
+				page_requested.emit(str(a.page)))
 		_list.add_child(row)
