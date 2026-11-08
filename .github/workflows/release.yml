@@ -124,6 +124,16 @@ jobs:
       - name: Import project
         run: ~/godot/godot --headless --path . --import || true
 
+      - name: Cache Gradle
+        # The Gradle distribution and Android dependencies, so a GitHub download outage can't block a release.
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/wrapper/dists
+            ~/.gradle/caches
+          key: gradle-${{ hashFiles('export_presets.cfg') }}-v1
+          restore-keys: gradle-
+
       - name: Export signed APK
         env:
           GODOT_ANDROID_KEYSTORE_RELEASE_PATH: ${{ runner.temp }}/release.jks
@@ -133,12 +143,12 @@ jobs:
           mkdir -p build
           OUT="build/ArnavCountrySimulator-v${{ steps.tag.outputs.version }}.apk"
           ~/godot/godot --headless --path . --install-android-build-template --export-release "Android" "$OUT" || true
-          if [ ! -s "$OUT" ]; then
-            # Gradle's own download sometimes fails on GitHub (504): use the official Gradle server and retry.
-            # Godot rewrites the wrapper URL on export, so seed the wrapper's cache instead.
-            python3 tools/ci_gradle_dist.py android/build/gradle/wrapper/gradle-wrapper.properties
-            ~/godot/godot --headless --path . --export-release "Android" "$OUT"
-          fi
+          # Downloads (Gradle comes from GitHub) can fail for a while: retry a few times.
+          for k in 1 2 3 4; do
+            [ -s "$OUT" ] && break
+            echo "Export attempt $k failed; retrying in 90 s"; sleep 90
+            ~/godot/godot --headless --path . --export-release "Android" "$OUT" || true
+          done
           test -s "$OUT" || { echo "::error::Export produced no APK"; exit 1; }
           "$ANDROID_HOME/build-tools/36.1.0/apksigner" verify --print-certs "$OUT" | grep -E "Signer|SHA-256"
           ls -la build/
