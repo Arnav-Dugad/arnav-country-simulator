@@ -2,6 +2,12 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.47.1] - 2026-11-08
+
+- **Realistic is properly harder now:** voters are tougher and crises bite harder (the balance report showed it had become almost as forgiving as Standard)
+- Your avatar in the main-menu Settings shows your last country's flag instead of a question mark
+- Calmer Inbox: foreign leaders ask for disaster aid at most once a year
+
 ## [0.47.0] - 2026-11-08
 
 - **Settings on the main menu:** a gear in the corner of the home screen opens the settings that make sense outside a game (your profile, display and accessibility, sound and haptics, account and cloud, about and updates)

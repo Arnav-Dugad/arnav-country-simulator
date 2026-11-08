@@ -17,10 +17,11 @@ static func make(name: String, color: Color, size_px: float = 36.0) -> Control:
 	a.set(&"tint", color)
 	a.set(&"diameter", size_px)
 	a.custom_minimum_size = Vector2(size_px, size_px)
-	# No name yet: your country's flag instead of a question mark.
-	if ini == "?" and Game.has_game() and World.flag_of(Game.player) != null:
+	# No name yet: your country's flag (or your last save's) instead of a question mark.
+	var home := Game.player if Game.has_game() else World.index_of(str(SaveManager.summary(Settings.last_slot).get("country", "")))
+	if ini == "?" and home >= 0 and World.flag_of(home) != null:
 		ini = ""
-		var f := Flag.new().show_country(Game.player, size_px * 0.4)
+		var f := Flag.new().show_country(home, size_px * 0.4)
 		f.size = f.custom_minimum_size
 		a.add_child(f)
 		var center := func() -> void: f.position = ((a.size if a.size != Vector2.ZERO else a.custom_minimum_size) - f.size) * 0.5

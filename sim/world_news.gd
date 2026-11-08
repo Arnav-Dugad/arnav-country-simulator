@@ -63,7 +63,7 @@ static func _leader_change(i: int, c: CountryState, rng: RandomNumberGenerator, 
 		add(i, "%s%s" % [headline, ", " + tone if tone != "" else ""], "vote", swing >= 0.0)
 
 
-const AID_ASK_GAP := 8
+const AID_ASK_GAP := 12
 
 ## Natural disasters strike notable countries now and then (news + map weather),
 ## only where they really happen (the same regions as the player's disaster events).
