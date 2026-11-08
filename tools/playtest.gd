@@ -70,6 +70,18 @@ func _run() -> void:
 	print("Diplomacy: ", Diplomacy.summary())
 	print("World news (%d): " % Game.news.size(), Game.news.slice(0, 6).map(func(n: Dictionary) -> String: return "%s %s" % [n.date, n.text]))
 	print("Laws in force: ", Game.me().laws.keys(), "  modifiers: ", Laws.modifiers(Game.me()))
+	# The nation picker must open its list with a country selected (new players start here).
+	var picker: Node = load("res://ui/screens/country_picker.tscn").instantiate()
+	add_child(picker)
+	for k in 30:
+		await get_tree().process_frame
+	var sh: BottomSheet = picker.get("_sheet")
+	if sh == null or not sh.is_open() or int(picker.get("_selected")) < 0:
+		push_error("Country picker did not open its list")
+		print("PLAYTEST FAILED: country picker")
+		get_tree().quit(1)
+		return
+	picker.queue_free()
 	print("PLAYTEST OK")
 	get_tree().quit()
 

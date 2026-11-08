@@ -2,8 +2,9 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
-## [0.74.0] - 2026-11-08
+## [0.74.1] - 2026-11-08
 
+- **Fix: new players can choose a country again.** Since 0.68.0 the "Choose your nation" list didn't open, so a new game couldn't start (existing saves were unaffected). A new automatic test now guards it
 - **The constitution:** eight articles you can amend from the Laws page: term limits, voting age, the electoral system, an upper house, the courts, federal or unitary government, emergency powers and a bill of rights
   - Every option has trade-offs you can see before you choose: faster laws or more checks, happier young voters, cleaner government, easier coalitions, friends abroad
   - In democracies the people vote in a referendum and can say no; elsewhere it passes by decree, and democracies abroad frown

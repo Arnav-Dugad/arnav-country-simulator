@@ -39,6 +39,12 @@ func _ready() -> void:
 	_build_list()
 	_build_footer()
 	get_tree().root.go_back_requested.connect(_on_back)
+	_sheet.snapped.connect(func(_s: int) -> void: _frame_map())
+	resized.connect(_frame_map)
+
+	_select(_default_country(), false)
+	_reveal_selected.call_deferred()
+	_sheet.open.call_deferred(BottomSheet.Snap.HALF)
 
 
 ## Android back: close an open card first, then return to the home screen.
@@ -51,12 +57,6 @@ func _on_back() -> void:
 		_search.release_focus()
 		return
 	Router.goto("res://ui/screens/home.tscn")
-	_sheet.snapped.connect(func(_s: int) -> void: _frame_map())
-	resized.connect(_frame_map)
-
-	_select(_default_country(), false)
-	_reveal_selected.call_deferred()
-	_sheet.open.call_deferred(BottomSheet.Snap.HALF)
 
 
 func _build_header() -> void:
