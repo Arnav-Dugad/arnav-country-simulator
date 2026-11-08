@@ -127,6 +127,20 @@ func _ready() -> void:
 		Haptics.success()
 		Audio.play("success", -4.0)
 		_confetti())
+	Game.war_battle.connect(func(note: Dictionary) -> void:
+		map.refresh_war_marks()
+		map.battle_flash(int(note.enemy))
+		if bool(note.big):
+			_notify(str(note.text), "swords", DS.GREEN if bool(note.win) else DS.RED, true, false)
+		var w := War.with(int(note.enemy))
+		if bool(w.get("they_sue", false)) and not bool(w.get("sue_asked", false)):
+			w["sue_asked"] = true
+			Game.director.add(GameEvents.peace_offer(int(note.enemy), true), true)
+		elif bool(w.get("we_lose", false)) and not bool(w.get("lose_asked", false)):
+			w["lose_asked"] = true
+			Game.director.add(GameEvents.peace_offer(int(note.enemy), false), true)
+		if float(w.get("occ_me", 0.0)) >= 0.75 and not Game.god_mode:
+			Game.finish("conquered"))
 	Game.project_finished.connect(func(id: String) -> void:
 		var p := Projects.by_id(id)
 		_notify("Now open: %s" % str(p.title).to_lower(), str(p.icon), DS.GREEN, true)

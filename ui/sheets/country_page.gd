@@ -235,6 +235,14 @@ func _build_actions(i: int, is_me: bool, playable: bool) -> void:
 		var gain := Diplomacy.send_aid(i)
 		_done("Aid delivered. Relations %+.0f." % gain, true),
 		not Diplomacy.can_send_aid(i), "Available again in %d months" % cd if cd > 0 else "Paid from the treasury")
+	# War
+	if War.is_at_war_with(i):
+		_action("Open the war room", &"DestructiveButton", "swords", func() -> void:
+			WarRoom.open(get_tree().current_scene, i))
+	else:
+		var wb := War.blocked(i)
+		_action("Declare war", &"DestructiveButton", "swords", _declare_war.bind(i), wb != "",
+			wb if wb != "" else "Battle odds %d%% · costs %d political capital" % [roundi(War.odds(i) * 100.0), int(Economy.WAR_DECLARE_CAPITAL)])
 	# Tariffs (trade war)
 	if Tariffs.has(i):
 		_action("Lift tariffs", &"", "check", func() -> void:
@@ -284,6 +292,28 @@ func _call(i: int) -> void:
 			_status.add_theme_color_override(&"font_color", DS.GREEN if float(r.relation) >= 0.0 else DS.ORANGE)
 			Game.add_feed("Call with %s: %s" % [str(ld.name), str(r.line)], "message-circle", "green" if float(r.relation) >= 0.0 else "orange")
 			refresh())
+	m.choice("Not now", "", &"GhostButton", m.dismiss)
+
+
+func _declare_war(i: int) -> void:
+	var m := ModalCard.new()
+	get_tree().current_scene.add_child(m)
+	m.content.add_child(Illustration.banner("war", "swords", DS.RED, 104.0))
+	m.header("swords", DS.RED, "Declare war", "War with %s?" % World.map.names[i])
+	var them: CountryState = Game.state(i)
+	m.body("Your military %d vs theirs %d. You'd win about %d%% of battles at the start. War costs about %s a year, slows the economy and wears people down after the first months. The world will condemn the attack." % [
+		roundi(Game.me().military), roundi(them.military), roundi(War.odds(i) * 100.0),
+		DS.money(Game.me().gdp * Economy.WAR_COST_PCT / 100.0 * sqrt(clampf(them.gdp / maxf(Game.me().gdp, 1.0), 0.3, 2.5)))])
+	m.choice("Declare war", "Costs %d political capital" % int(Economy.WAR_DECLARE_CAPITAL), &"DestructiveButton", func() -> void:
+		War.declare(i)
+		Haptics.warning()
+		Audio.play("warning")
+		m.dismiss()
+		refresh()
+		var gs := get_tree().current_scene
+		if gs and "map" in gs and gs.map != null:
+			gs.map.refresh_war_marks()
+		WarRoom.open(get_tree().current_scene, i))
 	m.choice("Not now", "", &"GhostButton", m.dismiss)
 
 

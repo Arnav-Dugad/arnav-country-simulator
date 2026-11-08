@@ -48,6 +48,11 @@ static func advice(c: CountryState) -> Array:
 	if Government.army_rules(c.idx) and Game.politics.coup_risk() > 0.0:
 		out.append(_item(2, "The army is restless",
 			"Keep the military budget near where it started and stability up, or the generals may act.", "budget", "shield"))
+	for k in War.wars():
+		var w: Dictionary = War.wars()[k]
+		out.append(_item(2 if float(w.occ_me) > 0.2 else 1, "At war with %s" % World.map.names[int(k)],
+			"Win chance per battle %d%%. Mobilize, call allies or offer peace from the war room (World page)." % roundi(War.odds(int(k)) * 100.0),
+			"diplomacy", "swords"))
 	if Security.level() == 2:
 		out.append(_item(1, "Hostile forces near your borders", Security.describe(), "diplomacy", "shield"))
 	if Inequality.change(c) > 2.5:

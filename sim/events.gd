@@ -683,6 +683,27 @@ static func debate_event() -> Dictionary:
 	return instance(e)
 
 
+## War endgames: the enemy sues for peace (we_win) or you're losing badly.
+static func peace_offer(i: int, we_win: bool) -> Dictionary:
+	var w := War.with(i)
+	var e: Dictionary
+	if we_win:
+		e = {"id": "peace_offer", "title": "%s sues for peace" % World.map.names[i], "icon": "flag", "tint": "gold", "weight": 0.0,
+			"body": "Beaten and exhausted, {other} asks to end the war. Your forces hold %d%% of their country." % roundi(float(w.occ_them) * 100.0),
+			"choices": [
+				{"label": "Keep the land you hold", "detail": "They cede it · the world disapproves", "effects": {"peace": "annex"}},
+				{"label": "Demand reparations", "detail": "They pay %s of their GDP" % DS.pct(Economy.WAR_REPARATIONS * 100.0, 0), "effects": {"peace": "reparations"}},
+				{"label": "Generous peace", "detail": "Old borders · goodwill", "effects": {"peace": "status_quo", "relations_all": 2.0}},
+				{"label": "Fight on", "detail": "Push for more", "effects": {}}]}
+	else:
+		e = {"id": "peace_offer", "title": "The war is being lost", "icon": "flag", "tint": "red", "weight": 0.0,
+			"body": "Your generals warn the army can't hold. {other} occupies %d%% of {country} and offers terms." % roundi(float(w.occ_me) * 100.0),
+			"choices": [
+				{"label": "Accept their terms", "detail": "Give up the occupied land · bitter, but it ends", "effects": {"peace": "surrender"}},
+				{"label": "Fight on", "detail": "Risk losing everything", "effects": {"stability": -2.0}}]}
+	return instance(e, i)
+
+
 ## The constitution's term limit: this is your last term. (Politics.term_choice)
 static func term_limit_event() -> Dictionary:
 	var p := Game.politics
@@ -991,6 +1012,9 @@ static func apply_effects(fx: Dictionary, other: int, ev_id: String = "") -> voi
 				Corruption.boost(float(v))
 			"capital":
 				Capital.add(-float(v))
+			"peace":
+				if other >= 0 and War.is_at_war_with(other):
+					War.make_peace(other, str(v))
 			"term":
 				Game.politics.term_choice(str(v))
 			"project_delay":
@@ -1070,6 +1094,9 @@ static func effect_chips(fx: Dictionary) -> Array:
 				out.append(["Cleaner government +%d" % roundi(float(v)), true, float(v)])
 			"capital":
 				out.append(["Political capital −%d" % roundi(float(v)), false, 8.0])
+			"peace":
+				out.append([{"annex": "Gain territory", "reparations": "Reparations", "status_quo": "Old borders", "surrender": "Lose territory"}.get(str(v), "Peace"),
+					str(v) != "surrender", 9.0])
 			"term":
 				var t: Array = {"retire": ["Legacy +%d" % roundi(Economy.HANDOVER_LEGACY), true],
 					"successor": ["Keep playing if your party wins", true],

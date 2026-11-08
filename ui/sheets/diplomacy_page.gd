@@ -25,6 +25,7 @@ func _build() -> void:
 	_ranks = grid(self, 2)
 	_rival = section("Your rival")
 	_markets = section("World markets")
+	_war = section("At war")
 	_security = section("Security")
 	_climate = section("Climate")
 	_treaties = section("Treaties & blocs")
@@ -46,6 +47,7 @@ func _build() -> void:
 var _markets: VBoxContainer
 var _climate: VBoxContainer
 var _security: VBoxContainer
+var _war: VBoxContainer
 var _rival: VBoxContainer
 var _treaties: VBoxContainer
 
@@ -58,6 +60,7 @@ func refresh() -> void:
 	_fill_markets()
 	_fill_climate()
 	_fill_security()
+	_fill_war()
 	_fill_treaties()
 	var d := Diplomacy.summary()
 	var parts: PackedStringArray = ["%d %s" % [d.alliances, "ally" if d.alliances == 1 else "allies"],
@@ -215,6 +218,21 @@ func _stat_line(parent: Control, icon: String, color: Color, head: String, capti
 		ch.set_color(color)
 		line.add_child(ch)
 		ch.set_data(data)
+
+
+func _fill_war() -> void:
+	for ch in _war.get_children():
+		ch.queue_free()
+	_war.get_parent().visible = War.at_war()
+	for k in War.wars():
+		var i := int(k)
+		var w: Dictionary = War.wars()[k]
+		var row := ListRow.new().setup("War with %s" % World.map.names[i],
+			"You hold %d%%  ·  they hold %d%%  ·  win chance %d%%" % [roundi(float(w.occ_them) * 100.0), roundi(float(w.occ_me) * 100.0),
+				roundi(War.odds(i) * 100.0)], "›")
+		row.set_leading(ListRow.icon_tile("swords", DS.RED))
+		row.tapped.connect(func() -> void: WarRoom.open(get_tree().current_scene, i))
+		_war.add_child(row)
 
 
 func _fill_security() -> void:

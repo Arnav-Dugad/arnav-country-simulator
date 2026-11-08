@@ -59,6 +59,7 @@ func _ready() -> void:
 		"election": "The people of %s chose a new leader." % World.the_name(Game.player),
 		"collapse": "Unrest brought down your government in %s." % World.the_name(Game.player),
 		"revolution": "Protests in %s swept your government from power." % World.the_name(Game.player),
+		"conquered": "%s was overrun and your government fell." % World.The_name(Game.player),
 		"coup": "The army of %s removed you from power." % World.the_name(Game.player),
 		"review": "The party leadership of %s replaced you." % World.the_name(Game.player),
 		"daily": "Your four years in today's challenge are up.",

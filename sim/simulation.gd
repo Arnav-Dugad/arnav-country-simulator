@@ -27,6 +27,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 	var px := Projects.modifiers(c)
 	var bx := Builds.modifiers(c) if not c.builds.is_empty() else {}
 	var txm := Taxes.modifiers(c)
+	var wx: Dictionary = War.effects() if c.idx == Game.player and Game.has_game() and War.at_war() else {}
 	var mx := Game.markets.effects(c)
 	var tx := Treaties.modifiers(c) if c.idx == Game.player else {}
 	var mig := Migration.delta(c)
@@ -68,6 +69,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Projects you built", float(px.get("growth", 0.0))],
 		["Things you built", float(bx.get("growth", 0.0))],
 		["Other taxes", float(txm.get("growth", 0.0))],
+		["War", float(wx.get("growth", 0.0))],
 		["Construction work", float(px.get("build_growth", 0.0)) + float(bx.get("build_growth", 0.0))],
 	]
 	var g := clampf(_sum(g_terms), -25.0, 20.0)
@@ -99,6 +101,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Projects you built", float(px.get("inflation", 0.0))],
 		["Things you built", float(bx.get("inflation", 0.0))],
 		["Other taxes", float(txm.get("inflation", 0.0))],
+		["War", float(wx.get("inflation", 0.0))],
 	]
 	var pi := clampf(_sum(pi_terms), -5.0, 500.0)
 	c.inflation += (pi - c.inflation) * E.INFLATION_ADJUST
@@ -118,6 +121,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Projects you built", float(px.get("unemployment", 0.0))],
 		["Things you built", float(bx.get("unemployment", 0.0))],
 		["Other taxes", float(txm.get("unemployment", 0.0))],
+		["War mobilization", float(wx.get("unemployment", 0.0))],
 		["Construction work", float(px.get("build_jobs", 0.0)) + float(bx.get("build_jobs", 0.0))],
 	]
 	var u := clampf(_sum(u_terms), E.UNEMP_MIN, E.UNEMP_MAX)
@@ -177,6 +181,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Projects you built", float(px.get("happiness", 0.0))],
 		["Things you built", float(bx.get("happiness", 0.0))],
 		["Other taxes", float(txm.get("happiness", 0.0))],
+		["War", float(wx.get("happiness", 0.0))],
 	]
 	b.gdp_pc = float(b.gdp_pc) + (real_pc - float(b.gdp_pc)) * E.INCOME_ADAPTATION
 	var h := clampf(_sum(h_terms), 0.0, E.HAPPY_MAX)
@@ -195,6 +200,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Projects you built", float(px.get("approval", 0.0))],
 		["Things you built", float(bx.get("approval", 0.0))],
 		["Other taxes", float(txm.get("approval", 0.0))],
+		["War weariness", float(wx.get("approval", 0.0))],
 		["Your ministers", float(cx.get("approval", 0.0))],
 	]
 	var a := clampf(_sum(a_terms), 0.0, 100.0)
@@ -210,6 +216,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Jobs", -0.3 * (c.unemployment - float(b.unemployment))],
 		["Inequality", -E.INEQ_STABILITY * d_gini],
 		["Foreign threats", float(sec.stability)],
+		["War", float(wx.get("stability", 0.0))],
 		["Recent events", float(c.shocks.stability)],
 		["Laws & reforms", float(lx.get("stability", 0.0))],
 		["Projects you built", float(px.get("stability", 0.0))],
@@ -274,7 +281,8 @@ static func update_finances(c: CountryState) -> void:
 	var extra_tax := Taxes.total_pct(c) if not c.taxes.is_empty() else 0.0
 	c.revenue = c.gdp * (rate + (c.other_rev_pct + extra_tax + float(lx.get("revenue", 0.0)) + market_rev) / 100.0) * cycle
 	c.spending = c.gdp * (c.spending_pct + float(lx.get("cost", 0.0)) + Projects.spending_pct(c) + Ageing.pension_cost(c)
-		+ (Builds.spending_pct(c) if not c.builds.is_empty() else 0.0)) / 100.0
+		+ (Builds.spending_pct(c) if not c.builds.is_empty() else 0.0)
+		+ (float(War.effects().cost) if c.idx == Game.player and Game.has_game() and War.at_war() else 0.0)) / 100.0
 	# Inflation above the floor erodes local-currency debt, so only the real
 	# part of the rate is a burden in dollar terms.
 	var real_rate := maxf(c.debt_rate - maxf(0.0, c.inflation - Economy.DEBT_EROSION_FLOOR), 0.25)

@@ -409,6 +409,40 @@ static func tax_yield(rate: float, k: float) -> float:
 const BUILD_FX_SCALE := 3.5
 
 
+# --------------------------------------------------------------------- war ---
+# See sim/war.gd. Shares are of a country's territory (0..1).
+const WAR_DECLARE_CAPITAL := 30.0
+const WAR_REACH_MIL := 70.0          # military needed to fight a non-neighbour overseas
+const WAR_ALLY_JOIN_RELATION := 55.0
+const WAR_ALLY_SHARE := 0.35         # share of allies' military that fights with you
+const WAR_DEFENDER_BONUS := 1.25
+const WAR_FAR_PENALTY := 0.7
+const WAR_MOBILIZE_BOOST := 1.25
+const WAR_MOBILIZE_MONTHS := 6
+const WAR_MOBILIZE_CAPITAL := 10.0
+const WAR_SWING_MIN := 0.01          # ground changing hands per battle
+const WAR_SWING_MAX := 0.05
+const WAR_MAX_OCC := 0.8
+const WAR_BIG_BATTLE := 0.06
+const WAR_MORALE_HIT := 0.06
+const WAR_MORALE_GAIN := 0.02
+const WAR_WEARINESS := 0.012         # morale lost every month of war
+const WAR_SURRENDER_OCC := 0.45      # holding this much forces peace talks
+const WAR_ANNEX_SHARE := 0.6         # share of occupied land kept in an annexing peace
+const WAR_REPARATIONS := 0.03        # of the loser's GDP
+const WAR_RALLY := 6.0               # approval: rally round the flag
+const WAR_WEARY_APPROVAL := 0.25     # approval lost per month after the first six
+const WAR_GROWTH := 1.2              # growth points lost per war (scaled by enemy size)
+const WAR_INFLATION := 1.0
+const WAR_COST_PCT := 2.0            # % of GDP a year
+const WAR_WORLD_ANGER := 8.0         # relations lost with everyone when you attack
+const WAR_ANNEX_ANGER := 10.0
+const WAR_SYMPATHY := 5.0            # relations gained when you are attacked
+const WAR_AI_HOSTILITY := -70.0      # relations at or below which a neighbour may attack
+const WAR_AI_ADVANTAGE := 1.4        # ... if its military is this much stronger
+const WAR_AI_CHANCE := 0.003         # monthly chance then
+
+
 # ---------------------------------------------------------------- security ---
 # See sim/security.gd. Military strength is the 0-100 index.
 ## Relations below this count as hostile.

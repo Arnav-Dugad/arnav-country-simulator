@@ -21,6 +21,7 @@ signal army_warning
 signal game_over(summary: Dictionary)
 signal law_finished(id: String, repealed: bool)
 signal build_finished(id: String, n: int)
+signal war_battle(note: Dictionary)
 signal project_finished(id: String)
 signal campaign_started
 signal world_news(item: Dictionary)
@@ -300,6 +301,8 @@ func advance_month() -> void:
 	Outcomes.monthly()
 	Leaders.age_check()
 	Capital.monthly()
+	for note in War.monthly():
+		war_battle.emit(note)
 	Opposition.monthly()
 	if months_played == Mandate.MONTHS:
 		var did := Mandate.summary()

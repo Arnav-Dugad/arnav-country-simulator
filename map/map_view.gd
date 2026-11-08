@@ -294,6 +294,7 @@ func _set_blend(v: float) -> void:
 # ---------------------------------------------------------- player/select ----
 func set_player(i: int) -> void:
 	player = i
+	refresh_war_marks.call_deferred()
 	_fill_mat.set_shader_parameter(&"player_index", float(i))
 	_glow_bucket = -999       # _rebuild_glow also rebuilds the player outline
 	_update_line_widths()
@@ -362,6 +363,56 @@ func _rebuild_glow() -> void:
 
 ## Election night: dim the world and let one country breathe (i < 0 / on=false: off).
 var _spot_tween: Tween
+
+
+## Occupied and annexed land, striped in the occupier's colour (see War).
+var _war_img: Image
+var _war_tex: ImageTexture
+
+
+func refresh_war_marks() -> void:
+	if not Game.has_game():
+		return
+	var marks := War.map_marks()
+	if marks.is_empty() and _war_tex == null:
+		return
+	if _war_img == null:
+		_war_img = Image.create(_tex_w, 2, false, Image.FORMAT_RGBAF)
+		_war_tex = ImageTexture.create_from_image(_war_img)
+		_fill_mat.set_shader_parameter(&"war_marks", _war_tex)
+	_war_img.fill(Color(0, 0, 0, 0))
+	for i in marks:
+		var by := int(marks[i][1])
+		var frac := clampf(float(marks[i][0]), 0.0, 1.0)
+		var col := DS.GOLD if by == Game.player else DS.RED
+		_war_img.set_pixel(int(i), 0, Color(col.r, col.g, col.b, frac))
+		# Held land is the side facing the occupier: threshold along that axis so
+		# the striped share of the country's extent matches what is held.
+		var from := _war_anchor(int(i))
+		var to := _war_anchor(by)
+		var d := (to - from).normalized() if to.distance_to(from) > 0.1 else Vector2.RIGHT
+		var lo := INF
+		var hi := -INF
+		for r in _by_country[int(i)]:
+			for p in data.ring_points[r]:
+				var pr := p.dot(d)
+				lo = minf(lo, pr)
+				hi = maxf(hi, pr)
+		var thr := hi - (hi - lo) * frac
+		_war_img.set_pixel(int(i), 1, Color(d.x, d.y, thr, 0.0))
+	_war_tex.update(_war_img)
+	_fill_mat.set_shader_parameter(&"war_on", 1.0 if not marks.is_empty() else 0.0)
+
+
+func _war_anchor(i: int) -> Vector2:
+	if i < data.capital_pos.size() and not is_nan(data.capital_pos[i].x) and data.capital_pos[i] != Vector2.ZERO:
+		return data.capital_pos[i]
+	return data.label_pos[i]
+
+
+## A battle on the front with country i (overlay flash between capitals).
+func battle_flash(i: int) -> void:
+	_overlays.battle(Game.player, i)
 
 
 ## A celebration over a country ("skyline" or "fireworks").

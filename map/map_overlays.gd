@@ -25,9 +25,14 @@ func ripple(pos: Vector2, land: bool) -> void:
 var _icons := {}
 var _flight := {}           # {from, to, start} while a state-visit flight is shown
 var _fx := {}               # {kind: "skyline"|"fireworks", country, start} celebration
+var _battles: Array = []    # [a, b, start] recent battle flashes
 const FX_TIME := 3.2
 const FLIGHT_TIME := 1.8
 const FLIGHT_FADE := 0.8
+
+
+func battle(a: int, b: int) -> void:
+	_battles.append([a, b, Time.get_ticks_msec() / 1000.0])
 
 
 ## A short celebration over a country: a rising skyline (project opened) or
@@ -64,6 +69,7 @@ func _draw() -> void:
 	_draw_projects()
 	_draw_flight()
 	_draw_fx()
+	_draw_fronts()
 	_draw_ripples()
 
 
@@ -234,6 +240,36 @@ func _draw_tariffs() -> void:
 			a = 0.45 + 0.3 * (0.5 + 0.5 * sin(_t * 3.0))
 		map_line(pts, Color(DS.RED, a), 1.6)
 		draw_circle(from, 3.0, Color(DS.RED, 0.85), true, -1.0, true)
+
+
+## War fronts: a pulsing red line between the capitals at war, with crossed
+## sparks at the front (midpoint) and a flash after each battle.
+func _draw_fronts() -> void:
+	if not Game.dip.has("wars") or (Game.dip.wars as Dictionary).is_empty():
+		_battles.clear()
+		return
+	var now := Time.get_ticks_msec() / 1000.0
+	var me := map.world_to_screen(_anchor(Game.player))
+	for k in Game.dip.wars:
+		var them := map.world_to_screen(_anchor(int(k)))
+		var mid := me.lerp(them, 0.5)
+		var pulse := 0.5 + 0.5 * sin(_t * 3.0)
+		draw_dashed_line(me, them, Color(DS.RED, 0.35 + 0.25 * pulse), 2.0, 8.0, true, true)
+		draw_circle(mid, 10.0 + 4.0 * pulse, Color(DS.RED, 0.18), true, -1.0, true)
+		for s in 2:
+			var d := Vector2.RIGHT.rotated(PI * 0.25 + s * PI * 0.5) * 7.0
+			draw_line(mid - d, mid + d, Color(1, 1, 1, 0.85), 2.0, true)
+	var keep: Array = []
+	for b in _battles:
+		var el := now - float(b[2])
+		if el > 1.2:
+			continue
+		keep.append(b)
+		var p := map.world_to_screen(_anchor(int(b[0]))).lerp(map.world_to_screen(_anchor(int(b[1]))), 0.5)
+		var k2 := el / 1.2
+		draw_arc(p, 8.0 + 34.0 * k2, 0.0, TAU, 32, Color(DS.ORANGE, 0.9 * (1.0 - k2)), 2.5, true)
+		draw_circle(p, 6.0 * (1.0 - k2), Color(1, 0.9, 0.6, 1.0 - k2), true, -1.0, true)
+	_battles = keep
 
 
 func _draw_fx() -> void:

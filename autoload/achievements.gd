@@ -38,6 +38,8 @@ const ALL := [
 	{"id": "storm", "icon": "shield", "title": "Weathered the storm", "desc": "See a bank run or currency crisis through to the end."},
 	{"id": "bloc_member", "icon": "handshake", "title": "Joiner", "desc": "Join a treaty or bloc."},
 	{"id": "globetrotter", "icon": "plane-takeoff", "title": "Globetrotter", "desc": "Make state visits to three countries."},
+	{"id": "victor", "icon": "swords", "title": "Victor", "desc": "Win a war on your terms."},
+	{"id": "peacemaker", "icon": "flag", "title": "Peacemaker", "desc": "End a war on the old borders."},
 	{"id": "handover", "icon": "flag", "title": "Peaceful handover", "desc": "Step down when your term limit comes."},
 	{"id": "promise_kept", "icon": "leaf", "title": "Promise kept", "desc": "Meet a climate pledge made at a COP."},
 ]

@@ -2,6 +2,15 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.58.0] - 2026-11-08
+
+- **War.** You can now declare war on a neighbour (or, with a strong enough military, on a coastal country overseas) from its country page, and hostile, much stronger neighbours may attack you
+  - Each month brings a battle on the front, decided by both armies' strength, morale, allies and a defender's edge. Winning takes ground; losing gives it up. Occupied land is striped on the map in the occupier's colour, and a pulsing front line with battle flashes joins the capitals
+  - **War room** (from the country or the World page): ground held, battle odds, morale, casualties and recent battles. Mobilize the reserves, call on your allies, or offer peace
+  - **Peace terms:** keep the land you hold (its people and part of its economy join yours), demand reparations, or return to the old borders. When a war goes badly, the enemy may force terms on you, and losing most of your land ends your rule
+  - Wars cost money every month, slow the economy and push prices up; people rally at first and grow weary later. Attacking angers the world; being attacked wins sympathy
+- New AI-generated war-room scene; new achievements: Victor and Peacemaker
+
 ## [0.57.0] - 2026-11-08
 
 - **Eight taxes to set.** Beside income and corporate tax, the Economy page now has (under "More taxes") a sales tax (VAT), property tax, payroll tax, fuel & carbon tax, import tariffs and a tobacco & alcohol tax. Each starts at a realistic rate for your country and has its own trade-offs: VAT raises the most but hits the poor, payroll tax costs jobs, fuel tax cuts emissions, tariffs shelter local firms but raise prices, and "sin" taxes make people healthier
