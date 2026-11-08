@@ -938,7 +938,7 @@ func _versus_row(r: Dictionary) -> Control:
 	var me_face := Leaders.player_portrait()
 	var me_ctrl: Control = Photo.portrait(me_face, 36.0) if me_face != "" else \
 		Avatar.make(me_name if me_name != "" else "?", Settings.PARTY_COLORS[clampi(Settings.party_color, 0, 5)], 36.0)
-	var sides := [[me_ctrl, "Your party" if bool(r.get("successor", false)) else (me_name if me_name != "" else "You"),
+	var sides := [[me_ctrl, "Your candidate" if bool(r.get("successor", false)) else (me_name if me_name != "" else "You"),
 			Government.party().capitalize() if Government.party() != "your party" else "Your party", HORIZONTAL_ALIGNMENT_LEFT],
 		[Photo.portrait(str(opp.portrait), 36.0), str(opp.name), str(opp.party), HORIZONTAL_ALIGNMENT_RIGHT]]
 	for k in 2:
