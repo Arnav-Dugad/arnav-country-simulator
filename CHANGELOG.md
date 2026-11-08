@@ -2,6 +2,18 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.91.0] - 2026-11-09
+
+- **Fisheries & oceans** (Industries, coastal countries):
+  - Fish stock health responds to your quota: max catch now, sustainable, or rebuild
+  - Overfish and a stock can collapse for years, as Newfoundland's cod did
+  - Marine reserves let fish recover and bring divers
+  - Foreign trawlers sometimes fish your waters: send the coast guard, protest, or sell them licences
+  - Fishing's weight in the economy comes from real data (Iceland, the Maldives, Senegal, Peru…)
+- **Trends explorer** (State of the nation): pick any of 20 indicators and see its whole history since you took office, with start, low and high
+- **Map:** pulsing markers at disrupted straits, teal while your navy escorts
+- New achievement: Full nets
+
 ## [0.90.0] - 2026-11-09
 
 - **Critical minerals** (Industries), from USGS data: lithium (Australia, Chile), cobalt (DR Congo), rare earths (China), nickel (Indonesia) and copper (Chile, Peru, DR Congo)
