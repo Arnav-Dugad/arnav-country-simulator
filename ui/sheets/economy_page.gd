@@ -125,6 +125,11 @@ func _build() -> void:
 	_cb.toggled.connect(func(v: bool) -> void:
 		Game.me().cb_auto = v
 		Haptics.select()
+		if not v:
+			Press.apply_cred(Economy.CB_CAPTURE_CRED)
+			Game.add_feed("Markets worry as the government takes control of interest rates", "landmark", "orange")
+		else:
+			Game.add_feed("The central bank is independent again. Markets relax.", "landmark", "green")
 		_sync_cb())
 	money.add_child(_cb)
 	_cb_note = note("", money)
@@ -266,7 +271,7 @@ func refresh() -> void:
 func _sync_cb() -> void:
 	var c := Game.me()
 	_rate.visible = not c.cb_auto
-	_cb_note.text = ("Your central bank adjusts the interest rate every few months to keep inflation near 2%%. It's %s now." % (String.num(c.interest_rate, 2) + "%")) 		if c.cb_auto else "You set the interest rate yourself. Raise it when prices climb, cut it when jobs vanish."
+	_cb_note.text = ("Your central bank adjusts the interest rate every few months to keep inflation near 2%%. It's %s now." % (String.num(c.interest_rate, 2) + "%")) 		if c.cb_auto else "You set the interest rate yourself. Raise it when prices climb, cut it when jobs vanish. Markets charge you %s pts more to borrow while the bank isn't independent, and prices expect to rise faster if you keep rates low." % String.num(Economy.CB_CAPTURE_PREMIUM, 1)
 
 
 func on_open() -> void:

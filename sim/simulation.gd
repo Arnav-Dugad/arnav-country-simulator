@@ -72,7 +72,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		c.core_inflation -= (c.core_inflation - E.INFLATION_TARGET) * (E.CORE_DECAY + E.CORE_TIGHT_DECAY * gap) * Profiles.mult(i, "core_inflation_decay")
 	else:
 		c.core_inflation -= (c.core_inflation - E.INFLATION_TARGET) * E.CORE_DECAY * Profiles.mult(i, "core_inflation_decay")
-		c.core_inflation += E.CORE_LOOSE_RISE * -gap
+		c.core_inflation += E.CORE_LOOSE_RISE * -gap * (1.0 if c.cb_auto else E.CB_CAPTURE_EXPECT)
 	c.core_inflation = clampf(c.core_inflation, -3.0, 400.0)
 	var deficit := -c.balance_pct()
 	var pi_terms := [
@@ -129,6 +129,8 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 	var premium := minf(E.RISK_PREMIUM_PER_DEBT * maxf(0.0, debt_pct - debt_ok) \
 		+ E.RISK_PREMIUM_INSTABILITY * maxf(0.0, stab_ok - c.stability), E.RISK_PREMIUM_CAP)
 	premium *= Profiles.mult(i, "risk_premium")
+	if not c.cb_auto:
+		premium += E.CB_CAPTURE_PREMIUM
 	c.debt_rate += (maxf(c.interest_rate, 0.5) + premium - c.debt_rate) * E.DEBT_RATE_ADJUST
 	update_finances(c)
 	c.treasury += c.balance * M

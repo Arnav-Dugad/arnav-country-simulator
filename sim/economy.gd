@@ -400,6 +400,18 @@ static func tax_yield(rate: float, k: float) -> float:
 	return r * k * (1.0 - LAFFER * r * r)
 
 
+# ---------------------------------------------------- central bank independence ---
+# When the government sets interest rates itself, markets and households trust
+# its inflation promises less (Alesina & Summers 1993; Garriga 2016: more
+# independent central banks go with lower, steadier inflation).
+## Points added to the government's borrowing costs while the bank is overruled.
+const CB_CAPTURE_PREMIUM := 0.6
+## Inflation expectations rise this much faster when rates are held too low.
+const CB_CAPTURE_EXPECT := 1.6
+## Press credibility lost the moment you take control of rates.
+const CB_CAPTURE_CRED := -4.0
+
+
 # ----------------------------------------------------------------- ageing ---
 # See sim/ageing.gd.
 ## Points of 65+ share added per year, from the poorest to the richest countries.

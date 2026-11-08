@@ -110,6 +110,16 @@ const EVENTS := [
 				"effects": {"happiness": 2.5, "approval": 2.5, "inflation": 1.0, "growth": -0.2}},
 			{"label": "Pay down the national debt", "detail": "Debt −3% of GDP",
 				"effects": {"debt_gdp": -3.0, "debt_rate": -0.2}}]},
+	{"id": "cb_clash", "title": "The central bank governor pushes back", "icon": "landmark", "tint": "orange", "weight": 2.5,
+		"cond": "cb_overruled",
+		"body": "{country}'s central bank governor warns in public that your low interest rates will fuel inflation, and threatens to resign.",
+		"choices": [
+			{"label": "Restore its independence", "detail": "Markets relax · you lose control of rates",
+				"effects": {"cb_independent": true, "press_cred": 3.0}},
+			{"label": "Fire the governor", "detail": "Total control · markets panic",
+				"effects": {"stability": -2.0, "debt_rate": 0.8, "inflation": 0.8, "press_cred": -6.0, "approval": -1.0}},
+			{"label": "Promise to raise rates soon", "detail": "Buys time",
+				"effects": {"press_cred": -2.0, "inflation": 0.3}}]},
 	{"id": "investment", "title": "Foreign investment offer", "icon": "building-2", "tint": "accent", "weight": 1.4,
 		"body": "A global manufacturer wants to build a large factory in {country}, asking for tax breaks.",
 		"choices": [
@@ -742,6 +752,9 @@ static func roll(rng: RandomNumberGenerator) -> Dictionary:
 					continue
 				if Profiles.at_risk(Game.player, "heatwave") == -1 and not World.map.subregions[Game.player] in ["Southern Asia", "Western Asia", "Northern Africa", "Southern Europe", "South-Eastern Asia"]:
 					continue
+			"cb_overruled":
+				if me.cb_auto or me.interest_rate > Economy.neutral_rate(me.core_inflation) - 1.0:
+					continue
 			"hostile":
 				other = _pick_country(rng, func(i: int) -> bool:
 					return Game.relations[i] <= -50.0 and not Diplomacy.sanctions_me(i))
@@ -871,6 +884,8 @@ static func apply_effects(fx: Dictionary, other: int, ev_id: String = "") -> voi
 				Press.apply_cred(float(v))
 			"pledge":
 				Climate.make_pledge(float(v))
+			"cb_independent":
+				c.cb_auto = true
 			"term":
 				Game.politics.term_choice(str(v))
 			"project_delay":
@@ -944,6 +959,8 @@ static func effect_chips(fx: Dictionary) -> Array:
 				out.append(["Sanctions on you", false, 3.0])
 			"pledge":
 				out.append(["Pledge: cut CO₂ %d%%" % roundi(float(v) * 100.0), true, 10.0])
+			"cb_independent":
+				out.append(["Bank independent again", true, 6.0])
 			"term":
 				var t: Array = {"retire": ["Legacy +%d" % roundi(Economy.HANDOVER_LEGACY), true],
 					"successor": ["Keep playing if your party wins", true],

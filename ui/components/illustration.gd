@@ -27,7 +27,7 @@ const EVENT_ART := {
 }
 ## Event id -> painted scene (assets/scenes, AI-generated, no real people).
 const EVENT_SCENE := {
-	"summit": "summit", "cop": "climate", "resource_windfall": "markets", "games_prep": "construction", "games_open": "celebration", "games_mess": "protest", "debate": "debate", "term_limit": "parliament", "un_sanctions": "summit", "un_climate": "climate", "un_ceasefire": "summit", "un_rights": "summit",
+	"summit": "summit", "cop": "climate", "cb_clash": "markets", "resource_windfall": "markets", "games_prep": "construction", "games_open": "celebration", "games_mess": "protest", "debate": "debate", "term_limit": "parliament", "un_sanctions": "summit", "un_climate": "climate", "un_ceasefire": "summit", "un_rights": "summit",
 	"protests": "protest", "strike": "factory", "democracy_movement": "protest", "dissident": "press",
 	"floods": "flood", "monsoon": "flood", "un_ocean": "flood", "hurricane": "hurricane",
 	"overrun": "construction", "investment": "factory", "housing": "construction",
