@@ -72,12 +72,12 @@ The basics should feel finished before anything new is added.
   - success is a double-light pulse;
   - warning is one firm pulse;
   - an election result is a short pattern.
-- [ ] Prevent haptic spam during fast slider drags with a 40 ms minimum gap.
+- [x] Prevent haptic spam during fast slider drags with a 40 ms minimum gap.
 
 ### Startup and performance
 - [x] **Bake render meshes offline** (fill, border and glow ArrayMeshes in `world_map.res`), aiming for at least 40% faster cold start, measured with `Time.get_ticks_msec()` in the splash.
 - [ ] **Two map levels of detail:** a world-scale mesh (about 8k points) for low zoom and the current mesh for close zoom, crossfaded around ×3.
-- [ ] **Idle redraw off:** when paused with no animation running, enter low-processor mode for battery.
+- [x] **Idle redraw off** (shipped as a 30 fps idle cap while paused): when paused with no animation running, enter low-processor mode for battery.
 - [ ] **Glass quality tiers:** 12 / 8 / 4 blur samples chosen from a measured frame time in the first 120 frames.
 
 **Definition of done:** a 60 fps trace on a mid-range Android phone, launch to map in under 2.5 s, and every interaction producing sound plus haptics where specified.
@@ -105,7 +105,7 @@ The basics should feel finished before anything new is added.
 - [x] **Monthly briefing:** three generated headlines from the biggest changes ("Inflation falls to 3.1%, its lowest since 2026"), shown as a quiet banner that can be swiped away.
 - [ ] **Cabinet advisors** (opt-in): Finance, Central Bank, Foreign Affairs and Interior. Each gives one short, contextual suggestion with a confidence level ("Rates look high for current inflation: consider −0.5 pts"). Never more than one at a time.
 - [x] **World rankings:** your rank by GDP, GDP per person, happiness and stability, with a sortable "World" list.
-- [ ] **Compare:** you against any country side by side (two columns of tiles), opened from the country sheet.
+- [x] **Compare:** you against any country side by side (two columns of tiles), opened from the country sheet.
 
 **Definition of done:** a new player can answer "why did my approval drop?" in two taps.
 
@@ -127,7 +127,7 @@ The basics should feel finished before anything new is added.
 
 ### Political capital and actors
 - [ ] **Political capital:** earned from approval and election wins, and spent on big reforms and drastic slider moves (moves inside ±2 pts are free). This stops slider spam while keeping things simple.
-- [ ] **Five voter blocs** (Workers, Business, Greens, Traditionalists, Youth). Each bloc's support reacts to specific policies, and approval becomes their weighted sum. A bloc breakdown sits in the "Why?" sheet.
+- [x] **Five voter blocs** (Workers, Business, Greens, Traditionalists, Youth). Each bloc's support reacts to specific policies, and approval becomes their weighted sum. A bloc breakdown sits in the "Why?" sheet.
 - [x] (campaign themes + election night shipped in v0.5.0; voter blocs still to do) **Elections 2.0:**
   - **Campaign:** in the final 3 months, pick two themes (Economy, Security, Healthcare, Change, and so on). Themes boost the blocs they appeal to.
   - **Result:** an animated election-night sheet with bloc bars filling and the vote share counting up.
@@ -142,13 +142,13 @@ The basics should feel finished before anything new is added.
 
 ### Economy and society depth (still one screen each)
 - [x] **Credit rating** (AAA to D) from debt, deficit, stability and growth. It drives borrowing costs, shows as a badge in the top bar, and downgrades trigger an event.
-- [ ] **Global commodity index** (oil and food) moving on a seeded random walk with shocks. It hits importers and exporters differently, using real fuel and food trade shares.
+- [x] **Global commodity index** (oil and food) moving on a seeded random walk with shocks. It hits importers and exporters differently, using real fuel and food trade shares.
 - [ ] **Inequality** (Gini from the World Bank) feeding happiness and bloc support, and moved by welfare and tax policy.
 - [ ] **Ageing:** a simplified old-age share that raises pension pressure over time, with real starting values.
-- [ ] **Emissions and climate risk:** CO₂ per person from real data, linked to disaster frequency and green policies.
+- [x] **Emissions and climate risk** (v0.37: real CO₂ and renewables, warming, COP pledges): CO₂ per person from real data, linked to disaster frequency and green policies.
 
 ### A world that lives
-- [ ] **AI-to-AI relations and blocs**, a trade network built from neighbours and real trade-partner seeds, and **recessions that spread** through trade links.
+- [x] **AI-to-AI relations and blocs**, a trade network built from neighbours and real trade-partner seeds, and **recessions that spread** through trade links.
 - [x] **AI elections and leader changes**, which shift that country's relations with you, plus a world news feed of notable AI moves.
 - [ ] **Diplomacy 2.0:**
   - **treaties:** climate accord, free-trade bloc, defence pact;
@@ -170,9 +170,9 @@ The basics should feel finished before anything new is added.
 ## v0.5 "Delight": premium presentation  *(priority: high, effort: M)*
 
 - [x] **Home screen:** a resume card ("Continue as India · Mar 2031") over the slowly drifting map, with save slots showing **map thumbnails** captured at save time.
-- [ ] **Year in review** every January: a full-screen glass card with 4 tiny sparklines, the headline of the year, best and worst decisions, and a **Share** button.
+- [x] **Year in review** every January: a full-screen glass card with 4 tiny sparklines, the headline of the year, best and worst decisions, and a **Share** button.
 - [x] **Share cards:** render a 1080×1350 summary image (map crop, flag, key stats) and share it through the Android share sheet (new method in the Kotlin plugin).
-- [ ] **Milestone toasts:** "GDP passed $5T", "Inflation under 2%", "First trade deal".
+- [x] **Milestone toasts:** "GDP passed $5T", "Inflation under 2%", "First trade deal".
 - [x] **Election night sequence:**
   - the map dims and the player's country pulses;
   - bloc bars fill and the vote share counts up;
@@ -198,14 +198,14 @@ The basics should feel finished before anything new is added.
 - [x] **Colour-blind palettes** for data modes (Okabe-Ito and cividis), checked in a deuteranopia simulation.
 - [x] **Reduce transparency:** solid panels instead of glass (also faster on low-end phones).
 - [ ] **English only** (decided). Still route strings through one place so wording can be polished, and offer an optional **lakh/crore** number format.
-- [ ] **Tablets and landscape:** a two-pane layout with the sheet as a right-side panel, plus foldable-aware insets.
+- [x] **Tablets and landscape:** a two-pane layout with the sheet as a right-side panel, plus foldable-aware insets.
 - [ ] **Low-end mode**, auto-detected: 4-sample glass, the low-detail map only, and no glow pulse.
 
 ---
 
 ## v0.7 "Cloud and community"  *(priority: medium, effort: M)*
 
-- [ ] **Save conflict sheet** ("This device · Mar 2031" vs "Cloud · Jan 2032"), letting the player pick and keep both.
+- [x] **Save conflict sheet** ("This device · Mar 2031" vs "Cloud · Jan 2032"), letting the player pick and keep both.
 - [x] **In-app account deletion** (good practice): deletes Firestore data then the Auth user.
 - [ ] **Privacy policy** on GitHub Pages, linked in Settings and the README.
 - [ ] **Leaderboards** (Spark-safe):
@@ -233,7 +233,7 @@ The basics should feel finished before anything new is added.
 
 - [ ] **CI on every push:** headless import, `sim_test`, `playtest` (3 countries) and theme/icon regeneration checks. Tags still release.
 - [ ] **Visual regression tests:** DevTools screenshots of 8 key screens compared against golden images (per-pixel tolerance) on a Linux runner using software OpenGL.
-- [ ] **Save schema versioning and migrations** (`SAVE_VERSION` 2+), with a migration test that loads old fixture saves.
+- [x] **Save schema versioning and migrations** (`SAVE_VERSION` 2+), with a migration test that loads old fixture saves.
 - [x] **Refactor `game.gd`** into `Calendar`, `EventDirector`, `Elections` and `WorldAI` modules. Keep `sim/economy.gd` as the single home for constants.
 - [x] **Balance tooling:** `tools/balance_report` runs 100 seeded games per difficulty and outputs win rates, average approval paths and how often each event fires, so tuning is driven by data.
 - [ ] **Performance HUD** (dev only): frame time graph, draw calls and memory, toggled by a three-finger tap.
@@ -286,3 +286,11 @@ and Firebase Spark can't verify purchases server-side, so:
 - [ ] **Health summary:** one colour ring (Thriving, Okay, Struggling) on the top bar, tappable for the top 3 problems.
 - [x] **Bigger, fewer targets:** every tap target at least 44 pt, max 5 items per row, no hidden gestures without a visible alternative.
 - [x] **Undo:** the last policy change can be undone within the same month.
+
+---
+
+## Shipped since v0.36 (November 2026)
+Climate and a warming world (v0.37), energy security (v0.37.1), presidential term limits (v0.38),
+a named opposition leader (v0.39), migration (v0.40), state visits (v0.41), culture projects (v0.42),
+climate and migration challenges (v0.43), What's new after updates (v0.44), TV debates (v0.45),
+the world games story and an original fanfare (v0.45.1–2).
