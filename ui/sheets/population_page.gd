@@ -128,10 +128,17 @@ func _tile(icon: String, color: Color, head: String, value: String, sub: String)
 	var t := Label.new()
 	t.theme_type_variation = &"Caption"
 	t.text = head.to_upper()
+	t.clip_text = true
+	t.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	t.custom_minimum_size = Vector2(20, 0)
 	h.add_child(t)
 	var val := Label.new()
 	val.theme_type_variation = &"StatValue"
 	val.text = value
+	val.clip_text = true
+	val.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	val.custom_minimum_size = Vector2(20, 0)
 	v.add_child(val)
 	var c := Label.new()
 	c.theme_type_variation = &"Caption"
@@ -335,7 +342,7 @@ func _health() -> void:
 	var hb := section("Health system", _box)
 	var s := Health.st()
 	var c := Game.me()
-	var g := grid(hb, 3)
+	var g := grid(hb, 3 if Settings.text_scale < 1.0 else 2)
 	var dw := Health.wait() - float(s.wait0)
 	g.add_child(_tile("hourglass", DS.GREEN if dw < -1.0 else (DS.TEXT_2 if dw < 2.0 else DS.RED), "Waiting", "%d wk" % roundi(Health.wait()),
 		"for an operation"))
