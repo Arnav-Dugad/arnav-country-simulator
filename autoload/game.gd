@@ -23,6 +23,7 @@ signal law_finished(id: String, repealed: bool)
 signal build_finished(id: String, n: int)
 signal war_battle(note: Dictionary)
 signal world_war_news(h: Dictionary)
+signal tech_news(n: Dictionary)
 signal project_finished(id: String)
 signal campaign_started
 signal world_news(item: Dictionary)
@@ -308,6 +309,9 @@ func advance_month() -> void:
 		me().treasury = me().spending
 	for note in War.monthly():
 		war_battle.emit(note)
+	for n in Tech.monthly():
+		add_feed(str(n.text), str(n.icon), "gold" if bool(n.first) else ("accent" if bool(n.good) else "orange"))
+		tech_news.emit(n)
 	for h in WorldWars.monthly():
 		add_feed(str(h.text), "swords" if not bool(h.get("end", false)) else "flag", "orange" if bool(h.get("start", false)) else "accent")
 		WorldNews.add(int(h.a), str(h.text), "swords", bool(h.good))

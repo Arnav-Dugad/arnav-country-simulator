@@ -2,6 +2,12 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.61.0] - 2026-11-08
+
+- **Research and the space race.** A new Research tab on the Build page with 25 technologies in six branches (Economy, Energy, Health, Transport, Space, Military). Research points come from your research budget, universities and labs, and the size of your economy. Each breakthrough lasts forever: AI, quantum computing, fusion power, longevity therapies, self-driving vehicles, drone swarms, hypersonic missiles and more
+- New builds unlocked by research: fusion plants, maglev lines, quantum labs and spaceports
+- **The space race:** satellites → reusable rockets → crewed orbit → a space station and a Moon landing → a Mars mission. Other big powers race you; being first brings national pride, prestige abroad, fireworks, and the Moonshot achievement
+
 ## [0.60.0] - 2026-11-08
 
 - **Wars around the world.** Other countries now go to war with each other, mostly hostile neighbours from rival camps. Their fronts move month by month and end in ceasefires or conquests that redraw the map with stripes

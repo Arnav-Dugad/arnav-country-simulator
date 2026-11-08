@@ -38,6 +38,8 @@ const ALL := {
 		"pm": 0.6, "rich": 0.3, "poor": 0.02, "upkeep": 0.06, "fx": {"happiness": 0.3}, "co2": 0.03},
 	"logistics": {"group": "Transport", "icon": "truck", "title": "Logistics hub", "unit": "logistics hub", "usd": 6.0e8, "months": 18,
 		"pm": 0.05, "rich": 0.8, "poor": 0.2, "upkeep": 0.04, "fx": {"growth": 0.3, "unemployment": -0.3}},
+	"maglev": {"group": "Transport", "icon": "train-front", "title": "Maglev line", "unit": "300 km maglev line", "usd": 1.5e10, "months": 48,
+		"pm": 0.01, "rich": 0.0, "poor": 0.0, "upkeep": 0.02, "big": true, "tech": "maglev", "fx": {"growth": 0.5, "happiness": 1.0}},
 	# ---- Energy
 	"solar_farm": {"group": "Energy", "icon": "sun", "title": "Solar farm", "unit": "100 MW solar farm", "usd": 1.0e8, "months": 9,
 		"pm": 4.0, "rich": 0.25, "poor": 0.05, "upkeep": 0.015, "fx": {"inflation": -0.3, "happiness": 0.4}, "co2": 0.12},
@@ -53,6 +55,8 @@ const ALL := {
 		"pm": 1.0, "rich": 0.1, "poor": 0.0, "upkeep": 0.03, "fx": {"stability": 0.4, "inflation": -0.1}, "co2": 0.03},
 	"geothermal": {"group": "Energy", "icon": "mountain", "title": "Geothermal plant", "unit": "50 MW geothermal plant", "usd": 2.5e8, "months": 30,
 		"pm": 0.2, "rich": 0.2, "poor": 0.05, "upkeep": 0.03, "fx": {"inflation": -0.15}, "co2": 0.04},
+	"fusion_plant": {"group": "Energy", "icon": "atom", "title": "Fusion plant", "unit": "2 GW fusion plant", "usd": 1.2e10, "months": 60,
+		"pm": 0.1, "rich": 0.0, "poor": 0.0, "upkeep": 0.02, "big": true, "tech": "fusion", "fx": {"growth": 0.6, "inflation": -0.6}, "co2": 0.25},
 	"grid_line": {"group": "Energy", "icon": "zap", "title": "Power lines", "unit": "500 km of power lines", "usd": 4.0e8, "months": 18,
 		"pm": 0.8, "rich": 0.95, "poor": 0.35, "upkeep": 0.02, "fx": {"growth": 0.6, "happiness": 1.2}},
 	# ---- Health & care
@@ -71,6 +75,8 @@ const ALL := {
 		"pm": 0.6, "rich": 0.85, "poor": 0.2, "upkeep": 0.1, "fx": {"growth": 0.5, "happiness": 0.5}},
 	"library": {"group": "Education", "icon": "book-open", "title": "Library", "unit": "public library", "usd": 1.5e7, "months": 10,
 		"pm": 10.0, "rich": 0.85, "poor": 0.15, "upkeep": 0.1, "fx": {"happiness": 0.6}, "lit": 2.0},
+	"quantum_lab": {"group": "Education", "icon": "atom", "title": "Quantum lab", "unit": "quantum computing centre", "usd": 2.0e9, "months": 30,
+		"pm": 0.02, "rich": 0.0, "poor": 0.0, "upkeep": 0.08, "big": true, "tech": "quantum", "fx": {"growth": 0.6}},
 	"research_lab": {"group": "Education", "icon": "flask-conical", "title": "Research lab", "unit": "national research lab", "usd": 5.0e8, "months": 24,
 		"pm": 0.3, "rich": 0.7, "poor": 0.05, "upkeep": 0.12, "fx": {"growth": 0.5}},
 	# ---- Housing & cities
@@ -129,6 +135,8 @@ const ALL := {
 		"pm": 0.08, "rich": 0.3, "poor": 0.05, "upkeep": 0.12, "fx": {}, "mil": 8.0},
 	"cyber": {"group": "Defence", "icon": "shield-check", "title": "Cyber command unit", "unit": "cyber unit", "usd": 1.5e8, "months": 12,
 		"pm": 0.02, "rich": 0.4, "poor": 0.02, "upkeep": 0.2, "fx": {"stability": 0.6}, "mil": 6.0},
+	"spaceport": {"group": "Defence", "icon": "rocket", "title": "Spaceport", "unit": "launch complex", "usd": 3.0e9, "months": 36,
+		"pm": 0.01, "rich": 0.0, "poor": 0.0, "upkeep": 0.04, "big": true, "tech": "rockets", "fx": {"growth": 0.2, "happiness": 0.5}, "mil": 4.0},
 	"satellite": {"group": "Defence", "icon": "satellite", "title": "Satellite", "unit": "observation satellite", "usd": 5.0e8, "months": 36,
 		"pm": 0.01, "rich": 0.35, "poor": 0.0, "upkeep": 0.05, "big": true, "fx": {"growth": 0.05}, "mil": 6.0},
 	"base": {"group": "Defence", "icon": "castle", "title": "Military base", "unit": "military base", "usd": 1.5e9, "months": 30,
@@ -178,6 +186,8 @@ static func start_units(c: CountryState, id: String) -> int:
 ## "" if this country can build it, else why not.
 static func available(c: CountryState, id: String) -> String:
 	var s := spec(id)
+	if s.has("tech") and not (c.idx == Game.player and Tech.has(str(s.tech))):
+		return "Needs research: %s" % str(Tech.ALL[str(s.tech)].title)
 	if bool(s.get("coast", false)) and World.landlocked(c.idx):
 		return "Your country has no coastline"
 	if id == "nuclear_reactor" and (c.population < 4e6 or Economy.income_level(c.gdp_per_capita()) < 0.3):

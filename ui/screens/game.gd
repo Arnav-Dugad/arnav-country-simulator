@@ -127,6 +127,13 @@ func _ready() -> void:
 		Haptics.success()
 		Audio.play("success", -4.0)
 		_confetti())
+	Game.tech_news.connect(func(n: Dictionary) -> void:
+		_notify(str(n.text), str(n.icon), DS.GOLD if bool(n.first) else (DS.ACCENT if bool(n.good) else DS.ORANGE), true, false)
+		if bool(n.first):
+			map.celebrate("fireworks", Game.player)
+			Audio.play("fanfare", -5.0)
+		if _current == "build":
+			_pages["build"].refresh())
 	Game.world_war_news.connect(func(h: Dictionary) -> void:
 		map.refresh_war_marks()
 		if bool(h.get("start", false)):

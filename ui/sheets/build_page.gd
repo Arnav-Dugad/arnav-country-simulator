@@ -8,7 +8,7 @@ var _speed: Label
 var _filter: SegmentedControl
 var _list: VBoxContainer
 var _mode := 0
-var _tab := 0               # 0 build, 1 defence, 2 programmes
+var _tab := 0               # 0 build, 1 defence, 2 research, 3 programmes
 var _tabs: SegmentedControl
 var _prog_box: VBoxContainer
 var _units: VBoxContainer
@@ -21,7 +21,7 @@ func _init() -> void:
 
 func _build() -> void:
 	add_child(Illustration.banner("construction", "crane", DS.ORANGE, 124.0))
-	_tabs = SegmentedControl.new().setup(["Build", "Defence", "Programmes"], [], 0)
+	_tabs = SegmentedControl.new().setup(["Build", "Defence", "Research", "Projects"], [], 0)
 	_tabs.plain = true
 	_tabs.compact = false
 	_tabs.fill = true
@@ -56,9 +56,12 @@ func refresh() -> void:
 	var c := Game.me()
 	if c == null:
 		return
-	_prog_box.visible = _tab == 2
-	_units.visible = _tab != 2
-	if _tab != 2:
+	_prog_box.visible = _tab == 3
+	_units.visible = _tab != 3
+	if _tab == 2:
+		_fill_research(c)
+		return
+	if _tab != 3:
 		_fill_units(c)
 		return
 	var building := Projects.count_building(c)
@@ -421,3 +424,107 @@ func _demolish(id: String) -> void:
 		m.dismiss()
 		refresh())
 	m.choice("Cancel", "", &"GhostButton", m.dismiss)
+
+
+# ------------------------------------------------------------------ research ---
+func _fill_research(c: CountryState) -> void:
+	for ch in _units.get_children():
+		ch.queue_free()
+	var rp := Tech.income(c)
+	var head := PanelContainer.new()
+	head.theme_type_variation = &"GroupPanel"
+	_units.add_child(head)
+	var hv := VBoxContainer.new()
+	hv.add_theme_constant_override(&"separation", DS.S2)
+	head.add_child(hv)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override(&"separation", DS.S3)
+	hv.add_child(row)
+	row.add_child(ListRow.icon_tile("flask-conical", DS.PURPLE))
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override(&"separation", 0)
+	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(col)
+	var t := Label.new()
+	t.theme_type_variation = &"Headline"
+	var cur := str(Tech.st().current)
+	t.text = str(Tech.ALL[cur].title) if cur != "" else "Choose what to research"
+	t.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	t.custom_minimum_size = Vector2(40, 0)
+	col.add_child(t)
+	var sub := Label.new()
+	sub.theme_type_variation = &"Caption"
+	sub.text = ("About %d months to go  ·  %s research points a month" % [Tech.months_left(cur), String.num(rp, 1)]) if cur != "" \
+		else "%s research points a month. Tap any technology below." % String.num(rp, 1)
+	sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	sub.custom_minimum_size = Vector2(40, 0)
+	col.add_child(sub)
+	if cur != "":
+		var frac := float(Tech.st().progress) / float(Tech.ALL[cur].cost)
+		var bar := Control.new()
+		bar.custom_minimum_size = Vector2(0, 6)
+		bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		bar.draw.connect(func() -> void:
+			bar.draw_style_box(get_theme_stylebox(&"track", &"AppSlider"), Rect2(0, 0, bar.size.x, 6))
+			var f: StyleBoxFlat = (get_theme_stylebox(&"fill", &"AppSlider") as StyleBoxFlat).duplicate()
+			f.bg_color = DS.PURPLE
+			bar.draw_style_box(f, Rect2(0, 0, maxf(bar.size.x * frac, 6.0), 6)))
+		hv.add_child(bar)
+	var why := Label.new()
+	why.theme_type_variation = &"Caption"
+	why.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	why.custom_minimum_size = Vector2(40, 0)
+	var parts: PackedStringArray = []
+	for term in Tech.income_terms(c):
+		if float(term[1]) >= 0.05:
+			parts.append("%s %s" % [str(term[0]).to_lower(), String.num(float(term[1]), 1)])
+	why.text = "From " + ", ".join(parts) + ". Raise the Research budget or build universities and labs for more."
+	hv.add_child(why)
+	# Space race standings.
+	var firsts: Dictionary = Tech.st().firsts
+	if not firsts.is_empty():
+		var sr := section("Space race", _units)
+		for id in Tech.ALL:
+			if firsts.has(id):
+				var i := World.index_of(str(firsts[id]))
+				var r := ListRow.new().setup(str(Tech.ALL[id].title), "First: %s" % World.map.names[i])
+				r.set_leading(ListRow.icon_tile(str(Tech.ALL[id].icon), DS.GOLD if i == Game.player else DS.TEXT_3))
+				sr.add_child(r)
+	for br in Tech.BRANCHES:
+		var box := section(br, _units)
+		for id in Tech.ALL:
+			if str(Tech.ALL[id].branch) == br:
+				box.add_child(_tech_row(str(id)))
+
+
+func _tech_row(id: String) -> Control:
+	var tt: Dictionary = Tech.ALL[id]
+	var done := Tech.has(id)
+	var can := Tech.can_research(id)
+	var cur := str(Tech.st().current) == id
+	var sub := str(tt.desc)
+	if done:
+		sub = "Researched  ·  " + sub
+	elif cur:
+		sub = "Researching  ·  about %d months" % Tech.months_left(id)
+	elif not can:
+		var need: PackedStringArray = []
+		for r in tt.req:
+			if not Tech.has(str(r)):
+				need.append(str(Tech.ALL[str(r)].title))
+		sub = "Needs " + " and ".join(need)
+	else:
+		sub = "%d points (about %d months)  ·  %s" % [int(tt.cost), Tech.months_left(id), sub]
+	if tt.has("unlock") and not done:
+		sub += "  ·  unlocks a new build"
+	var row := ListRow.new().setup(str(tt.title), sub, "›" if can and not cur else "")
+	row.subtitle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	row.subtitle_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	var tint := DS.GREEN if done else (DS.PURPLE if cur else (DS.ACCENT if can else DS.TEXT_3))
+	row.set_leading(ListRow.icon_tile(str(tt.icon), tint))
+	if can and not cur:
+		row.tapped.connect(func() -> void:
+			Tech.choose(id)
+			Haptics.select()
+			refresh())
+	return row

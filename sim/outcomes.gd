@@ -44,6 +44,8 @@ static func life_target(c: CountryState) -> float:
 		t += float(Builds.modifiers(c).get("life", 0.0))
 	if not c.taxes.is_empty():
 		t += float(Taxes.modifiers(c).get("life", 0.0))
+	if c.idx == Game.player and Game.dip.has("tech"):
+		t += float(Tech.modifiers().get("life", 0.0))
 	return clampf(t, 40.0, 90.0)
 
 

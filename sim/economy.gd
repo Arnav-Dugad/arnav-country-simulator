@@ -409,6 +409,14 @@ static func tax_yield(rate: float, k: float) -> float:
 const BUILD_FX_SCALE := 3.5
 
 
+# ---------------------------------------------------------------- research ---
+# See sim/tech.gd. Research points (RP) a month.
+const RP_PER_RESEARCH := 3.0     # per % of GDP of research effort (spending x research share)
+const RP_LABS := 4.0             # at full university and lab coverage
+const RP_SCALE := 1.5            # per factor of 10 in GDP above $10B (big economies research more)
+const RP_AI_SPACE := 4.0         # AI powers' space-race points a month at a $1T economy
+
+
 # --------------------------------------------------------------------- war ---
 # See sim/war.gd. Shares are of a country's territory (0..1).
 const WAR_DECLARE_CAPITAL := 30.0

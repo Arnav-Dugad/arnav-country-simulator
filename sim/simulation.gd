@@ -27,6 +27,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 	var px := Projects.modifiers(c)
 	var bx := Builds.modifiers(c) if not c.builds.is_empty() else {}
 	var txm := Taxes.modifiers(c)
+	var tm: Dictionary = Tech.modifiers() if c.idx == Game.player and Game.has_game() else {}
 	var wx: Dictionary = War.effects() if c.idx == Game.player and Game.has_game() and War.at_war() else {}
 	var mx := Game.markets.effects(c)
 	var tx := Treaties.modifiers(c) if c.idx == Game.player else {}
@@ -69,6 +70,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Projects you built", float(px.get("growth", 0.0))],
 		["Things you built", float(bx.get("growth", 0.0))],
 		["Other taxes", float(txm.get("growth", 0.0))],
+		["Technology", float(tm.get("growth", 0.0))],
 		["War", float(wx.get("growth", 0.0))],
 		["Construction work", float(px.get("build_growth", 0.0)) + float(bx.get("build_growth", 0.0))],
 	]
@@ -101,6 +103,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Projects you built", float(px.get("inflation", 0.0))],
 		["Things you built", float(bx.get("inflation", 0.0))],
 		["Other taxes", float(txm.get("inflation", 0.0))],
+		["Technology", float(tm.get("inflation", 0.0))],
 		["War", float(wx.get("inflation", 0.0))],
 	]
 	var pi := clampf(_sum(pi_terms), -5.0, 500.0)
@@ -121,6 +124,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Projects you built", float(px.get("unemployment", 0.0))],
 		["Things you built", float(bx.get("unemployment", 0.0))],
 		["Other taxes", float(txm.get("unemployment", 0.0))],
+		["Technology", float(tm.get("unemployment", 0.0))],
 		["War mobilization", float(wx.get("unemployment", 0.0))],
 		["Construction work", float(px.get("build_jobs", 0.0)) + float(bx.get("build_jobs", 0.0))],
 	]
@@ -181,6 +185,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Projects you built", float(px.get("happiness", 0.0))],
 		["Things you built", float(bx.get("happiness", 0.0))],
 		["Other taxes", float(txm.get("happiness", 0.0))],
+		["Technology", float(tm.get("happiness", 0.0))],
 		["War", float(wx.get("happiness", 0.0))],
 	]
 	b.gdp_pc = float(b.gdp_pc) + (real_pc - float(b.gdp_pc)) * E.INCOME_ADAPTATION
@@ -216,6 +221,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Jobs", -0.3 * (c.unemployment - float(b.unemployment))],
 		["Inequality", -E.INEQ_STABILITY * d_gini],
 		["Foreign threats", float(sec.stability)],
+		["Technology", float(tm.get("stability", 0.0))],
 		["War", float(wx.get("stability", 0.0))],
 		["Recent events", float(c.shocks.stability)],
 		["Laws & reforms", float(lx.get("stability", 0.0))],
@@ -228,7 +234,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 	c.stability += (st - c.stability) * E.STABILITY_ADJUST
 
 	var mil := E.military_index(c.spending * c.budget.get("military", 0.0))
-	mil = clampf(mil + float(bx.get("mil", 0.0)), 1.0, 100.0)    # forces you've built (or demolished)
+	mil = clampf(mil + float(bx.get("mil", 0.0)) + float(tm.get("mil", 0.0)), 1.0, 100.0)    # forces built, technology
 	c.military += (mil - c.military) * E.MILITARY_ADJUST
 
 	if record:
