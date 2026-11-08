@@ -31,9 +31,21 @@ func _ready() -> void:
 	_layout.call_deferred()
 	get_tree().process_frame.connect(_layout, CONNECT_ONE_SHOT)
 	Audio.music_start("menu")
+	CloudSync.status_changed.connect(_update_cloud_line)
 	get_tree().create_timer(0.7).timeout.connect(func() -> void:
 		if is_inside_tree():
 			WhatsNew.maybe_show(self))
+
+
+var _cloud_line: Label
+
+
+func _update_cloud_line() -> void:
+	if not is_instance_valid(_cloud_line):
+		return
+	var st := CloudSync.state()
+	_cloud_line.text = "%s  ·  %s" % [str(st.title), str(st.caption)] if str(st.key) != "ok" else "Cloud: %s" % str(st.caption).to_lower()
+	_cloud_line.add_theme_color_override(&"font_color", st.color if str(st.key) != "ok" else DS.TEXT_3)
 
 
 func _process(delta: float) -> void:
@@ -65,6 +77,14 @@ func _build() -> void:
 	sub.theme_type_variation = &"Footnote"
 	sub.text = "Welcome back, leader."
 	titles.add_child(sub)
+	if Firebase.enabled() and SaveManager.has_any():
+		_cloud_line = Label.new()
+		_cloud_line.theme_type_variation = &"Caption"
+		_cloud_line.clip_text = true
+		_cloud_line.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		_cloud_line.custom_minimum_size = Vector2(60, 0)
+		titles.add_child(_cloud_line)
+		_update_cloud_line()
 	var gear := AppButton.make("", &"IconButton", "settings")
 	gear.custom_minimum_size = Vector2(DS.MIN_TOUCH, DS.MIN_TOUCH)
 	gear.size_flags_vertical = Control.SIZE_SHRINK_CENTER

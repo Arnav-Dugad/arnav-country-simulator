@@ -217,6 +217,28 @@ static func _ago(t: int) -> String:
 	return "%d days ago" % int(mins / 1440.0)
 
 
+## The sync state for UIs: {key, title, caption, color, icon}.
+func state() -> Dictionary:
+	if not Firebase.enabled():
+		return {"key": "off", "title": "Offline mode", "caption": "Saves stay on this device", "color": DS.TEXT_3, "icon": "cloud-off"}
+	if not Firebase.signed_in():
+		return {"key": "off", "title": "Not backed up", "caption": "Sign in or play as a guest to keep your saves safe", "color": DS.ORANGE, "icon": "cloud-off"}
+	if busy:
+		return {"key": "sync", "title": "Syncing…", "caption": "Backing up your saves", "color": DS.ACCENT, "icon": "refresh-cw"}
+	if has_conflicts():
+		return {"key": "warn", "title": "Choose a version", "caption": "A save changed on two devices", "color": DS.ORANGE, "icon": "triangle-alert"}
+	if not online:
+		return {"key": "offline", "title": "Waiting for a connection", "caption": "%d %s will upload when you're back online" % [pending(), "save" if pending() == 1 else "saves"],
+			"color": DS.ORANGE, "icon": "wifi-off"}
+	if last_error != "":
+		return {"key": "warn", "title": "Sync problem", "caption": last_error, "color": DS.RED, "icon": "triangle-alert"}
+	if pending() > 0:
+		return {"key": "sync", "title": "Uploading soon", "caption": "%d %s waiting" % [pending(), "save" if pending() == 1 else "saves"], "color": DS.ACCENT, "icon": "cloud-upload"}
+	if last_sync > 0:
+		return {"key": "ok", "title": "Backed up", "caption": "Last synced %s" % _ago(last_sync), "color": DS.GREEN, "icon": "cloud"}
+	return {"key": "ok", "title": "Ready to sync", "caption": "Your saves will back up automatically", "color": DS.ACCENT, "icon": "cloud"}
+
+
 func status_text() -> String:
 	if not Firebase.enabled():
 		return "Cloud save is not set up in this build."

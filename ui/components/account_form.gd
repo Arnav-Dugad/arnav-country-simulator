@@ -10,6 +10,7 @@ var _mail: LineEdit
 var _pw: LineEdit
 var _msg: Label
 var _busy := false
+var _go: Control
 
 
 ## Opens the form. (Loaded by path rather than by class name: a static function
@@ -28,6 +29,9 @@ func _ready() -> void:
 	_mail = LineEdit.new()
 	_mail.placeholder_text = "Email address"
 	_mail.virtual_keyboard_type = LineEdit.KEYBOARD_TYPE_EMAIL_ADDRESS
+	if Firebase.email != "" and not create:
+		_mail.text = Firebase.email
+	_mail.text_submitted.connect(func(_t: String) -> void: _pw.grab_focus())
 	content.add_child(_mail)
 	_pw = LineEdit.new()
 	_pw.placeholder_text = "Password (at least 6 characters)"
@@ -35,11 +39,14 @@ func _ready() -> void:
 	_pw.virtual_keyboard_type = LineEdit.KEYBOARD_TYPE_PASSWORD
 	_pw.text_submitted.connect(func(_t: String) -> void: _submit())
 	content.add_child(_pw)
+	var show := AppToggle.new().setup("Show password", false)
+	show.toggled.connect(func(on: bool) -> void: _pw.secret = not on)
+	content.add_child(show)
 	_msg = Label.new()
 	_msg.theme_type_variation = &"Footnote"
 	_msg.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	content.add_child(_msg)
-	choice("Create account" if create else "Sign in", "", &"PrimaryButton", _submit)
+	_go = choice("Create account" if create else "Sign in", "", &"PrimaryButton", _submit)
 	if not create:
 		choice("Forgot password?", "", &"GhostButton", _reset)
 	choice("Cancel", "", &"GhostButton", dismiss)
@@ -57,6 +64,7 @@ func _submit() -> void:
 		_show("Use at least 6 characters for your password.", false)
 		return
 	_busy = true
+	_set_go_enabled(false)
 	_show("Just a moment…", true)
 	var r: Dictionary
 	if create:
@@ -64,6 +72,7 @@ func _submit() -> void:
 	else:
 		r = await Firebase.sign_in_email(mail, _pw.text)
 	_busy = false
+	_set_go_enabled(true)
 	if r.ok:
 		Haptics.success()
 		succeeded.emit()
@@ -73,8 +82,18 @@ func _submit() -> void:
 		Haptics.warning()
 
 
+func _set_go_enabled(on: bool) -> void:
+	if is_instance_valid(_go):
+		for b in _go.find_children("*", "Button", true, false):
+			(b as Button).disabled = not on
+
+
 func _reset() -> void:
-	var r: Dictionary = await Firebase.send_password_reset(_mail.text.strip_edges())
+	var mail := _mail.text.strip_edges()
+	if not mail.contains("@"):
+		_show("Type your email above first, then tap Forgot password.", false)
+		return
+	var r: Dictionary = await Firebase.send_password_reset(mail)
 	_show("We sent a reset link to your email." if r.ok else str(r.error), r.ok)
 
 
