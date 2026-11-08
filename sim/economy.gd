@@ -559,6 +559,14 @@ const TOUR_BID_MONTHS := 12        # from bid to vote
 const TOUR_SOFT_RELATIONS := 0.01  # relations a month with everyone per soft power point gained
 
 
+# --------------------------------------------------------- fisheries & oceans ---
+# See sim/fisheries.gd.
+const FISH_COLLAPSE_AT := 25.0      # stock health below which a collapse happens
+const FISH_COLLAPSE_LOSS := 0.6     # catch lost while collapsed
+const FISH_COLLAPSE_MONTHS := 60
+const FISH_GROWTH := 0.5            # growth points per (catch change × fishing share of GDP)
+
+
 # ---------------------------------------------------------- critical minerals ---
 # See sim/minerals.gd.
 const MIN_DRIFT := 0.003            # monthly price drift (the world electrifies)

@@ -47,6 +47,7 @@ func refresh() -> void:
 	note("Tap a sector to see what drives it and to subsidise it. Competitive sectors grow and hire; struggling ones shrink. Skills, research, infrastructure and clean government help every sector.", box)
 	_minerals()
 	_food()
+	_fisheries()
 	_automation()
 	# Partners.
 	var pb := section("Biggest trading partners", _box)
@@ -349,3 +350,45 @@ func _mineral_actions(m: String) -> void:
 		mm.dismiss()
 		refresh())
 	mm.choice("Close", "", &"GhostButton", mm.dismiss)
+
+
+# --------------------------------------------------------- fisheries & oceans ---
+func _fisheries() -> void:
+	if not Fisheries.coastal():
+		return
+	var box := section("Fisheries & oceans", _box)
+	var s := Fisheries.st()
+	var v := Fisheries.stock()
+	var d := v - float(s.stock0)
+	var hl := ListRow.new().setup("Fish stocks: %s" % Fisheries.label(v),
+		"%d / 100%s  ·  fishing is %s of the economy" % [roundi(v), ("  ·  %+d since you took office" % roundi(d)) if absf(d) >= 1.0 else "",
+		DS.pct(Fisheries.share_gdp(), 1)] + ("  ·  the fishery has collapsed" if Fisheries.collapsed() else ""))
+	hl.subtitle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	hl.subtitle_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	hl.set_leading(ListRow.icon_tile("fish", Fisheries.color(v)))
+	box.add_child(hl)
+	box.add_child(meter(v / 100.0, 0.0, Fisheries.color(v), 6.0))
+	var ql := PackedStringArray()
+	for q in Fisheries.QUOTAS:
+		ql.append(str(Fisheries.QUOTA_INFO[q].title))
+	var seg := SegmentedControl.new().setup(ql, [], Fisheries.QUOTAS.find(str(s.quota)))
+	seg.fill = true
+	seg.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	seg.changed.connect(func(k: int) -> void:
+		Fisheries.set_quota(str(Fisheries.QUOTAS[k]))
+		Simulation.update_finances(Game.me())
+		Haptics.select()
+		refresh())
+	box.add_child(seg)
+	var ml := PackedStringArray()
+	for p in Fisheries.MPAS:
+		ml.append("%d%% protected" % int(p) if int(p) > 0 else "No reserves")
+	var mseg := SegmentedControl.new().setup(ml, [], Fisheries.MPAS.find(int(s.mpa)))
+	mseg.fill = true
+	mseg.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	mseg.changed.connect(func(k: int) -> void:
+		Fisheries.set_mpa(int(Fisheries.MPAS[k]))
+		Haptics.select()
+		refresh())
+	box.add_child(mseg)
+	note("The catch is %d%% of what it was when you took office. Fishing hard pays now but empties the sea; below 25 a stock can collapse for years. Marine reserves let fish recover and bring divers." % roundi(Fisheries.catch_index() * 100.0), box)

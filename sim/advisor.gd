@@ -108,6 +108,11 @@ static func advice(c: CountryState) -> Array:
 			"Water stress is up to %s of 5. Desalination, drip irrigation and recycling help." % String.num(Water.stress(), 1), "diplomacy", "droplets")
 		it3["section"] = "Water"
 		out.append(it3)
+	if c.idx == Game.player and Game.dip.has("fish") and Fisheries.coastal() and Fisheries.stock() < 38.0 and not Fisheries.collapsed() and str(Fisheries.st().quota) != "rebuild":
+		var itf := _item(2 if Fisheries.stock() < 30.0 else 1, "Fish stocks near collapse (%d / 100)" % roundi(Fisheries.stock()),
+			"Below 25 the fishery collapses for years. Switch the quota to Rebuild or protect some waters.", "industries", "fish")
+		itf["section"] = "Fisheries & oceans"
+		out.append(itf)
 	if c.idx == Game.player and Game.dip.has("edu") and Education.drain() > 15.0 and not Education.has_reform("return"):
 		var it4 := _item(0, "Your graduates are leaving",
 			"%d%% of graduates emigrate each year. Better universities and talent return grants keep them." % roundi(Education.drain()), "population", "plane-takeoff")

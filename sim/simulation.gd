@@ -53,6 +53,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 	var slx: Dictionary = SeaLanes.modifiers() if c.idx == Game.player and Game.has_game() else {}
 	var aqx: Dictionary = Air.modifiers() if c.idx == Game.player and Game.has_game() else {}
 	var mnx: Dictionary = Minerals.modifiers() if c.idx == Game.player and Game.has_game() else {}
+	var fsx: Dictionary = Fisheries.modifiers() if c.idx == Game.player and Game.has_game() else {}
 	var anx: Dictionary = Annexation.unrest() if c.idx == Game.player and Game.has_game() and Game.dip.has("integration") else {}
 	var wx: Dictionary = War.effects() if c.idx == Game.player and Game.has_game() and War.at_war() else {}
 	var mx := Game.markets.effects(c)
@@ -113,6 +114,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Sea lanes", float(slx.get("growth", 0.0))],
 		["Air quality", float(aqx.get("growth", 0.0))],
 		["Critical minerals", float(mnx.get("growth", 0.0))],
+		["Fisheries", float(fsx.get("growth", 0.0))],
 		["Doomsday Clock", float(nkx.get("growth", 0.0))],
 		["Industries", float(idx_m.get("growth", 0.0))],
 		["Tourism", float(tox.get("growth", 0.0))],
@@ -262,6 +264,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Remittances", float(dsx.get("happiness", 0.0))],
 		["Air quality", float(aqx.get("happiness", 0.0))],
 		["Critical minerals", float(mnx.get("happiness", 0.0))],
+		["Fisheries", float(fsx.get("happiness", 0.0))],
 		["Housing & families", float(ppx.get("happiness", 0.0))],
 		["Stock market", float(enx.get("happiness", 0.0))],
 		["Media", float(mdx.get("happiness", 0.0))],
@@ -296,6 +299,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Farm support", float(fdx.get("approval", 0.0))],
 		["Remittances", float(dsx.get("approval", 0.0))],
 		["Digital money", float(dgx.get("approval", 0.0))],
+		["Fisheries", float(fsx.get("approval", 0.0))],
 		["Your ministers", float(cx.get("approval", 0.0))],
 		["Media", float(mdx.get("approval", 0.0))],
 	]

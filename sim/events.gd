@@ -615,6 +615,15 @@ const EVENTS := [
 				"effects": {"approval": -0.5, "happiness": 0.5}},
 			{"label": "Wait for the wind", "detail": "No cost · anger grows",
 				"effects": {"happiness": -1.5, "approval": -1.5}}]},
+	{"id": "foreign_fleet", "title": "Foreign trawlers in your waters", "icon": "fish", "tint": "orange", "weight": 1.2, "cond": "fleet",
+		"body": "A fleet of distant-water trawlers has been caught fishing illegally off {country}'s coast, emptying the waters local fishers depend on.",
+		"choices": [
+			{"label": "Send the coast guard", "detail": "Costs 0.05% of GDP · boats seized, pride at home",
+				"effects": {"cost": 0.05, "approval": 1.5, "fish": 3.0}},
+			{"label": "Lodge a protest", "detail": "No cost · the trawlers move a little further out",
+				"effects": {"fish": -1.0}},
+			{"label": "Sell them fishing licences", "detail": "Money now · fishers furious, stocks fall",
+				"effects": {"cost": -0.05, "approval": -1.5, "fish": -5.0}}]},
 	{"id": "leadership_challenge", "title": "A leadership challenge", "icon": "swords", "tint": "red", "weight": 4.0, "cond": "spill",
 		"body": "With the polls this bad, rebels in your own party have the signatures to force a vote on your leadership. Lose it and you're out.",
 		"choices": [
@@ -954,6 +963,9 @@ static func roll(rng: RandomNumberGenerator) -> Dictionary:
 			"cb_overruled":
 				if me.cb_auto or me.interest_rate > Economy.neutral_rate(me.core_inflation) - 1.0:
 					continue
+			"fleet":
+				if not Game.dip.has("fish") or World.landlocked(Game.player) or Fisheries.share_gdp() < 0.8:
+					continue
 			"smog":
 				if not Game.dip.has("air") or Air.pm() < 45.0 or not Game.month in [11, 12, 1]:
 					continue
@@ -1162,6 +1174,9 @@ static func apply_effects(fx: Dictionary, other: int, ev_id: String = "") -> voi
 				Water.apply(str(v))
 			"spill":
 				spill(str(v))
+			"fish":
+				if Game.dip.has("fish"):
+					Fisheries.st().stock = clampf(float(Fisheries.st().stock) + float(v), 5.0, 100.0)
 			"health":
 				if str(v) == "train":
 					Health.set_train("more" if str(Health.st().train) == "current" else "double")
