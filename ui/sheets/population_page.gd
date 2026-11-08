@@ -26,13 +26,41 @@ func refresh() -> void:
 	var dp := c.population / maxf(float(s.pop0), 1.0) - 1.0
 	_box.add_child(photo_header("city", "%s people" % DS.compact(c.population), "%s since you took office  ·  %d%% live in cities" % [
 		("+" if dp >= 0.0 else "−") + "%s%%" % String.num(absf(dp) * 100.0, 1), roundi(Population.urban())], 140.0))
-	var g := grid(_box, 2)
+	# At a glance: tap a tile to jump to its section.
+	var g := grid(_box, 3 if Settings.text_scale < 1.0 else 2)
+	var u := Regions.unity()
+	var wt := Health.wait()
+	var w0 := float(Health.st().wait0)
+	var aq := Air.pm()
+	var sc := Education.score()
 	var tfr := Population.fertility()
-	g.add_child(_tile("baby", DS.TEAL, "Births", String.num(tfr, 2), "children per woman" + ("  ·  below 2.1" if tfr < 2.1 else "")))
 	var af := Population.afford()
-	g.add_child(_tile("house", DS.GREEN if af >= 95.0 else (DS.ORANGE if af >= 80.0 else DS.RED), "Housing", "%d" % roundi(af),
-		"affordability  ·  100 = at start"))
-	_box.add_child(jump_bar(["Regions", "Health system", "Air quality", "Schools & universities", "Diaspora & remittances", "Age structure", "Family policy", "Cities & housing"]))
+	for t in [
+		["map-pin", DS.GREEN if u >= 70.0 else (DS.ACCENT if u >= 55.0 else DS.ORANGE), "Unity", "%d" % roundi(u), "Regions"],
+		["hourglass", DS.GREEN if wt <= w0 else (DS.ORANGE if wt <= w0 * 1.25 else DS.RED), "Waits", "%d wk" % roundi(wt), "Health system"],
+		["wind", Air.color(aq), "Air", "%d µg" % roundi(aq), "Air quality"],
+		["school", DS.GREEN if sc >= 490.0 else (DS.ACCENT if sc >= 450.0 else DS.ORANGE), "Schools", "%d" % roundi(sc), "Schools & universities"],
+		["baby", DS.TEAL, "Births", String.num(tfr, 1), "Family policy"],
+		["house", DS.GREEN if af >= 95.0 else (DS.ORANGE if af >= 80.0 else DS.RED), "Housing", "%d" % roundi(af), "Cities & housing"],
+	]:
+		var tile := _tile(str(t[0]), t[1], str(t[2]), str(t[3]), "")
+		var sec := str(t[4])
+		tile.mouse_filter = Control.MOUSE_FILTER_PASS
+		var stt := {"p": Vector2.ZERO, "down": false}
+		tile.gui_input.connect(func(e: InputEvent) -> void:
+			if e is InputEventMouseButton and e.button_index == MOUSE_BUTTON_LEFT:
+				if e.pressed:
+					stt.p = e.global_position
+					stt.down = true
+				elif stt.down:
+					stt.down = false
+					if e.global_position.distance_to(stt.p) < 10.0:
+						Haptics.tap()
+						scroll_to_section(sec)
+			elif e is InputEventMouseMotion and stt.down and e.global_position.distance_to(stt.p) >= 10.0:
+				stt.down = false)
+		g.add_child(tile)
+	_box.add_child(jump_bar(["Diaspora & remittances", "Age structure", "Regions", "Health system", "Air quality", "Schools & universities", "Family policy", "Cities & housing"]))
 	_regions()
 	_health()
 	_air()
@@ -144,6 +172,7 @@ func _tile(icon: String, color: Color, head: String, value: String, sub: String)
 	var c := Label.new()
 	c.theme_type_variation = &"Caption"
 	c.text = sub
+	c.visible = sub != ""
 	c.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	c.custom_minimum_size = Vector2(30, 0)
 	v.add_child(c)
