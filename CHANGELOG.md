@@ -2,6 +2,10 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.52.1] - 2026-11-08
+
+- **Slower, calmer pace:** time now moves three times slower. At 1× a month takes 6 seconds (a year is about a minute and a quarter), at 2× 3 seconds and at 4× 1.5 seconds
+
 ## [0.52.0] - 2026-11-08
 
 - **Privacy policy:** a plain-language page on what the app stores (very little) and how to delete it, linked from Settings › About & updates

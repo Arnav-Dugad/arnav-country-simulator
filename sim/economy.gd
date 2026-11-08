@@ -17,7 +17,9 @@ extends RefCounted
 # ------------------------------------------------------------------ TIME -----
 const MONTHS_PER_YEAR := 12.0
 ## Real seconds per in-game month at 1x speed (2x, 4x divide this).
-const SECONDS_PER_MONTH := 2.0
+## 6 s: a year takes about a minute and a quarter at 1x, so there's time to read
+## the map and react (players found 2 s far too fast).
+const SECONDS_PER_MONTH := 6.0
 
 # ----------------------------------------------------------------- GROWTH ----
 ## How fast actual growth chases its target each month (0..1).
