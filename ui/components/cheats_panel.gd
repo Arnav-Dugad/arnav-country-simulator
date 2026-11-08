@@ -357,6 +357,38 @@ static var CATEGORIES := [
 			var st := Climate.state()
 			st.warming = maxf(float(st.warming) - 0.25, Climate.start_warming() - 0.1)],
 	]],
+	["Society", [
+		["Unite the nation", "map-pin", "Every region loyal again", DS.GREEN, func() -> void:
+			for g in Regions.list():
+				if not bool(g.lost):
+					g.loyalty = maxf(float(g.loyalty), 85.0)
+					g.tension = 0],
+		["World-class schools", "graduation-cap", "Test scores +60, universities climb", DS.ACCENT, func() -> void:
+			var e := Education.st()
+			e.score = float(e.score) + 60.0
+			e.q = float(e.q) + 25.0
+			e.fund = "world"
+			for rid in ["teachers", "curriculum", "digital"]:
+				(e.reforms as Dictionary)[rid] = Game.months_played],
+		["Fresh water", "droplets", "Water stress down a full point", DS.TEAL, func() -> void:
+			var w := Water.st()
+			w.s = maxf(float(w.s) - 1.0, 0.0)
+			w.desal = mini(int(w.desal) + 4, Economy.WAT_DESAL_MAX)],
+		["Blue skies", "wind", "Air pollution halved", DS.GREEN, func() -> void:
+			var a := Air.st()
+			a.pm = float(a.pm) * 0.5
+			for id in Air.POLICIES:
+				if Air.available(str(id)) and not Air.has(str(id)):
+					(a.pol as Dictionary)[id] = Game.months_played],
+		["Short waits", "hourglass", "Twice the doctors, waits halved", DS.GREEN, func() -> void:
+			var h := Health.st()
+			h.docs = float(h.docs) * 2.0
+			h.wait = float(h.wait) * 0.5],
+		["Finish my wonder", "landmark", "Your world wonder completes now", DS.GOLD, func() -> void:
+			var mw := Wonders.mine()
+			if not mw.is_empty():
+				mw.start = Game.months_played - int(Wonders.ALL[str(mw.id)].months)],
+	]],
 	["Building", [
 		["Finish everything", "hammer", "All construction completes now", DS.ORANGE, func() -> void:
 			var m := Game.me()
