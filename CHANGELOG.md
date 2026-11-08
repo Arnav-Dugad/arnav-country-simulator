@@ -10,8 +10,6 @@ The release workflow publishes the section that matches the tag as the GitHub Re
 - **Host world events:** bid for a World Expo, a Football World Cup or the Summer Games. Win the vote and you spend years preparing, then enjoy a year in the spotlight with fireworks, pride and tourists
 - **Soft power:** a 0–100 score and a world rank. A higher score slowly warms every country toward you, while wars, media crackdowns and exposed spies cost you
 
-## [0.65.0] - 2026-11-08
-
 - **Spies & intelligence.** An Intelligence section on the World page, with a new AI-painted operations room
   - Set your agency's budget (Small to Massive). A bigger agency is stronger, runs more operations at once and catches more foreign spies
 - **Covert operations** from any country's page: gather intelligence (an edge in any war with them), steal technology (research points), sabotage, meddle in their politics, or arm their rebels

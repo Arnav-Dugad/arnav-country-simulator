@@ -135,9 +135,8 @@ jobs:
           ~/godot/godot --headless --path . --install-android-build-template --export-release "Android" "$OUT" || true
           if [ ! -s "$OUT" ]; then
             # Gradle's own download sometimes fails on GitHub (504): use the official Gradle server and retry.
-            P=android/build/gradle/wrapper/gradle-wrapper.properties
-            sed -i 's#github.com/gradle/gradle-distributions/releases/download/v[0-9.]*/#services.gradle.org/distributions/#' "$P"
-            grep distributionUrl "$P"
+            # Godot rewrites the wrapper URL on export, so seed the wrapper's cache instead.
+            python3 tools/ci_gradle_dist.py android/build/gradle/wrapper/gradle-wrapper.properties
             ~/godot/godot --headless --path . --export-release "Android" "$OUT"
           fi
           test -s "$OUT" || { echo "::error::Export produced no APK"; exit 1; }
