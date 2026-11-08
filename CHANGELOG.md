@@ -2,6 +2,11 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.96.0] - 2026-11-09
+
+- **What people are saying** (Economy): short quotes from invented citizens about whatever matters most right now (rents, hospital waits, the smog, a strike, a hit song), so you always know what to look at next
+- **New election promises:** shorter hospital waits, clean air and better schools, each judged at the next election
+
 ## [0.95.0] - 2026-11-09
 
 - **Culture exports** (Tourism): now and then a film, series, song, game or novel from your country becomes a worldwide hit (all titles invented)
