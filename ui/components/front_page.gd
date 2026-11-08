@@ -156,6 +156,11 @@ func build(r: Dictionary) -> FrontPage:
 	var row := HBoxContainer.new()
 	add_child(row)
 	_story(row, "THE PLANET", planet)
+	# History made this year (the biggest milestone).
+	for m in Game.dip.get("story", []):
+		if str(m.get("date", "")).ends_with(str(year)):
+			_story(row, "HISTORY MADE", str(m.text) + ".")
+			break
 	return self
 
 
