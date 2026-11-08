@@ -75,7 +75,11 @@ func _ready() -> void:
 	var grade := Economy.legacy_grade(score)
 	if not has_meta(&"recorded"):
 		set_meta(&"recorded", true)
+		data["score"] = score
 		Career.record(data, grade)
+		if grade == "A+":
+			Achievements.unlock("legendary")
+		Career.publish()
 		if Weekly.is_weekly(str(data.get("daily", ""))):
 			var wk := str(data.daily)
 			var better := Weekly.record(wk, score)

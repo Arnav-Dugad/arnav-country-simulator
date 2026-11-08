@@ -375,7 +375,7 @@ static func make_peace(i: int, terms: String) -> String:
 			text = "%s gives up the occupied land to %s" % [World.The_name(Game.player), World.the_name(i)]
 		_:
 			text = "Peace with %s on the old borders" % World.the_name(i)
-			Achievements.unlock("peacemaker")
+			Achievements.unlock("ceasefire")
 	wars().erase(str(i))
 	Game.relations[i] = -40.0
 	Game.relations_changed.emit()

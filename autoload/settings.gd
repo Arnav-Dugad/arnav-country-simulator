@@ -39,9 +39,10 @@ var leader_portrait: String = ""    # your portrait (assets/portraits key), "" =
 var learn_done: Array = []          # first-game checklist steps done (see Learn)
 var seen_version: String = ""       # app version last opened (WhatsNew)
 var coach_seen: Array = []          # pages whose first-visit tip was shown (Game coach marks)
+var friends: Array = []             # friend codes for the hall of fame
 
 const EXTRA_KEYS := ["decisions", "banners", "pause_full_sheet", "cheats", "last_difficulty",
-	"leader_name", "party_name", "party_color", "landscape", "leader_portrait", "learn_done", "seen_version", "coach_seen"]
+	"leader_name", "party_name", "party_color", "landscape", "leader_portrait", "learn_done", "seen_version", "coach_seen", "friends"]
 const PARTY_COLORS := [Color("0a84ff"), Color("30d158"), Color("ff453a"), Color("ff9f0a"), Color("bf5af2"), Color("64d2ff")]
 
 var _cfg := ConfigFile.new()

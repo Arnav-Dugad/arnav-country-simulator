@@ -32,6 +32,24 @@ service cloud.firestore {
         && request.resource.data.at is int;
     }
 
+    // All-time hall of fame: anyone can read; each player writes only their own entry.
+    match /legends/{userId} {
+      allow read: if true;
+      allow create, update: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.keys().hasOnly(['name', 'country', 'score', 'grade', 'points', 'rank', 'code', 'at'])
+        && request.resource.data.name is string && request.resource.data.name.size() <= 24
+        && request.resource.data.country is string && request.resource.data.country.size() <= 3
+        && request.resource.data.grade is string && request.resource.data.grade.size() <= 2
+        && request.resource.data.rank is string && request.resource.data.rank.size() <= 16
+        && request.resource.data.code is string && request.resource.data.code.size() <= 8
+        && request.resource.data.score is number
+        && request.resource.data.score >= 0 && request.resource.data.score <= 200
+        && request.resource.data.points is int
+        && request.resource.data.points >= 0 && request.resource.data.points <= 100000
+        && request.resource.data.at is int;
+    }
+
     // Deny everything else by default.
     match /{document=**} {
       allow read, write: if false;

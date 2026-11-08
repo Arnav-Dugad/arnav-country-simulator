@@ -167,7 +167,7 @@ static func mediate(k: String) -> String:
 			Game.relations[j] = clampf(Game.relations[j] + 2.0, -100.0, 100.0)
 	Game.relations_changed.emit()
 	Game.me().shocks.approval = float(Game.me().shocks.approval) + 2.0
-	Achievements.unlock("peacemaker")
+	Achievements.unlock("ceasefire")
 	Game.add_milestone("Brokered peace between %s and %s" % [World.map.names[int(w.a)], World.map.names[int(w.b)]], "flag", "gold")
 	return "Thanks to your mediation, " + str(r.text).left(1).to_lower() + str(r.text).substr(1)
 

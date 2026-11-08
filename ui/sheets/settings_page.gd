@@ -71,7 +71,7 @@ func _build_game_section() -> void:
 	var game := section("Game", _root)
 	_nav(game, "Save & load", "Slots, main menu, new game", "download", DS.ACCENT, func() -> void: _open("Save & load", _build_saves))
 	_nav(game, "Notifications", "How events and banners reach you", "bell", DS.RED, func() -> void: _open("Notifications", _build_notifications))
-	_ach_row = _nav(game, "Achievements", "%d of %d unlocked" % [Achievements.count(), Achievements.ALL.size()], "crown", DS.GOLD,
+	_ach_row = _nav(game, "Hall of fame", "%s  ·  %d of %d achievements" % [str(Achievements.rank()[0]), Achievements.count(), Achievements.total()], "crown", DS.GOLD,
 		func() -> void: achievements_requested.emit())
 	_nav(game, "Store", "Map themes, expansions (demo)", "sparkles", DS.ORANGE, func() -> void: store_requested.emit())
 	_nav(game, "Replay the guided tour", "", "map", DS.TEAL, func() -> void: tour_requested.emit())
@@ -127,7 +127,7 @@ func on_open() -> void:
 func refresh() -> void:
 	_refresh_profile()
 	if _ach_row:
-		_ach_row.subtitle_label.text = "%d of %d unlocked" % [Achievements.count(), Achievements.ALL.size()]
+		_ach_row.subtitle_label.text = "%s  ·  %d of %d achievements" % [str(Achievements.rank()[0]), Achievements.count(), Achievements.total()]
 	if _slots_box and is_instance_valid(_slots_box) and _slots_box.is_inside_tree():
 		_refresh_slots()
 

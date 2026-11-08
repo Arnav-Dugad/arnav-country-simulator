@@ -16,7 +16,10 @@ The release workflow publishes the section that matches the tag as the GitHub Re
 - **The United Nations:** your standing at the UN, campaigns for a Security Council seat, five kinds of resolution you can propose (with the permanent members' veto), and peacekeepers
 - **Black market & smuggling:** high taxes, tariffs, trade wars and bans feed a shadow economy that eats tax revenue. Fight back with a customs agency and crackdowns, or legalise cannabis, gambling or street trade and tax them
 - **The royal family or first family:** monarchs age, heirs marry, babies are born, jubilees are celebrated and scandals break. Kings and queens die or abdicate, and a deeply unpopular monarchy may face a referendum on becoming a republic. In republics, your own family is in the public eye
-- New achievement: Champions
+- **Hall of fame** (Settings › Hall of fame):
+  - **93 achievements** in eight categories (Economy, People, World, Science, Sport, Crises, Builder, Time), each bronze, silver, gold or platinum
+  - Points earn you a statesman rank, from Newcomer to Legend
+  - **Online leaderboards:** all-time best legacy, achievement points, the weekly challenge, and your friends. Share your friend code to compare careers
 
 ## [0.71.0] - 2026-11-08
 

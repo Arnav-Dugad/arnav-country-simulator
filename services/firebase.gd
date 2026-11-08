@@ -304,6 +304,69 @@ func top_weekly(week: String, n: int = 10) -> Dictionary:
 	return r
 
 
+# ------------------------------------------------------------ hall of fame -----
+## Your friend code: the first 6 characters of your account id, upper-case.
+func friend_code() -> String:
+	return uid.left(6).to_upper() if uid != "" else ""
+
+
+## Posts your best legacy and achievement points to the all-time board.
+func submit_legend(player_name: String, country: String, score: float, grade: String, pts: int, rank_title: String) -> Dictionary:
+	if not signed_in():
+		return _fail(0, "Not signed in")
+	var body := {"fields": {
+		"name": {"stringValue": player_name.left(24)},
+		"country": {"stringValue": country.left(3)},
+		"score": {"doubleValue": snappedf(clampf(score, 0.0, 200.0), 0.1)},
+		"grade": {"stringValue": grade.left(2)},
+		"points": {"integerValue": str(clampi(pts, 0, 100000))},
+		"rank": {"stringValue": rank_title.left(16)},
+		"code": {"stringValue": friend_code()},
+		"at": {"integerValue": str(int(Time.get_unix_time_from_system()))},
+	}}
+	var headers: PackedStringArray = await _auth_headers()
+	return await _http(_doc_url("legends/%s" % uid), HTTPClient.METHOD_PATCH, headers, JSON.stringify(body))
+
+
+## Top legends by "score" or "points"; with codes, only those friends.
+func top_legends(order: String = "score", n: int = 20, codes: Array = []) -> Dictionary:
+	var headers := PackedStringArray(["Content-Type: application/json"])
+	if signed_in():
+		headers = await _auth_headers()
+	var q := {"from": [{"collectionId": "legends"}], "limit": n}
+	if codes.is_empty():
+		q["orderBy"] = [{"field": {"fieldPath": order}, "direction": "DESCENDING"}]
+	else:
+		var vals: Array = []
+		for c in codes.slice(0, 10):
+			vals.append({"stringValue": str(c)})
+		q["where"] = {"fieldFilter": {"field": {"fieldPath": "code"}, "op": "IN", "value": {"arrayValue": {"values": vals}}}}
+	var r := await _http(_doc_url(":runQuery").replace("/:runQuery", ":runQuery"), HTTPClient.METHOD_POST, headers, JSON.stringify({"structuredQuery": q}))
+	if not r.ok:
+		return r
+	var out: Array = []
+	var rows: Variant = r.data
+	if rows is Array:
+		for row in rows:
+			var doc: Dictionary = row.get("document", {})
+			if doc.is_empty():
+				continue
+			var f: Dictionary = doc.get("fields", {})
+			var sv: Dictionary = f.get("score", {})
+			out.append({"name": str(f.get("name", {}).get("stringValue", "")),
+				"country": str(f.get("country", {}).get("stringValue", "")),
+				"score": float(sv.get("doubleValue", sv.get("integerValue", 0))),
+				"grade": str(f.get("grade", {}).get("stringValue", "")),
+				"points": int(str(f.get("points", {}).get("integerValue", "0"))),
+				"rank": str(f.get("rank", {}).get("stringValue", "")),
+				"code": str(f.get("code", {}).get("stringValue", "")),
+				"me": str(doc.get("name", "")).ends_with("/" + uid)})
+	if not codes.is_empty():
+		out.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return float(a[order]) > float(b[order]))
+	r.data = out
+	return r
+
+
 # ------------------------------------------------------------------ http -----
 func _http(url: String, method: int, headers: PackedStringArray, body: String = "") -> Dictionary:
 	var req := HTTPRequest.new()
