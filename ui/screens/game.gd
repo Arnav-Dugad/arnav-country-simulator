@@ -207,7 +207,7 @@ const COACH := {
 	"economy": ["Your nation at a glance", "This card sums up how things are going and what needs you most. Tap any number below to see what's moving it."],
 	"budget": ["Revenue, spending, balance", "Drag any slider below to change taxes and spending. The forecast shows what happens over the next year before you commit."],
 	"build": ["Build for the long run", "Projects cost money while they're built, put people to work, then lift the economy for decades. Pick one below and tap Build."],
-	"laws": ["Your cabinet", "Your ministers each have a strength and a weakness. Below them: corruption, then every law you can pass, with who will cheer and who will boo."],
+	"laws": ["Political capital", "The goodwill you spend on reforms, reshuffles and crackdowns. It grows every month with public support. Below: your cabinet, then every law with its cost and who will cheer or boo."],
 	"diplomacy": ["Where you stand in the world", "Your world rank in a few key numbers. Scroll for your rival, markets, climate and every country's attitude to you."],
 }
 
