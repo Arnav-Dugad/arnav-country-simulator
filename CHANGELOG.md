@@ -2,6 +2,10 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.57.0] - 2026-11-08
+
+- **Eight taxes to set.** Beside income and corporate tax, the Economy page now has (under "More taxes") a sales tax (VAT), property tax, payroll tax, fuel & carbon tax, import tariffs and a tobacco & alcohol tax. Each starts at a realistic rate for your country and has its own trade-offs: VAT raises the most but hits the poor, payroll tax costs jobs, fuel tax cuts emissions, tariffs shelter local firms but raise prices, and "sin" taxes make people healthier
+
 ## [0.56.0] - 2026-11-08
 
 - **Build exactly what you want, as many as you want.** The Build page has a new catalog of 41 things you build by the number: highways, rail lines, metro lines, airports and ports; solar, wind, gas, nuclear and hydro power; hospitals, clinics, care homes and water plants; schools, universities and labs; homes, police and fire stations, parks and prisons; industrial parks, data centres, chip factories and more; stadiums, museums and concert halls

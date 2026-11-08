@@ -79,6 +79,8 @@ static func co2_pc(c: CountryState) -> float:
 		cut *= 1.0 - float(CUTS[id]) * ramp(c, id)
 	if not c.builds.is_empty():
 		cut *= clampf(1.0 - float(Builds.modifiers(c).get("co2", 0.0)), 0.3, 1.3)
+	if not c.taxes.is_empty():
+		cut *= clampf(1.0 - float(Taxes.modifiers(c).get("co2", 0.0)), 0.6, 1.2)
 	return start * income * tech * cut
 
 

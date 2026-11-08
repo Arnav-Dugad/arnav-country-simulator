@@ -63,6 +63,8 @@ var laws_ver := 0      # bump when `laws` changes (invalidates the modifier cach
 var projects := {}     # id -> {state: building|done, progress (months), price (USD), start?}
 var projects_ver := 0
 var builds := {}       # countable builds (see Builds): id -> {n, n0, batches}
+var taxes := {}        # the six extra taxes (see Taxes): id -> rate
+var taxes_start := {}
 var builds_ver := 0
 var lx_cache := {}
 var lx_ver := -1
@@ -96,6 +98,7 @@ func init_from_stats(i: int, s: Dictionary) -> CountryState:
 	corp_tax = Economy.start_corp_tax(revenue_pct)
 	var tax_pct := 100.0 * (Economy.tax_yield(income_tax, Economy.K_INCOME) + Economy.tax_yield(corp_tax, Economy.K_CORP))
 	other_rev_pct = maxf(revenue_pct - tax_pct, 1.0)
+	Taxes.init(self)
 	var interest_pct := debt_pct * debt_rate / 100.0
 	spending_pct = clampf(revenue_pct - interest_pct - s.get("budget_balance_pct", -3.0), 8.0, 65.0)
 
@@ -217,7 +220,7 @@ const SAVE_FIELDS := ["idx", "population", "gdp", "growth", "growth_anchor", "tr
 	"u_natural", "inflation", "core_inflation", "interest_rate", "debt", "debt_rate", "treasury",
 	"other_rev_pct", "pop_growth", "price_index", "approval", "happiness", "stability", "military", "income_tax",
 	"corp_tax", "spending_pct", "budget", "trade_openness", "trade_deals", "sanctioned_by",
-	"alliances", "base", "shocks", "estimated", "laws", "laws_start", "projects", "cb_auto", "gini", "builds"]
+	"alliances", "base", "shocks", "estimated", "laws", "laws_start", "projects", "cb_auto", "gini", "builds", "taxes", "taxes_start"]
 
 
 func to_dict() -> Dictionary:
@@ -236,5 +239,7 @@ static func from_dict(d: Dictionary) -> CountryState:
 	c.trade_deals = int(c.trade_deals)
 	c.sanctioned_by = int(c.sanctioned_by)
 	c.alliances = int(c.alliances)
+	if c.taxes.is_empty() and not c.base.is_empty():      # saves from before the six extra taxes
+		Taxes.init(c)
 	Simulation.update_finances(c)
 	return c

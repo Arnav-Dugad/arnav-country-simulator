@@ -42,6 +42,8 @@ static func life_target(c: CountryState) -> float:
 		t += 1.5
 	if not c.builds.is_empty():
 		t += float(Builds.modifiers(c).get("life", 0.0))
+	if not c.taxes.is_empty():
+		t += float(Taxes.modifiers(c).get("life", 0.0))
 	return clampf(t, 40.0, 90.0)
 
 

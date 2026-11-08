@@ -13,6 +13,7 @@ var _chart_tabs: SegmentedControl
 var _chart_idx := 0
 var _range: SegmentedControl
 var _income: AppSlider
+var _tax_sliders := {}
 var _corp: AppSlider
 var _rate: AppSlider
 var _trade: AppSlider
@@ -123,7 +124,33 @@ func _build() -> void:
 	_corp = _slider(tax, "Corporate tax", 0, 50, 0.5, c.corp_tax, b.corp_tax, "Raises revenue · deters investment")
 	_corp.value_changed.connect(func(v: float) -> void: _apply("corp_tax", v))
 	_balance_note = note("", tax)
-	_attach_forecast(tax, [_income, _corp])
+	var more := AppButton.make("More taxes: VAT, property, payroll, fuel, tariffs…", &"GhostButton", "")
+	more.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	more.clip_text = true
+	more.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	tax.add_child(more)
+	var extra := VBoxContainer.new()
+	extra.add_theme_constant_override(&"separation", DS.S3)
+	extra.visible = false
+	tax.add_child(extra)
+	more.pressed.connect(func() -> void:
+		extra.visible = not extra.visible
+		more.text = "Fewer taxes" if extra.visible else "More taxes: VAT, property, payroll, fuel, tariffs…"
+		Haptics.select())
+	var sliders: Array = [_income, _corp]
+	for id in Taxes.ORDER:
+		var spc: Dictionary = Taxes.SPECS[id]
+		var s := _slider(extra, str(spc.title), float(spc.min), float(spc.max), float(spc.step), Taxes.rate(c, id),
+			float(c.taxes_start.get(id, Taxes.rate(c, id))), str(spc.desc))
+		s.formatter = func(v: float) -> String: return Taxes.fmt(id, v)
+		s.value_changed.connect(func(v: float) -> void:
+			Game.me().taxes[id] = v
+			_undo.visible = true
+			Simulation.update_finances(Game.me())
+			_update_balance())
+		_tax_sliders[id] = s
+		sliders.append(s)
+	_attach_forecast(tax, sliders)
 
 	var money := section("Central bank")
 	_cb = AppToggle.new().setup("Let the central bank decide", c.cb_auto, "landmark")
@@ -157,7 +184,7 @@ func _build() -> void:
 	_undo.pressed.connect(func() -> void:
 		var cs := Game.me()
 		for k in _snapshot:
-			cs.set(k, _snapshot[k])
+			cs.set(k, (_snapshot[k] as Dictionary).duplicate() if _snapshot[k] is Dictionary else _snapshot[k])
 		Simulation.update_finances(cs)
 		on_open())
 	add_child(_undo)
@@ -319,11 +346,13 @@ func on_open() -> void:
 		s.commit()
 	var c0 := Game.me()
 	_snapshot = {"income_tax": c0.income_tax, "corp_tax": c0.corp_tax, "interest_rate": c0.interest_rate,
-		"trade_openness": c0.trade_openness}
+		"trade_openness": c0.trade_openness, "taxes": c0.taxes.duplicate()}
 	_undo.visible = false
 	var c := Game.me()
 	_income.set_value(c.income_tax, false)
 	_corp.set_value(c.corp_tax, false)
+	for id in _tax_sliders:
+		(_tax_sliders[id] as AppSlider).set_value(Taxes.rate(c, id), false)
 	_rate.set_value(c.interest_rate, false)
 	_trade.set_value(c.trade_openness * 100.0, false)
 	refresh()
