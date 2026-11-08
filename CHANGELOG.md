@@ -2,6 +2,14 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.77.0] - 2026-11-09
+
+- **World wonders:** eight one-of-a-kind megaprojects (Build › Projects): the Grand Canal, a World Digital Library, an Arcology City, a Continental Fusion Grid, a Human Genome Vault, a Space Elevator, the Great Green Wall and an Eternal Games City
+  - Only one nation can ever finish each, and the great powers race for them too
+  - Finishing one brings lasting bonuses (growth, happiness, research, clean power, longer lives), a wave of national pride and a big boost to soft power
+  - Lose the race and half your money comes back
+- New achievement: Wonder of the world
+
 ## [0.76.0] - 2026-11-09
 
 - **Culture & values:** your society has its own beliefs on three scales: traditional or progressive, inward-looking or open to the world, religious or secular. They start from real data, so Sweden and Nigeria feel very different (Laws page)

@@ -46,6 +46,8 @@ static func life_target(c: CountryState) -> float:
 		t += float(Taxes.modifiers(c).get("life", 0.0))
 	if c.idx == Game.player and Game.dip.has("tech"):
 		t += float(Tech.modifiers().get("life", 0.0))
+	if c.idx == Game.player and Game.dip.has("won"):
+		t += float(Wonders.modifiers().get("life", 0.0))
 	if c.idx == Game.player and Game.dip.has("media"):
 		t += float(Media.modifiers().get("life", 0.0))
 	return clampf(t, 40.0, 90.0)

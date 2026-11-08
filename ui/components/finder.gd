@@ -30,6 +30,7 @@ const INDEX := [
 	["Space race", "build", "", "rocket", "space moon mars rockets satellites"],
 	["Space colonies", "build", "Space colonies", "moon", "moon base mars colony asteroid mining orbital space outposts"],
 	["National projects", "build", "", "construction", "projects programmes national"],
+	["World wonders", "build", "World wonders", "landmark", "wonders megaprojects canal space elevator arcology library"],
 	["Power grid & blackouts", "build", "", "zap", "energy power electricity blackouts grid"],
 	["Oil, gas, coal & minerals", "build", "", "fuel", "oil gas coal minerals reserves mining explore"],
 	["Laws & reforms", "laws", "", "gavel", "laws reforms pass repeal"],

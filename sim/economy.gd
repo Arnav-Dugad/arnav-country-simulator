@@ -548,6 +548,15 @@ const TOUR_BID_MONTHS := 12        # from bid to vote
 const TOUR_SOFT_RELATIONS := 0.01  # relations a month with everyone per soft power point gained
 
 
+# ------------------------------------------------------------- world wonders ---
+# See sim/wonders.gd.
+const WON_MIN_GDP := 1.0e11        # economy size needed to start a wonder
+const WON_PRIDE := 5.0             # approval and happiness when you finish one
+const WON_REFUND := 0.5            # share of money spent you get back if you abandon or lose the race
+const WON_AI_START := 0.02         # monthly chance a great power starts a wonder
+const WON_AI_SLOWER := 1.4         # AI builds take this much longer than yours
+
+
 # --------------------------------------------------------- culture & values ---
 # See sim/culture.gd. Axis points (-100..100) per month unless noted.
 const CULT_LAW_FIT := 3.0          # approval when a law fully fits (or clashes with) the culture

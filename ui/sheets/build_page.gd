@@ -12,6 +12,7 @@ var _tab := 0               # 0 build, 1 defence, 2 research, 3 programmes
 var _tabs: SegmentedControl
 var _prog_box: VBoxContainer
 var _units: VBoxContainer
+var _won_box: VBoxContainer
 var _group := ""           # Build tab: "" = overview, else one category
 var _banner: Control
 
@@ -41,6 +42,9 @@ func _build() -> void:
 	_prog_box = VBoxContainer.new()
 	_prog_box.add_theme_constant_override(&"separation", DS.S4)
 	add_child(_prog_box)
+	_won_box = VBoxContainer.new()
+	_won_box.add_theme_constant_override(&"separation", DS.S4)
+	_prog_box.add_child(_won_box)
 	_summary = Label.new()
 	_summary.theme_type_variation = &"Subhead"
 	_summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -73,6 +77,7 @@ func refresh() -> void:
 	if _tab != 3:
 		_fill_units(c)
 		return
+	_wonders()
 	var building := Projects.count_building(c)
 	var spend := Projects.spending_pct(c)
 	_summary.text = ("%d %s under construction · %s a year" % [building, "project" if building == 1 else "projects",
@@ -1081,3 +1086,71 @@ func _space_outposts() -> void:
 		box.add_child(row)
 		if stt == "building":
 			box.add_child(meter(Space.progress(str(id)), 0.0, DS.ORANGE, 3.0))
+
+
+# ------------------------------------------------------------- world wonders ---
+func _wonders() -> void:
+	for ch in _won_box.get_children():
+		ch.queue_free()
+	var box := section("World wonders", _won_box)
+	note("One-of-a-kind megaprojects. Only one nation can ever finish each, and the great powers are racing for them too.", box)
+	var m := Wonders.mine()
+	for id in Wonders.ALL:
+		var w: Dictionary = Wonders.ALL[id]
+		var own := Wonders.owner(str(id))
+		var building := not m.is_empty() and str(m.id) == str(id)
+		var rival: Dictionary = Wonders.ai().get(id, {})
+		var why := Wonders.blocked(str(id))
+		var sub := ""
+		var col := DS.ACCENT
+		if Wonders.have(str(id)):
+			sub = "Yours  ·  completed"
+			col = DS.GOLD
+		elif own != "":
+			sub = why
+			col = DS.TEXT_3
+		elif building:
+			sub = "Building  ·  %d%%%s" % [roundi(Wonders.progress() * 100.0), ("  ·  %s is racing you" % World.map.names[World.index_of(str(rival.iso))]) if not rival.is_empty() else ""]
+			col = DS.ORANGE
+		else:
+			sub = "%s  ·  %d years  ·  %s" % [DS.money(Wonders.cost(str(id))), int(w.months) / 12, str(w.desc)]
+			if why != "":
+				sub = (str(w.desc) + "  ·  after your current wonder") if why.begins_with("You're already") else why
+			if not rival.is_empty():
+				sub += "  ·  %s is building it" % World.map.names[World.index_of(str(rival.iso))]
+			col = DS.TEXT_3 if why != "" else DS.ACCENT
+		var row := ListRow.new().setup(str(w.title), sub, "›" if why == "" and own == "" and not building else "")
+		row.subtitle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		row.subtitle_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+		row.trailing_label.add_theme_color_override(&"font_color", DS.TEXT_3)
+		row.set_leading(ListRow.icon_tile(str(w.icon), col))
+		var wid := str(id)
+		if why == "" and own == "" and not building:
+			row.tapped.connect(func() -> void:
+				var mm := ModalCard.new()
+				get_tree().current_scene.add_child(mm)
+				mm.header(str(w.icon), DS.GOLD, "World wonder", str(w.title))
+				mm.body("%s It takes %d years and costs %s, spread over the build. If a rival finishes first, you get half your money back." % [
+					str(w.desc), int(w.months) / 12, DS.money(Wonders.cost(wid))])
+				mm.choice("Begin construction", "", &"PrimaryButton", func() -> void:
+					if Wonders.start(wid):
+						Simulation.update_finances(Game.me())
+						Haptics.success()
+					mm.dismiss()
+					refresh())
+				mm.choice("Not now", "", &"GhostButton", mm.dismiss))
+		elif building:
+			row.tapped.connect(func() -> void:
+				var mm2 := ModalCard.new()
+				get_tree().current_scene.add_child(mm2)
+				mm2.header(str(w.icon), DS.ORANGE, "World wonder", str(w.title))
+				mm2.body("%d%% complete." % roundi(Wonders.progress() * 100.0))
+				mm2.choice("Abandon it", "Half of what you've spent comes back", &"DestructiveButton", func() -> void:
+					Wonders.abandon()
+					Simulation.update_finances(Game.me())
+					mm2.dismiss()
+					refresh())
+				mm2.choice("Keep building", "", &"GhostButton", mm2.dismiss))
+		box.add_child(row)
+		if building:
+			box.add_child(meter(Wonders.progress(), 0.0, DS.ORANGE, 4.0))
