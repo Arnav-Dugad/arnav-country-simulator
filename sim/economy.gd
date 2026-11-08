@@ -402,6 +402,17 @@ static func tax_yield(rate: float, k: float) -> float:
 	return r * k * (1.0 - LAFFER * r * r)
 
 
+# ---------------------------------------------------------------- security ---
+# See sim/security.gd. Military strength is the 0-100 index.
+## Relations below this count as hostile.
+const SEC_HOSTILE := -30.0
+## Share of each ally's military that deters threats to you.
+const SEC_ALLY_SHARE := 0.35
+## Per 10 points of threat beyond deterrence: growth (investors wary) and stability.
+const SEC_GROWTH := 0.06
+const SEC_STABILITY := 0.6
+
+
 # -------------------------------------------------------- political capital ---
 # See sim/capital.gd. Points 0..CAPITAL_MAX.
 const CAPITAL_START := 50.0

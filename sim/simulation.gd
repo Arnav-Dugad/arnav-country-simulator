@@ -29,6 +29,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 	var tx := Treaties.modifiers(c) if c.idx == Game.player else {}
 	var mig := Migration.delta(c)
 	var tf := Tariffs.modifiers(c)
+	var sec: Dictionary = Security.effects() if c.idx == Game.player and Game.has_game() else {"growth": 0.0, "stability": 0.0}
 	var cx := Cabinet.modifiers(c) if c.idx == Game.player else {}
 	var i := c.idx
 	var autocracy := not Government.has_elections(c.idx)
@@ -51,6 +52,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Clean government", Corruption.growth_effect(c)],
 		["Skills (literacy)", Outcomes.growth_effect(c)],
 		["Trade war", float(tf.growth)],
+		["Security worries", float(sec.growth)],
 		["World oil prices", float(mx.growth)],
 		["Treaties & blocs", float(tx.get("growth", 0.0))],
 		["Your ministers", float(cx.get("growth", 0.0))],
@@ -195,6 +197,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 			* (E.AUTOCRACY_MILITARY_WEIGHT if autocracy else 1.0) * c.share_delta("military") / 10.0],
 		["Jobs", -0.3 * (c.unemployment - float(b.unemployment))],
 		["Inequality", -E.INEQ_STABILITY * d_gini],
+		["Foreign threats", float(sec.stability)],
 		["Recent events", float(c.shocks.stability)],
 		["Laws & reforms", float(lx.get("stability", 0.0))],
 		["Projects you built", float(px.get("stability", 0.0))],

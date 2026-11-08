@@ -25,6 +25,7 @@ func _build() -> void:
 	_ranks = grid(self, 2)
 	_rival = section("Your rival")
 	_markets = section("World markets")
+	_security = section("Security")
 	_climate = section("Climate")
 	_treaties = section("Treaties & blocs")
 	_summary = note("")
@@ -44,6 +45,7 @@ func _build() -> void:
 
 var _markets: VBoxContainer
 var _climate: VBoxContainer
+var _security: VBoxContainer
 var _rival: VBoxContainer
 var _treaties: VBoxContainer
 
@@ -55,6 +57,7 @@ func refresh() -> void:
 	_fill_rival()
 	_fill_markets()
 	_fill_climate()
+	_fill_security()
 	_fill_treaties()
 	var d := Diplomacy.summary()
 	var parts: PackedStringArray = ["%d %s" % [d.alliances, "ally" if d.alliances == 1 else "allies"],
@@ -212,6 +215,17 @@ func _stat_line(parent: Control, icon: String, color: Color, head: String, capti
 		ch.set_color(color)
 		line.add_child(ch)
 		ch.set_data(data)
+
+
+func _fill_security() -> void:
+	for ch in _security.get_children():
+		ch.queue_free()
+	var s := Security.get_state()
+	var lv := Security.level()
+	var col: Color = [DS.GREEN, DS.ORANGE, DS.RED][lv]
+	_stat_line(_security, "shield", col, Security.LEVEL_TEXT[lv],
+		"Threat %d  ·  your deterrence %d" % [roundi(float(s.threat)), roundi(float(s.deterrence))])
+	note(Security.describe(), _security)
 
 
 func _fill_climate() -> void:

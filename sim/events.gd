@@ -421,6 +421,16 @@ const EVENTS := [
 				"effects": {"cost": 0.05, "happiness": 2.5, "approval": 1.5, "growth": 0.1}},
 			{"label": "Keep it modest", "detail": "No cost · respectful",
 				"effects": {"approval": 0.5}}]},
+	{"id": "border_standoff", "title": "Standoff on the border", "icon": "shield", "tint": "red", "weight": 4.0,
+		"cond": "threatened",
+		"body": "Troops from {other} have massed near {country}'s border. Nobody has fired a shot, but the country is on edge.",
+		"choices": [
+			{"label": "Open talks and pull back patrols", "detail": "Calms things · hawks call it weak",
+				"effects": {"relation": 12.0, "stability": 1.0, "approval": -1.0}},
+			{"label": "Mobilize and stand firm", "detail": "Costs 0.3% of GDP · rallies the nation",
+				"effects": {"cost": 0.3, "share_military": 2.0, "approval": 2.0, "relation": -8.0, "stability": -0.5}},
+			{"label": "Call your allies", "detail": "Works if you have friends",
+				"needs": "ally", "effects": {"relation": 4.0, "stability": 1.5, "relations_all": 0.5}}]},
 	# --- Grown from your own country's state (systemic events) ----------------------
 	{"id": "gap_protests", "title": "Marches against inequality", "icon": "scale", "tint": "orange", "weight": 3.0,
 		"cond": "gap_rising",
@@ -816,6 +826,12 @@ static func roll(rng: RandomNumberGenerator) -> Dictionary:
 				if Profiles.at_risk(Game.player, "heatwave") == 0:
 					continue
 				if Profiles.at_risk(Game.player, "heatwave") == -1 and not World.map.subregions[Game.player] in ["Southern Asia", "Western Asia", "Northern Africa", "Southern Europe", "South-Eastern Asia"]:
+					continue
+			"threatened":
+				if Security.level() < 2:
+					continue
+				other = int(Security.get_state().top)
+				if other < 0:
 					continue
 			"gap_rising":
 				if Inequality.change(me) < 1.5 and me.gini < 45.0:

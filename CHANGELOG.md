@@ -2,6 +2,10 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.54.0] - 2026-11-08
+
+- **National security.** A new Security card on the World page weighs the threat from countries that dislike you (their military strength, and whether they're on your border) against your deterrence (your own forces plus your allies'). When the threat wins, investors grow wary and stability slips, and tense border standoffs can break out: talk, mobilize, or call your allies. No battles, just the pressure every leader feels
+
 ## [0.53.1] - 2026-11-08
 
 - **14 more AI-generated faces** (original, fictional people): senior stateswomen in their 60s and young ministers in their 30s from every region. Leaders, ministers and opposition leaders now come in 42 different faces, and you can pick any of them for yourself
