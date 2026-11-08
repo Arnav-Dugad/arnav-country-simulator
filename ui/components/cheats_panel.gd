@@ -319,9 +319,9 @@ static var CATEGORIES := [
 		["Small fortune", "coins", "+10% of GDP in cash", DS.GOLD, func() -> void: Game.me().treasury += Game.me().gdp * 0.1],
 		["Vast fortune", "piggy-bank", "+50% of GDP in cash", DS.GOLD, func() -> void: Game.me().treasury += Game.me().gdp * 0.5],
 		["Debt forgiven", "check", "The national debt is gone", DS.GREEN, func() -> void: Game.me().debt = 0.0],
-		["AAA credit", "landmark", "Borrow at the best rates", DS.ACCENT, func() -> void:
-			Game.me().debt_rate = 1.0
-			Game.me().interest_rate = maxf(Game.me().interest_rate - 2.0, 0.0)],
+		["AAA credit", "landmark", "Top rating and cheap borrowing for good", DS.ACCENT, func() -> void:
+			Game.dip["cheat_aaa"] = true
+			Game.me().debt_rate = maxf(Game.me().interest_rate, 0.5)],
 	]],
 	["People", [
 		["Everyone loves you", "heart", "Approval and happiness soar", DS.RED, func() -> void:
@@ -352,9 +352,10 @@ static var CATEGORIES := [
 			m.inflation = 2.0
 			m.core_inflation = 2.0],
 		["Oil boom", "fuel", "World oil prices jump", DS.ORANGE, func() -> void: Game.markets.oil = maxf(Game.markets.oil, 0.6)],
-		["Clean air", "leaf", "Undo a decade of warming", DS.GREEN, func() -> void:
+		["Clean air", "leaf", "Emissions halved, a decade of warming undone", DS.GREEN, func() -> void:
+			Game.dip["cheat_co2"] = float(Game.dip.get("cheat_co2", 1.0)) * 0.5
 			var st := Climate.state()
-			st.warming = maxf(float(st.warming) - 0.25, Climate.start_warming())],
+			st.warming = maxf(float(st.warming) - 0.25, Climate.start_warming() - 0.1)],
 	]],
 	["Building", [
 		["Finish everything", "hammer", "All construction completes now", DS.ORANGE, func() -> void:
@@ -377,7 +378,7 @@ static var CATEGORIES := [
 					continue
 				st.n = int(st.n) + int(ceil(Builds.need(m, str(bid)) * 0.35))
 			m.builds_ver += 1],
-		["Pass all laws now", "gavel", "Every law being debated passes", DS.PURPLE, func() -> void:
+		["Pass all laws now", "gavel", "Every law being debated passes today", DS.PURPLE, func() -> void:
 			var m := Game.me()
 			for id in m.laws.keys():
 				if str(m.laws[id].get("state", "")) in ["passing", "repealing"]:
@@ -403,13 +404,22 @@ static var CATEGORIES := [
 				var w: Dictionary = War.wars()[k]
 				w.occ_them = maxf(float(w.occ_them), 0.3)
 				War.make_peace(int(k), "annex")],
-		["Peace everywhere", "flag", "End all wars on the old borders", DS.GREEN, func() -> void:
+		["Peace everywhere", "flag", "Every war in the world ends", DS.GREEN, func() -> void:
 			for k in War.wars().keys():
-				War.make_peace(int(k), "status_quo")],
+				War.make_peace(int(k), "status_quo")
+			for k in WorldWars.all().keys():
+				var ww: Dictionary = WorldWars.all()[k]
+				Game.add_feed("%s and %s make peace" % [World.The_name(int(ww.a)), World.the_name(int(ww.b))], "flag", "green")
+				WorldWars.all().erase(k)],
 	]],
 	["Research", [
-		["Eureka", "flask-conical", "Finish the current research now", DS.PURPLE, func() -> void:
+		["Eureka", "flask-conical", "Finish a technology now", DS.PURPLE, func() -> void:
 			var s := Tech.st()
+			if str(s.current) == "":
+				for id in Tech.ALL:            # nothing chosen: the next one you could research
+					if Tech.can_research(str(id)):
+						Tech.choose(str(id))
+						break
 			if str(s.current) != "":
 				s.progress = float(Tech.ALL[str(s.current)].cost)
 				for n in Tech.monthly():
@@ -433,7 +443,8 @@ static var CATEGORIES := [
 			for k in War.wars().keys():
 				War.with(int(k)).capitulated = true
 				War.make_peace(int(k), "annex_all")],
-		["Rally the nation", "megaphone", "War support to 100%", DS.ORANGE, func() -> void:
+		["Rally the nation", "megaphone", "War support to 100%, approval up", DS.ORANGE, func() -> void:
+			Game.me().shocks.approval = float(Game.me().shocks.approval) + 5.0
 			for k in War.wars().keys():
 				War.wars()[k].support = 100.0
 				War.wars()[k].morale_me = 1.2],
@@ -470,14 +481,8 @@ static var CATEGORIES := [
 	["Crises", [
 		["Cure the pandemic", "syringe", "Vaccines for all; the outbreak ends", DS.GREEN, func() -> void:
 			if Pandemic.active():
-				var s := Pandemic.st()
-				s.vaccine_world = 1.0
-				for k in s.inf.keys():
-					s.vac[k] = 0.9
-				s.inf = {}
-				s.fade = 3
-				for h in Pandemic.monthly():
-					Game.add_feed(str(h.text), str(h.icon), "green")],
+				Game.add_feed("A miracle cure ends the %s pandemic" % str(Pandemic.st().name), "syringe", "green")
+				Pandemic.end_now()],
 		["Start a pandemic", "biohazard", "A new disease appears abroad", DS.RED, func() -> void:
 			if not Pandemic.active():
 				Pandemic.start()],

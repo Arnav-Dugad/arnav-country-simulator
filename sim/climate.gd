@@ -87,6 +87,8 @@ static func co2_pc(c: CountryState) -> float:
 		cut *= clampf(1.0 + float(Energy.modifiers().get("co2", 0.0)), 0.8, 1.3)
 	if c.idx == Game.player and Game.has_game() and Game.dip.has("media"):
 		cut *= clampf(1.0 - float(Media.modifiers().get("co2", 0.0)), 0.9, 1.0)
+	if c.idx == Game.player and Game.has_game():
+		cut *= float(Game.dip.get("cheat_co2", 1.0))
 	return start * income * tech * cut
 
 

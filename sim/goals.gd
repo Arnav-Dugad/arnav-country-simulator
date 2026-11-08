@@ -70,7 +70,7 @@ static func candidates() -> Array:
 	if c.growth < 2.5:
 		out.append([4.0, "growth", c.trend + 1.0])
 	if c.rating_score() < 80.0:
-		out.append([3.0, "rating", c.rating_score() + 12.0])
+		out.append([3.0, "rating", _next_grade_score(c.rating_score())])
 	if c.gini >= 40.0:
 		out.append([4.0, "fairer", c.gini - 3.0])
 	if World.stat(c.idx, "co2_pc", 0.0) > 6.0:
@@ -153,6 +153,15 @@ static func monthly() -> Array:
 
 static func title(g: Dictionary) -> String:
 	return str(SPECS[g.id].title)
+
+
+## The score where the next credit grade begins (so the goal is always a visible step up).
+static func _next_grade_score(score: float) -> float:
+	var best := score + 12.0
+	for gr in Economy.RATING_GRADES:
+		if float(gr[0]) > score:
+			best = float(gr[0])          # grades are listed best first: the last one above us is the next step
+	return best
 
 
 static func fmt(g: Dictionary, v: float) -> String:

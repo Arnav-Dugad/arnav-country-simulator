@@ -153,7 +153,17 @@ func revenue_pct() -> float:
 
 ## [[label, points], …] that add up to the credit score (see Economy.RATING_*).
 func rating_parts() -> Array:
-	return Economy.rating_parts(debt_pct(), -balance_pct(), stability, inflation, growth, gdp_per_capita())
+	var p: Array = Economy.rating_parts(debt_pct(), -balance_pct(), stability, inflation, growth, gdp_per_capita())
+	if idx == Game.player and Game.has_game() and bool(Game.dip.get("cheat_aaa", false)):
+		p.append(["Sandbox: AAA credit", maxf(90.0 - _sum_parts(p), 0.0)])
+	return p
+
+
+static func _sum_parts(p: Array) -> float:
+	var s := 0.0
+	for x in p:
+		s += float(x[1])
+	return s
 
 
 func rating_score() -> float:

@@ -259,6 +259,21 @@ static func effects() -> Dictionary:
 	return out
 
 
+## End the pandemic now (sandbox).
+static func end_now() -> void:
+	var s := st()
+	if not active():
+		return
+	s.active = false
+	s.ended_m = Game.months_played
+	s.inf = {}
+	s.lockdown = 0
+	s.borders = false
+	s.testing = false
+	s.masks = false
+	Game.add_milestone("Came through the %s pandemic" % str(s.name), "heart-pulse", "accent")
+
+
 static func set_policy(key: String, v: Variant, by_player: bool = true) -> void:
 	var s := st()
 	s[key] = v

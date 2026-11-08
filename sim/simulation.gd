@@ -170,6 +170,8 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 	premium *= Profiles.mult(i, "risk_premium")
 	if not c.cb_auto:
 		premium += E.CB_CAPTURE_PREMIUM
+	if c.idx == Game.player and Game.has_game() and bool(Game.dip.get("cheat_aaa", false)):
+		premium = 0.0                     # sandbox: markets trust you completely
 	c.debt_rate += (maxf(c.interest_rate, 0.5) + premium - c.debt_rate) * E.DEBT_RATE_ADJUST
 	update_finances(c)
 	c.treasury += c.balance * M
