@@ -14,8 +14,6 @@ The release workflow publishes the section that matches the tag as the GitHub Re
 - Other countries' wars can now end with a small country swallowed whole, redrawing the map
 - New achievement: Empire builder
 
-## [0.66.0] - 2026-11-08
-
 - **Tourism & soft power**, a new page from the World tab with new AI-painted art
 - **Tourism** starts from real data and grows with stability, peace, heritage sites, culture builds and your reputation. Extra visitors bring growth and jobs
 - **World heritage:** nominate old towns, national parks, ancient ruins, coasts and reefs, sacred sites or modern landmarks. A committee decides 18 months later
