@@ -2,6 +2,11 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.52.0] - 2026-11-08
+
+- **Privacy policy:** a plain-language page on what the app stores (very little) and how to delete it, linked from Settings › About & updates
+- Behind the scenes: every release is now checked for visual changes on six key screens, so layout slips are caught before they reach you
+
 ## [0.51.0] - 2026-11-08
 
 - **A new orchestral score.** Original cinematic music, composed and synthesized for the game: layered string ensembles, warm low brass, a soft choir, felt piano and deep percussion in a long concert-hall reverb

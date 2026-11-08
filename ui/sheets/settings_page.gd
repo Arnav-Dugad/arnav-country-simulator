@@ -25,6 +25,7 @@ var _status: Label
 var _cheat_box: VBoxContainer
 var _account_box: VBoxContainer
 var _about_box: VBoxContainer
+const PRIVACY_URL := "https://github.com/Arnav-Dugad/arnav-country-simulator/blob/main/PRIVACY.md"
 ## Opened from the main menu: only app-wide settings (no saves, events, cheats…).
 var menu_mode := false
 
@@ -473,6 +474,9 @@ func _build_about() -> void:
 			upd_note.text = str(r.get("error", "Could not check.")))
 	_about_box.add_child(upd)
 	_about_box.add_child(upd_note)
+	var priv := AppButton.make("Privacy policy", &"GhostButton", "shield")
+	priv.pressed.connect(func() -> void: OS.shell_open(PRIVACY_URL))
+	_about_box.add_child(priv)
 	note("Portraits and scene paintings are AI-generated images of fictional people and places. " +
 		"Map: Natural Earth (public domain), borders as on India's official map. Data: World Bank (CC BY 4.0), IMF. " +
 		"Font: Inter (SIL OFL). Icons: Lucide (ISC). Starting values are real; " +
