@@ -9,6 +9,7 @@ The release workflow publishes the section that matches the tag as the GitHub Re
   - Finishing one brings lasting bonuses (growth, happiness, research, clean power, longer lives), a wave of national pride and a big boost to soft power
   - Lose the race and half your money comes back
 - New achievement: Wonder of the world
+- Fix: some achievements (military 95, happiness 90, stability 90, $10 trillion economy, clean government 85) unlocked on day one for countries that already started there; now you have to earn them
 
 ## [0.76.0] - 2026-11-09
 

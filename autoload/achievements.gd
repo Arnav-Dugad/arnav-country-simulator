@@ -205,9 +205,9 @@ const MORE := [
 	{"id": "tourism_magnet", "cat": "Economy", "tier": 1, "icon": "plane-takeoff", "title": "Tourism magnet", "desc": "Double tourism's share of the economy.", "check": "tourism2x"},
 	{"id": "black_market_bust", "cat": "Economy", "tier": 1, "icon": "package", "title": "Smugglers' nightmare", "desc": "Shrink the shadow economy by 15 points.", "check": "black_bust"},
 	# People
-	{"id": "joyful", "cat": "People", "tier": 2, "icon": "heart", "title": "Joyful nation", "desc": "Reach happiness of 90.", "check": "happy90"},
+	{"id": "joyful", "cat": "People", "tier": 2, "icon": "heart", "title": "Joyful nation", "desc": "Raise happiness to 90 (starting below 80).", "check": "happy90"},
 	{"id": "beloved", "cat": "People", "tier": 2, "icon": "thumbs-up", "title": "Beloved leader", "desc": "Reach 80% approval.", "check": "approval80"},
-	{"id": "rock_solid", "cat": "People", "tier": 1, "icon": "shield", "title": "Rock solid", "desc": "Reach stability of 90.", "check": "stable90"},
+	{"id": "rock_solid", "cat": "People", "tier": 1, "icon": "shield", "title": "Rock solid", "desc": "Raise stability to 90 (starting below 80).", "check": "stable90"},
 	{"id": "fair_society", "cat": "People", "tier": 2, "icon": "scale", "title": "Fair society", "desc": "Cut inequality by 5 Gini points.", "check": "fair"},
 	{"id": "long_lives", "cat": "People", "tier": 2, "icon": "heart-pulse", "title": "Long lives", "desc": "Raise life expectancy by 3 years.", "check": "life3"},
 	{"id": "safe_streets", "cat": "People", "tier": 1, "icon": "siren", "title": "Safe streets", "desc": "Cut crime by 15 points.", "check": "crime15"},
@@ -216,7 +216,7 @@ const MORE := [
 	{"id": "squeaky_clean", "cat": "People", "tier": 2, "icon": "gavel", "title": "Squeaky clean", "desc": "Reach a clean-government score of 85.", "check": "clean85"},
 	{"id": "trusted", "cat": "People", "tier": 1, "icon": "newspaper", "title": "Trusted voice", "desc": "Press credibility of 95.", "check": "cred95"},
 	# World
-	{"id": "superpower", "cat": "World", "tier": 2, "icon": "shield-check", "title": "Superpower", "desc": "Military strength of 95.", "check": "mil95"},
+	{"id": "superpower", "cat": "World", "tier": 2, "icon": "shield-check", "title": "Superpower", "desc": "Build your military up to 95 (starting below 85).", "check": "mil95"},
 	{"id": "conqueror", "cat": "World", "tier": 3, "icon": "crown", "title": "Conqueror", "desc": "Rule three annexed countries at once.", "check": "annex3"},
 	{"id": "united", "cat": "World", "tier": 2, "icon": "handshake", "title": "Better together", "desc": "Unite peacefully with a neighbour.", "check": "union"},
 	{"id": "overlord", "cat": "World", "tier": 2, "icon": "crown", "title": "Overlord", "desc": "Have two vassals at once.", "check": "vassals2"},
@@ -314,7 +314,7 @@ func _check_more() -> void:
 		var ok := false
 		match str(a.check):
 			"trillion": ok = c.gdp >= 1e12 and g0 < 1e12
-			"ten_trillion": ok = c.gdp >= 1e13
+			"ten_trillion": ok = c.gdp >= 1e13 and g0 < 1e13
 			"tripled": ok = c.gdp >= g0 * 3.0
 			"rich_nation": ok = c.gdp_per_capita() >= 50000.0 and float(b.get("gdp_pc", 0.0)) < 30000.0
 			"debt_free": ok = c.debt_pct() < 10.0 and float(s.get("debt_pct", 0.0)) > 40.0
@@ -326,17 +326,17 @@ func _check_more() -> void:
 						ok = ok or float(Industries.st().sec[k].get("comp", 0.0)) >= 80.0
 			"tourism2x": ok = Game.dip.has("tour") and Tourism.share() >= 2.0 * float(Tourism.st().share0)
 			"black_bust": ok = Game.dip.has("black") and Smuggling.change() <= -15.0
-			"happy90": ok = c.happiness >= 90.0
+			"happy90": ok = c.happiness >= 90.0 and float(Game.start_snapshot.get("happiness", 0.0)) < 80.0
 			"approval80": ok = c.approval >= 80.0
-			"stable90": ok = c.stability >= 90.0
+			"stable90": ok = c.stability >= 90.0 and float(Game.start_snapshot.get("stability", 0.0)) < 80.0
 			"fair": ok = Inequality.change(c) <= -5.0
 			"life3": ok = Outcomes.life(c) - Outcomes.start_life(c.idx) >= 3.0
 			"crime15": ok = Game.dip.has("crime") and Crime.change() <= -15.0
 			"housing": ok = Game.dip.has("pop") and Population.afford() >= 110.0
 			"babies": ok = Game.dip.has("pop") and Population.fertility() - float(Population.st().tfr0) >= 0.3
-			"clean85": ok = Corruption.value(c) >= 85.0
+			"clean85": ok = Corruption.value(c) >= 85.0 and Corruption.start(c.idx) < 80.0
 			"cred95": ok = Press.credibility() >= 95.0
-			"mil95": ok = c.military >= 95.0
+			"mil95": ok = c.military >= 95.0 and float(Game.start_snapshot.get("military", 0.0)) < 85.0
 			"annex3": ok = Annexation.my_lands().size() >= 3
 			"union":
 				for l in Annexation.my_lands():

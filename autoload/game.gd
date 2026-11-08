@@ -182,7 +182,8 @@ func new_game(country_index: int, seed_value: int = -1, level: String = "") -> v
 	c.treasury *= Difficulty.treasury_mult()
 	start_snapshot = {"year": year, "gdp": c.gdp, "debt_pct": c.debt_pct(), "approval": c.approval,
 		"happiness": c.happiness, "inflation": c.inflation, "growth": c.growth,
-		"unemployment": c.unemployment, "balance": c.balance, "rating": c.rating()}
+		"unemployment": c.unemployment, "balance": c.balance, "rating": c.rating(),
+		"military": c.military, "stability": c.stability}
 	_record_history()
 	me().refresh_explainer()
 	Goals.refill()
