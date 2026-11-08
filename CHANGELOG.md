@@ -2,6 +2,32 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.71.0] - 2026-11-08
+
+- **Industries & trade**, a new page from the Economy tab. Your economy as eight sectors, starting from real data: farming, energy and mining, factories and cars, chips and electronics, medicine and biotech, banking, tourism, and shops and services
+  - Each sector has a competitiveness score you can see the reasons for: skills, research, infrastructure, power cuts, wages, clean government and world demand
+  - Competitive sectors grow and hire; struggling ones shrink
+  - Subsidise any sector, though three or more subsidies annoy your trade partners
+  - World shocks: chip shortages, shipping crises, AI booms, travel booms, food price spikes and banking scares
+  - See your biggest trading partners
+- **People & cities**, another new page:
+  - **Births:** an estimated fertility rate you can lift with family policy (support or generous), slowly and at a cost
+  - **Age structure:** children, working age and over 65
+  - **Cities:** a growing urban share
+  - **Housing affordability:** rents climb if homes don't keep up. Build affordable homes or reform zoning
+  - Low fertility now slowly shrinks a population unless migrants come
+- **Visual polish:** the Economy and World pages open deeper pages through new picture tiles, world ranks are coloured (gold for the top 10), and empty sections such as "At war" no longer show their headers
+- **Fixes:**
+  - "The economy is sluggish" no longer appears at high growth; it now needs growth under 2%
+  - The credit-rating goal always targets the next grade
+- **Every cheat checked:**
+  - "AAA credit" now lasts
+  - "Clean air" halves emissions for good
+  - "Eureka" picks a technology if you weren't researching one
+  - "Cure the pandemic" really ends it
+  - "Peace everywhere" also ends wars between other countries
+  - "Rally the nation" lifts approval
+
 ## [0.70.0] - 2026-11-08
 
 - **War and annexation, fixed and overhauled**

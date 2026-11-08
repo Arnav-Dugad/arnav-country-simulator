@@ -105,6 +105,79 @@ func photo_header(scene: String, title_text: String, sub: String, h: float) -> C
 	return ph
 
 
+## A grid of picture tiles that open deeper pages: [[scene, icon, colour, title, caption, callback], …].
+func hub(items: Array, parent: Control = self, header: String = "") -> GridContainer:
+	if header != "":
+		var h := Label.new()
+		h.theme_type_variation = &"Overline"
+		h.text = header.to_upper()
+		parent.add_child(h)
+	var g := grid(parent, 2)
+	for it in items:
+		g.add_child(_hub_tile(it))
+	return g
+
+
+func _hub_tile(it: Array) -> Control:
+	var p := PanelContainer.new()
+	p.theme_type_variation = &"TilePanel"
+	p.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	p.mouse_filter = Control.MOUSE_FILTER_PASS
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override(&"separation", 6)
+	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	p.add_child(v)
+	var ph := Photo.scene(str(it[0]), 70.0, false)
+	ph.set(&"radius", 12.0)
+	v.add_child(ph)
+	var top := HBoxContainer.new()
+	top.add_theme_constant_override(&"separation", 6)
+	top.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	v.add_child(top)
+	var ic := TextureRect.new()
+	ic.texture = DS.icon(str(it[1]))
+	ic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	ic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	ic.custom_minimum_size = Vector2(16, 16)
+	ic.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	ic.modulate = it[2]
+	top.add_child(ic)
+	var t := Label.new()
+	t.theme_type_variation = &"Subhead"
+	t.add_theme_color_override(&"font_color", DS.TEXT)
+	t.text = str(it[3])
+	t.clip_text = true
+	t.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	t.custom_minimum_size = Vector2(30, 0)
+	top.add_child(t)
+	var c := Label.new()
+	c.theme_type_variation = &"Caption"
+	c.text = str(it[4])
+	c.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	c.custom_minimum_size = Vector2(30, 0)
+	v.add_child(c)
+	var cb: Callable = it[5]
+	var st := {"p": Vector2.ZERO, "down": false}
+	p.gui_input.connect(func(e: InputEvent) -> void:
+		if e is InputEventMouseButton and e.button_index == MOUSE_BUTTON_LEFT:
+			if e.pressed:
+				st.p = e.global_position
+				st.down = true
+				p.pivot_offset = p.size * 0.5
+				p.create_tween().tween_property(p, "scale", Vector2.ONE * 0.97, 0.08)
+			elif st.down:
+				st.down = false
+				p.create_tween().tween_property(p, "scale", Vector2.ONE, Settings.dur(0.2)).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+				if e.global_position.distance_to(st.p) < 10.0:
+					Haptics.tap()
+					cb.call()
+		elif e is InputEventMouseMotion and st.down and e.global_position.distance_to(st.p) >= 10.0:
+			st.down = false
+			p.create_tween().tween_property(p, "scale", Vector2.ONE, 0.12))
+	return p
+
+
 func note(text: String, parent: Control = self) -> Label:
 	var l := Label.new()
 	l.theme_type_variation = &"Footnote"

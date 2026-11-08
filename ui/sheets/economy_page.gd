@@ -51,24 +51,12 @@ func _build() -> void:
 	_speech = AppButton.make("Address the nation", &"", "mic")
 	_speech.pressed.connect(_address)
 	add_child(_speech)
-	var wealth := ListRow.new().setup("Wealth & state firms", "Stock market, sovereign fund, privatise or nationalise", "›")
-	wealth.theme_type_variation = &"GroupPanel"
-	wealth.trailing_label.add_theme_color_override(&"font_color", DS.TEXT_3)
-	wealth.set_leading(ListRow.icon_tile("landmark", DS.GOLD))
-	wealth.tapped.connect(func() -> void: page_requested.emit("firms"))
-	add_child(wealth)
-	var ind := ListRow.new().setup("Industries & trade", "Sectors, subsidies, world shocks, trading partners", "›")
-	ind.theme_type_variation = &"GroupPanel"
-	ind.trailing_label.add_theme_color_override(&"font_color", DS.TEXT_3)
-	ind.set_leading(ListRow.icon_tile("factory", DS.ACCENT))
-	ind.tapped.connect(func() -> void: page_requested.emit("industries"))
-	add_child(ind)
-	var pp := ListRow.new().setup("People & cities", "Births, ageing, cities, housing, family policy", "›")
-	pp.theme_type_variation = &"GroupPanel"
-	pp.trailing_label.add_theme_color_override(&"font_color", DS.TEXT_3)
-	pp.set_leading(ListRow.icon_tile("users", DS.TEAL))
-	pp.tapped.connect(func() -> void: page_requested.emit("population"))
-	add_child(pp)
+	hub([
+		["markets", "landmark", DS.GOLD, "Wealth & firms", "Stock market, wealth fund, state companies", func() -> void: page_requested.emit("firms")],
+		["factory", "factory", DS.ACCENT, "Industries", "Sectors, subsidies, world shocks, partners", func() -> void: page_requested.emit("industries")],
+		["city", "users", DS.TEAL, "People & cities", "Births, ageing, cities and housing", func() -> void: page_requested.emit("population")],
+		["port", "ship", DS.ORANGE, "Trade & tariffs", "Partners, deals and trade wars on the World page", func() -> void: page_requested.emit("diplomacy")],
+	], self, "Explore your country")
 	_goals = GoalsCard.new()
 	add_child(_goals)
 	_trend = TrendCard.new()

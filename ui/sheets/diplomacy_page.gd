@@ -24,12 +24,10 @@ func _build() -> void:
 	rank_head.text = "YOUR WORLD RANK"
 	add_child(rank_head)
 	_ranks = grid(self, 2)
-	var tour := ListRow.new().setup("Tourism & soft power", "Visitors, world heritage, host the World Cup or the Games", "›")
-	tour.theme_type_variation = &"GroupPanel"
-	tour.trailing_label.add_theme_color_override(&"font_color", DS.TEXT_3)
-	tour.set_leading(ListRow.icon_tile("plane-takeoff", DS.TEAL))
-	tour.tapped.connect(func() -> void: page_requested.emit("tourism"))
-	add_child(tour)
+	hub([
+		["tourism", "plane-takeoff", DS.TEAL, "Tourism & fame", "Visitors, heritage, host the Games", func() -> void: page_requested.emit("tourism")],
+		["intel", "eye", DS.PURPLE, "Intelligence", "Your spies and their operations", func() -> void: _scroll_to(_intel)],
+	], self)
 	_rival = section("Your rival")
 	_markets = section("World markets")
 	_war = section("At war")
@@ -239,7 +237,7 @@ func _stat_line(parent: Control, icon: String, color: Color, head: String, capti
 func _fill_war() -> void:
 	for ch in _war.get_children():
 		ch.queue_free()
-	_war.get_parent().visible = War.at_war()
+	_war.get_parent().get_parent().visible = War.at_war()          # header and card together
 	for k in War.wars():
 		var i := int(k)
 		var w: Dictionary = War.wars()[k]
@@ -255,7 +253,7 @@ func _fill_world_wars() -> void:
 	for ch in _wwars.get_children():
 		ch.queue_free()
 	var all := WorldWars.all()
-	_wwars.get_parent().visible = not all.is_empty()
+	_wwars.get_parent().get_parent().visible = not all.is_empty()
 	for k in all:
 		var w: Dictionary = all[k]
 		var a := int(w.a)
@@ -427,8 +425,22 @@ func _fill_ranks() -> void:
 		var t := StatTile.new().setup(str(sp[0]), func(_v: float) -> String: return "#%d" % rank, true)
 		t.number.theme_type_variation = &"StatSmall"
 		t.number.set_instant(rank)
-		t.delta_label.text = "of %d" % total
+		t.number.add_theme_color_override(&"font_color", DS.GOLD if rank <= 10 else (DS.GREEN if rank <= 40 else (DS.TEXT if rank <= 100 else DS.ORANGE)))
+		t.delta_label.text = ("Top 10  ·  of %d" % total) if rank <= 10 else "of %d" % total
 		_ranks.add_child(t)
+
+
+## Scroll the sheet so a section's card is at the top.
+func _scroll_to(box: Control) -> void:
+	var gs := get_tree().current_scene
+	if gs == null or not ("_scroll" in gs) or box == null:
+		return
+	var card := box.get_parent().get_parent() as Control
+	var sc: ScrollContainer = gs._scroll
+	var y := card.global_position.y - sc.global_position.y + sc.scroll_vertical - 12.0
+	var tw := sc.create_tween()
+	DS.ease_out(tw)
+	tw.tween_property(sc, "scroll_vertical", int(y), Settings.dur(0.4))
 
 
 # ------------------------------------------------------------------- intel ---
@@ -476,7 +488,7 @@ func _fill_empire() -> void:
 		ch.queue_free()
 	var lands := Annexation.my_lands()
 	var vas := Annexation.vassals()
-	_empire.get_parent().visible = not lands.is_empty() or not vas.is_empty()
+	_empire.get_parent().get_parent().visible = not lands.is_empty() or not vas.is_empty()
 	if lands.is_empty() and vas.is_empty():
 		return
 	for l in lands:
