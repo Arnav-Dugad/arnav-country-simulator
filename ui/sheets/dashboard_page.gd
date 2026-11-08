@@ -47,6 +47,14 @@ func _specs() -> Array:
 			["Stock market", "", float(Enterprise.st().index) if Game.dip.has("ent") else 100.0, func(v: float) -> String: return str(roundi(v)), true, "firms", "", "trending-up"],
 			["Treasury", "treasury", c.treasury, func(v: float) -> String: return DS.money(v), true, "budget", "", "wallet"],
 		]],
+		["Society & security", [
+			["National unity", "unity", Regions.unity() if Game.dip.has("reg") else 0.0, func(v: float) -> String: return str(roundi(v)), true, "population", "Regions", "map-pin"],
+			["Learning score", "learn", Education.score() if Game.dip.has("edu") else 0.0, func(v: float) -> String: return str(roundi(v)), true, "population", "Schools & universities", "school"],
+			["Top university", "uni", float(Education.ranks()[0]) if Game.dip.has("edu") else 0.0, func(v: float) -> String: return "#%d" % roundi(v), false, "population", "Schools & universities", "graduation-cap"],
+			["Brain drain", "drain", Education.drain() if Game.dip.has("edu") else 0.0, func(v: float) -> String: return DS.pct(v, 0), false, "population", "Schools & universities", "plane-takeoff"],
+			["Doomsday Clock", "clock", Nuclear.clock() if Game.dip.has("nuke") else 89.0, func(v: float) -> String: return "%d s" % roundi(v), true, "diplomacy", "Nuclear weapons", "clock"],
+			["Security", "", float(Security.get_state().balance), func(_v: float) -> String: return str(Security.LEVEL_TEXT[Security.level()]), true, "diplomacy", "Security", "shield"],
+		]],
 	]
 
 

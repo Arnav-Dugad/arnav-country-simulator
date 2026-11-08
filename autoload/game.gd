@@ -36,7 +36,8 @@ signal goal_reached(goal: Dictionary)
 const START_YEAR := Calendar.START_YEAR
 const HISTORY_MAX := 1200
 const HISTORY_KEYS := ["gdp", "growth", "approval", "inflation", "debt_pct", "unemployment",
-	"happiness", "stability", "treasury", "military", "crime", "co2", "life", "gini", "gdp_pc"]
+	"happiness", "stability", "treasury", "military", "crime", "co2", "life", "gini", "gdp_pc",
+	"unity", "learn", "uni", "drain", "clock"]
 const SPEEDS := Calendar.SPEEDS
 const FEED_MAX := 60
 
@@ -633,7 +634,12 @@ func _record_history() -> void:
 		"debt_pct": c.debt_pct(), "unemployment": c.unemployment, "happiness": c.happiness,
 		"stability": c.stability, "treasury": c.treasury, "military": c.military,
 		"crime": Crime.value() if dip.has("crime") else 0.0, "co2": Climate.co2_pc(c),
-		"life": Outcomes.life(c), "gini": c.gini, "gdp_pc": c.gdp_per_capita()}
+		"life": Outcomes.life(c), "gini": c.gini, "gdp_pc": c.gdp_per_capita(),
+		"unity": Regions.unity() if dip.has("reg") else 0.0,
+		"learn": Education.score() if dip.has("edu") else 0.0,
+		"uni": float(Education.ranks()[0]) if dip.has("edu") else 0.0,
+		"drain": Education.drain() if dip.has("edu") else 0.0,
+		"clock": Nuclear.clock() if dip.has("nuke") else 0.0}
 	for k in HISTORY_KEYS:
 		var arr: PackedFloat32Array = history[k]
 		arr.append(vals[k])
