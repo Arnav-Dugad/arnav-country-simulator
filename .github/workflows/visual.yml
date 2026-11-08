@@ -1,0 +1,79 @@
+name: Visual check
+
+# Renders six key screens at 390x844 (software OpenGL in a virtual display) and
+# compares them with the goldens from the last good run on main (kept in the
+# Actions cache, because pictures depend on the renderer). A screen that changes
+# by more than 2% of its pixels fails the check; the new pictures are uploaded
+# so you can see what moved. If the change was intended, the next push to main
+# with "[visual-ok]" in the commit message accepts the new pictures.
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+env:
+  GODOT_VERSION: "4.7.2"
+  GODOT_STATUS: "stable"
+
+jobs:
+  visual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Godot
+        id: cache-godot
+        uses: actions/cache@v4
+        with:
+          path: ~/godot
+          key: godot-editor-${{ env.GODOT_VERSION }}-${{ env.GODOT_STATUS }}-v1
+
+      - name: Download Godot
+        if: steps.cache-godot.outputs.cache-hit != 'true'
+        run: |
+          BASE="https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}-${GODOT_STATUS}"
+          mkdir -p ~/godot
+          curl -fsSL -o /tmp/godot.zip "$BASE/Godot_v${GODOT_VERSION}-${GODOT_STATUS}_linux.x86_64.zip"
+          unzip -q /tmp/godot.zip -d ~/godot
+          mv ~/godot/Godot_v${GODOT_VERSION}-${GODOT_STATUS}_linux.x86_64 ~/godot/godot
+
+      - name: Restore goldens
+        id: golden
+        uses: actions/cache/restore@v4
+        with:
+          path: tools/visual_golden
+          key: visual-golden-${{ github.sha }}
+          restore-keys: visual-golden-
+
+      - name: Import
+        run: |
+          ~/godot/godot --headless --path . --import > /dev/null 2>&1 || true
+          ~/godot/godot --headless --path . --import > /dev/null 2>&1 || true
+
+      - name: Render and compare
+        id: run
+        run: |
+          sudo apt-get install -y -qq xvfb libgl1-mesa-dri > /dev/null
+          mkdir -p shots
+          UPDATE=""
+          if echo "${{ github.event.head_commit.message }}" | grep -q "\[visual-ok\]"; then UPDATE="--update"; fi
+          xvfb-run -a -s "-screen 0 1024x900x24" ~/godot/godot --rendering-driver opengl3 --path . \
+            res://tools/visual_test.tscn -- --out=$PWD/shots $UPDATE 2>&1 | tee visual.log
+          grep -E "^(PASS|FAIL|SAVED)" visual.log >> "$GITHUB_STEP_SUMMARY" || true
+          grep -q "VISUAL TEST OK" visual.log
+
+      - name: Save goldens (main only, when the check passed)
+        if: success() && github.ref == 'refs/heads/main'
+        uses: actions/cache/save@v4
+        with:
+          path: tools/visual_golden
+          key: visual-golden-${{ github.sha }}
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screens
+          path: shots/
+          retention-days: 14
