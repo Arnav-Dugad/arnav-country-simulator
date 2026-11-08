@@ -27,6 +27,7 @@ func _ready() -> void:
 func _draw() -> void:
 	if map == null or _font == null or size.x < 16.0:
 		return
+	_frame += 1
 	var md := map.data
 	var zf := map.zoom / map.min_zoom          # 1 = whole world
 	var max_rank := clampi(int(1.5 + log(zf) / log(2.0) * 1.6), 1, 8)
@@ -51,9 +52,18 @@ func _draw() -> void:
 		if not _width_cache.has(key):
 			_width_cache[key] = _font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
 		var tw: float = _width_cache[key]
+		# Long names that don't fit on one line split in two ("CENTRAL AFRICAN / REPUBLIC").
+		var lines := PackedStringArray([text])
+		if box_w < tw * 0.8 and text.contains(" "):
+			lines = _split(text)
+			var w2 := 0.0
+			for ln in lines:
+				w2 = maxf(w2, _font.get_string_size(ln, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x)
+			tw = w2
 		if box_w < tw * 0.55:
 			continue
-		var r := Rect2(p - Vector2(tw * 0.5, fs * 0.6), Vector2(tw, fs * 1.2)).grow(3)
+		var lh := fs * 1.15
+		var r := Rect2(p - Vector2(tw * 0.5, lh * lines.size() * 0.5), Vector2(tw, lh * lines.size())).grow(3)
 		var hit := false
 		for q in placed:
 			if q.intersects(r):
@@ -65,12 +75,48 @@ func _draw() -> void:
 		# Fade in labels that only just qualified.
 		var a := clampf((float(max_rank) - rank + 1.0) * 0.6, 0.35, 1.0)
 		a *= clampf((box_w / maxf(tw, 1.0) - 0.55) * 2.5, 0.0, 1.0)
-		var pos := p + Vector2(-tw * 0.5, fs * 0.35)
-		draw_string_outline(_font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, 4, Color(outline, outline.a * a))
-		draw_string(_font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(base_color, base_color.a * a))
+		a *= _fade_in(i)
+		for k in lines.size():
+			var lw := _font.get_string_size(lines[k], HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x if lines.size() > 1 else tw
+			var pos := p + Vector2(-lw * 0.5, fs * 0.35 + (k - (lines.size() - 1) * 0.5) * lh)
+			draw_string_outline(_font, pos, lines[k], HORIZONTAL_ALIGNMENT_LEFT, -1, fs, 4, Color(outline, outline.a * a))
+			draw_string(_font, pos, lines[k], HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(base_color, base_color.a * a))
 	for i in map.data.count():
 		if i != Game.player:
 			_draw_capital_name(i, placed, zf, outline)
+
+
+## Split a name into two lines of similar length at a space.
+static func _split(text: String) -> PackedStringArray:
+	var best := -1
+	var best_d := 1 << 30
+	for k in text.length():
+		if text[k] == " ":
+			var d := absi(text.length() - 2 * k)
+			if d < best_d:
+				best_d = d
+				best = k
+	if best < 0:
+		return PackedStringArray([text])
+	return PackedStringArray([text.left(best), text.substr(best + 1)])
+
+
+## Labels that just appeared fade in over ~0.25 s instead of popping.
+var _first_seen := {}
+var _frame := 0
+
+
+func _fade_in(i: int) -> float:
+	var now := Time.get_ticks_msec()
+	var seen: int = _first_seen.get(i, -1)
+	if seen < 0 or int(_first_seen.get(-1 - i, 0)) < _frame - 1:
+		seen = now
+		_first_seen[i] = now
+	_first_seen[-1 - i] = _frame
+	var t := clampf((now - seen) / 250.0, 0.0, 1.0)
+	if t < 1.0:
+		queue_redraw.call_deferred()
+	return t
 
 
 ## Capital dots from ~3.5x zoom, drawn beneath country labels.

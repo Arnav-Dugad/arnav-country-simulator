@@ -7,6 +7,7 @@ extends SceneTree
 
 const FILL_OUT := "res://data/map_fill.res"
 const BORDERS_OUT := "res://data/map_borders.res"
+const SHELF_OUT := "res://data/map_shelf.res"
 
 
 func _init() -> void:
@@ -20,5 +21,8 @@ func _init() -> void:
 	borders.set_meta(&"count", md.count())
 	var e1 := ResourceSaver.save(fill, FILL_OUT, ResourceSaver.FLAG_COMPRESS)
 	var e2 := ResourceSaver.save(borders, BORDERS_OUT, ResourceSaver.FLAG_COMPRESS)
-	print("bake_meshes: fill err=%d borders err=%d (%d countries)" % [e1, e2, md.count()])
-	quit(0 if e1 == OK and e2 == OK else 1)
+	var shelf := MapMeshes.shelf_mesh(md)
+	shelf.set_meta(&"count", md.count())
+	var e3 := ResourceSaver.save(shelf, SHELF_OUT, ResourceSaver.FLAG_COMPRESS)
+	print("bake_meshes: fill err=%d borders err=%d shelf err=%d (%d countries)" % [e1, e2, e3, md.count()])
+	quit(0 if e1 == OK and e2 == OK and e3 == OK else 1)

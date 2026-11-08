@@ -113,6 +113,11 @@ func _ready() -> void:
 
 
 # ------------------------------------------------------------------ build ----
+var _shelf: MeshInstance2D
+var _shelf_mat: ShaderMaterial
+const SHELF_PX := 9.0
+
+
 func _build_nodes() -> void:
 	_world = Node2D.new()
 	_world.name = "World"
@@ -139,6 +144,13 @@ func _build_nodes() -> void:
 	_fill_mat.set_shader_parameter(&"player_tint", DS.GOLD)
 	_fill_mat.set_shader_parameter(&"world_half_height", data.world_rect.size.y * 0.5)
 	_build_graticule()
+	# Shallow water along every coast, beneath the land (see MapMeshes.shelf_mesh).
+	_shelf_mat = _line_material(GLOW_SHADER, Color(0.35, 0.62, 0.9, 0.10), 1.0)
+	_shelf_mat.set_shader_parameter(&"pulse", 0.0)
+	_shelf = MeshInstance2D.new()
+	_shelf.mesh = _baked("res://data/map_shelf.res", func() -> ArrayMesh: return MapMeshes.shelf_mesh(data))
+	_shelf.material = _shelf_mat
+	_world.add_child(_shelf)
 	_fill = MeshInstance2D.new()
 	_fill.mesh = _baked("res://data/map_fill.res", func() -> ArrayMesh:
 		return MapMeshes.fill_mesh(data, PackedInt32Array(draw_order), _tex_w))
@@ -566,6 +578,8 @@ func _update_line_widths() -> void:
 	_border_mat.set_shader_parameter(&"aa", 1.0 / (BORDER_PX * 0.5 + 0.5))
 	_border_mat.set_shader_parameter(&"line_color", Color(DS.BORDER, DS.BORDER.a * lerpf(0.55, 1.0, zt)))
 	_glow_mat.set_shader_parameter(&"half_width", GLOW_PX * px)
+	if _shelf_mat:
+		_shelf_mat.set_shader_parameter(&"half_width", SHELF_PX * px)
 	_rebuild_glow()
 	_player_line_mat.set_shader_parameter(&"half_width", (PLAYER_LINE_PX * 0.5 + 0.5) * px)
 	_player_line_mat.set_shader_parameter(&"aa", 1.0 / (PLAYER_LINE_PX * 0.5 + 0.5))
@@ -593,7 +607,7 @@ var _globe_pinch := 1.0
 
 
 func _globe_materials() -> Array:
-	return [_fill_mat, _border_mat, _glow_mat, _player_line_mat, _sel_line_mat, _grat_mat]
+	return [_fill_mat, _border_mat, _glow_mat, _player_line_mat, _sel_line_mat, _grat_mat, _shelf_mat]
 
 
 ## Points the globe at the current view and sizes it to the screen.

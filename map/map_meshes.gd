@@ -96,6 +96,22 @@ static func line_mesh(rings: Array[PackedVector2Array], use_miter: bool = true) 
 	return _mesh(verts, uvs, cols, idx)
 
 
+## Coastal "shelf": every country outline, simplified and spike-free, as a wide
+## soft line drawn beneath the land (only its sea side shows). Baked offline.
+const SHELF_TOL := 3.0          # world units (about half a pixel at full-world zoom)
+const SHELF_SPIKE := 12.0
+const SHELF_MIN_AREA := 40.0
+
+
+static func shelf_mesh(md: MapData) -> ArrayMesh:
+	var rings: Array[PackedVector2Array] = []
+	for ring in md.ring_points:
+		var pts := Geo.remove_spikes(Geo.simplify_ring(ring, SHELF_TOL), SHELF_SPIKE, -0.5)
+		if pts.size() >= 3 and absf(Geo.signed_area(pts)) > SHELF_MIN_AREA:
+			rings.append(pts)
+	return line_mesh(rings, false)
+
+
 static func _mesh(verts: PackedVector2Array, uvs: PackedVector2Array, cols: PackedColorArray,
 		idx: PackedInt32Array) -> ArrayMesh:
 	var arr := []
