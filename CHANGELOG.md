@@ -10,8 +10,6 @@ The release workflow publishes the section that matches the tag as the GitHub Re
   - Each operation shows its odds of success and of exposure. Exposed operations mean expelled diplomats, angry neighbours and bad headlines at home
 - **Hostile countries spy on you too:** spy rings caught, hackers stealing research, sabotage at refineries and banks
 
-## [0.64.0] - 2026-11-08
-
 - **Wealth & state firms**, a new page from the Economy tab
 - **A national stock market:** an index (100 when you take office) that rises with growth and stability, falls when you raise interest rates, and follows world markets. Booms make people feel richer; crashes make the news
 - **A sovereign wealth fund:** deposit or withdraw money, choose the mix of safe bonds and global stocks, and decide whether its returns go to the budget. Big oil exporters start with a fund
