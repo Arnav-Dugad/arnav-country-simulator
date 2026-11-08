@@ -1174,6 +1174,9 @@ static func apply_effects(fx: Dictionary, other: int, ev_id: String = "") -> voi
 				Water.apply(str(v))
 			"spill":
 				spill(str(v))
+			"digital":
+				if str(v) == "cyber":
+					Digital.set_cyber(true)
 			"fish":
 				if Game.dip.has("fish"):
 					Fisheries.st().stock = clampf(float(Fisheries.st().stock) + float(v), 5.0, 100.0)

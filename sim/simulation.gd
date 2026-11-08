@@ -54,6 +54,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 	var aqx: Dictionary = Air.modifiers() if c.idx == Game.player and Game.has_game() else {}
 	var mnx: Dictionary = Minerals.modifiers() if c.idx == Game.player and Game.has_game() else {}
 	var fsx: Dictionary = Fisheries.modifiers() if c.idx == Game.player and Game.has_game() else {}
+	var dnx: Dictionary = Digital.modifiers() if c.idx == Game.player and Game.has_game() else {}
 	var anx: Dictionary = Annexation.unrest() if c.idx == Game.player and Game.has_game() and Game.dip.has("integration") else {}
 	var wx: Dictionary = War.effects() if c.idx == Game.player and Game.has_game() and War.at_war() else {}
 	var mx := Game.markets.effects(c)
@@ -115,6 +116,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Air quality", float(aqx.get("growth", 0.0))],
 		["Critical minerals", float(mnx.get("growth", 0.0))],
 		["Fisheries", float(fsx.get("growth", 0.0))],
+		["Digital nation", float(dnx.get("growth", 0.0))],
 		["Doomsday Clock", float(nkx.get("growth", 0.0))],
 		["Industries", float(idx_m.get("growth", 0.0))],
 		["Tourism", float(tox.get("growth", 0.0))],
@@ -265,6 +267,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Air quality", float(aqx.get("happiness", 0.0))],
 		["Critical minerals", float(mnx.get("happiness", 0.0))],
 		["Fisheries", float(fsx.get("happiness", 0.0))],
+		["Digital nation", float(dnx.get("happiness", 0.0))],
 		["Housing & families", float(ppx.get("happiness", 0.0))],
 		["Stock market", float(enx.get("happiness", 0.0))],
 		["Media", float(mdx.get("happiness", 0.0))],
@@ -406,6 +409,8 @@ static func update_finances(c: CountryState) -> void:
 		market_rev += SeaLanes.revenue_pct()
 	if c.idx == Game.player and Game.has_game() and Game.dip.has("min"):
 		market_rev += Minerals.revenue_pct()
+	if c.idx == Game.player and Game.has_game() and Game.dip.has("dig_n"):
+		market_rev += Digital.revenue_pct()
 	var extra_tax := Taxes.total_pct(c) if not c.taxes.is_empty() else 0.0
 	c.revenue = c.gdp * (rate + (c.other_rev_pct + extra_tax + float(lx.get("revenue", 0.0)) + market_rev) / 100.0) * cycle
 	c.spending = c.gdp * (c.spending_pct + float(lx.get("cost", 0.0)) + Projects.spending_pct(c) + Ageing.pension_cost(c)
@@ -432,6 +437,7 @@ static func update_finances(c: CountryState) -> void:
 		+ (SeaLanes.spending_pct() if c.idx == Game.player else 0.0)
 		+ (Air.spending_pct() if c.idx == Game.player else 0.0)
 		+ (Minerals.spending_pct() if c.idx == Game.player else 0.0)
+		+ (Digital.spending_pct() if c.idx == Game.player else 0.0)
 		+ (float(War.effects().cost) if c.idx == Game.player and Game.has_game() and War.at_war() else 0.0)) / 100.0
 	# Inflation above the floor erodes local-currency debt, so only the real
 	# part of the rate is a burden in dollar terms.

@@ -559,6 +559,19 @@ const TOUR_BID_MONTHS := 12        # from bid to vote
 const TOUR_SOFT_RELATIONS := 0.01  # relations a month with everyone per soft power point gained
 
 
+# ------------------------------------------------------------ digital nation ---
+# See sim/digital.gd.
+const DGT_NET_GROWTH := 0.006       # share of the gap to 96 % online closed each month (×3 with broadband for all)
+const DGT_NET_GROWTH_FX := 0.6      # growth points per +100 pts online
+const DGT_ID_CAPITAL := 15.0
+const DGT_ID_CLEAN := 5.0           # clean-government points when the digital ID launches
+const DGT_ID_REVENUE := 0.3         # % of GDP more tax collected at 100 % online
+const DGT_EGOV_COST := 0.05
+const DGT_EGOV_CLEAN := 3.0
+const DGT_CYBER_COST := 0.04
+const DGT_ATTACK := 0.006           # monthly chance of a big cyber attack at 100 % online
+
+
 # --------------------------------------------------------- fisheries & oceans ---
 # See sim/fisheries.gd.
 const FISH_COLLAPSE_AT := 25.0      # stock health below which a collapse happens

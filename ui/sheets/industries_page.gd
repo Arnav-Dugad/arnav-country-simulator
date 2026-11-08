@@ -43,6 +43,7 @@ func refresh() -> void:
 	if Fisheries.coastal():
 		items.append(["fish", Fisheries.color(Fisheries.stock()), "Fish", "%d" % roundi(Fisheries.stock()), "Fisheries & oceans"])
 	items.append(["bot", DS.PURPLE, "Robots", "%d" % roundi(Automation.level()), "Robots & AI"])
+	items.append(["wifi", DS.ACCENT, "Online", "%d%%" % roundi(Digital.online()), "Digital nation"])
 	glance(items, _box)
 	var sh: Dictionary = s.shock
 	if not sh.is_empty():
@@ -58,6 +59,7 @@ func refresh() -> void:
 	for id in ids:
 		box.add_child(_sector_row(c, str(id)))
 	note("Tap a sector to see what drives it and to subsidise it. Competitive sectors grow and hire; struggling ones shrink. Skills, research, infrastructure and clean government help every sector.", box)
+	_digital_nation()
 	_minerals()
 	_food()
 	_fisheries()
@@ -405,3 +407,44 @@ func _fisheries() -> void:
 		refresh())
 	box.add_child(mseg)
 	note("The catch is %d%% of what it was when you took office. Fishing hard pays now but empties the sea; below 25 a stock can collapse for years. Marine reserves let fish recover and bring divers." % roundi(Fisheries.catch_index() * 100.0), box)
+
+
+# ------------------------------------------------------------ digital nation ---
+func _digital_nation() -> void:
+	var box := section("Digital nation", _box)
+	var s := Digital.st()
+	var c := Game.me()
+	var net := Digital.online()
+	var d := net - float(s.net0)
+	var hl := ListRow.new().setup("%d%% of people online" % roundi(net),
+		("%+d pts since you took office" % roundi(d) if absf(d) >= 1.0 else "Build Broadband for all to connect everyone faster"))
+	hl.subtitle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	hl.subtitle_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	hl.set_leading(ListRow.icon_tile("wifi", DS.ACCENT))
+	box.add_child(hl)
+	box.add_child(meter(net / 100.0, 0.0, DS.ACCENT, 6.0))
+	if not Digital.has_id():
+		var ib := AppButton.make("Launch a digital ID  ·  %d capital" % int(Economy.DGT_ID_CAPITAL), &"", "fingerprint")
+		ib.disabled = not Capital.can(Economy.DGT_ID_CAPITAL)
+		ib.pressed.connect(func() -> void:
+			if Digital.launch_id():
+				Simulation.update_finances(Game.me())
+				Haptics.success()
+			refresh())
+		box.add_child(ib)
+		note("One number for every citizen: taxes and benefits leak less, officials steal less. Some worry about privacy.", box)
+	else:
+		note("Every citizen has a digital ID: about %s more tax collected a year." % DS.money(c.gdp * Digital.revenue_pct() / 100.0), box)
+	var et := AppToggle.new().setup("Public services online  ·  %s a year" % DS.money(c.gdp * Economy.DGT_EGOV_COST / 100.0), bool(s.egov), "monitor-smartphone")
+	et.toggled.connect(func(on: bool) -> void:
+		Digital.set_egov(on)
+		Simulation.update_finances(Game.me())
+		Haptics.select())
+	box.add_child(et)
+	var ct := AppToggle.new().setup("Cyber defence agency  ·  %s a year" % DS.money(c.gdp * Economy.DGT_CYBER_COST / 100.0), bool(s.cyber), "shield-check")
+	ct.toggled.connect(func(on: bool) -> void:
+		Digital.set_cyber(on)
+		Simulation.update_finances(Game.me())
+		Haptics.select())
+	box.add_child(ct)
+	note("The more you put online, the more hackers try their luck: about a %d%% chance of a major attack in the next three years." % roundi((1.0 - pow(1.0 - Digital.attack_chance(), 36.0)) * 100.0), box)
