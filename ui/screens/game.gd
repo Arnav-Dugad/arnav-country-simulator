@@ -42,6 +42,7 @@ var _tip_snooze_until := -1
 func _ready() -> void:
 	if not Game.has_game():  # e.g. launched directly via --scene
 		Game.new_game(World.index_of("IND"))
+	Audio.music_start("game")
 	add_child(OceanBackground.new())
 	map = MapView.new()
 	map.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)

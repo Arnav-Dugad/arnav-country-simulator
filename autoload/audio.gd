@@ -1,6 +1,8 @@
 extends Node
-## Sound effects and ambient music. Original, synthesized assets (tools/make_audio.py).
-## Separate SFX / Music buses; music ducks under modal cards. Toggles in Settings.
+## Sound effects and music. Original, synthesized orchestral score and cues
+## (tools/make_score.py). Separate SFX / Music buses; music ducks under modal
+## cards. Two "places": the menu theme (splash, home, country picker) and the
+## in-game pair (calm + tense, in sync, crossfaded by mood()). Toggles in Settings.
 
 const SFX := ["tap", "select", "toggle_on", "toggle_off", "sheet_up", "sheet_down", "tick",
 	"success", "warning", "event", "election", "fanfare"]
@@ -14,6 +16,9 @@ var _pool: Array[AudioStreamPlayer] = []
 var _next := 0
 var _last := {}
 var _music: AudioStreamPlayer
+var _menu: AudioStreamPlayer
+var _place := "menu"      # "menu" or "game"
+var _place_tween: Tween
 ## Adaptive music: a tense loop of the same length plays in sync and crossfades in
 ## when your country is in trouble (see mood()).
 var _tense: AudioStreamPlayer
@@ -37,18 +42,24 @@ func _ready() -> void:
 		p.bus = &"SFX"
 		add_child(p)
 		_pool.append(p)
-	_music = AudioStreamPlayer.new()
-	_music.bus = &"Music"
-	_music.stream = load("res://assets/audio/music_calm.wav")
-	_music.volume_db = -60.0
-	add_child(_music)
-	_tense = AudioStreamPlayer.new()
-	_tense.bus = &"Music"
-	if ResourceLoader.exists("res://assets/audio/music_tense.wav"):
-		_tense.stream = load("res://assets/audio/music_tense.wav")
-	_tense.volume_db = -60.0
-	add_child(_tense)
+	_music = _music_player("music_calm")
+	_tense = _music_player("music_tense")
+	_menu = _music_player("music_menu")
 	Settings.changed.connect(_on_setting)
+
+
+func _music_player(track: String) -> AudioStreamPlayer:
+	var p := AudioStreamPlayer.new()
+	p.bus = &"Music"
+	var path := "res://assets/audio/%s.ogg" % track
+	if ResourceLoader.exists(path):
+		var s: AudioStream = load(path)
+		if s is AudioStreamOggVorbis:
+			(s as AudioStreamOggVorbis).loop = true
+		p.stream = s
+	p.volume_db = -60.0
+	add_child(p)
+	return p
 
 
 func _ensure_bus(bus_name: String) -> int:
@@ -78,26 +89,49 @@ func play(sound: String, volume_db: float = 0.0) -> void:
 	p.play()
 
 
-func music_start() -> void:
-	if not Settings.music_on or _music.playing:
+## Starts the music for a place ("menu" or "game"), crossfading from whatever
+## plays now. Calling it again for the same place does nothing.
+func music_start(place: String = "menu") -> void:
+	if not Settings.music_on:
+		_place = place
 		return
-	_music.volume_db = -40.0
-	_music.play()
-	if _tense.stream:
-		_tense.volume_db = -60.0
-		_tense.play()
-	create_tween().tween_property(_music, "volume_db", _calm_db(), 3.0).set_trans(Tween.TRANS_SINE)
+	var same := place == _place and (_menu.playing if place == "menu" else _music.playing)
+	if same:
+		return
+	_place = place
+	if _place_tween:
+		_place_tween.kill()
+	_place_tween = create_tween().set_parallel(true).set_trans(Tween.TRANS_SINE)
+	if place == "menu":
+		if not _menu.playing:
+			_menu.volume_db = -40.0
+			_menu.play()
+		_place_tween.tween_property(_menu, "volume_db", MUSIC_DB, 3.0)
+		_place_tween.tween_property(_music, "volume_db", -60.0, 2.5)
+		_place_tween.tween_property(_tense, "volume_db", -60.0, 2.5)
+		_place_tween.chain().tween_callback(func() -> void:
+			_music.stop()
+			_tense.stop())
+	else:
+		if not _music.playing:
+			_music.volume_db = -40.0
+			_music.play()
+			if _tense.stream:
+				_tense.volume_db = -60.0
+				_tense.play()
+		_place_tween.tween_property(_music, "volume_db", _calm_db(), 3.5)
+		_place_tween.tween_property(_tense, "volume_db", _tense_db(), 3.5)
+		_place_tween.tween_property(_menu, "volume_db", -60.0, 2.5)
+		_place_tween.chain().tween_callback(_menu.stop)
 
 
 func music_stop() -> void:
-	if not _music.playing:
-		return
 	var t := create_tween().set_parallel(true)
-	t.tween_property(_music, "volume_db", -50.0, 1.2)
-	t.tween_property(_tense, "volume_db", -60.0, 1.2)
+	for p in [_music, _tense, _menu]:
+		t.tween_property(p, "volume_db", -60.0, 1.2)
 	t.chain().tween_callback(func() -> void:
-		_music.stop()
-		_tense.stop())
+		for p in [_music, _tense, _menu]:
+			p.stop())
 
 
 ## 0 = all is well, 1 = crisis. The two loops crossfade over a few seconds.
@@ -134,6 +168,8 @@ func duck(on: bool) -> void:
 func _on_setting(key: String, value: Variant) -> void:
 	if key == "music_on":
 		if value:
-			music_start()
+			var p := _place
+			_place = ""
+			music_start(p)
 		else:
 			music_stop()

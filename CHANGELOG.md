@@ -2,6 +2,14 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.51.0] - 2026-11-08
+
+- **A new orchestral score.** Original cinematic music, composed and synthesized for the game: layered string ensembles, warm low brass, a soft choir, felt piano and deep percussion in a long concert-hall reverb
+  - **Main theme** on the home screen: it grows from piano and strings into a full climax, then falls back so the loop breathes
+  - **In-game:** a calm piece and a tense one written over the same chords, played in sync. The music shifts gently as your country's fortunes change
+  - New cues for election night, election wins and the world games, plus softer event, success and warning sounds
+- **Gentler UI sounds:** taps, toggles and sheets are much quieter and warmer, with nothing sharp in the treble
+
 ## [0.50.0] - 2026-11-08
 
 - **Map polish:** a soft band of shallow water along every coast, long country names on two lines instead of disappearing, and labels that fade in as you zoom instead of popping

@@ -291,6 +291,9 @@ def music_tense():
 
 if __name__ == "__main__":
     import sys
+    # Superseded by tools/make_score.py (orchestral score and cues). Kept for reference.
+    if "--legacy" not in sys.argv:
+        raise SystemExit("make_audio.py is superseded: run tools/make_score.py (or pass --legacy)")
     os.makedirs(OUT, exist_ok=True)
     if "--only=fanfare" in sys.argv:
         fanfare()
