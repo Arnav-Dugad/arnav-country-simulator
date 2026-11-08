@@ -400,6 +400,23 @@ static func tax_yield(rate: float, k: float) -> float:
 	return r * k * (1.0 - LAFFER * r * r)
 
 
+# ----------------------------------------------------------------- ageing ---
+# See sim/ageing.gd.
+## Points of 65+ share added per year, from the poorest to the richest countries.
+const AGEING_RATE_MIN := 0.08
+const AGEING_RATE_MAX := 0.38
+## Young migrants slow ageing: points per year per extra migrant per 1,000.
+const AGEING_MIGRANT_RELIEF := 0.02
+## Public pension and care spending per point of 65+ share (% of GDP). OECD
+## Pensions at a Glance 2023: public pension spending is about 0.5 x the old-age
+## share across members; we use a little less as some is already budgeted.
+const PENSION_PER_PT := 0.4
+## Growth lost per point of 65+ share (a smaller workforce).
+const AGEING_GROWTH_DRAG := 0.05
+## Raising the pension age (law) cuts both effects by this share.
+const PENSION_AGE_RELIEF := 0.4
+
+
 # -------------------------------------------------------------- inequality ---
 # See sim/inequality.gd. Gini points per unit of change from the start.
 ## Welfare: per extra 1 % of GDP spent (OECD: transfers cut market-income Gini

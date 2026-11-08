@@ -46,6 +46,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Trade openness", E.TRADE_GROWTH * Profiles.mult(i, "trade_growth") * d_trade * 2.0 * 0.5],
 		["Trade deals", E.TRADE_DEAL_GROWTH * Profiles.mult(i, "deal_growth") * c.trade_deals],
 		["Migration", Migration.growth_effect(c, mig)],
+		["Ageing workforce", Ageing.growth_drag(c)],
 		["World oil prices", float(mx.growth)],
 		["Treaties & blocs", float(tx.get("growth", 0.0))],
 		["Your ministers", float(cx.get("growth", 0.0))],
@@ -243,7 +244,7 @@ static func update_finances(c: CountryState) -> void:
 	var lx := Laws.modifiers(c)
 	var market_rev := float(Game.markets.effects(c).revenue) if Game.has_game() else 0.0
 	c.revenue = c.gdp * (rate + (c.other_rev_pct + float(lx.get("revenue", 0.0)) + market_rev) / 100.0) * cycle
-	c.spending = c.gdp * (c.spending_pct + float(lx.get("cost", 0.0)) + Projects.spending_pct(c)) / 100.0
+	c.spending = c.gdp * (c.spending_pct + float(lx.get("cost", 0.0)) + Projects.spending_pct(c) + Ageing.pension_cost(c)) / 100.0
 	# Inflation above the floor erodes local-currency debt, so only the real
 	# part of the rate is a burden in dollar terms.
 	var real_rate := maxf(c.debt_rate - maxf(0.0, c.inflation - Economy.DEBT_EROSION_FLOOR), 0.25)

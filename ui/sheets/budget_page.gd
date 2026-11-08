@@ -225,6 +225,11 @@ func refresh() -> void:
 	_bal.number.add_theme_color_override(&"font_color", DS.GREEN if c.balance >= 0.0 else DS.RED)
 	_interest_note.text = "Debt %s (%s of GDP)  ·  Interest %s / yr" % [
 		DS.money(c.debt), DS.pct(c.debt_pct(), 0), DS.money(c.interest_cost)]
+	var pen := Ageing.pension_cost(c)
+	if pen >= 0.05:
+		_interest_note.text += "
+An ageing population adds %s a year in pensions and care (%s of GDP)." % [
+			DS.money(c.gdp * pen / 100.0), DS.pct(pen, 1)]
 	for k in _shares:
 		_shares[k].set_value(c.budget[k] * 100.0, false)
 	_update_donut()

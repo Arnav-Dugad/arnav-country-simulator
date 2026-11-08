@@ -52,6 +52,10 @@ static func advice(c: CountryState) -> Array:
 		out.append(_item(1, "The gap between rich and poor is growing",
 			"Inequality is up %s points. Welfare spending, a minimum wage or a wealth tax narrow it." % String.num(Inequality.change(c), 1),
 			"budget", "scale"))
+	if Ageing.pension_cost(c) > 1.0 and not Laws.is_active(c, "pension_age"):
+		out.append(_item(1, "Pensions are getting expensive",
+			"An ageing population now costs %s of GDP more than when you started. Raising the pension age softens it." % DS.pct(Ageing.pension_cost(c), 1),
+			"laws", "users"))
 	var pledge := Climate.pledge()
 	if not pledge.is_empty() and int(pledge.due) - Game.months_played <= 36 			and Climate.pledge_done() < float(pledge.cut) * 0.5:
 		out.append(_item(1, "Your climate pledge is off track",

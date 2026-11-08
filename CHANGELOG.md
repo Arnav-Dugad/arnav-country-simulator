@@ -5,6 +5,7 @@ The release workflow publishes the section that matches the tag as the GitHub Re
 ## [0.48.0] - 2026-11-08
 
 - **Inequality.** Every country starts at its real Gini index (World Bank). It shifts slowly with welfare spending, income tax, joblessness and laws (minimum wage, wealth tax, basic income narrow the gap; privatisation widens it). A growing gap costs happiness and stability; a shrinking one wins both
+- **Ageing.** Each country starts at its real share of people over 65, which rises every year (fastest in rich countries with few births, slower where young migrants arrive). Every extra point adds pension and care costs and shrinks the workforce. Raising the pension age softens both. The Budget page shows what ageing costs you
 - Law cards show their effect on inequality, country pages show each country's Gini, very unequal countries get a "A fairer society" goal, and your advisors warn when the gap grows
 
 ## [0.47.1] - 2026-11-08

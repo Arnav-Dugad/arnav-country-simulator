@@ -34,8 +34,8 @@ const ALL := [
 		"desc": "Cut Australia's emissions below 9 tonnes of CO₂ a person within 10 years (from 14.1).",
 		"goal": {"metric": "co2_pc", "op": "<", "value": 9.0}, "years": 10},
 	{"id": "bih_stay", "country": "BIH", "icon": "plane-landing", "title": "Stop the exodus",
-		"desc": "Young Bosnians are leaving. Slow emigration to under 2 people per 1,000 a year within 8 years (from 5.2).",
-		"goal": {"metric": "migration", "op": ">", "value": -2.0}, "years": 8},
+		"desc": "Young Bosnians are leaving. Slow emigration to under 2.5 people per 1,000 a year within 8 years (from 5.2).",
+		"goal": {"metric": "migration", "op": ">", "value": -2.5}, "years": 8},
 ]
 
 

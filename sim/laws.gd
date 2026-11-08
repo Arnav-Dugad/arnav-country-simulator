@@ -26,7 +26,7 @@ const ALL := [
 		"desc": "A small monthly payment to every adult, no strings attached.", "months": 12, "politics": 0.5,
 		"fx": {"happiness": 4.0, "approval": 2.0, "unemployment": 0.3, "inflation": 0.4, "cost": 1.6}},
 	{"id": "pension_age", "group": "Health & society", "icon": "users", "title": "Raise the pension age",
-		"desc": "People retire two years later. Saves money, deeply unpopular.", "months": 9, "politics": -6.0,
+		"desc": "People retire two years later. Saves money now and softens the cost of an ageing population. Deeply unpopular.", "months": 9, "politics": -6.0,
 		"fx": {"approval": -2.5, "happiness": -2.0, "unemployment": 0.1, "cost": -0.9}},
 	{"id": "min_wage", "group": "Economy", "icon": "coins", "title": "Higher minimum wage",
 		"desc": "Lifts pay for the lowest-paid workers.", "months": 6, "politics": 2.0,
