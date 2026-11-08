@@ -99,6 +99,10 @@ static func reasons(c: CountryState) -> Dictionary:
 				_add(out, g, "Scrapping " + Laws.title_of(c, Laws.law(id)).to_lower(), -float(LAW_FX[id][g]))
 	if Projects.is_done(c, "rural_roads") and not bool(c.projects.get("rural_roads", {}).get("start", false)):
 		_add(out, "rural", "New rural roads", 4.0)
+	if c.idx == Game.player and Game.has_game():
+		_add(out, "rural", "Trade war", Tariffs.rural_hit())
+		_add(out, "workers", "Tariff protection", 1.5 * minf(Tariffs.count(), 2))
+		_add(out, "business", "Tariffs", -2.0 * minf(Tariffs.count(), 2))
 	# The opposition's heartland leans away from you.
 	if c.idx == Game.player and Opposition.active():
 		var opp := Opposition.leader()

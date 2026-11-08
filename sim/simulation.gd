@@ -28,6 +28,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 	var mx := Game.markets.effects(c)
 	var tx := Treaties.modifiers(c) if c.idx == Game.player else {}
 	var mig := Migration.delta(c)
+	var tf := Tariffs.modifiers(c)
 	var cx := Cabinet.modifiers(c) if c.idx == Game.player else {}
 	var i := c.idx
 	var autocracy := not Government.has_elections(c.idx)
@@ -47,6 +48,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Trade deals", E.TRADE_DEAL_GROWTH * Profiles.mult(i, "deal_growth") * c.trade_deals],
 		["Migration", Migration.growth_effect(c, mig)],
 		["Ageing workforce", Ageing.growth_drag(c)],
+		["Trade war", float(tf.growth)],
 		["World oil prices", float(mx.growth)],
 		["Treaties & blocs", float(tx.get("growth", 0.0))],
 		["Your ministers", float(cx.get("growth", 0.0))],
@@ -81,6 +83,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Trade barriers", E.PROTECTION_INFLATION * maxf(0.0, -d_trade) * 2.0],
 		["Interest rates", -E.RATE_INFLATION_EFFECT * gap],
 		["World oil & food prices", float(mx.inflation)],
+		["Tariffs", float(tf.inflation)],
 		["Treaties & blocs", float(tx.get("inflation", 0.0))],
 		["Your ministers", float(cx.get("inflation", 0.0))],
 		["Recent events", float(c.shocks.inflation)],
@@ -98,6 +101,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Normal level for your country", c.u_natural],
 		["Economic momentum", -E.OKUN * (c.growth - c.growth_anchor)],
 		["New arrivals", Migration.jobs_effect(mig)],
+		["Tariffs", float(tf.unemployment)],
 		["Interest rates", E.RATE_UNEMP * gap],
 		["Recent events", float(c.shocks.unemployment)],
 		["Laws & reforms", float(lx.get("unemployment", 0.0))],
@@ -243,6 +247,8 @@ static func update_finances(c: CountryState) -> void:
 	var rate := Economy.tax_yield(c.income_tax, Economy.K_INCOME) + Economy.tax_yield(c.corp_tax, Economy.K_CORP)
 	var lx := Laws.modifiers(c)
 	var market_rev := float(Game.markets.effects(c).revenue) if Game.has_game() else 0.0
+	if Game.has_game():
+		market_rev += float(Tariffs.modifiers(c).revenue)
 	c.revenue = c.gdp * (rate + (c.other_rev_pct + float(lx.get("revenue", 0.0)) + market_rev) / 100.0) * cycle
 	c.spending = c.gdp * (c.spending_pct + float(lx.get("cost", 0.0)) + Projects.spending_pct(c) + Ageing.pension_cost(c)) / 100.0
 	# Inflation above the floor erodes local-currency debt, so only the real

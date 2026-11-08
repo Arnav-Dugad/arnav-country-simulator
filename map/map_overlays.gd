@@ -50,6 +50,7 @@ func _draw() -> void:
 	_draw_night()
 	_draw_weather()
 	_draw_trade()
+	_draw_tariffs()
 	_draw_projects()
 	_draw_flight()
 	_draw_ripples()
@@ -196,6 +197,32 @@ func _draw_flight() -> void:
 		# Arrival: a soft ring opens over their capital.
 		var k := clampf((el - fly) / FLIGHT_FADE, 0.0, 1.0)
 		draw_arc(to, 6.0 + 26.0 * k, 0.0, TAU, 40, Color(DS.GOLD, 0.8 * (1.0 - k)), 2.0, true)
+
+
+## Trade wars: a thin red arc to each country you've put tariffs on (pulsing
+## when they've hit back). No particles: trade has slowed to a trickle.
+func _draw_tariffs() -> void:
+	if not Game.dip.has("tariffs") or (Game.dip.tariffs as Dictionary).is_empty():
+		return
+	var to := map.world_to_screen(_anchor(Game.player))
+	for k in Game.dip.tariffs:
+		var i := int(k)
+		var from := map.world_to_screen(_anchor(i))
+		var d := from.distance_to(to)
+		if d < 6.0:
+			continue
+		var n := (to - from).orthogonal().normalized()
+		if n.y > 0.0:
+			n = -n
+		var ctrl := (from + to) * 0.5 + n * minf(d * 0.2, 160.0)
+		var pts := PackedVector2Array()
+		for s in ARC_SEGMENTS + 1:
+			pts.append(_bezier(from, ctrl, to, float(s) / ARC_SEGMENTS))
+		var a := 0.55
+		if Tariffs.retaliating(i):
+			a = 0.45 + 0.3 * (0.5 + 0.5 * sin(_t * 3.0))
+		map_line(pts, Color(DS.RED, a), 1.6)
+		draw_circle(from, 3.0, Color(DS.RED, 0.85), true, -1.0, true)
 
 
 func map_line(pts: PackedVector2Array, col: Color, w: float) -> void:

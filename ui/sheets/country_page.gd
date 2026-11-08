@@ -233,6 +233,17 @@ func _build_actions(i: int, is_me: bool, playable: bool) -> void:
 		var gain := Diplomacy.send_aid(i)
 		_done("Aid delivered. Relations %+.0f." % gain, true),
 		not Diplomacy.can_send_aid(i), "Available again in %d months" % cd if cd > 0 else "Paid from the treasury")
+	# Tariffs (trade war)
+	if Tariffs.has(i):
+		_action("Lift tariffs", &"", "check", func() -> void:
+			Tariffs.lift(i)
+			_done("Tariffs lifted. Trade flows again.", true),
+			false, "Prices calm down" + (", and they drop theirs" if Tariffs.retaliating(i) else ""))
+	else:
+		_action("Put tariffs on their goods", &"", "ban", func() -> void:
+			var back := Tariffs.impose(i)
+			_done("Tariffs imposed. %s" % ("They hit back with their own." if back else "They chose not to retaliate."), not back),
+			false, "Protects factories, raises prices · %d%% chance they hit back" % roundi(Tariffs.retaliation_chance(i) * 100.0))
 	# Sanctions
 	if Diplomacy.is_sanctioning(i):
 		_action("Lift sanctions", &"", "check", func() -> void:
