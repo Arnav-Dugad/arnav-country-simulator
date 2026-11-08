@@ -34,6 +34,12 @@ const PLEDGES := {
 		"desc": "Health spending up by a tenth."},
 	"green": {"title": "A greener country", "icon": "leaf", "groups": ["youth"],
 		"desc": "Emissions per person down 10%."},
+	"waits": {"title": "Shorter hospital waits", "icon": "hourglass", "groups": ["retirees", "workers"],
+		"desc": "Waiting times for operations down a fifth."},
+	"air": {"title": "Clean air", "icon": "wind", "groups": ["youth", "workers"],
+		"desc": "Air pollution down 15%."},
+	"schools": {"title": "Better schools", "icon": "school", "groups": ["youth", "workers"],
+		"desc": "Pupils' test scores up 10 points."},
 }
 
 const TRAIL := {
@@ -53,7 +59,9 @@ static func st() -> Dictionary:
 static func _snap(c: CountryState) -> Dictionary:
 	return {"income": c.income_tax, "corp": c.corp_tax, "vat": Taxes.rate(c, "vat") if not c.taxes.is_empty() else 0.0,
 		"unemp": c.unemployment, "afford": Population.afford() if Game.dip.has("pop") else 100.0,
-		"crime": Crime.value() if Game.dip.has("crime") else 0.0, "health": c.effort("health"), "co2": Climate.co2_pc(c)}
+		"crime": Crime.value() if Game.dip.has("crime") else 0.0, "health": c.effort("health"), "co2": Climate.co2_pc(c),
+		"wait": Health.wait() if Game.dip.has("hlth") else 10.0, "pm": Air.pm() if Game.dip.has("air") else 20.0,
+		"learn": Education.score() if Game.dip.has("edu") else 400.0}
 
 
 static func make(ids: Array) -> float:
@@ -99,6 +107,18 @@ static func status(p: Dictionary) -> Array:
 		"green":
 			var co := Climate.co2_pc(c)
 			return [1 if co <= float(b.co2) * 0.9 else -1, "Emissions %+d%% (goal -10%%)" % roundi((co / maxf(float(b.co2), 0.001) - 1.0) * 100.0)]
+		"waits":
+			var w := Health.wait()
+			var w0 := float(b.get("wait", w))
+			return [1 if w <= w0 * 0.8 else -1, "Waits %d weeks (goal %d)" % [roundi(w), roundi(w0 * 0.8)]]
+		"air":
+			var a2 := Air.pm()
+			var a0 := float(b.get("pm", a2))
+			return [1 if a2 <= a0 * 0.85 else -1, "Fine dust %d µg (goal %d)" % [roundi(a2), roundi(a0 * 0.85)]]
+		"schools":
+			var l := Education.score()
+			var l0 := float(b.get("learn", l))
+			return [1 if l >= l0 + 10.0 else -1, "Test scores %d (goal %d)" % [roundi(l), roundi(l0 + 10.0)]]
 	return [0, ""]
 
 
