@@ -3,11 +3,11 @@ extends RefCounted
 ## Map colouring modes. Data modes take normalised values (0..1, NAN = no data)
 ## and map them through calm, dark-mode-friendly ramps.
 
-enum Mode { POLITICAL, WEALTH, RELATIONS, HAPPINESS, STABILITY, GROWTH, DEBT, BLOCS, EMISSIONS }
+enum Mode { POLITICAL, WEALTH, RELATIONS, HAPPINESS, STABILITY, GROWTH, DEBT, BLOCS, EMISSIONS, OUTBREAK }
 
-const LABELS := ["Political", "GDP per capita", "Relations", "Happiness", "Stability", "Growth", "Debt", "Blocs", "CO₂ per person"]
-const SHORT := ["Political", "Wealth", "Relations", "Happiness", "Stability", "Growth", "Debt", "Blocs", "Emissions"]
-const ICONS := ["map", "coins", "handshake", "heart", "shield", "trending-up", "piggy-bank", "users", "factory"]
+const LABELS := ["Political", "GDP per capita", "Relations", "Happiness", "Stability", "Growth", "Debt", "Blocs", "CO₂ per person", "Outbreak"]
+const SHORT := ["Political", "Wealth", "Relations", "Happiness", "Stability", "Growth", "Debt", "Blocs", "Emissions", "Outbreak"]
+const ICONS := ["map", "coins", "handshake", "heart", "shield", "trending-up", "piggy-bank", "users", "factory", "biohazard"]
 
 ## Blocs view: the bloc each country is drawn in (first match wins), and its colour.
 const BLOC_ORDER := ["eu", "nato", "brics", "eaeu", "asean", "gcc", "mercosur", "afcfta", "usmca"]
@@ -108,13 +108,21 @@ static func data_colors(mode: int, values: PackedFloat32Array) -> PackedColorArr
 	if mode in [Mode.DEBT, Mode.EMISSIONS]:
 		stops = seq_ramp().duplicate()
 		stops.reverse()      # more debt = darker/redder
+	if mode == Mode.OUTBREAK:
+		stops = OUTBREAK_RAMP
 	for i in values.size():
 		var v := values[i]
 		out[i] = NO_DATA if is_nan(v) else ramp(stops, v)
 	return out
 
 
+## Outbreak view: untouched (deep blue) to hard-hit (red).
+const OUTBREAK_RAMP := [Color("1f2b45"), Color("4a3a5a"), Color("8a3f55"), Color("c2453c"), Color("ff6a4d")]
+
+
 static func legend_stops(mode: int) -> Array:
+	if mode == Mode.OUTBREAK:
+		return OUTBREAK_RAMP
 	if mode in [Mode.DEBT, Mode.EMISSIONS]:
 		var s := seq_ramp().duplicate()
 		s.reverse()

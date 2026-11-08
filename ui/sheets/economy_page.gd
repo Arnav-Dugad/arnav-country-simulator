@@ -46,6 +46,8 @@ func _build() -> void:
 	_health = HealthCard.new()
 	_health.page_requested.connect(func(p: String) -> void: page_requested.emit(p))
 	add_child(_health)
+	_pandemic = PandemicCard.new()
+	add_child(_pandemic)
 	_speech = AppButton.make("Address the nation", &"", "mic")
 	_speech.pressed.connect(_address)
 	add_child(_speech)
@@ -306,7 +308,12 @@ func _update_balance() -> void:
 	_balance_note.add_theme_color_override(&"font_color", DS.GREEN if bal >= 0 else (DS.ORANGE if bal > -5 else DS.RED))
 
 
+var _pandemic: PandemicCard
+
+
 func refresh() -> void:
+	if _pandemic:
+		_pandemic.refresh()
 	var c := Game.me()
 	if c == null:
 		return

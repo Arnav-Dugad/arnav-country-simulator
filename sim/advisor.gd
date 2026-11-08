@@ -55,6 +55,12 @@ static func advice(c: CountryState) -> Array:
 			"diplomacy", "swords"))
 	if Security.level() == 2:
 		out.append(_item(1, "Hostile forces near your borders", Security.describe(), "diplomacy", "shield"))
+	if c.idx == Game.player and Game.dip.has("pandemic") and Pandemic.active():
+		var inf := Pandemic.infected()
+		var over := inf > Pandemic.capacity(c)
+		out.append(_item(2 if over else 1, ("Hospitals are overwhelmed (%s infected)" if over else "The %s is spreading (%s infected)" % [str(Pandemic.st().name), "%s"]) % DS.pct(inf * 100.0, 1),
+			"Lockdowns and masks slow it; testing helps; vaccines end it. See the pandemic card below." if inf > 0.0005
+			else "No cases yet here. Closing the borders keeps it out longer, at a cost to trade.", "economy", "biohazard"))
 	if Inequality.change(c) > 2.5:
 		out.append(_item(1, "The gap between rich and poor is growing",
 			"Inequality is up %s points. Welfare spending, a minimum wage or a wealth tax narrow it." % String.num(Inequality.change(c), 1),

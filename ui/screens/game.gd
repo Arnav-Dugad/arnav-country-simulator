@@ -302,6 +302,10 @@ func _dev_open() -> void:
 		Game.politics.campaign_open = true
 		Game.campaign_started.emit()
 		_show_campaign()
+	if DevTools.arg("pandemic") != null:
+		Pandemic.start()
+		for k in int(str(DevTools.arg("pandemic"))):
+			Game.advance_month()
 	if DevTools.arg("election") != null:
 		Settings.tutorial_done = true
 		Game.months_to_election = 1

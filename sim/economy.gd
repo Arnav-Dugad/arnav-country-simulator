@@ -541,6 +541,31 @@ const TOUR_BID_MONTHS := 12        # from bid to vote
 const TOUR_SOFT_RELATIONS := 0.01  # relations a month with everyone per soft power point gained
 
 
+# --------------------------------------------------------------- pandemics ---
+# See sim/pandemic.gd. Rates are per month, on shares of the population.
+const PAN_CHANCE := 0.0035          # monthly chance a new disease appears (about once in 25 years)
+const PAN_SPREAD := 1.6             # transmission (with PAN_RECOVER: R0 about 2.3)
+const PAN_RECOVER := 0.7            # share of the infected who recover each month
+const PAN_IFR := 0.002              # deaths per infection (x severity, more when hospitals overflow)
+const PAN_CAPACITY := 0.02          # infected share hospitals handle at full health coverage
+const PAN_LOCK_PARTIAL := 0.35      # spread cut by a partial lockdown ...
+const PAN_LOCK_FULL := 0.65         # ... and a full one
+const PAN_MASKS := 0.12
+const PAN_TESTING := 0.15
+const PAN_BORDERS := 0.8            # imported cases stopped by closed borders
+const PAN_VACCINE_MONTHS := 16.0    # until a world vaccine
+const PAN_OWN_VACCINE_MONTHS := 8.0 # your own, with mRNA research
+const PAN_VAX_RATE := 0.08          # share of the unprotected vaccinated a month (x health system)
+const PAN_SICK_GROWTH := 3.0        # growth lost at full disruption (2.5 % infected at once)
+const PAN_LOCK_GROWTH_PARTIAL := 1.5
+const PAN_LOCK_GROWTH_FULL := 4.0
+const PAN_BORDER_GROWTH := 0.5
+const PAN_AI_GROWTH := 0.3          # other countries' monthly growth shock at full disruption
+const PAN_TESTING_COST := 0.3       # % of GDP a year
+const PAN_HEALTH_COST := 0.8        # extra health spending at full disruption, % of GDP a year
+const PAN_GRIEF := 1500.0           # approval and happiness lost per share of the population that dies
+
+
 # ------------------------------------------------------------ intelligence ---
 # See sim/intel.gd. Per budget level (Small, Standard, Large, Massive):
 const INTEL_COST := [0.03, 0.08, 0.18, 0.35]       # % of GDP a year (Standard is the baseline)

@@ -314,6 +314,10 @@ func advance_month() -> void:
 		me().treasury = me().spending
 	for note in War.monthly():
 		war_battle.emit(note)
+	for h in Pandemic.monthly():
+		add_feed(str(h.text), str(h.icon), "green" if bool(h.good) else "red")
+		if bool(h.big):
+			intel_news.emit(h)
 	for h in Annexation.monthly():
 		add_feed(str(h.text), str(h.icon), "green" if bool(h.good) else "orange")
 	for h in Tourism.monthly():
@@ -582,6 +586,9 @@ func map_values(mode: int) -> PackedFloat32Array:
 				out[i] = clampf((c.growth + 4.0) / 12.0, 0.0, 1.0)     # -4 % .. +8 %
 			MapModes.Mode.DEBT:
 				out[i] = clampf(c.debt_pct() / 160.0, 0.0, 1.0)
+			MapModes.Mode.OUTBREAK:      # infected share, log-ish (0.01 % .. 10 %)
+				var f: float = Pandemic.share(World.owner(i), "inf") if dip.has("pandemic") else 0.0
+				out[i] = clampf((log(maxf(f, 0.0001)) / log(10.0) + 4.0) / 3.0, 0.0, 1.0) if f > 0.0 else 0.0
 			MapModes.Mode.EMISSIONS:     # log scale, 0.1 .. 30 t per person
 				out[i] = clampf((log(maxf(Climate.co2_pc(c), 0.1)) / log(10.0) + 1.0) / 2.5, 0.0, 1.0)
 			_:
