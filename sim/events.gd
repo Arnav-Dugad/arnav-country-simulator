@@ -821,6 +821,24 @@ const _CHIP := {"growth": ["Growth", true], "inflation": ["Inflation", false], "
 	"relations_all": ["World relations", true], "relation": ["Relations", true]}
 
 
+## Choice labels that start with a verb read as ""chose to send aid"";
+## the rest ("Security", "IMF programme", "Bold: cut 25%…") as "went with …".
+const LABEL_VERBS := ["vote", "let", "raise", "ask", "send", "make", "invest", "decline", "build", "welcome", "tax",
+	"stand", "spend", "ride", "print", "pay", "open", "offer", "leave", "import", "cut", "close", "call", "borrow",
+	"abstain", "trim", "train", "target", "talk", "subsidise", "step", "spin", "sign", "show", "say", "save", "retrain",
+	"respect", "rent", "renegotiate", "release", "refuse", "rebuild", "ration", "publish", "protect", "promote",
+	"promise", "press", "name", "license", "lean", "keep", "join", "investigate", "host", "hope", "hold", "help",
+	"guarantee", "govern", "give", "fund", "fire", "embrace", "diversify", "disperse", "devalue", "delay", "deflect",
+	"declare", "crack", "compromise", "change", "buy", "be", "bail", "back", "attack", "add", "act", "accept"]
+
+
+static func chose(label: String) -> String:
+	var first := label.get_slice(" ", 0).to_lower().trim_suffix(":").trim_suffix(",")
+	if first in LABEL_VERBS:
+		return "chose to %s" % (label.left(1).to_lower() + label.substr(1))
+	return "went with “%s”" % label
+
+
 ## Short, honest chips for a choice's effects: [[text, good], …] (largest first).
 static func effect_chips(fx: Dictionary) -> Array:
 	var out: Array = []

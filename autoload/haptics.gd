@@ -34,6 +34,17 @@ func warning(sound: bool = true) -> void:
 		Audio.play("warning")
 
 
+## Fast slider drags and counting animations would otherwise buzz non-stop:
+## light cues closer together than MIN_GAP are dropped (stronger ones always play).
+const MIN_GAP_MS := 40
+var _last_ms := -1000
+
+
 func _buzz(ms: int, amplitude: float) -> void:
-	if _enabled_platform and Settings.haptics:
-		Input.vibrate_handheld(ms, amplitude)
+	if not (_enabled_platform and Settings.haptics):
+		return
+	var now := Time.get_ticks_msec()
+	if amplitude < 0.5 and now - _last_ms < MIN_GAP_MS:
+		return
+	_last_ms = now
+	Input.vibrate_handheld(ms, amplitude)

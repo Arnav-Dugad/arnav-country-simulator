@@ -135,7 +135,7 @@ func build(r: Dictionary) -> FrontPage:
 	var mine := ""
 	for e in Game.event_log:
 		if str(e.date).ends_with(str(year)) and not bool(e.get("cabinet", false)):
-			mine = "%s: you chose to %s." % [str(e.title), str(e.choice).to_lower()]
+			mine = "%s: you %s." % [str(e.title), GameEvents.chose(str(e.choice))]
 			break
 	if mine == "":
 		mine = "A quiet year at home: no big decisions made the front page."
@@ -148,6 +148,14 @@ func build(r: Dictionary) -> FrontPage:
 		world = "The rest of the world had a calm year."
 	_story(stories, "AT HOME", mine)
 	_story(stories, "THE WORLD", world)
+	# The planet and its people: warming, your emissions, who's moving.
+	var me := Game.me()
+	var planet := "The world is %s °C warmer than before factories. Your emissions: %s since %d. %s." % [
+		String.num(Climate.warming(), 2), Climate._pct(Climate.change(me)), Calendar.START_YEAR, Migration.describe(me)]
+	_rule(1.0)
+	var row := HBoxContainer.new()
+	add_child(row)
+	_story(row, "THE PLANET", planet)
 	return self
 
 

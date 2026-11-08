@@ -2,6 +2,12 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.43.0] - 2026-11-08
+
+- The Year in review newspaper has a new story, **The Planet**: how warm the world is, your emissions since you took office, and who is moving in or out
+- Newspaper and Inbox wording fixed ("you went with “Trade and investment”" instead of "you chose to trade and investment")
+- Gentler vibration: light taps closer than 40 ms apart are skipped, so fast slider drags no longer buzz non-stop
+
 ## [0.42.1] - 2026-11-08
 
 - Your advisors now warn when a climate pledge is off track or people start leaving, and suggest a state visit when one is available
