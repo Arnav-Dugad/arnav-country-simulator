@@ -152,15 +152,19 @@ static func monthly() -> Array:
 		return out
 	var s := st()
 	var c := Game.me()
+	# Own random stream (deterministic per game and month) so adding sectors
+	# doesn't reshuffle every other random event in the game.
+	var r := RandomNumberGenerator.new()
+	r.seed = hash([Game.rng.seed, Game.months_played, "ind"])
 	for id in s.cycles:
 		var x := float(s.cycles[id])
-		s.cycles[id] = clampf(x * 0.96 + Game.rng.randfn(0.0, 0.08), -1.0, 1.0)
+		s.cycles[id] = clampf(x * 0.96 + r.randfn(0.0, 0.08), -1.0, 1.0)
 	# Shocks.
 	var sh: Dictionary = s.shock
 	if not sh.is_empty() and Game.months_played >= int(sh.until):
 		s.shock = {}
-	elif sh.is_empty() and Game.rng.randf() < E.IND_SHOCK_CHANCE:
-		var pick: Dictionary = SHOCKS[Game.rng.randi() % SHOCKS.size()]
+	elif sh.is_empty() and r.randf() < E.IND_SHOCK_CHANCE:
+		var pick: Dictionary = SHOCKS[r.randi() % SHOCKS.size()]
 		s.shock = {"id": pick.id, "hits": pick.hits, "until": Game.months_played + int(pick.months), "text": pick.text}
 		var good := false
 		for k in pick.hits:
