@@ -65,6 +65,7 @@ static func show(parent: Node, after: String, upto: String) -> void:
 	if items.is_empty():
 		return
 	var m := ModalCard.new()
+	m.tap_outside_dismiss = true
 	parent.add_child(m)
 	m.header("sparkles", DS.ACCENT, "Version %s" % upto, "What's new")
 	var list := VBoxContainer.new()

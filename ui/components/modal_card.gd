@@ -7,6 +7,8 @@ signal closed
 var card: GlassPanel
 var content: VBoxContainer
 var _dim: ColorRect
+## Informational cards (What's new…) close on a tap outside the card; decisions never do.
+var tap_outside_dismiss := false
 
 
 func _init() -> void:
@@ -27,6 +29,13 @@ func _init() -> void:
 	content = VBoxContainer.new()
 	content.add_theme_constant_override(&"separation", DS.S3)
 	card.add_child(content)
+
+
+func _gui_input(event: InputEvent) -> void:
+	# Only taps that miss the card reach the modal itself (the card stops its own).
+	if tap_outside_dismiss and event is InputEventMouseButton and not event.pressed 			and not card.get_global_rect().has_point(event.global_position):
+		accept_event()
+		dismiss()
 
 
 func _ready() -> void:

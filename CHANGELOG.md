@@ -2,6 +2,10 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.44.1] - 2026-11-08
+
+- The What's new card closes with a tap anywhere outside it
+
 ## [0.44.0] - 2026-11-08
 
 - **What's new:** after an update, a short card shows the highlights of everything that changed since you last played
