@@ -139,9 +139,36 @@ static func cabinet_portraits() -> Dictionary:
 	return out
 
 
-## The player's own chosen portrait ("" = initials avatar).
+## After this long in office your portrait shows the years (see aged()).
+const AGE_MONTHS := 96
+
+
+## The player's own chosen portrait ("" = initials avatar), older after
+## AGE_MONTHS in office.
 static func player_portrait() -> String:
-	return str(Settings.get_value("leader_portrait", ""))
+	var key := str(Settings.get_value("leader_portrait", ""))
+	if key != "" and Game.has_game() and Game.months_played >= AGE_MONTHS:
+		return aged(key)
+	return key
+
+
+## The older face for a portrait: men's 50s -> 60s (x_m -> x_m2), women's
+## 30s -> 40s (x_f2 -> x_f). Others stay as they are.
+static func aged(key: String) -> String:
+	var older := key
+	if key.ends_with("_m"):
+		older = key + "2"
+	elif key.ends_with("_f2"):
+		older = key.trim_suffix("2")
+	return older if ResourceLoader.exists("res://assets/portraits/%s.webp" % older) else key
+
+
+## Monthly: a quiet note the month your portrait ages.
+static func age_check() -> void:
+	var key := str(Settings.get_value("leader_portrait", ""))
+	if key != "" and Game.months_played == AGE_MONTHS and aged(key) != key:
+		Game.add_feed("Eight years in office: the job has left its mark on you", "clock", "accent")
+		Game.feed[0]["face"] = aged(key)
 
 
 static func all_portraits() -> Array:

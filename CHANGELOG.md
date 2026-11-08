@@ -4,6 +4,8 @@ The release workflow publishes the section that matches the tag as the GitHub Re
 
 ## [0.49.0] - 2026-11-08
 
+- **Five new AI-generated scenes:** a border crossing, a central bank, a supreme court, a city market and a hospital ward. Refugee, currency, court, recovery and vaccine events now have their own art
+- **Your leader ages:** after eight years in office your portrait shows the years
 - **Weekly challenge with a leaderboard.** One country and one twist for everyone, all week. Your legacy score goes to a shared top-10 board (find it under the Weekly chip in the country list)
 - **Health and schooling results.** Life expectancy and adult literacy start at real values and slowly respond to your health and education budgets, rising incomes, hospitals, clean water, new schools and universal healthcare. Longer lives make people happier; a more literate workforce grows faster. Both are new tiles on the Economy page
 

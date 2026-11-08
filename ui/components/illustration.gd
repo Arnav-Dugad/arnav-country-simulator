@@ -27,21 +27,21 @@ const EVENT_ART := {
 }
 ## Event id -> painted scene (assets/scenes, AI-generated, no real people).
 const EVENT_SCENE := {
-	"summit": "summit", "cop": "climate", "cb_clash": "markets", "resource_windfall": "markets", "games_prep": "construction", "games_open": "celebration", "games_mess": "protest", "debate": "debate", "term_limit": "parliament", "un_sanctions": "summit", "un_climate": "climate", "un_ceasefire": "summit", "un_rights": "summit",
+	"summit": "summit", "cop": "climate", "cb_clash": "central_bank", "resource_windfall": "market", "games_prep": "construction", "games_open": "celebration", "games_mess": "protest", "debate": "debate", "term_limit": "parliament", "un_sanctions": "summit", "un_climate": "climate", "un_ceasefire": "summit", "un_rights": "summit",
 	"protests": "protest", "strike": "factory", "democracy_movement": "protest", "dissident": "press",
 	"floods": "flood", "monsoon": "flood", "un_ocean": "flood", "hurricane": "hurricane",
 	"overrun": "construction", "investment": "factory", "housing": "construction",
-	"recession": "markets", "debt_crisis": "markets", "recovery_boom": "markets",
+	"recession": "markets", "debt_crisis": "markets", "recovery_boom": "market",
 	"observers": "election", "coalition_crisis": "parliament", "budget_standoff": "parliament",
-	"court_ruling": "parliament", "scandal": "press", "inquiry_result": "press", "party_purge": "parliament",
-	"pensions": "parliament", "succession": "parliament", "pandemic": "hospital", "vaccine_race": "hospital",
+	"court_ruling": "court", "scandal": "press", "inquiry_result": "court", "party_purge": "parliament",
+	"pensions": "parliament", "succession": "parliament", "pandemic": "hospital", "vaccine_race": "ward",
 	"oil_shock": "oil", "oil_windfall": "oil", "oil_crash": "oil", "resources": "farm", "blackout": "oil",
 	"drought": "drought", "heatwave": "drought", "tech_boom": "tech", "cyberattack": "tech", "automation": "factory",
 	"brain_drain": "school", "un_ai": "tech", "sports": "celebration", "games_bid": "celebration",
-	"royal_wedding": "celebration", "tourism": "celebration", "trade_offer": "port", "sanction_threat": "port",
-	"press": "press", "refugees": "aid", "bank_wobble": "markets", "bank_run": "bank_run", "aid_request": "aid", "earthquake": "quake", "bailout_vote": "parliament",
+	"royal_wedding": "celebration", "tourism": "celebration", "trade_offer": "port", "sanction_threat": "border",
+	"press": "press", "refugees": "border", "bank_wobble": "central_bank", "bank_run": "bank_run", "aid_request": "aid", "earthquake": "quake", "bailout_vote": "parliament",
 	"youth_jobs": "school", "generals": "parliament",
-	"currency_slide": "markets", "currency_crisis": "markets", "imf_review": "summit", "heat_grid": "drought",
+	"currency_slide": "central_bank", "currency_crisis": "markets", "imf_review": "central_bank", "heat_grid": "drought",
 }
 
 
