@@ -499,6 +499,36 @@ const CAPITAL_LAW_PER_POLITICS := 3.0
 const CAPITAL_RESHUFFLE := 10.0
 const CAPITAL_CRACKDOWN := 20.0
 const CAPITAL_MEDIA_CONTROL := 20.0   # per step toward state control of the media
+const CAPITAL_FIRM_REFORM := 10.0     # professional managers for a state firm
+
+
+# -------------------------------------------------------- state firms & fund ---
+# See sim/enterprise.gd.
+const ENT_RETURN := 0.08           # yearly profit of a well-run firm, share of its value
+const ENT_PAYOUT := 0.6            # share of profit paid to the state as dividends
+const ENT_EFF_BASE := 0.4          # state-firm efficiency at a clean score of 0 ...
+const ENT_EFF_CLEAN := 0.4         # ... plus this much at a clean score of 100
+const ENT_EFF_MAX := 0.95
+const ENT_REFORM_GAIN := 0.15
+const ENT_TAKEOVER_PREMIUM := 1.2  # buying out private owners costs a premium
+const ENT_SELL_APPROVAL := 1.5     # one-off approval loss per sale (unions, "selling the family silver")
+const ENT_SELL_JOBS := 0.25        # one-off unemployment points per % of GDP sold (layoffs)
+const ENT_TAKE_APPROVAL := 1.0     # nationalisation is popular at first
+const ENT_SEIZE_GROWTH := 1.5      # one-off growth hit from seizing a firm (investor flight)
+const ENT_SEIZE_RELATIONS := 6.0   # relations lost with every democracy
+const ENT_SEIZE_CRASH := 0.15      # share-price fall on a seizure
+const ENT_PRIV_GROWTH := 0.06      # growth points per % of GDP privatised (efficiency)
+const ENT_PRIV_UNEMP := 0.04       # unemployment points per % of GDP privatised (leaner payrolls)
+## Markets. Monthly log returns: drift and volatility of world stocks; the home
+## index adds growth, interest-rate and stability effects (per point, per year).
+const ENT_STOCK_DRIFT := 0.005
+const ENT_STOCK_VOL := 0.04
+const ENT_BOND_RETURN := 0.03      # yearly
+const ENT_SPEND_RULE := 0.03       # "spend the returns": share of the fund paid to the budget a year
+const ENT_INDEX_GROWTH := 0.06
+const ENT_INDEX_RATES := 0.05
+const ENT_INDEX_STABILITY := 0.004
+const ENT_WEALTH_HAPPY := 0.8      # happiness points per doubling of the index
 
 
 # ------------------------------------------------------------------- media ---

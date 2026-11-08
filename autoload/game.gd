@@ -152,6 +152,7 @@ func new_game(country_index: int, seed_value: int = -1, level: String = "") -> v
 	for i in relations.size():
 		dip.baseline[str(i)] = relations[i]
 	Media.st()                      # the press stance your country starts with
+	Enterprise.st()                 # state firms, wealth fund, stock index
 	headlines_seen = {}
 	last_rating = ""
 	news = []
@@ -310,6 +311,8 @@ func advance_month() -> void:
 		me().treasury = me().spending
 	for note in War.monthly():
 		war_battle.emit(note)
+	for h in Enterprise.monthly():
+		add_feed(str(h.text), str(h.icon), "green" if bool(h.good) else "orange")
 	for h in Media.monthly():
 		add_feed(str(h.text), str(h.icon), "green" if bool(h.good) else "red")
 	for n in Tech.monthly():

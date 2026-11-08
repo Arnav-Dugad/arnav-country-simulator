@@ -29,6 +29,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 	var txm := Taxes.modifiers(c)
 	var tm: Dictionary = Tech.modifiers() if c.idx == Game.player and Game.has_game() else {}
 	var mdx: Dictionary = Media.modifiers() if c.idx == Game.player and Game.has_game() else {}
+	var enx: Dictionary = Enterprise.modifiers() if c.idx == Game.player and Game.has_game() else {}
 	var wx: Dictionary = War.effects() if c.idx == Game.player and Game.has_game() and War.at_war() else {}
 	var mx := Game.markets.effects(c)
 	var tx := Treaties.modifiers(c) if c.idx == Game.player else {}
@@ -72,6 +73,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Things you built", float(bx.get("growth", 0.0))],
 		["Other taxes", float(txm.get("growth", 0.0))],
 		["Technology", float(tm.get("growth", 0.0))],
+		["State firms", float(enx.get("growth", 0.0))],
 		["Media", float(mdx.get("growth", 0.0))],
 		["War", float(wx.get("growth", 0.0))],
 		["Construction work", float(px.get("build_growth", 0.0)) + float(bx.get("build_growth", 0.0))],
@@ -128,6 +130,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Things you built", float(bx.get("unemployment", 0.0))],
 		["Other taxes", float(txm.get("unemployment", 0.0))],
 		["Technology", float(tm.get("unemployment", 0.0))],
+		["State firms", float(enx.get("unemployment", 0.0))],
 		["War mobilization", float(wx.get("unemployment", 0.0))],
 		["Construction work", float(px.get("build_jobs", 0.0)) + float(bx.get("build_jobs", 0.0))],
 	]
@@ -189,6 +192,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Things you built", float(bx.get("happiness", 0.0))],
 		["Other taxes", float(txm.get("happiness", 0.0))],
 		["Technology", float(tm.get("happiness", 0.0))],
+		["Stock market", float(enx.get("happiness", 0.0))],
 		["Media", float(mdx.get("happiness", 0.0))],
 		["War", float(wx.get("happiness", 0.0))],
 	]

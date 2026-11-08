@@ -49,6 +49,12 @@ func _build() -> void:
 	_speech = AppButton.make("Address the nation", &"", "mic")
 	_speech.pressed.connect(_address)
 	add_child(_speech)
+	var wealth := ListRow.new().setup("Wealth & state firms", "Stock market, sovereign fund, privatise or nationalise", "›")
+	wealth.theme_type_variation = &"GroupPanel"
+	wealth.trailing_label.add_theme_color_override(&"font_color", DS.TEXT_3)
+	wealth.set_leading(ListRow.icon_tile("landmark", DS.GOLD))
+	wealth.tapped.connect(func() -> void: page_requested.emit("firms"))
+	add_child(wealth)
 	_goals = GoalsCard.new()
 	add_child(_goals)
 	_trend = TrendCard.new()

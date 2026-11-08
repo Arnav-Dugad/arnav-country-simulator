@@ -2,6 +2,16 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.64.0] - 2026-11-08
+
+- **Wealth & state firms**, a new page from the Economy tab
+- **A national stock market:** an index (100 when you take office) that rises with growth and stability, falls when you raise interest rates, and follows world markets. Booms make people feel richer; crashes make the news
+- **A sovereign wealth fund:** deposit or withdraw money, choose the mix of safe bonds and global stocks, and decide whether its returns go to the budget. Big oil exporters start with a fund
+- **State firms:** the national oil company, power utility, railways, post, airline, telecoms, state bank, steel, mining and defence makers. Who owns what at the start follows how open your country is
+  - Privatise a firm for cash and long-run growth, at the cost of layoffs and anger
+  - Buy one out, or seize it for free and watch investors flee
+  - Bring in professional managers to make a firm more efficient and raise its dividends
+
 ## [0.63.0] - 2026-11-08
 
 - **Media & propaganda.** A new section on the Laws page, with an AI-painted press room. Choose how free your press is: a free press, guided coverage or state-run media
