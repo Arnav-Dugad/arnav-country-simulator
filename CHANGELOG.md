@@ -2,6 +2,17 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.81.0] - 2026-11-09
+
+- **New map layers:** Schools (learning scores around the world) and Nuclear (who has the bomb, and how many)
+- **Election night by region:** see how the capital and each region voted. Loyal, richer regions back the government
+- **Five new decisions** tied to the new systems:
+  - Doctors walk out when waiting lists grow
+  - Teachers strike when schools are neglected
+  - Mass protests in a restless region
+  - An alarm over graduates leaving the country
+  - Drug firms threatening to leave over price controls
+
 ## [0.80.0] - 2026-11-09
 
 - **Health system** (People & cities), starting from real WHO data:

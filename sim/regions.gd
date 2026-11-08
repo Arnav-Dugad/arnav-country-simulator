@@ -244,10 +244,18 @@ static func demand_event(k: int) -> Dictionary:
 ## How the cabinet scores a region choice (avoids gambling a region away).
 static func score(v: String) -> float:
 	var p := v.split(":")
-	if p.size() < 2 or int(p[1]) >= list().size():
+	if p.size() >= 2 and p[1] == "weak":
+		p[1] = str(weakest())
+	if p.size() < 2 or int(p[1]) < 0 or int(p[1]) >= list().size():
 		return 0.0
 	var g: Dictionary = list()[int(p[1])]
 	match p[0]:
+		"fund":
+			return 1.0
+		"talk":
+			return 0.8
+		"crack":
+			return -0.5
 		"vote":
 			return -yes_share(g) / 10.0 + 1.0
 		"autonomy":
@@ -257,9 +265,23 @@ static func score(v: String) -> float:
 	return 0.0
 
 
+## The most disloyal region outside the capital (-1 if none).
+static func weakest() -> int:
+	var best := -1
+	for k in list().size():
+		var g: Dictionary = list()[k]
+		if bool(g.lost) or str(g.econ) == "capital":
+			continue
+		if best < 0 or float(g.loyalty) < float(list()[best].loyalty):
+			best = k
+	return best
+
+
 static func apply(v: String) -> void:
 	var p := v.split(":")
-	if p.size() < 2 or int(p[1]) >= list().size():
+	if p.size() >= 2 and p[1] == "weak":
+		p[1] = str(weakest())
+	if p.size() < 2 or int(p[1]) < 0 or int(p[1]) >= list().size():
 		return
 	var k := int(p[1])
 	var g: Dictionary = list()[k]
@@ -280,6 +302,18 @@ static func apply(v: String) -> void:
 				Game.add_milestone("%s voted to stay (%d%% to leave)" % [str(g.name), roundi(yes)], "flag", "green")
 				Game.intel_news.emit({"text": "%s votes to stay: %d%% to %d%%" % [str(g.name), roundi(100.0 - yes), roundi(yes)],
 					"icon": "flag", "good": true, "big": true})
+		"fund":
+			var gg: Dictionary = list()[k]
+			if not fund_active(gg):
+				gg.fund = Game.months_played
+				Game.add_feed("A development fund for %s begins" % str(gg.name).to_lower().trim_prefix("the "), "hand-coins", "accent")
+		"talk":
+			g.loyalty = minf(float(g.loyalty) + 6.0, 100.0)
+			g.tension = 0
+		"crack":
+			g.crack = Game.months_played
+			g.tension = 0
+			g.loyalty = maxf(float(g.loyalty) - 6.0, 0.0)
 		"autonomy":
 			if not grant_autonomy(k):
 				p[0] = "refuse"

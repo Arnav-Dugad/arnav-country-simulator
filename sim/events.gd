@@ -606,6 +606,50 @@ const EVENTS := [
 				"effects": {"spending": -2.0, "income_tax": 2.0, "approval": -8.0, "growth": -0.8}},
 			{"label": "Print money", "detail": "Inflation erodes the debt · prices explode",
 				"effects": {"inflation": 9.0, "debt_gdp": -8.0, "approval": -4.0, "stability": -4.0}}]},
+	# Health, schools and regions (sim/health.gd, sim/education.gd, sim/regions.gd).
+	{"id": "doctors_strike", "title": "Doctors walk out", "icon": "stethoscope", "tint": "red", "weight": 1.4, "cond": "long_waits",
+		"body": "Junior doctors across {country} are on strike over pay and impossible waiting lists. Operations are being cancelled.",
+		"choices": [
+			{"label": "Pay rise", "detail": "Costs 0.15% of GDP · hospitals reopen",
+				"effects": {"cost": 0.15, "approval": 1.0, "happiness": 1.0}},
+			{"label": "Train more doctors", "detail": "More medical school places · relief in six years",
+				"effects": {"health": "train", "approval": -1.0, "happiness": -0.5}},
+			{"label": "Hold firm", "detail": "No cost · waits get worse",
+				"effects": {"approval": -3.0, "happiness": -2.0, "stability": -1.0}}]},
+	{"id": "teachers_strike", "title": "Teachers strike", "icon": "graduation-cap", "tint": "orange", "weight": 1.2, "cond": "weak_schools",
+		"body": "Schools across {country} are closed as teachers strike over pay and crowded classrooms. Parents are furious.",
+		"choices": [
+			{"label": "Pay teachers more", "detail": "A lasting raise · learning improves",
+				"effects": {"edu": "teachers", "approval": 1.5}},
+			{"label": "One-off bonus", "detail": "Costs 0.1% of GDP · schools reopen",
+				"effects": {"cost": 0.1, "approval": 0.5}},
+			{"label": "Stand firm", "detail": "No cost · a lost term for pupils",
+				"effects": {"approval": -3.0, "stability": -1.0, "happiness": -1.0}}]},
+	{"id": "regional_protest", "title": "Regional protests", "icon": "map-pin", "tint": "orange", "weight": 1.3, "cond": "restless_region",
+		"body": "Huge crowds march in {country}'s most restless region, demanding investment and a bigger say. Some wave separatist flags.",
+		"choices": [
+			{"label": "Promise investment", "detail": "A three-year development fund for the region",
+				"effects": {"region": "fund:weak", "approval": 0.5}},
+			{"label": "Open talks", "detail": "5 political capital · tempers cool",
+				"effects": {"region": "talk:weak", "capital": 5.0}},
+			{"label": "Send in the police", "detail": "Quiet now · resentment grows",
+				"effects": {"region": "crack:weak", "stability": 1.0, "approval": -1.0}}]},
+	{"id": "brain_drain_alarm", "title": "Graduates are leaving", "icon": "plane-takeoff", "tint": "orange", "weight": 1.0, "cond": "brain_drain",
+		"body": "A new report shows a fifth of {country}'s graduates now emigrate within five years. Doctors and engineers lead the exodus.",
+		"choices": [
+			{"label": "Talent return grants", "detail": "Pay graduates abroad to come home",
+				"effects": {"edu": "return", "approval": 1.0}},
+			{"label": "Fund the universities", "detail": "Better universities keep talent at home",
+				"effects": {"edu": "fund", "approval": 0.5}},
+			{"label": "It's a free world", "detail": "No cost · the drain goes on",
+				"effects": {"growth": -0.2, "happiness": -0.5}}]},
+	{"id": "pharma_threat", "title": "Drug firms threaten to leave", "icon": "pill", "tint": "orange", "weight": 1.0, "cond": "drug_controls",
+		"body": "The big drug companies say {country}'s price controls make new medicines unprofitable and threaten to stop launching them here.",
+		"choices": [
+			{"label": "Hold firm", "detail": "Keep the savings · a few new drugs arrive late",
+				"effects": {"approval": 1.0, "growth": -0.1}},
+			{"label": "Back down", "detail": "Return to market prices · costs more",
+				"effects": {"health": "market", "approval": -1.0}}]},
 ]
 
 
@@ -894,6 +938,21 @@ static func roll(rng: RandomNumberGenerator) -> Dictionary:
 			"cb_overruled":
 				if me.cb_auto or me.interest_rate > Economy.neutral_rate(me.core_inflation) - 1.0:
 					continue
+			"long_waits":
+				if not Game.dip.has("hlth") or Health.wait() < float(Health.st().wait0) * 1.2:
+					continue
+			"weak_schools":
+				if not Game.dip.has("edu") or (Education.score() > float(Education.st().score0) - 3.0 and me.share_delta("education") > -1.0):
+					continue
+			"restless_region":
+				if not Game.dip.has("reg") or Regions.weakest() < 0 or float(Regions.list()[Regions.weakest()].loyalty) >= 45.0:
+					continue
+			"brain_drain":
+				if not Game.dip.has("edu") or Education.drain() < 15.0 or Education.has_reform("return"):
+					continue
+			"drug_controls":
+				if not Game.dip.has("hlth") or str(Health.st().drugs) == "market":
+					continue
 			"hostile":
 				other = _pick_country(rng, func(i: int) -> bool:
 					return Game.relations[i] <= -50.0 and not Diplomacy.sanctions_me(i))
@@ -1049,6 +1108,18 @@ static func apply_effects(fx: Dictionary, other: int, ev_id: String = "") -> voi
 				Regions.apply(str(v))
 			"nuke":
 				Nuclear.apply(str(v))
+			"health":
+				if str(v) == "train":
+					Health.set_train("more" if str(Health.st().train) == "current" else "double")
+				else:
+					Health.set_drugs(str(v))
+			"edu":
+				if str(v) == "fund":
+					Education.set_fund("boost" if str(Education.st().fund) == "current" else "world")
+				else:
+					if not Education.has_reform(str(v)):
+						Capital.add(float(Education.REFORMS[str(v)].capital))   # the event pays the capital
+						Education.reform(str(v))
 			"project_delay":
 				for id in c.projects:
 					if str(c.projects[id].state) == "building":

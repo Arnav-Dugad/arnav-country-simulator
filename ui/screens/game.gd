@@ -1072,6 +1072,7 @@ func _show_election(r: Dictionary) -> void:
 		var pl := _modal.body("Promises from your last campaign: %d kept, %d broken." % [int(r.kept), int(r.broken)])
 		pl.add_theme_color_override(&"font_color", DS.GREEN if int(r.broken) == 0 else DS.ORANGE)
 	_election_groups(r)
+	_election_regions(r)
 	if not won and r.has("coalition"):
 		var offer: Dictionary = r.coalition
 		_modal.body("No one has a majority. The %s offer to govern with you, if you bring in %s within a year." % [str(offer.name), str(offer.ask)])
@@ -1216,6 +1217,40 @@ func _election_groups(r: Dictionary) -> void:
 		var nl := Label.new()
 		nl.theme_type_variation = &"Caption"
 		nl.text = str(Blocs.INFO[g].title).split(" ")[0]
+		nl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		nl.clip_text = true
+		nl.custom_minimum_size = Vector2(20, 0)
+		col.add_child(nl)
+
+
+## How each home region voted: loyal, richer regions lean to the government.
+func _election_regions(r: Dictionary) -> void:
+	if not is_instance_valid(_modal) or Screen.landscape or not Game.dip.has("reg"):
+		return
+	var regs := Regions.active()
+	if regs.size() < 2:
+		return
+	var unity := Regions.unity()
+	var grid_ := GridContainer.new()
+	grid_.columns = regs.size()
+	grid_.add_theme_constant_override(&"h_separation", DS.S2)
+	_modal.content.add_child(grid_)
+	_modal.content.move_child(grid_, mini(_modal.content.get_child_count() - 1, 6))
+	for g in regs:
+		var col := VBoxContainer.new()
+		col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		col.add_theme_constant_override(&"separation", 0)
+		grid_.add_child(col)
+		var v := clampf(float(r.share) + (float(g.loyalty) - unity) * 0.35, 3.0, 97.0)
+		var pl := Label.new()
+		pl.theme_type_variation = &"StatSmall"
+		pl.text = "%d%%" % roundi(v)
+		pl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		pl.add_theme_color_override(&"font_color", DS.GOLD if v >= 50.0 else DS.TEXT_2)
+		col.add_child(pl)
+		var nl := Label.new()
+		nl.theme_type_variation = &"Caption"
+		nl.text = str(g.name).trim_prefix("The ").replace(" region", "")
 		nl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		nl.clip_text = true
 		nl.custom_minimum_size = Vector2(20, 0)
