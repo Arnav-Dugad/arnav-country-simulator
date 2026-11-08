@@ -32,8 +32,9 @@ func refresh() -> void:
 	var af := Population.afford()
 	g.add_child(_tile("house", DS.GREEN if af >= 95.0 else (DS.ORANGE if af >= 80.0 else DS.RED), "Housing", "%d" % roundi(af),
 		"affordability  ·  100 = at start"))
-	_box.add_child(jump_bar(["Regions", "Schools & universities", "Age structure", "Family policy", "Cities & housing"]))
+	_box.add_child(jump_bar(["Regions", "Health system", "Schools & universities", "Age structure", "Family policy", "Cities & housing"]))
 	_regions()
+	_health()
 	_education()
 	# Age structure.
 	var st := Population.structure(c)
@@ -326,3 +327,59 @@ func _education() -> void:
 			refresh())
 		eb.add_child(row)
 	note("Tap a reform to start it. Reforms that cost money each year can be stopped again; a new curriculum stays.", eb)
+
+
+# ------------------------------------------------------------- health system ---
+func _health() -> void:
+	var hb := section("Health system", _box)
+	var s := Health.st()
+	var c := Game.me()
+	var g := grid(hb, 3)
+	var dw := Health.wait() - float(s.wait0)
+	g.add_child(_tile("hourglass", DS.GREEN if dw < -1.0 else (DS.TEXT_2 if dw < 2.0 else DS.RED), "Waiting", "%d wk" % roundi(Health.wait()),
+		"for an operation"))
+	g.add_child(_tile("stethoscope", DS.ACCENT, "Doctors", String.num(Health.docs(), 1), "per 1,000 people"))
+	var u := Health.uhc()
+	g.add_child(_tile("heart-pulse", DS.GREEN if u >= 80.0 else (DS.ORANGE if u >= 55.0 else DS.RED), "Coverage", "%d" % roundi(u), "of 100 (WHO)"))
+	var hint := PackedStringArray()
+	if absf(dw) >= 1.0:
+		hint.append("Waits are %s %d weeks since you took office" % ["up" if dw > 0.0 else "down", roundi(absf(dw))])
+	if Health.in_training() > 0.005:
+		hint.append("%s more doctors per 1,000 in medical school" % String.num(Health.in_training(), 2))
+	note((("  ·  ".join(hint) + ". ") if not hint.is_empty() else "") + "An ageing population and epidemics lengthen waits; doctors and the health budget shorten them.", hb)
+	# Training places.
+	var tl := PackedStringArray()
+	for t in Health.TRAIN:
+		tl.append(str(Health.TRAIN_INFO[t].title))
+	var seg := SegmentedControl.new().setup(tl, [], Health.TRAIN.find(str(s.train)))
+	seg.fill = true
+	seg.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	seg.changed.connect(func(k: int) -> void:
+		Health.set_train(str(Health.TRAIN[k]))
+		Simulation.update_finances(Game.me())
+		Haptics.select()
+		refresh())
+	hb.add_child(seg)
+	var tc := float(Health.TRAIN_INFO[str(s.train)].cost)
+	note("Medical school places. New doctors arrive after six years%s." % ("  ·  %s a year" % DS.money(c.gdp * tc / 100.0) if tc > 0.0 else ""), hb)
+	var ab := AppToggle.new().setup("Recruit doctors abroad  ·  %s a year" % DS.money(c.gdp * Economy.HLTH_ABROAD_COST / 100.0), bool(s.abroad), "plane-landing")
+	ab.toggled.connect(func(on: bool) -> void:
+		Health.set_abroad(on)
+		Simulation.update_finances(Game.me())
+		Haptics.select())
+	hb.add_child(ab)
+	# Medicine prices.
+	var dl := PackedStringArray()
+	for d in Health.DRUGS:
+		dl.append(str(Health.DRUGS_INFO[d].title))
+	var dseg := SegmentedControl.new().setup(dl, [], Health.DRUGS.find(str(s.drugs)))
+	dseg.fill = true
+	dseg.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	dseg.changed.connect(func(k: int) -> void:
+		Health.set_drugs(str(Health.DRUGS[k]))
+		Simulation.update_finances(Game.me())
+		Haptics.select()
+		refresh())
+	hb.add_child(dseg)
+	var di: Dictionary = Health.DRUGS_INFO[str(s.drugs)]
+	note("Medicine prices: %s%s" % [str(di.desc), ("  Saves %s a year." % DS.money(c.gdp * float(di.save) / 100.0)) if float(di.save) > 0.0 else ""], hb)

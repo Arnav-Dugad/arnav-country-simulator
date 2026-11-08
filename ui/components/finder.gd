@@ -31,6 +31,7 @@ const INDEX := [
 	["Space colonies", "build", "Space colonies", "moon", "moon base mars colony asteroid mining orbital space outposts"],
 	["National projects", "build", "", "construction", "projects programmes national"],
 	["Nuclear weapons", "diplomacy", "Nuclear weapons", "atom", "nuclear weapons bomb warheads deterrence treaty npt doomsday clock disarmament arms control"],
+	["Health system", "population", "Health system", "stethoscope", "health hospitals doctors waiting times coverage medicine drug prices nurses"],
 	["Schools & universities", "population", "Schools & universities", "graduation-cap", "education schools universities teachers learning test brain drain students"],
 	["Regions", "population", "Regions", "map-pin", "regions separatism independence referendum autonomy provinces north south capital"],
 	["World wonders", "build", "World wonders", "landmark", "wonders megaprojects canal space elevator arcology library"],

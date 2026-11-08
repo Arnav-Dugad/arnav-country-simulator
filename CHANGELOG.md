@@ -2,6 +2,16 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.80.0] - 2026-11-09
+
+- **Health system** (People & cities), starting from real WHO data:
+  - Waiting times for an operation grow with an ageing population and epidemics, and shrink with more doctors and a bigger health budget
+  - Doctors per 1,000 people: fund more medical school places (new doctors arrive six years later) or recruit abroad
+  - Coverage: how many people get the care they need, raised by the health budget and a universal health law
+  - Medicine prices: pay market prices, negotiate as one buyer, or switch to generics. Drug firms (business) object, and generics cost some research
+  - Better coverage and more doctors add years to life expectancy
+- **State of the nation** has a new group, Society & security: national unity, learning score, top university, brain drain, the Doomsday Clock and security, each with its trend
+
 ## [0.79.0] - 2026-11-09
 
 - **Nuclear weapons & the Doomsday Clock** (World › Nuclear weapons). Deterrence and diplomacy only; there is no button to use them

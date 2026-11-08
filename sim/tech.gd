@@ -109,6 +109,8 @@ static func income_terms(c: CountryState) -> Array:
 		out.append(["World wonders", float(Wonders.modifiers().get("rp", 0.0))])
 	if c.idx == Game.player and Game.dip.has("edu"):
 		out.append(["Top universities", Education.research()])
+	if c.idx == Game.player and Game.dip.has("hlth") and Health.research() != 0.0:
+		out.append(["Generic medicines", Health.research()])
 	if Projects.is_done(c, "universities") and not bool(c.projects.get("universities", {}).get("start", false)):
 		out.append(["Research universities", 1.0])
 	if Projects.is_done(c, "tech_park"):

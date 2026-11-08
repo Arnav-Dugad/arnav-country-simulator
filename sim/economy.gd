@@ -548,6 +548,13 @@ const TOUR_BID_MONTHS := 12        # from bid to vote
 const TOUR_SOFT_RELATIONS := 0.01  # relations a month with everyone per soft power point gained
 
 
+# ------------------------------------------------------------- health system ---
+# See sim/health.gd. Effects count only the change since you took office.
+const HLTH_UHC_PER_SHARE := 1.5     # coverage points per +1 pt of health budget share
+const HLTH_ABROAD_COST := 0.02      # % of GDP a year to recruit doctors abroad
+const HLTH_ABROAD_RATE := 0.03      # doctors added per year (share of the starting workforce)
+
+
 # ----------------------------------------------------------- nuclear weapons ---
 # See sim/nuclear.gd. Deterrence and diplomacy only.
 const NUC_CLOCK_START := 89.0       # Doomsday Clock, seconds to midnight (2025)

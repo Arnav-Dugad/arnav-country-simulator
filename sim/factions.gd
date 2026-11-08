@@ -63,6 +63,8 @@ static func terms(id: String) -> Array:
 				t.append(["Wealth tax", -12.0])
 			if Laws.is_active(c, "privatisation") and not c.laws_start.has("privatisation"):
 				t.append(["Privatisation", 8.0])
+			if Game.dip.has("hlth") and str(Health.st().drugs) != "market":
+				t.append(["Drug price controls", -6.0 if str(Health.st().drugs) == "negotiate" else -10.0])
 			t.append(["Growth", 3.0 * (c.growth - c.growth_anchor)])
 		"unions":
 			t.append(["Jobs", -4.0 * (c.unemployment - float(b.unemployment))])
