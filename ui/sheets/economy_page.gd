@@ -68,6 +68,8 @@ func _build() -> void:
 	_coming = ComingUp.new()
 	_coming.page_requested.connect(func(p: String) -> void: page_requested.emit(p))
 	add_child(_coming)
+	_vox = VoxCard.new()
+	add_child(_vox)
 	_goals = GoalsCard.new()
 	add_child(_goals)
 	_trend = TrendCard.new()
@@ -325,11 +327,14 @@ var _election: ElectionCard
 
 
 var _coming: ComingUp
+var _vox: VoxCard
 
 
 func refresh() -> void:
 	if _coming:
 		_coming.refresh()
+	if _vox:
+		_vox.refresh()
 	if _pandemic:
 		_pandemic.refresh()
 	if _disaster:
