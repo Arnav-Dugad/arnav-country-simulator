@@ -19,7 +19,7 @@ const EVENT_CHANCE := {"relaxed": 0.08, "standard": 0.115, "realistic": 0.16}
 ## Multiplier on the harmful part of event effects (negative shocks and costs).
 const SEVERITY := {"relaxed": 0.7, "standard": 1.0, "realistic": 1.35}
 ## Added to the approval needed to win a free election (Economy.WIN_*).
-const ELECTION_SHIFT := {"relaxed": -6.0, "standard": 2.0, "realistic": 10.0}
+const ELECTION_SHIFT := {"relaxed": -6.0, "standard": 2.0, "realistic": 8.0}
 ## Added to every starting relation with the player.
 const RELATION_SHIFT := {"relaxed": 8.0, "standard": 0.0, "realistic": -6.0}
 ## Starting treasury multiplier.
