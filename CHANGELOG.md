@@ -5,6 +5,7 @@ The release workflow publishes the section that matches the tag as the GitHub Re
 ## [0.45.2] - 2026-11-08
 
 - An original fanfare plays when you win an election and when the world games open
+- Balance: TV debates swing fewer votes (the balance report showed elections on Realistic had become too easy), and defending a weak record now really hurts
 
 ## [0.45.1] - 2026-11-08
 

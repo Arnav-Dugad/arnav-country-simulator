@@ -583,11 +583,11 @@ static func debate_event() -> Dictionary:
 			who, str(opp.name), str(opp.party), attack],
 		"choices": [
 			{"label": "Defend your record", "detail": "Works when the numbers are on your side",
-				"effects": {"approval": 2.5 if weak == "" else -1.0}},
+				"effects": {"approval": 1.2 if weak == "" else -2.0}},
 			{"label": "Go on the attack", "detail": "Rallies your base · looks combative",
-				"effects": {"approval": 1.5, "press_cred": -3.0}},
+				"effects": {"approval": 0.6, "press_cred": -3.0}},
 			{"label": "Promise a tax cut for families", "detail": "Popular · costs real money",
-				"effects": {"approval": 3.0, "income_tax": -1.0}}]}
+				"effects": {"approval": 1.4, "income_tax": -1.0}}]}
 	return instance(e)
 
 
