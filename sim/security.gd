@@ -38,7 +38,7 @@ static func refresh() -> Dictionary:
 		if v > top_v:
 			top_v = v
 			top = j
-	var deter := Game.me().military
+	var deter := Game.me().military + Nuclear.deter_bonus()
 	for k in Game.dip.get("alliances", {}):
 		var ally: CountryState = Game.state(int(k))
 		if ally != null:

@@ -279,6 +279,8 @@ static func _maybe_attacked() -> void:
 		if them.military < me.military * E.WAR_AI_ADVANTAGE:
 			continue
 		if Game.rng.randf() < E.WAR_AI_CHANCE * Difficulty.severity():
+			if Nuclear.deters_invasion():
+				return      # nobody invades a nuclear power
 			attacked_by(i)
 			return
 

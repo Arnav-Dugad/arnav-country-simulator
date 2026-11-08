@@ -169,6 +169,7 @@ func new_game(country_index: int, seed_value: int = -1, level: String = "") -> v
 	Culture.st()                    # society's values
 	Regions.st()                    # home regions
 	Education.st()                  # schools & universities
+	Nuclear.st()                    # arsenal, treaty, Doomsday Clock
 	headlines_seen = {}
 	last_rating = ""
 	news = []
@@ -334,6 +335,9 @@ func advance_month() -> void:
 			intel_news.emit(h)
 	Culture.monthly()
 	Regions.monthly()
+	for h in Nuclear.monthly():
+		add_feed(str(h.text), str(h.icon), "orange")
+		intel_news.emit(h)
 	for h in Education.monthly():
 		add_feed(str(h.text), str(h.icon), "gold")
 		intel_news.emit(h)

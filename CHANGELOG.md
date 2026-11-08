@@ -2,6 +2,16 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.79.0] - 2026-11-09
+
+- **Nuclear weapons & the Doomsday Clock** (World › Nuclear weapons). Deterrence and diplomacy only; there is no button to use them
+  - Nine countries start with their real arsenals (SIPRI 2024 estimates), shown side by side
+  - Everyone else is bound by the Non-Proliferation Treaty. Start a programme in secret (inspectors may find it, and sanctions follow) or openly by leaving the treaty. It takes six to eight years
+  - A nuclear power is never invaded by a neighbour, but the world trusts it less
+  - Nuclear powers can halve their arsenal or disarm completely, and arms-control talks come round every five years
+  - The Doomsday Clock starts at 89 seconds to midnight. Wars, programmes and tests move it closer, disarmament and peace move it back, and an anxious world is an unhappier one
+- New achievements: Swords to ploughshares, Back from the brink
+
 ## [0.78.0] - 2026-11-09
 
 - **Regions & separatism:** your country is now made of 3 to 5 home regions (People & cities), each with its own share of the people, its own incomes and its own loyalty

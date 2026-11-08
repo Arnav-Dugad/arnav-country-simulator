@@ -30,13 +30,14 @@ func _build() -> void:
 		["stadium", "trophy", DS.GOLD, "Sport", "World Cup, the Games, medals", func() -> void: page_requested.emit("sports")],
 		["summit", "landmark", DS.ACCENT, "United Nations", "Security Council, resolutions", func() -> void: _scroll_to(_un)],
 	], self)
-	add_child(jump_bar(["Your rival", "World markets", "At war", "Your empire", "Security", "Intelligence", "Climate", "United Nations", "Treaties & blocs"]))
+	add_child(jump_bar(["Your rival", "World markets", "At war", "Your empire", "Security", "Nuclear weapons", "Intelligence", "Climate", "United Nations", "Treaties & blocs"]))
 	_rival = section("Your rival")
 	_markets = section("World markets")
 	_war = section("At war")
 	_wwars = section("Wars around the world")
 	_empire = section("Your empire")
 	_security = section("Security")
+	_nuke = section("Nuclear weapons")
 	_intel = section("Intelligence")
 	_climate = section("Climate")
 	_adapt = section("Climate adaptation")
@@ -61,6 +62,7 @@ var _markets: VBoxContainer
 var _climate: VBoxContainer
 var _adapt: VBoxContainer
 var _security: VBoxContainer
+var _nuke: VBoxContainer
 var _empire: VBoxContainer
 var _intel: VBoxContainer
 var _war: VBoxContainer
@@ -80,6 +82,7 @@ func refresh() -> void:
 	_fill_adapt()
 	_fill_empire()
 	_fill_security()
+	_fill_nuke()
 	_fill_intel()
 	_fill_war()
 	_fill_world_wars()
@@ -698,3 +701,173 @@ func _un_resolutions() -> void:
 			for b in ch.find_children("*", "Button", true, false):
 				(b as Button).disabled = true
 	m.choice("Close", "", &"GhostButton", m.dismiss)
+
+
+# ----------------------------------------------------------- nuclear weapons ---
+func _fill_nuke() -> void:
+	for ch in _nuke.get_children():
+		ch.queue_free()
+	var s := Nuclear.st()
+	# The Doomsday Clock: a quarter clock face with the minute hand near midnight.
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override(&"separation", DS.S4)
+	_nuke.add_child(row)
+	var face := Control.new()
+	face.custom_minimum_size = Vector2(84, 84)
+	face.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var sec := Nuclear.clock()
+	face.draw.connect(func() -> void:
+		var c := Vector2(face.size.x - 4.0, face.size.y - 4.0)
+		var rad := minf(face.size.x, face.size.y) - 10.0
+		face.draw_arc(c, rad, PI, PI * 1.5, 32, Color(1, 1, 1, 0.18), 2.0, true)
+		for k in 4:
+			var a := PI + PI * 0.5 * k / 3.0
+			face.draw_circle(c + Vector2(cos(a), sin(a)) * rad, 3.0, Color(1, 1, 1, 0.5))
+		var frac := clampf(sec / 900.0, 0.0, 1.0)
+		var ang := PI * 1.5 - PI * 0.5 * frac
+		var col := DS.RED if sec < 100.0 else (DS.ORANGE if sec < 200.0 else DS.GREEN)
+		face.draw_line(c, c + Vector2(cos(ang), sin(ang)) * rad * 0.92, col, 3.0, true)
+		face.draw_line(c, c + Vector2(0, -rad * 0.6), Color(1, 1, 1, 0.85), 3.0, true)
+		face.draw_circle(c, 4.0, Color.WHITE))
+	row.add_child(face)
+	var col := VBoxContainer.new()
+	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	col.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_child(col)
+	var t := Label.new()
+	t.theme_type_variation = &"Title2"
+	t.text = Nuclear.clock_text()
+	t.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	t.add_theme_color_override(&"font_color", DS.RED if sec < 100.0 else (DS.ORANGE if sec < 200.0 else DS.GREEN))
+	col.add_child(t)
+	var d := sec - Economy.NUC_CLOCK_START
+	var sub := Label.new()
+	sub.theme_type_variation = &"Caption"
+	sub.text = "The Doomsday Clock  ·  %s" % (("%+d s since you took office" % roundi(d)) if absf(d) >= 1.0 else "as when you took office")
+	sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	col.add_child(sub)
+	note("Wars, weapons programmes and tests move the world closer to midnight; disarmament and peace move it back. An anxious world is an unhappier one.", _nuke)
+	# Your status.
+	var w := int(s.w)
+	var head := ""
+	var cap := ""
+	var tint := DS.ACCENT
+	if w > 0:
+		head = "%d warheads" % w
+		cap = "Deters any invasion" + ("  ·  outside the treaty" if not bool(s.npt) else "")
+		tint = DS.ORANGE
+	elif Nuclear.building():
+		head = "Programme %d%% done" % roundi(Nuclear.progress() * 100.0)
+		cap = ("Secret  ·  inspectors could find it" if bool(s.prog.secret) and not bool(s.prog.found) else "In the open") + "  ·  %s a year" % DS.money(Game.me().gdp * Economy.NUC_PROG_COST / 100.0)
+		tint = DS.RED
+	else:
+		head = "No nuclear weapons"
+		cap = "Bound by the Non-Proliferation Treaty" if bool(s.npt) else "Outside the treaty"
+		tint = DS.GREEN
+	_stat_line(_nuke, "atom", tint, head, cap)
+	if Nuclear.building():
+		_nuke.add_child(meter(Nuclear.progress(), 0.0, DS.RED, 6.0))
+		var ab := AppButton.make("Abandon the programme", &"", "x")
+		ab.pressed.connect(func() -> void:
+			Nuclear.abandon()
+			Simulation.update_finances(Game.me())
+			Haptics.select()
+			refresh())
+		_nuke.add_child(ab)
+	elif w > 0:
+		var cb := AppButton.make("Halve the arsenal  ·  %d capital" % int(Economy.NUC_CUT_CAPITAL), &"", "scissors")
+		cb.disabled = not Nuclear.can_cut()
+		cb.pressed.connect(func() -> void:
+			if Nuclear.cut(false):
+				Simulation.update_finances(Game.me())
+				Haptics.success()
+			refresh())
+		_nuke.add_child(cb)
+		var gb := AppButton.make("Disarm completely  ·  %d capital" % int(Economy.NUC_CUT_CAPITAL * 2.0), &"", "handshake")
+		gb.disabled = not Nuclear.can_cut() or not Capital.can(Economy.NUC_CUT_CAPITAL * 2.0)
+		gb.pressed.connect(_give_up_nukes)
+		_nuke.add_child(gb)
+		if not Nuclear.can_cut():
+			note("One arsenal decision every four years.", _nuke)
+	else:
+		var why := Nuclear.blocked()
+		var sb := AppButton.make("Start a nuclear programme", &"", "atom")
+		sb.disabled = why != ""
+		sb.pressed.connect(_start_nukes)
+		_nuke.add_child(sb)
+		if why != "":
+			note(why + ".", _nuke)
+	# The world's arsenals.
+	var lst := VBoxContainer.new()
+	lst.add_theme_constant_override(&"separation", 4)
+	_nuke.add_child(lst)
+	var powers: Array = []
+	for iso in Nuclear.ARSENAL:
+		var i := World.index_of(str(iso))
+		if i >= 0 and Nuclear.warheads(i) > 0:
+			powers.append(i)
+	if armed_new():
+		powers.append(Game.player)
+	powers.sort_custom(func(a: int, b: int) -> bool: return Nuclear.warheads(a) > Nuclear.warheads(b))
+	for i in powers:
+		var line := HBoxContainer.new()
+		line.add_theme_constant_override(&"separation", DS.S2)
+		lst.add_child(line)
+		line.add_child(Flag.new().show_country(i, 16.0))
+		var nl := Label.new()
+		nl.theme_type_variation = &"Footnote"
+		nl.text = World.map.names[i]
+		nl.custom_minimum_size = Vector2(108, 0)
+		nl.clip_text = true
+		nl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		line.add_child(nl)
+		var bar := meter(log(float(Nuclear.warheads(i)) + 1.0) / log(6000.0), 0.0, DS.ORANGE if i != Game.player else DS.RED, 6.0)
+		bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		line.add_child(bar)
+		var vl := Label.new()
+		vl.theme_type_variation = &"StatSmall"
+		vl.text = "%d" % Nuclear.warheads(i)
+		vl.custom_minimum_size = Vector2(44, 0)
+		vl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		line.add_child(vl)
+	note("Estimated warheads (SIPRI 2024).", _nuke)
+
+
+func armed_new() -> bool:
+	return Nuclear.armed() and not Nuclear.ARSENAL.has(World.iso(Game.player))
+
+
+func _start_nukes() -> void:
+	var m := ModalCard.new()
+	get_tree().current_scene.add_child(m)
+	m.header("atom", DS.RED, "Nuclear weapons", "Build the bomb?")
+	m.body("It takes %d years and %s a year. When it's done, no neighbour will dare invade you, but the world will trust you less and the Doomsday Clock moves closer to midnight." % [
+		Nuclear.prog_months() / 12, DS.money(Game.me().gdp * Economy.NUC_PROG_COST / 100.0)])
+	if bool(Nuclear.st().npt):
+		m.choice("In secret", "Stay in the treaty · inspectors may find it, then sanctions", &"DestructiveButton", func() -> void:
+			if Nuclear.start(true):
+				Simulation.update_finances(Game.me())
+				Haptics.warning()
+			m.dismiss()
+			refresh())
+	m.choice("Openly" + (", leaving the treaty" if bool(Nuclear.st().npt) else ""), "Relations with everyone fall now · no surprises later", &"DestructiveButton", func() -> void:
+		if Nuclear.start(false):
+			Simulation.update_finances(Game.me())
+			Haptics.warning()
+		m.dismiss()
+		refresh())
+	m.choice("Not now", "", &"GhostButton", m.dismiss)
+
+
+func _give_up_nukes() -> void:
+	var m := ModalCard.new()
+	get_tree().current_scene.add_child(m)
+	m.header("handshake", DS.GREEN, "Nuclear weapons", "Give them all up?")
+	m.body("Every warhead is dismantled under international inspection and you rejoin the treaty. The world will love you for it and the clock moves back, but you lose the guarantee that nobody invades.")
+	m.choice("Disarm completely", "%d political capital" % int(Economy.NUC_CUT_CAPITAL * 2.0), &"PrimaryButton", func() -> void:
+		if Nuclear.cut(true):
+			Simulation.update_finances(Game.me())
+			Haptics.success()
+		m.dismiss()
+		refresh())
+	m.choice("Keep them", "", &"GhostButton", m.dismiss)

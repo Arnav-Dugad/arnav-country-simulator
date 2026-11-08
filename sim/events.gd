@@ -1047,6 +1047,8 @@ static func apply_effects(fx: Dictionary, other: int, ev_id: String = "") -> voi
 				Game.politics.term_choice(str(v))
 			"region":
 				Regions.apply(str(v))
+			"nuke":
+				Nuclear.apply(str(v))
 			"project_delay":
 				for id in c.projects:
 					if str(c.projects[id].state) == "building":

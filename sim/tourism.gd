@@ -129,6 +129,8 @@ static func soft_power(i: int, details: bool = true) -> float:
 			sp += Wonders.prestige()
 		if Game.dip.has("edu"):
 			sp += Education.prestige()
+		if Game.dip.has("nuke"):
+			sp += Nuclear.prestige()
 	return clampf(sp, 0.0, 100.0)
 
 

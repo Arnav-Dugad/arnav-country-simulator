@@ -548,6 +548,21 @@ const TOUR_BID_MONTHS := 12        # from bid to vote
 const TOUR_SOFT_RELATIONS := 0.01  # relations a month with everyone per soft power point gained
 
 
+# ----------------------------------------------------------- nuclear weapons ---
+# See sim/nuclear.gd. Deterrence and diplomacy only.
+const NUC_CLOCK_START := 89.0       # Doomsday Clock, seconds to midnight (2025)
+const NUC_MIN_GDP := 5.0e10         # economy needed to start a programme
+const NUC_CAPITAL := 25.0           # political capital to start one
+const NUC_PROG_MONTHS := 96         # 72 with nuclear power already
+const NUC_PROG_COST := 0.3          # % of GDP a year while building
+const NUC_UPKEEP := 0.12            # % of GDP a year for an arsenal you built (savings when you cut one)
+const NUC_DETECT := 0.012           # monthly chance inspectors find a secret programme
+const NUC_LEAVE_RELATIONS := 8.0    # relations lost with everyone when you leave the treaty
+const NUC_FIRST_ARSENAL := 20
+const NUC_DETER := 40.0             # Security deterrence from having (or losing) an arsenal
+const NUC_CUT_CAPITAL := 10.0       # 20 to give it all up
+
+
 # ---------------------------------------------------- schools & universities ---
 # See sim/education.gd. Effects count only the change since you took office.
 const EDU_SCORE_PER_SHARE := 6.0    # learning-score points per +1 pt of education budget share
