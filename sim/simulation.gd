@@ -32,6 +32,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 	var enx: Dictionary = Enterprise.modifiers() if c.idx == Game.player and Game.has_game() else {}
 	var tox: Dictionary = Tourism.modifiers() if c.idx == Game.player and Game.has_game() else {}
 	var pdx: Dictionary = Pandemic.effects() if c.idx == Game.player and Game.has_game() and Game.dip.has("pandemic") else {}
+	var crx: Dictionary = Crime.modifiers() if c.idx == Game.player and Game.has_game() else {}
 	var anx: Dictionary = Annexation.unrest() if c.idx == Game.player and Game.has_game() and Game.dip.has("integration") else {}
 	var wx: Dictionary = War.effects() if c.idx == Game.player and Game.has_game() and War.at_war() else {}
 	var mx := Game.markets.effects(c)
@@ -77,6 +78,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Other taxes", float(txm.get("growth", 0.0))],
 		["Technology", float(tm.get("growth", 0.0))],
 		["Pandemic", float(pdx.get("growth", 0.0))],
+		["Crime", float(crx.get("growth", 0.0))],
 		["Tourism", float(tox.get("growth", 0.0))],
 		["State firms", float(enx.get("growth", 0.0))],
 		["Media", float(mdx.get("growth", 0.0))],
@@ -201,6 +203,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Other taxes", float(txm.get("happiness", 0.0))],
 		["Technology", float(tm.get("happiness", 0.0))],
 		["Pandemic", float(pdx.get("happiness", 0.0))],
+		["Crime", float(crx.get("happiness", 0.0))],
 		["Stock market", float(enx.get("happiness", 0.0))],
 		["Media", float(mdx.get("happiness", 0.0))],
 		["War", float(wx.get("happiness", 0.0))],
@@ -225,6 +228,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["The war at home", float(wx.get("approval", 0.0))],
 		["Integrating new lands", float(anx.get("approval", 0.0))],
 		["Pandemic", float(pdx.get("approval", 0.0))],
+		["Crime", float(crx.get("approval", 0.0))],
 		["Your ministers", float(cx.get("approval", 0.0))],
 		["Media", float(mdx.get("approval", 0.0))],
 	]
@@ -243,6 +247,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Foreign threats", float(sec.stability)],
 		["Technology", float(tm.get("stability", 0.0))],
 		["Pandemic", float(pdx.get("stability", 0.0))],
+		["Crime", float(crx.get("stability", 0.0))],
 		["Media", float(mdx.get("stability", 0.0))],
 		["War", float(wx.get("stability", 0.0))],
 		["Integrating new lands", float(anx.get("stability", 0.0))],
@@ -314,6 +319,7 @@ static func update_finances(c: CountryState) -> void:
 		+ (Intel.spending_pct() if c.idx == Game.player and Game.has_game() and Game.dip.has("intel") else 0.0)
 		+ (Tourism.spending_pct() if c.idx == Game.player else 0.0)
 		+ (float(Pandemic.effects().get("cost", 0.0)) if c.idx == Game.player and Game.has_game() and Game.dip.has("pandemic") else 0.0)
+		+ (float(Crime.modifiers().get("cost", 0.0)) if c.idx == Game.player and Game.has_game() and Game.dip.has("crime") else 0.0)
 		+ (float(War.effects().cost) if c.idx == Game.player and Game.has_game() and War.at_war() else 0.0)) / 100.0
 	# Inflation above the floor erodes local-currency debt, so only the real
 	# part of the rate is a burden in dollar terms.

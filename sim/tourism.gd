@@ -79,6 +79,8 @@ static func appeal() -> float:
 		a += E.TOUR_CULTURE * g / float(maxi(ids.size(), 1))
 	if War.at_war():
 		a -= E.TOUR_WAR
+	if Game.dip.has("crime"):
+		a -= 0.01 * Crime.change()
 	if Game.dip.has("pandemic") and Pandemic.active():
 		a -= 0.15 + (0.35 if bool(Pandemic.st().get("borders", false)) else 0.0)
 	var host: Dictionary = s.host

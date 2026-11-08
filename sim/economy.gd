@@ -541,6 +541,24 @@ const TOUR_BID_MONTHS := 12        # from bid to vote
 const TOUR_SOFT_RELATIONS := 0.01  # relations a month with everyone per soft power point gained
 
 
+# ---------------------------------------------------------- crime & justice ---
+# See sim/crime.gd. Crime index points.
+const CRIME_UNEMP := 1.2           # per point of unemployment above the start
+const CRIME_GINI := 0.8            # per Gini point above the start
+const CRIME_POLICE := 25.0         # at full extra police coverage
+const CRIME_PRISON := 10.0         # at full extra prison coverage
+const CRIME_COMMUNITY := 3.0
+const CRIME_TOUGH := 8.0
+const CRIME_STABILITY := 0.15      # per stability point below the start
+const CRIME_ADJUST := 1.0 / 12.0   # monthly drift toward the target
+const CRIME_SCANDAL_CHANCE := 0.3  # a crackdown turns into an abuse scandal
+## Effects per crime point above (or below) where you started.
+const CRIME_HAPPY := 0.12
+const CRIME_APPROVAL := 0.06
+const CRIME_STAB := 0.08
+const CRIME_GROWTH := 0.015
+
+
 # --------------------------------------------------------------- pandemics ---
 # See sim/pandemic.gd. Rates are per month, on shares of the population.
 const PAN_CHANCE := 0.0035          # monthly chance a new disease appears (about once in 25 years)

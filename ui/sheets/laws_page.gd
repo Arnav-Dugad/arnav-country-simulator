@@ -18,6 +18,7 @@ var _cabinet: VBoxContainer
 
 var _clean: VBoxContainer
 var _media: VBoxContainer
+var _crime: VBoxContainer
 var _capital: Control
 var _cap_value: Label
 var _cap_note: Label
@@ -119,6 +120,7 @@ func _build() -> void:
 	_cabinet = section("Your cabinet")
 	_clean = section("Clean government")
 	_media = section("Media & propaganda")
+	_crime = section("Crime & justice")
 	_summary = note("")
 	_filter = SegmentedControl.new().setup(["All", "In force", "Not yet"], [], 0)
 	_filter.plain = true
@@ -142,6 +144,7 @@ func refresh() -> void:
 	_fill_cabinet()
 	_fill_clean()
 	_fill_media()
+	_fill_crime()
 	var active := 0
 	var passing := 0
 	for l in Laws.ALL:
@@ -567,3 +570,86 @@ func _campaigns() -> void:
 			for b in ch.find_children("*", "Button", true, false):
 				(b as Button).disabled = true
 	m.choice("Close", "", &"GhostButton", m.dismiss)
+
+
+# ------------------------------------------------------------------- crime ---
+func _fill_crime() -> void:
+	for ch in _crime.get_children():
+		ch.queue_free()
+	var c := Game.me()
+	var v := Crime.value()
+	var d := Crime.change()
+	_crime.add_child(photo_header("justice", "Crime & justice", "%s  ·  %d / 100" % [Crime.label(v), roundi(v)], 118.0))
+	var col := DS.GREEN if v < 30.0 else (DS.ORANGE if v < 55.0 else DS.RED)
+	var r := HBoxContainer.new()
+	r.add_theme_constant_override(&"separation", DS.S3)
+	_crime.add_child(r)
+	r.add_child(ListRow.icon_tile("siren", col))
+	var cc := VBoxContainer.new()
+	cc.add_theme_constant_override(&"separation", 0)
+	cc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	r.add_child(cc)
+	var t := Label.new()
+	t.theme_type_variation = &"Headline"
+	t.text = "Crime"
+	cc.add_child(t)
+	var tgt := Crime.target(c)
+	var cap := Label.new()
+	cap.theme_type_variation = &"Caption"
+	cap.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	cap.custom_minimum_size = Vector2(40, 0)
+	cap.text = ("%+d since you took office" % roundi(d) if absf(d) >= 0.5 else "Where you started") + ("  ·  heading %s" % ("down" if tgt < v - 0.5 else "up") if absf(tgt - v) >= 0.5 else "")
+	cc.add_child(cap)
+	var val := Label.new()
+	val.theme_type_variation = &"StatSmall"
+	val.text = str(roundi(v))
+	val.add_theme_color_override(&"font_color", col)
+	r.add_child(val)
+	_crime.add_child(meter(v / 100.0, tgt / 100.0 if tgt > v else 0.0, col, 4.0))
+	# What drives it.
+	var parts: PackedStringArray = []
+	for term in Crime.terms(c):
+		if absf(float(term[1])) >= 0.5:
+			parts.append("%s %+d" % [str(term[0]).to_lower(), roundi(float(term[1]))])
+	if not parts.is_empty():
+		note("Pushing it: " + ", ".join(parts) + ".", _crime)
+	# Policing.
+	var oh := Label.new()
+	oh.theme_type_variation = &"Overline"
+	oh.text = "POLICING"
+	_crime.add_child(oh)
+	var labels := PackedStringArray()
+	for p in Crime.POLICING:
+		labels.append(str(Crime.POLICING_INFO[p].title))
+	var seg := SegmentedControl.new().setup(labels, [], Crime.POLICING.find(str(Crime.st().policing)))
+	seg.fill = true
+	seg.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	seg.changed.connect(func(k: int) -> void:
+		Crime.set_policing(str(Crime.POLICING[k]))
+		Simulation.update_finances(Game.me())
+		Haptics.select()
+		refresh())
+	_crime.add_child(seg)
+	note(str(Crime.POLICING_INFO[str(Crime.st().policing)].desc), _crime)
+	# Programmes.
+	for id in Crime.PROGRAMS:
+		var p2: Dictionary = Crime.PROGRAMS[id]
+		var pw := Crime.program_power(str(id))
+		var why := Crime.can_start(str(id))
+		var sub := ""
+		if pw > 0.0 or why == "Already running":
+			sub = "Running  ·  %d%% effect" % roundi(pw * 100.0)
+		else:
+			sub = "%s%s  ·  %s" % [DS.money(Crime.program_cost(str(id))), ("  ·  %d capital" % int(p2.capital)) if float(p2.capital) > 0.0 else "", str(p2.desc)]
+		var row := ListRow.new().setup(str(p2.title), sub, "›" if why == "" else "")
+		row.subtitle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		row.subtitle_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+		row.trailing_label.add_theme_color_override(&"font_color", DS.TEXT_3)
+		row.set_leading(ListRow.icon_tile(str(p2.icon), DS.GREEN if pw > 0.0 else (DS.ACCENT if why == "" else DS.TEXT_3)))
+		if why == "":
+			row.tapped.connect(func() -> void:
+				if Crime.start_program(str(id)):
+					Simulation.update_finances(Game.me())
+					Haptics.success()
+				refresh())
+		_crime.add_child(row)
