@@ -309,16 +309,26 @@ func _declare_war(i: int) -> void:
 	m.body("Your military %d vs theirs %d. You'd win about %d%% of battles at the start. War costs about %s a year, slows the economy and wears people down after the first months. The world will condemn the attack." % [
 		roundi(Game.me().military), roundi(them.military), roundi(War.odds(i) * 100.0),
 		DS.money(Game.me().gdp * Economy.WAR_COST_PCT / 100.0 * sqrt(clampf(them.gdp / maxf(Game.me().gdp, 1.0), 0.3, 2.5)))])
-	m.choice("Declare war", "Costs %d political capital" % int(Economy.WAR_DECLARE_CAPITAL), &"DestructiveButton", func() -> void:
-		War.declare(i)
-		Haptics.warning()
-		Audio.play("warning")
-		m.dismiss()
-		refresh()
-		var gs := get_tree().current_scene
-		if gs and "map" in gs and gs.map != null:
-			gs.map.refresh_war_marks()
-		WarRoom.open(get_tree().current_scene, i))
+	var ov := Label.new()
+	ov.theme_type_variation = &"Overline"
+	ov.text = "CHOOSE YOUR WAR GOAL  ·  %d POLITICAL CAPITAL" % int(Economy.WAR_DECLARE_CAPITAL)
+	m.content.add_child(ov)
+	for gid in War.GOALS:
+		var g: Dictionary = War.GOALS[gid]
+		var chips: Array = [["Take up to %d%%" % roundi(float(g.max_occ) * 100.0), DS.TEXT_2],
+			["World anger ×%s" % String.num(float(g.anger), 1), DS.RED if float(g.anger) > 1.0 else DS.ORANGE]]
+		if gid == "total":
+			chips.append(["Annex the whole country", DS.GOLD])
+		m.choice(str(g.title), str(g.desc), &"DestructiveButton" if gid == "total" else &"", func() -> void:
+			War.declare(i, str(gid))
+			Haptics.warning()
+			Audio.play("warning")
+			m.dismiss()
+			refresh()
+			var gs := get_tree().current_scene
+			if gs and "map" in gs and gs.map != null:
+				gs.map.refresh_war_marks()
+			WarRoom.open(get_tree().current_scene, i), chips)
 	m.choice("Not now", "", &"GhostButton", m.dismiss)
 
 

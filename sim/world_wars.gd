@@ -39,6 +39,8 @@ static func monthly() -> Array:
 	var out: Array = []
 	_maybe_start(out)
 	for k in all().keys():
+		if not all().has(k):        # ended by an annexation earlier this month
+			continue
 		var w: Dictionary = all()[k]
 		var a: CountryState = Game.state(int(w.a))
 		var b: CountryState = Game.state(int(w.b))
@@ -123,6 +125,14 @@ static func _end(k: String, w: Dictionary) -> Dictionary:
 	var a := int(w.a)
 	var b := int(w.b)
 	var text := ""
+	var sb: CountryState = Game.state(b)
+	var swallowed := int(Game.dip.get("ai_absorbed", 0))
+	if float(w.occ_b) >= E.WORLD_ABSORB_SHARE and float(w.morale_b) < float(w.morale_a) and sb != null \
+			and sb.population < 1.5e7 and swallowed < E.WORLD_ABSORB_MAX and not Annexation.is_vassal(b) and Game.rng.randf() < 0.5:
+		all().erase(k)
+		Game.dip["ai_absorbed"] = swallowed + 1
+		text = Annexation.absorb(b, a)
+		return {"text": text, "a": a, "b": b, "good": false, "end": true, "absorbed": true}
 	if float(w.occ_b) > 0.05 and float(w.morale_b) < float(w.morale_a):
 		var frac := float(w.occ_b) * E.WAR_ANNEX_SHARE
 		War._transfer(Game.state(b), Game.state(a), frac)

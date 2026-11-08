@@ -130,6 +130,7 @@ func new_challenge(id: String, seed_value: int = -1) -> void:
 func new_game(country_index: int, seed_value: int = -1, level: String = "") -> void:
 	rng.seed = seed_value if seed_value >= 0 else int(Time.get_unix_time_from_system())
 	difficulty = level if level in Difficulty.LEVELS else "standard"
+	World.set_owners({})             # the map as it really is
 	markets.reset(rng)
 	countries.clear()
 	countries.resize(World.count())
@@ -313,6 +314,8 @@ func advance_month() -> void:
 		me().treasury = me().spending
 	for note in War.monthly():
 		war_battle.emit(note)
+	for h in Annexation.monthly():
+		add_feed(str(h.text), str(h.icon), "green" if bool(h.good) else "orange")
 	for h in Tourism.monthly():
 		add_feed(str(h.text), str(h.icon), "gold" if bool(h.good) else "orange")
 		if bool(h.big):
@@ -648,6 +651,7 @@ func load_dict(d: Dictionary) -> bool:
 	var saved_dip: Dictionary = d.get("dip", {})
 	for k in saved_dip:
 		dip[k] = saved_dip[k]
+	World.set_owners(dip.get("owners", {}))
 	start_snapshot = d.get("start", {})
 	headlines_seen = d.get("headlines_seen", {})
 	last_rating = str(d.get("last_rating", ""))

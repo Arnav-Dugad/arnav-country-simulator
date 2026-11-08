@@ -36,6 +36,40 @@ static func fill_mesh(md: MapData, order: PackedInt32Array, tex_w: int) -> Array
 	return _mesh(verts, uvs, PackedColorArray(), idx)
 
 
+## Fills of conquered land drawn above the borders: each absorbed country and its
+## owner, coloured as the owner (UV points at the owner's colour), so the border
+## between them disappears. owners: {absorbed index: owner index}.
+static func owned_fill_mesh(md: MapData, by_c: Array[PackedInt32Array], owners: Dictionary, tex_w: int) -> ArrayMesh:
+	var verts := PackedVector2Array()
+	var uvs := PackedVector2Array()
+	var idx := PackedInt32Array()
+	var drawn := {}
+	var pairs: Array = []
+	for k in owners:
+		pairs.append([int(owners[k]), int(owners[k])])      # the owner's own land first
+	for k in owners:
+		pairs.append([int(k), int(owners[k])])
+	for pr in pairs:
+		var c: int = pr[0]
+		if drawn.has(c):
+			continue
+		drawn[c] = true
+		var uv := Vector2((int(pr[1]) + 0.5) / tex_w, 0.5)
+		for r in by_c[c]:
+			var base := verts.size()
+			var pts: PackedVector2Array = md.ring_points[r]
+			verts.append_array(pts)
+			var fill := PackedVector2Array()
+			fill.resize(pts.size())
+			fill.fill(uv)
+			uvs.append_array(fill)
+			for t in md.ring_tris[r]:
+				idx.append(base + t)
+	if verts.is_empty():
+		return null
+	return _mesh(verts, uvs, PackedColorArray(), idx)
+
+
 ## Fill of a single country (white; tint with modulate).
 static func country_fill_mesh(md: MapData, c: int) -> ArrayMesh:
 	var verts := PackedVector2Array()

@@ -31,6 +31,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 	var mdx: Dictionary = Media.modifiers() if c.idx == Game.player and Game.has_game() else {}
 	var enx: Dictionary = Enterprise.modifiers() if c.idx == Game.player and Game.has_game() else {}
 	var tox: Dictionary = Tourism.modifiers() if c.idx == Game.player and Game.has_game() else {}
+	var anx: Dictionary = Annexation.unrest() if c.idx == Game.player and Game.has_game() and Game.dip.has("integration") else {}
 	var wx: Dictionary = War.effects() if c.idx == Game.player and Game.has_game() and War.at_war() else {}
 	var mx := Game.markets.effects(c)
 	var tx := Treaties.modifiers(c) if c.idx == Game.player else {}
@@ -78,6 +79,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["State firms", float(enx.get("growth", 0.0))],
 		["Media", float(mdx.get("growth", 0.0))],
 		["War", float(wx.get("growth", 0.0))],
+		["Integrating new lands", float(anx.get("growth", 0.0))],
 		["Construction work", float(px.get("build_growth", 0.0)) + float(bx.get("build_growth", 0.0))],
 	]
 	var g := clampf(_sum(g_terms), -25.0, 20.0)
@@ -216,7 +218,8 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Projects you built", float(px.get("approval", 0.0))],
 		["Things you built", float(bx.get("approval", 0.0))],
 		["Other taxes", float(txm.get("approval", 0.0))],
-		["War weariness", float(wx.get("approval", 0.0))],
+		["The war at home", float(wx.get("approval", 0.0))],
+		["Integrating new lands", float(anx.get("approval", 0.0))],
 		["Your ministers", float(cx.get("approval", 0.0))],
 		["Media", float(mdx.get("approval", 0.0))],
 	]
@@ -236,6 +239,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Technology", float(tm.get("stability", 0.0))],
 		["Media", float(mdx.get("stability", 0.0))],
 		["War", float(wx.get("stability", 0.0))],
+		["Integrating new lands", float(anx.get("stability", 0.0))],
 		["Recent events", float(c.shocks.stability)],
 		["Laws & reforms", float(lx.get("stability", 0.0))],
 		["Projects you built", float(px.get("stability", 0.0))],

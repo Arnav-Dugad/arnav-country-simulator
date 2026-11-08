@@ -673,7 +673,7 @@ func _on_country_tapped(i: int) -> void:
 		map.select(-1)
 		return
 	Haptics.select()
-	_open_country(i, false)
+	_open_country(World.owner(i), false)
 
 
 func _on_month() -> void:

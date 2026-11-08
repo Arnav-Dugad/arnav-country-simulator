@@ -163,6 +163,15 @@ func _build_nodes() -> void:
 		return MapMeshes.line_mesh(data.ring_points))
 	_borders.material = _border_mat
 	_world.add_child(_borders)
+	# Conquered land (see Annexation): repainted above the borders in its owner's colour.
+	_owned = MeshInstance2D.new()
+	_owned.material = _fill_mat
+	_world.add_child(_owned)
+	_owned_line = MeshInstance2D.new()
+	_owned_line.material = _border_mat
+	_world.add_child(_owned_line)
+	World.owners_changed.connect(_on_owners_changed)
+	_on_owners_changed.call_deferred()
 
 	_glow_mat = _line_material(GLOW_SHADER, Color(DS.GOLD, 0.22), 1.0)
 	_glow_mat.set_shader_parameter(&"pulse", 0.35)
@@ -248,6 +257,10 @@ func set_colors(colors: PackedColorArray, animate: bool = true) -> void:
 	if colors.size() != data.count():
 		push_error("MapView.set_colors: expected %d colours" % data.count())
 		return
+	if not World.owner_of.is_empty():
+		colors = colors.duplicate()
+		for k in World.owner_of:
+			colors[int(k)] = colors[World.owner(int(k))]
 	_colors_now = _current_colors()
 	_colors_target = colors
 	if not animate or _colors_now.is_empty():
@@ -309,6 +322,98 @@ const OUTLINE_MIN_ISLAND_PX := 3.0
 
 
 var _outline_cache := {}      # Vector2i(country, zoom bucket) -> ArrayMesh
+var _owned: MeshInstance2D
+var _owned_line: MeshInstance2D
+var _merged := {}             # owner index -> Array[PackedVector2Array] (union outline)
+
+
+## Outline rings of a country, including land it has absorbed (merged into one shape).
+func _rings_of(i: int) -> Array[PackedVector2Array]:
+	if _merged.has(i):
+		return _merged[i]
+	var out: Array[PackedVector2Array] = []
+	for r in _by_country[i]:
+		out.append(data.ring_points[r])
+	return out
+
+
+func _on_owners_changed() -> void:
+	_merged.clear()
+	_outline_cache.clear()
+	var groups := {}
+	for k in World.owner_of:
+		var o := World.owner(int(k))
+		if not groups.has(o):
+			groups[o] = [o]
+		(groups[o] as Array).append(int(k))
+	var flat := {}
+	for o in groups:
+		for c in groups[o]:
+			if c != o:
+				flat[c] = o
+	_owned.mesh = MapMeshes.owned_fill_mesh(data, _by_country, flat, _tex_w) if not flat.is_empty() else null
+	var border_rings: Array[PackedVector2Array] = []
+	for o in groups:
+		_merged[o] = _union_rings(groups[o])
+		border_rings.append_array(_merged[o])
+	_owned_line.mesh = MapMeshes.line_mesh(border_rings) if not border_rings.is_empty() else null
+	_glow_bucket = -999
+	_rebuild_glow()
+	if not _colors_target.is_empty():
+		set_colors(_colors_target, false)
+	refresh_war_marks()
+
+
+## Union of several countries' rings (shared borders dissolve).
+func _union_rings(countries: Array) -> Array[PackedVector2Array]:
+	var result: Array[PackedVector2Array] = []
+	var boxes: Array[Rect2] = []
+	for c in countries:
+		for r in _by_country[int(c)]:
+			var p: PackedVector2Array = data.ring_points[r]
+			var box := _bbox(p)
+			var k := 0
+			while k < result.size():
+				if boxes[k].grow(0.5).intersects(box):
+					var m := Geometry2D.merge_polygons(result[k], p)
+					var outer := _single_outer(m)
+					if outer.size() >= 3:
+						p = outer
+						box = _bbox(p)
+						result.remove_at(k)
+						boxes.remove_at(k)
+						k = 0
+						continue
+				k += 1
+			result.append(p)
+			boxes.append(box)
+	return result
+
+
+static func _bbox(p: PackedVector2Array) -> Rect2:
+	var r := Rect2(p[0], Vector2.ZERO)
+	for v in p:
+		r = r.expand(v)
+	return r
+
+
+## If a merge produced one outer shape (plus holes), that shape; else empty.
+static func _single_outer(polys: Array[PackedVector2Array]) -> PackedVector2Array:
+	if polys.is_empty():
+		return PackedVector2Array()
+	if polys.size() == 1:
+		return polys[0]
+	var best := 0
+	var best_a := 0.0
+	for k in polys.size():
+		var a := absf(Geo.signed_area(polys[k]))
+		if a > best_a:
+			best_a = a
+			best = k
+	for k in polys.size():
+		if k != best and not Geometry2D.is_point_in_polygon(polys[k][0], polys[best]):
+			return PackedVector2Array()
+	return polys[best]
 
 
 func _outline_mesh(i: int) -> ArrayMesh:
@@ -327,8 +432,8 @@ func _outline_mesh(i: int) -> ArrayMesh:
 func _build_outline(i: int, bucket: int) -> ArrayMesh:
 	var px := 1.0 / pow(2.0, bucket * 0.5)   # world units per pixel, half-octave steps
 	var rings: Array[PackedVector2Array] = []
-	for r in _by_country[i]:
-		var pts := Geo.remove_spikes(Geo.simplify_ring(data.ring_points[r], OUTLINE_SIMPLIFY_PX * px),
+	for ring in _rings_of(i):
+		var pts := Geo.remove_spikes(Geo.simplify_ring(ring, OUTLINE_SIMPLIFY_PX * px),
 			OUTLINE_SPIKE_PX * px, -0.5)
 		# Islets smaller than a few pixels keep their fill but get no outline (no specks).
 		if pts.size() >= 3 and absf(Geo.signed_area(pts)) > OUTLINE_MIN_ISLAND_PX * OUTLINE_MIN_ISLAND_PX * px * px:
@@ -353,8 +458,8 @@ func _rebuild_glow() -> void:
 	if not _outline_cache.has(key):
 		var tol := GLOW_PX * 0.45 / pow(2.0, bucket * 0.5)
 		var rings: Array[PackedVector2Array] = []
-		for r in _by_country[player]:
-			var pts := Geo.remove_spikes(Geo.simplify_ring(data.ring_points[r], tol), tol * 2.5)
+		for ring in _rings_of(player):
+			var pts := Geo.remove_spikes(Geo.simplify_ring(ring, tol), tol * 2.5)
 			if pts.size() >= 3 and absf(Geo.signed_area(pts)) > tol * tol * 4.0:
 				rings.append(pts)
 		_outline_cache[key] = MapMeshes.line_mesh(rings, false) if not rings.is_empty() else null

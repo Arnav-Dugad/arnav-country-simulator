@@ -2,6 +2,18 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.67.0] - 2026-11-08
+
+- **Annex whole countries.** Win a total war and the defeated country becomes part of yours. Its people, economy, debt and part of its army join you; on the map the border disappears and the land takes your colour, inside one merged outline
+  - Newly annexed regions resist for years: unrest that fades as they integrate
+- **War goals:** choose a border war (limited aims, less outrage), conquest, or total war (fight to capitulation, then annex)
+- **Strategy:** go on the offensive, keep a balanced front, or dig in, and switch at any time
+- **Military operations** that use the forces you build: air campaigns (fighters), naval blockades (frigates), drone strikes, missile strikes (hypersonic research), special forces raids (infantry) and cyberattacks (cyber units)
+- **Support at home:** victories lift it, while defeats, casualties and long wars wear it down. Low support brings anti-war protests and weakens your army; state media and the "Behind our troops" campaign help
+- **Capitulation and new peace terms:** a beaten enemy can be annexed outright or made a vassal that pays you tribute every year and fights beside you, though it may break free if your army weakens
+- Other countries' wars can now end with a small country swallowed whole, redrawing the map
+- New achievement: Empire builder
+
 ## [0.66.0] - 2026-11-08
 
 - **Tourism & soft power**, a new page from the World tab with new AI-painted art

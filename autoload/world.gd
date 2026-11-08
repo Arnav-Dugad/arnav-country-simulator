@@ -9,8 +9,12 @@ var map: MapData
 var meta: Dictionary = {}
 ## Per map index: Dictionary of real-world stats (empty Dictionary if none).
 var stats: Array[Dictionary] = []
-## Map indexes of playable countries, sorted by name.
+## Map indexes of playable countries, sorted by name (minus absorbed ones).
 var playable: PackedInt32Array
+var _all_playable: PackedInt32Array
+## Countries absorbed by another in this game: index -> owner index (see Annexation).
+var owner_of := {}
+signal owners_changed
 
 
 ## Friendlier names for the map data's abbreviations (shown everywhere).
@@ -43,6 +47,34 @@ func _ready() -> void:
 			play.append(i)
 	play.sort_custom(func(a: int, b: int) -> bool: return name_of(a).naturalnocasecmp_to(name_of(b)) < 0)
 	playable = PackedInt32Array(play)
+	_all_playable = playable.duplicate()
+
+
+## Who owns what in this game ({absorbed index: owner index}; {} at a new game).
+func set_owners(d: Dictionary) -> void:
+	owner_of = {}
+	for k in d:
+		owner_of[int(k)] = int(d[k])
+	var keep := PackedInt32Array()
+	for i in _all_playable:
+		if not owner_of.has(i):
+			keep.append(i)
+	playable = keep
+	owners_changed.emit()
+
+
+## The country that rules index i now (itself unless absorbed).
+func owner(i: int) -> int:
+	var o := i
+	var guard := 0
+	while owner_of.has(o) and guard < 8:
+		o = int(owner_of[o])
+		guard += 1
+	return o
+
+
+func is_absorbed(i: int) -> bool:
+	return owner_of.has(i)
 
 
 func count() -> int:
@@ -58,7 +90,7 @@ func name_of(i: int) -> String:
 
 
 func is_playable(i: int) -> bool:
-	return i >= 0 and stats[i].get("playable", false)
+	return i >= 0 and stats[i].get("playable", false) and not owner_of.has(i)
 
 
 func is_estimated(i: int, field: String) -> bool:
@@ -86,7 +118,8 @@ func flag_of(i: int) -> Texture2D:
 ## Sovereign index for territories (e.g. Greenland -> Denmark), else itself.
 func sovereign_of(i: int) -> int:
 	var s: Variant = stats[i].get("sovereign")
-	return index_of(s) if s is String else i
+	var j := index_of(s) if s is String else i
+	return owner(j) if j >= 0 else j
 
 
 ## The name as used mid-sentence: "the United States", "India".

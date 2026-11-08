@@ -41,7 +41,7 @@ func _draw() -> void:
 	var base_color := get_theme_color(&"font_color", &"MapLabel")
 	for i in _order:
 		var rank := md.label_rank[i]
-		if rank > max_rank or md.iso3[i] == "ATA":
+		if rank > max_rank or md.iso3[i] == "ATA" or World.is_absorbed(i):
 			continue
 		var p := map.world_to_screen(md.label_pos[i])
 		if not view.has_point(p):
@@ -151,7 +151,7 @@ func _draw_capital_dots(zf: float, outline: Color) -> void:
 	var view := Rect2(Vector2.ZERO, size).grow(-4)
 	for i in md.count():
 		var cp := md.capital_pos[i]
-		if is_nan(cp.x):
+		if is_nan(cp.x) or World.is_absorbed(i):
 			continue
 		var p := map.world_to_screen(cp)
 		if not view.has_point(p):
