@@ -19,11 +19,39 @@ const PORTRAIT_SIZE := Vector2i(390, 844)
 const LANDSCAPE_SIZE := Vector2i(844, 390)
 
 
+## Battery: when the game is paused and nobody has touched the screen for a few
+## seconds, draw at 30 fps instead of 60 (the calm map animations still read
+## smoothly). Any touch brings full speed back instantly. Mobile only.
+const ACTIVE_FPS := 60
+const IDLE_FPS := 30
+const IDLE_AFTER := 4.0
+var _idle := 0.0
+var _mobile := false
+
+
 func _ready() -> void:
-	if OS.has_feature("mobile"):
-		Engine.max_fps = 60
+	_mobile = OS.has_feature("mobile")
+	if _mobile:
+		Engine.max_fps = ACTIVE_FPS
+	set_process(_mobile)
+	set_process_input(_mobile)
 	get_tree().root.size_changed.connect(_recompute)
 	_recompute.call_deferred()
+
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventScreenTouch or event is InputEventScreenDrag or event is InputEventMouseButton or event is InputEventKey:
+		_idle = 0.0
+		if Engine.max_fps != ACTIVE_FPS:
+			Engine.max_fps = ACTIVE_FPS
+
+
+func _process(delta: float) -> void:
+	_idle += delta
+	var calm := _idle > IDLE_AFTER and (not Game.has_game() or Game.speed == 0)
+	var want := IDLE_FPS if calm else ACTIVE_FPS
+	if Engine.max_fps != want:
+		Engine.max_fps = want
 
 
 func _recompute() -> void:

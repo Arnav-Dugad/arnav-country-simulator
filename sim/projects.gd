@@ -13,7 +13,7 @@ extends RefCounted
 ## power grids where people still lack electricity, metros only for big cities…
 
 const E = preload("res://sim/economy.gd")
-const GROUPS := ["Transport", "Energy", "People", "Economy", "Nature"]
+const GROUPS := ["Transport", "Energy", "People", "Economy", "Culture", "Nature"]
 
 const ALL := [
 	{"id": "highways", "group": "Transport", "icon": "route", "title": "Highway network",
@@ -79,6 +79,18 @@ const ALL := [
 	{"id": "space", "group": "Economy", "icon": "rocket", "title": "Space programme",
 		"desc": "Rockets, satellites and national pride.", "cost": 0.8, "months": 60, "upkeep": 0.05,
 		"needs": "space", "fx": {"approval": 2.0, "growth": 0.1, "happiness": 0.8}},
+	{"id": "stadium", "group": "Culture", "icon": "trophy", "title": "National stadium",
+		"desc": "A grand arena for finals, concerts and national pride.", "cost": 0.25, "months": 30, "upkeep": 0.01,
+		"needs": "middle", "fx": {"happiness": 1.2, "approval": 0.6}},
+	{"id": "museum", "group": "Culture", "icon": "landmark", "title": "Grand national museum",
+		"desc": "Your history and art under one roof. Visitors love it.", "cost": 0.12, "months": 24, "upkeep": 0.01,
+		"fx": {"happiness": 0.6, "growth": 0.03, "stability": 0.3}},
+	{"id": "libraries", "group": "Culture", "icon": "book-open", "title": "Libraries and arts centres",
+		"desc": "A library, theatre and studio in every town.", "cost": 0.15, "months": 18, "upkeep": 0.02,
+		"fx": {"happiness": 0.9, "unemployment": -0.05}},
+	{"id": "landmark", "group": "Culture", "icon": "building-2", "title": "Iconic landmark",
+		"desc": "A daring tower or bridge that puts your capital on postcards.", "cost": 0.35, "months": 36,
+		"upkeep": 0.01, "needs": "middle", "politics": -0.5, "fx": {"approval": 0.8, "growth": 0.04, "happiness": 0.4}},
 	{"id": "flood_defences", "group": "Nature", "icon": "waves", "title": "Flood defences",
 		"desc": "Sea walls and river barriers. Disasters hit softer.", "cost": 0.4, "months": 24, "upkeep": 0.02,
 		"fx": {"stability": 0.8, "happiness": 0.5}},
@@ -293,6 +305,11 @@ static func starting_set(c: CountryState) -> Dictionary:
 		have.call("airport")
 		have.call("hospitals")
 		have.call("schools")
+	if lvl > 0.5:
+		have.call("museum")
+		have.call("stadium")
+	if lvl > 0.65:
+		have.call("libraries")
 	if lvl > 0.6:
 		have.call("universities")
 		if c.population > 15e6:

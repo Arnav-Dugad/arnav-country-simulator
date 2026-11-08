@@ -14,10 +14,19 @@ static func make(name: String, color: Color, size_px: float = 36.0) -> Control:
 	var ini := "?"
 	if parts.size() > 0:
 		ini = (parts[0].left(1) + (parts[parts.size() - 1].left(1) if parts.size() > 1 else "")).to_upper()
-	a.set(&"initials", ini)
 	a.set(&"tint", color)
 	a.set(&"diameter", size_px)
 	a.custom_minimum_size = Vector2(size_px, size_px)
+	# No name yet: your country's flag instead of a question mark.
+	if ini == "?" and Game.has_game() and World.flag_of(Game.player) != null:
+		ini = ""
+		var f := Flag.new().show_country(Game.player, size_px * 0.4)
+		f.size = f.custom_minimum_size
+		a.add_child(f)
+		var center := func() -> void: f.position = ((a.size if a.size != Vector2.ZERO else a.custom_minimum_size) - f.size) * 0.5
+		center.call()
+		a.resized.connect(center)
+	a.set(&"initials", ini)
 	return a
 
 

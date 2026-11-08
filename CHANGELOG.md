@@ -2,6 +2,12 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.42.0] - 2026-11-08
+
+- **Culture** projects in Build: a national stadium, a grand national museum, libraries and arts centres, and an iconic landmark for your capital
+- Without a name or portrait set, your avatar now shows your country's flag instead of a question mark
+- Saves battery: when the game is paused and you're not touching the screen, the app draws at 30 frames a second (any touch brings full speed back)
+
 ## [0.41.1] - 2026-11-08
 
 - Cleaner map outlines: the white selection outline and your country's gold border no longer fray into "hairs" and specks along ragged coasts (Baja California, the Gulf coast, Alaska)
