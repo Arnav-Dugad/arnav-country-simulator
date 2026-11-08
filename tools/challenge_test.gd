@@ -40,6 +40,23 @@ func _ready() -> void:
 						if m == 0:
 							Laws.start(c, "anti_corruption")
 							Laws.start(c, "police_reform")
+					"pol_coal", "aus_green":
+						if m == 0:
+							for id in ["coal_phaseout", "carbon_tax", "ev_subsidy"]:
+								if not Laws.is_active(c, id):
+									Laws.start(c, id)
+							for id in ["solar", "wind"]:
+								Projects.start(c, id)
+						if m == 30:
+							Projects.start(c, "rail")
+					"bih_stay":
+						c.set_budget_share("health", 0.22)
+						c.set_budget_share("education", 0.22)
+						c.trade_openness = 0.85
+						if m == 0:
+							Laws.start(c, "skilled_visas")
+							Laws.start(c, "anti_corruption")
+							Laws.start(c, "export_zones")
 				Game.advance_month()
 				if not Game.pending_event.is_empty():
 					Game.resolve_event(0)

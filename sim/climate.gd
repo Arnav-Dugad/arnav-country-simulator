@@ -52,6 +52,19 @@ static func extras(c: CountryState) -> Array[String]:
 	return out
 
 
+## 0..1: how far this measure has phased in (player only; see CLIMATE_RAMP_MONTHS).
+## Start months live in Game.dip.climate_since (kept apart from state() to avoid recursion).
+static func ramp(c: CountryState, id: String) -> float:
+	if c.idx != Game.player:
+		return 1.0
+	if not Game.dip.has("climate_since"):
+		Game.dip["climate_since"] = {}
+	var since: Dictionary = Game.dip.climate_since
+	if not since.has(id):
+		since[id] = Game.months_played
+	return clampf(float(Game.months_played - int(since[id]) + 1) / Economy.CLIMATE_RAMP_MONTHS, 0.0, 1.0)
+
+
 ## Tonnes of CO2 per person per year.
 static func co2_pc(c: CountryState) -> float:
 	if c == null:
@@ -63,7 +76,7 @@ static func co2_pc(c: CountryState) -> float:
 	var tech := pow(1.0 - Economy.CO2_DECARB_PER_YEAR, Game.months_played / 12.0)
 	var cut := 1.0
 	for id in extras(c):
-		cut *= 1.0 - float(CUTS[id])
+		cut *= 1.0 - float(CUTS[id]) * ramp(c, id)
 	return start * income * tech * cut
 
 
@@ -73,7 +86,7 @@ static func oil_shield(c: CountryState) -> float:
 		return 1.0
 	var s := 1.0
 	for id in extras(c):
-		s *= 1.0 - float(OIL_SHIELD.get(id, 0.0))
+		s *= 1.0 - float(OIL_SHIELD.get(id, 0.0)) * ramp(c, id)
 	return s
 
 
@@ -83,7 +96,7 @@ static func renewables(c: CountryState) -> float:
 		return 0.0
 	var r := World.stat(c.idx, "renewables_pct", 20.0) + Economy.RENEWABLES_DRIFT_PER_YEAR * Game.months_played / 12.0
 	for id in extras(c):
-		r += float(RENEW.get(id, 0.0))
+		r += float(RENEW.get(id, 0.0)) * ramp(c, id)
 	return clampf(r, 0.0, 98.0)
 
 
@@ -139,6 +152,12 @@ static func pledge_done() -> float:
 ## Monthly: warm the world each January, and judge a pledge when it's due.
 static func monthly() -> void:
 	var st := state()
+	# Forget start months of measures that were scrapped (re-enacting starts over).
+	var since: Dictionary = Game.dip.get("climate_since", {})
+	var live := extras(Game.me())
+	for id in since.keys():
+		if not id in live:
+			since.erase(id)
 	if Game.month == 1:
 		var total := world_total()
 		st.warming = float(st.warming) + Economy.WARMING_PER_YEAR * total / maxf(float(st.start_total), 1.0)

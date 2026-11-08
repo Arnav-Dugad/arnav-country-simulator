@@ -4,6 +4,8 @@ The release workflow publishes the section that matches the tag as the GitHub Re
 
 ## [0.43.0] - 2026-11-08
 
+- Three new **challenges**: *Beyond coal* (Poland), *Sunburnt country, clean power* (Australia) and *Stop the exodus* (Bosnia and Herzegovina)
+- Energy transitions take time: green laws and projects now phase in their emission cuts (and oil-shock shield) over four years instead of overnight
 - The Year in review newspaper has a new story, **The Planet**: how warm the world is, your emissions since you took office, and who is moving in or out
 - Newspaper and Inbox wording fixed ("you went with “Trade and investment”" instead of "you chose to trade and investment")
 - Gentler vibration: light taps closer than 40 ms apart are skipped, so fast slider drags no longer buzz non-stop

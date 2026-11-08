@@ -2,7 +2,8 @@ class_name Challenges
 extends RefCounted
 ## Challenges: a real country, one clear goal, a deadline. The game continues
 ## after success or failure; the result is recorded and celebrated.
-## goal.metric: any CountryState field or "debt_pct" / "balance_pct" / "elections".
+## goal.metric: any CountryState field or "debt_pct" / "balance_pct" / "elections" /
+## "co2_pc" (Climate) / "migration" (Migration, per 1,000 a year).
 
 const ALL := [
 	{"id": "arg_inflation", "country": "ARG", "icon": "flame", "title": "Tame the inflation",
@@ -26,6 +27,15 @@ const ALL := [
 	{"id": "nga_stability", "country": "NGA", "icon": "shield", "title": "A calmer Nigeria",
 		"desc": "Raise Nigeria's stability above 22 within 8 years.",
 		"goal": {"metric": "stability", "op": ">", "value": 22.0}, "years": 8},
+	{"id": "pol_coal", "country": "POL", "icon": "leaf", "title": "Beyond coal",
+		"desc": "Cut Poland's emissions below 5.5 tonnes of CO₂ a person within 8 years (from 7.6).",
+		"goal": {"metric": "co2_pc", "op": "<", "value": 5.5}, "years": 8},
+	{"id": "aus_green", "country": "AUS", "icon": "sun", "title": "Sunburnt country, clean power",
+		"desc": "Cut Australia's emissions below 9 tonnes of CO₂ a person within 10 years (from 14.1).",
+		"goal": {"metric": "co2_pc", "op": "<", "value": 9.0}, "years": 10},
+	{"id": "bih_stay", "country": "BIH", "icon": "plane-landing", "title": "Stop the exodus",
+		"desc": "Young Bosnians are leaving. Slow emigration to under 2 people per 1,000 a year within 8 years (from 5.2).",
+		"goal": {"metric": "migration", "op": ">", "value": -2.0}, "years": 8},
 ]
 
 
@@ -45,6 +55,10 @@ static func current_value(ch: Dictionary) -> float:
 			return c.balance_pct()
 		"elections":
 			return float(Game.elections_won)
+		"co2_pc":
+			return Climate.co2_pc(c)
+		"migration":
+			return Migration.rate(c)
 	return float(c.get(str(ch.goal.metric)))
 
 
@@ -69,6 +83,10 @@ static func format_value(ch: Dictionary, v: float) -> String:
 			return "%d won" % int(v)
 		"stability":
 			return String.num(v, 0)
+		"co2_pc":
+			return "%s t" % String.num(v, 1)
+		"migration":
+			return "%s%s per 1,000" % ["+" if v >= 0.0 else "−", String.num(absf(v), 1)]
 	return DS.pct(v, 1)
 
 

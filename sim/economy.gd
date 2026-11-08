@@ -463,6 +463,9 @@ const WARMING_PER_YEAR := 0.027
 ## per degree of warming beyond the start. IPCC AR6: hot extremes are already
 ## several times more frequent; we stay gentle so the game remains calm.
 const CLIMATE_DISASTER_PER_DEG := 1.0
+## Energy transitions take years: a green law or project reaches its full cut
+## in emissions (and its oil-shock shield) this many months after it starts working.
+const CLIMATE_RAMP_MONTHS := 48
 ## Climate pledges made at a COP: years until judged, and the two sizes offered.
 const PLEDGE_YEARS := 6
 const PLEDGE_BOLD := 0.25
