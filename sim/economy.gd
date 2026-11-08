@@ -626,7 +626,7 @@ const EDU_RP_PER_10 := 0.6          # research points a month per +10 university
 # See sim/regions.gd.
 const REG_DISTINCT_CHANCE := 0.12   # chance a country not on the list still has a region with its own identity
 const REG_LOYALTY_SPEED := 0.04     # share of the gap to its target loyalty a region closes each month
-const REG_CAPITAL_PULL := 0.0006    # monthly relative wealth gain of the capital (agglomeration)
+const REG_CAPITAL_PULL := 0.0003    # monthly relative wealth gain of the capital (agglomeration)
 const REG_FUND_MONTHS := 36
 const REG_FUND_COST := 0.25         # % of GDP per year while a development fund runs
 const REG_FUND_WEALTH := 0.004      # monthly relative wealth gain of a funded region

@@ -116,7 +116,7 @@ static func uhc_target() -> float:
 static func wait_target() -> float:
 	var s := st()
 	var c := Game.me()
-	var demand := 1.0 + (Ageing.share(c) - float(s.old0)) * 0.02
+	var demand := 1.0 + (Ageing.share(c) - float(s.old0)) * 0.01
 	if Pandemic.active():
 		demand += 0.35
 	var capacity := (docs() / maxf(float(s.docs0), 0.05)) * (1.0 + 0.04 * c.share_delta("health"))
@@ -152,7 +152,7 @@ static func modifiers() -> Dictionary:
 		return {}
 	var s := st()
 	var wr := (wait() - float(s.wait0)) / float(s.wait0)
-	return {"happiness": clampf(-wr * 2.5, -3.0, 1.5), "approval": clampf(-wr * 2.0, -3.0, 1.0),
+	return {"happiness": clampf(-wr * 2.0, -3.0, 1.5), "approval": clampf(-wr * 1.5, -3.0, 1.0),
 		"life": clampf((uhc() - float(s.uhc0)) / 10.0 * 0.6 + (docs() / float(s.docs0) - 1.0) * 1.5, -2.0, 3.0)}
 
 

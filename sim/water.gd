@@ -182,7 +182,7 @@ static func upstream_penalty() -> float:
 static func target() -> float:
 	var s := st()
 	var c := Game.me()
-	var t := float(s.s0) * pow(maxf(c.population / maxf(float(s.pop0), 1.0), 0.3), 0.5)
+	var t := float(s.s0) * pow(maxf(c.population / maxf(float(s.pop0), 1.0), 0.3), 0.35)
 	t *= 1.0 + E.WAT_WARMING * (Climate.warming() - float(s.w0))
 	t -= desal_relief()
 	if bool(s.drip):
