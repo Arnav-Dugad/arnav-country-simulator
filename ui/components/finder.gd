@@ -32,6 +32,7 @@ const INDEX := [
 	["National projects", "build", "", "construction", "projects programmes national"],
 	["Digital money", "firms", "Digital money", "bitcoin", "crypto bitcoin digital currency cbdc legal tender ban reserve blockchain"],
 	["Diaspora & remittances", "population", "Diaspora & remittances", "plane-landing", "diaspora remittances migrants abroad money sent home bonds vote abroad"],
+	["Culture exports", "tourism", "Culture exports", "clapperboard", "culture films music series games hits k-pop creative industries soft power"],
 	["Digital nation", "industries", "Digital nation", "wifi", "digital internet online broadband digital id e-government cyber hackers ransomware"],
 	["Critical minerals", "industries", "Critical minerals", "battery-charging", "minerals lithium cobalt rare earths nickel copper mines mining survey refine export ban"],
 	["Fisheries & oceans", "industries", "Fisheries & oceans", "fish", "fish fishing fisheries ocean sea quota marine protected areas stocks"],

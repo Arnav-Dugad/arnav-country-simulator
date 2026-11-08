@@ -89,6 +89,7 @@ static func appeal() -> float:
 	a += E.TOUR_SOFT * (soft_power(Game.player) - float(s.soft0)) / 10.0
 	if bool(s.get("tax", false)):
 		a -= E.TOUR_TAX_APPEAL
+	a += CultureExports.appeal()
 	var cp := Media.campaign() if Game.dip.has("media") else {}
 	if not cp.is_empty() and str(cp.id) == "invest":
 		a += 0.08
@@ -137,6 +138,8 @@ static func soft_power(i: int, details: bool = true) -> float:
 			sp += Diaspora.prestige()
 		if Game.dip.has("fish"):
 			sp += Fisheries.prestige()
+		if Game.dip.has("cx"):
+			sp += CultureExports.prestige()
 		if Game.months_played - int(Game.dip.get("vax_gift", -999)) < 60:
 			sp += 4.0       # vaccine diplomacy is remembered
 	return clampf(sp, 0.0, 100.0)

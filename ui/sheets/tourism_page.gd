@@ -27,6 +27,7 @@ func refresh() -> void:
 	_box.add_child(photo_header("tourism", "Tourism & soft power", "%s visitors a year  ·  %s since you took office" % [
 		_visitors(Tourism.visitors()), ("+" if d >= 0.0 else "−") + "%d%%" % roundi(absf(d) * 100.0)], 140.0))
 	_overview()
+	_culture_exports()
 	_events()
 	_heritage()
 
@@ -186,3 +187,41 @@ func _heritage() -> void:
 				Haptics.success()
 			refresh())
 		flow.add_child(b)
+
+
+# ---------------------------------------------------------- cultural exports ---
+func _culture_exports() -> void:
+	var box := section("Culture exports", _box)
+	var s := CultureExports.st()
+	var c := Game.me()
+	var hits := CultureExports.recent(120)
+	note("Now and then a film, series, song, game or novel from %s becomes a worldwide hit. Each one lifts soft power and tourism for a few years. Chance of a hit this year: about %d%%." % [
+		World.the_name(Game.player), roundi((1.0 - pow(1.0 - CultureExports.chance(), 12.0)) * 100.0)], box)
+	var fl := PackedStringArray()
+	for f in CultureExports.FUNDS:
+		fl.append(str(CultureExports.FUND_INFO[f].title))
+	var seg := SegmentedControl.new().setup(fl, [], CultureExports.FUNDS.find(str(s.fund)))
+	seg.fill = true
+	seg.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	seg.changed.connect(func(k: int) -> void:
+		CultureExports.set_fund(str(CultureExports.FUNDS[k]))
+		Simulation.update_finances(Game.me())
+		Haptics.select()
+		refresh())
+	box.add_child(seg)
+	var fc := float(CultureExports.FUND_INFO[str(s.fund)].cost)
+	note("Creative industries fund: film schools, studios, music export offices%s." % ("  ·  %s a year" % DS.money(c.gdp * fc / 100.0) if fc > 0.0 else ""), box)
+	for h in hits.slice(maxi(hits.size() - 4, 0)):
+		var kind: Dictionary = CultureExports.KINDS[str(h.kind)]
+		var row := ListRow.new().setup("\u201c%s\u201d" % str(h.title), "Hit %s  ·  %s" % [str(kind.title), _ago(int(h.m))])
+		row.set_leading(ListRow.icon_tile(str(kind.icon), DS.GOLD))
+		box.add_child(row)
+
+
+static func _ago(m: int) -> String:
+	var d := Game.months_played - m
+	if d < 1:
+		return "this month"
+	if d < 12:
+		return "1 month ago" if d == 1 else "%d months ago" % d
+	return "1 year ago" if d < 24 else "%d years ago" % (d / 12)

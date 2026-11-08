@@ -559,6 +559,13 @@ const TOUR_BID_MONTHS := 12        # from bid to vote
 const TOUR_SOFT_RELATIONS := 0.01  # relations a month with everyone per soft power point gained
 
 
+# ---------------------------------------------------------- cultural exports ---
+# See sim/culture_exports.gd.
+const CX_LASTS := 36                # months a hit keeps lifting soft power
+const CX_SOFT := 3.0                # soft power from a fresh hit (fades)
+const CX_APPEAL := 0.04             # tourism appeal per hit in the past two years
+
+
 # -------------------------------------------------------------- overtourism ---
 # See sim/tourism.gd (crowding, tourist tax).
 const TOUR_CROWD_AT := 1.25         # tourism this far above the start crowds the locals
