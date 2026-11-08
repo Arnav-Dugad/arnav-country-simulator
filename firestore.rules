@@ -20,6 +20,7 @@ service cloud.firestore {
     // write only their own entry, with a small, validated set of fields.
     match /weekly/{week}/scores/{userId} {
       allow read: if true;
+      allow delete: if request.auth != null && request.auth.uid == userId;
       allow create, update: if request.auth != null
         && request.auth.uid == userId
         && week.matches('W[0-9]{4}-[0-9]{2}')
@@ -35,6 +36,7 @@ service cloud.firestore {
     // All-time hall of fame: anyone can read; each player writes only their own entry.
     match /legends/{userId} {
       allow read: if true;
+      allow delete: if request.auth != null && request.auth.uid == userId;
       allow create, update: if request.auth != null
         && request.auth.uid == userId
         && request.resource.data.keys().hasOnly(['name', 'country', 'score', 'grade', 'points', 'rank', 'code', 'at'])

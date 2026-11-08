@@ -248,6 +248,11 @@ func delete_account() -> Dictionary:
 		var d: Dictionary = await delete_save(slot)
 		if not d.ok and int(d.get("code", 0)) != 404:
 			return _fail(int(d.get("code", 0)), "Couldn't delete your cloud saves. Check your connection and try again.")
+	# Your hall of fame entry goes too.
+	var lh: PackedStringArray = await _auth_headers()
+	var ld: Dictionary = await _http(_doc_url("legends/%s" % uid), HTTPClient.METHOD_DELETE, lh)
+	if not ld.ok and int(ld.get("code", 0)) != 404:
+		return _fail(int(ld.get("code", 0)), "Couldn't remove your leaderboard entry. Check your connection and try again.")
 	var tok: String = await id_token()
 	if tok == "":
 		return _fail(0, "Please sign in again, then delete your account.")
