@@ -2,6 +2,11 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.44.0] - 2026-11-08
+
+- **What's new:** after an update, a short card shows the highlights of everything that changed since you last played
+- Election night labels a successor's run as "Your candidate"
+
 ## [0.43.0] - 2026-11-08
 
 - Three new **challenges**: *Beyond coal* (Poland), *Sunburnt country, clean power* (Australia) and *Stop the exodus* (Bosnia and Herzegovina)

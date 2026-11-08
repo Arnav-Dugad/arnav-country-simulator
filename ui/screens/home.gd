@@ -31,6 +31,9 @@ func _ready() -> void:
 	_layout.call_deferred()
 	get_tree().process_frame.connect(_layout, CONNECT_ONE_SHOT)
 	Audio.music_start()
+	get_tree().create_timer(0.7).timeout.connect(func() -> void:
+		if is_inside_tree():
+			WhatsNew.maybe_show(self))
 
 
 func _process(delta: float) -> void:

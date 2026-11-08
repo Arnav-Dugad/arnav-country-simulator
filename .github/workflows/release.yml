@@ -99,6 +99,10 @@ jobs:
           EOF
           sed -i 's/^          //' ~/.config/godot/editor_settings-4.7.tres
 
+      - name: Bundle release notes
+        # *.md is not exported; the in-app "What's new" card reads this copy.
+        run: cp CHANGELOG.md data/changelog.txt
+
       - name: Stamp version
         run: |
           V="${{ steps.tag.outputs.version }}"; C="${{ steps.tag.outputs.code }}"

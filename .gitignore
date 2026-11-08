@@ -26,3 +26,5 @@ Thumbs.db
 
 # Local MCP config (machine-specific paths)
 .mcp.json
+# Copied from CHANGELOG.md by CI for the in-app "What's new" card
+data/changelog.txt
