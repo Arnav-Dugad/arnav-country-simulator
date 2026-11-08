@@ -307,10 +307,24 @@ const OUTLINE_SPIKE_PX := 2.5
 const OUTLINE_MIN_ISLAND_PX := 3.0
 
 
+var _outline_cache := {}      # Vector2i(country, zoom bucket) -> ArrayMesh
+
+
 func _outline_mesh(i: int) -> ArrayMesh:
 	if i < 0:
 		return null
-	var px := 1.0 / pow(2.0, round(log(zoom) / log(2.0) * 2.0) * 0.5)   # world units per pixel, half-octave steps
+	var bucket := int(round(log(zoom) / log(2.0) * 2.0))
+	var key := Vector2i(i, bucket)
+	if _outline_cache.has(key):
+		return _outline_cache[key]
+	if _outline_cache.size() > 48:
+		_outline_cache.clear()
+	_outline_cache[key] = _build_outline(i, bucket)
+	return _outline_cache[key]
+
+
+func _build_outline(i: int, bucket: int) -> ArrayMesh:
+	var px := 1.0 / pow(2.0, bucket * 0.5)   # world units per pixel, half-octave steps
 	var rings: Array[PackedVector2Array] = []
 	for r in _by_country[i]:
 		var pts := Geo.remove_spikes(Geo.simplify_ring(data.ring_points[r], OUTLINE_SIMPLIFY_PX * px),
@@ -334,13 +348,16 @@ func _rebuild_glow() -> void:
 	if player < 0:
 		_glow.mesh = null
 		return
-	var tol := GLOW_PX * 0.45 / pow(2.0, bucket * 0.5)
-	var rings: Array[PackedVector2Array] = []
-	for r in _by_country[player]:
-		var pts := Geo.remove_spikes(Geo.simplify_ring(data.ring_points[r], tol), tol * 2.5)
-		if pts.size() >= 3 and absf(Geo.signed_area(pts)) > tol * tol * 4.0:
-			rings.append(pts)
-	_glow.mesh = MapMeshes.line_mesh(rings, false) if not rings.is_empty() else null
+	var key := Vector2i(-1 - player, bucket)       # glow meshes share the outline cache
+	if not _outline_cache.has(key):
+		var tol := GLOW_PX * 0.45 / pow(2.0, bucket * 0.5)
+		var rings: Array[PackedVector2Array] = []
+		for r in _by_country[player]:
+			var pts := Geo.remove_spikes(Geo.simplify_ring(data.ring_points[r], tol), tol * 2.5)
+			if pts.size() >= 3 and absf(Geo.signed_area(pts)) > tol * tol * 4.0:
+				rings.append(pts)
+		_outline_cache[key] = MapMeshes.line_mesh(rings, false) if not rings.is_empty() else null
+	_glow.mesh = _outline_cache[key]
 
 
 ## Election night: dim the world and let one country breathe (i < 0 / on=false: off).

@@ -31,6 +31,14 @@ func refresh() -> void:
 	t.text = "Over the last year"
 	_box.add_child(t)
 	var c := Game.me()
+	if (Game.history.get("gdp", PackedFloat32Array()) as PackedFloat32Array).size() < 2:
+		var e := Label.new()
+		e.theme_type_variation = &"Footnote"
+		e.text = "Your first month is under way. Trends in growth, prices, jobs and support appear here as time passes."
+		e.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		e.custom_minimum_size = Vector2(60, 0)
+		_box.add_child(e)
+		return
 	for r in ROWS:
 		var key: String = r[0]
 		var hist: PackedFloat32Array = Game.history.get(key, PackedFloat32Array())

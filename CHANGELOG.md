@@ -2,8 +2,13 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
-## [0.52.1] - 2026-11-08
+## [0.52.2] - 2026-11-08
 
+- **Smooth map again.** Fixed three causes of lag:
+  - Country names fading in could freeze the map for a quarter of a second
+  - Zooming in or out stuttered while country outlines were redrawn, worst with big countries like Canada or Russia
+  - Country names were re-measured at every zoom step
+- "Over the last year" explains itself during your first month instead of sitting empty
 - **Slower, calmer pace:** time now moves three times slower. At 1× a month takes 6 seconds (a year is about a minute and a quarter), at 2× 3 seconds and at 4× 1.5 seconds
 
 ## [0.52.0] - 2026-11-08

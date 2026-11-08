@@ -75,24 +75,38 @@ static func _dp(pts: PackedVector2Array, a: int, b: int, tol2: float, keep: Pack
 ## Only hairpins whose tip lies within `max_depth` of the shortcut are removed, so
 ## real peninsulas survive.
 static func remove_spikes(pts: PackedVector2Array, max_depth: float, min_dot: float = -0.7) -> PackedVector2Array:
-	var out := pts.duplicate()
-	var changed := true
-	while changed and out.size() > 4:
-		changed = false
-		var n := out.size()
-		for i in n:
-			var p0 := out[(i - 1 + n) % n]
-			var p1 := out[i]
-			var p2 := out[(i + 1) % n]
-			var d0 := (p1 - p0).normalized()
-			var d1 := (p2 - p1).normalized()
-			var degenerate := d0.is_zero_approx() or d1.is_zero_approx()
-			var depth := p1.distance_to(Geometry2D.get_closest_point_to_segment(p1, p0, p2))
-			if degenerate or (d0.dot(d1) < min_dot and depth < max_depth):
-				out.remove_at(i)
-				changed = true
-				break
-	return out
+	# Linear stack pass (was: restart the scan after every removal, O(n^2)): each
+	# new point may knock out the previous one if that one was a hairpin tip, and
+	# the check repeats backwards. A few passes catch spikes across the seam.
+	var cur := pts
+	for _pass in 3:
+		var n := cur.size()
+		if n <= 4:
+			break
+		var out := PackedVector2Array()
+		out.resize(n)
+		var m := 0
+		for k in n + 2:                      # +2 wraps around to recheck the seam
+			var p := cur[k % n]
+			while m >= 2:
+				var p0 := out[m - 2]
+				var p1 := out[m - 1]
+				var d0 := (p1 - p0).normalized()
+				var d1 := (p - p1).normalized()
+				if d0.is_zero_approx() or d1.is_zero_approx() or (d0.dot(d1) < min_dot
+						and p1.distance_to(Geometry2D.get_closest_point_to_segment(p1, p0, p)) < max_depth):
+					m -= 1
+				else:
+					break
+			if k < n:
+				out[m] = p
+				m += 1
+		out.resize(m)
+		if m == n or m <= 4:
+			cur = out if m > 4 else cur
+			break
+		cur = out
+	return cur
 
 
 static func signed_area(pts: PackedVector2Array) -> float:
