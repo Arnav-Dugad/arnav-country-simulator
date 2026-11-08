@@ -63,6 +63,12 @@ func _build() -> void:
 	ind.set_leading(ListRow.icon_tile("factory", DS.ACCENT))
 	ind.tapped.connect(func() -> void: page_requested.emit("industries"))
 	add_child(ind)
+	var pp := ListRow.new().setup("People & cities", "Births, ageing, cities, housing, family policy", "›")
+	pp.theme_type_variation = &"GroupPanel"
+	pp.trailing_label.add_theme_color_override(&"font_color", DS.TEXT_3)
+	pp.set_leading(ListRow.icon_tile("users", DS.TEAL))
+	pp.tapped.connect(func() -> void: page_requested.emit("population"))
+	add_child(pp)
 	_goals = GoalsCard.new()
 	add_child(_goals)
 	_trend = TrendCard.new()

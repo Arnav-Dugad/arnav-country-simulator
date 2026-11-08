@@ -548,6 +548,28 @@ const TOUR_BID_MONTHS := 12        # from bid to vote
 const TOUR_SOFT_RELATIONS := 0.01  # relations a month with everyone per soft power point gained
 
 
+# ------------------------------------------------------ population & cities ---
+# See sim/population.gd. Fertility in children per woman.
+const POPC_SUPPORT_TFR := 0.12      # fertility added by family support (over a few years) ...
+const POPC_GENEROUS_TFR := 0.3      # ... and by generous family policy
+const POPC_SUPPORT_COST := 0.4      # % of GDP a year
+const POPC_GENEROUS_COST := 1.2
+const POPC_TFR_DECLINE := 0.01      # fertility drift down per year at full income (modern trend)
+const POPC_TFR_POP := 0.5           # population growth points per extra child per woman
+const POPC_LOW_TFR := 0.25          # population growth points per child below replacement (2.1)
+const POPC_URBAN_SPEED := 0.03      # share of the gap to the urban target closed per year
+## Housing affordability points a year: demand from city growth and population growth, supply from builders.
+const POPC_URBAN_PRESSURE := 4.0    # per point of urban share gained a year
+const POPC_POP_PRESSURE := 2.0      # per % of population growth a year
+const POPC_PRIVATE_SUPPLY := 2.6    # private builders, points a year
+const POPC_ZONING_MULT := 1.6
+const POPC_ZONING_CAPITAL := 20.0
+const POPC_BUILD_SUPPLY := 30.0     # at full extra coverage of affordable homes
+const POPC_AFFORD_HAPPY := 0.12     # happiness per affordability point (vs the start)
+const POPC_AFFORD_APPROVAL := 0.06
+const POPC_AFFORD_GINI := 0.04      # inequality points per affordability point lost
+
+
 # ------------------------------------------------------- industries & trade ---
 # See sim/industries.gd. Competitiveness points (50 = average).
 const IND_SKILL := 10.0            # per unit of extra education effort (scaled by how much the sector needs skills)

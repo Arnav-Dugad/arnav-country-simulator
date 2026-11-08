@@ -56,6 +56,9 @@ static func advice(c: CountryState) -> Array:
 			"diplomacy", "swords"))
 	if Security.level() == 2:
 		out.append(_item(1, "Hostile forces near your borders", Security.describe(), "diplomacy", "shield"))
+	if c.idx == Game.player and Game.dip.has("pop") and Population.afford() < 90.0:
+		out.append(_item(1, "Homes are getting unaffordable",
+			"Build affordable homes, or reform zoning so builders can keep up (Economy › People & cities).", "economy", "house"))
 	if c.idx == Game.player and Game.dip.has("energy") and Energy.shortage() > 0.0:
 		out.append(_item(1, "Power cuts are hurting factories",
 			"Demand has outgrown your grid. Build power plants, solar or wind farms (Build › Energy).", "build", "zap-off"))

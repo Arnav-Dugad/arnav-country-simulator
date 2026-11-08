@@ -36,6 +36,8 @@ static func terms(c: CountryState) -> Array:
 	out.append(["Laws & reforms", laws])
 	if not c.builds.is_empty():
 		out.append(["Affordable homes", float(Builds.modifiers(c).get("gini", 0.0))])
+	if c.idx == Game.player and Game.has_game() and Game.dip.has("pop"):
+		out.append(["Housing costs", float(Population.modifiers().get("gini", 0.0))])
 	if not c.taxes.is_empty():
 		out.append(["Other taxes", float(Taxes.modifiers(c).get("gini", 0.0))])
 	return out
