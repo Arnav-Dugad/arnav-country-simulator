@@ -67,6 +67,7 @@ func _draw() -> void:
 	_draw_trade()
 	_draw_tariffs()
 	_draw_projects()
+	_draw_wonders()
 	_draw_flight()
 	_draw_fx()
 	_draw_fronts()
@@ -472,6 +473,37 @@ func _draw_projects() -> void:
 		if tex:
 			draw_texture_rect(tex, Rect2(p - Vector2(6.5, 6.5), Vector2(13, 13)), false,
 				Color(1, 1, 1, 0.95) if not building else Color(DS.ORANGE.lightened(0.3), 0.95))
+
+
+## World wonders: a gold landmark pin above the capital of each country that built one.
+func _draw_wonders() -> void:
+	if not Game.dip.has("won") or map.zoom < map.min_zoom * 1.6:
+		return
+	var by := {}
+	for id in Wonders.done():
+		var iso := str(Wonders.done()[id].owner)
+		var i := World.index_of(iso)
+		if i < 0:
+			continue
+		if not by.has(i):
+			by[i] = []
+		(by[i] as Array).append(id)
+	var pulse := 0.5 + 0.5 * sin(_t * 1.6)
+	for i in by:
+		var base := map.world_to_screen(_anchor(int(i))) + Vector2(0, -26)
+		var ids: Array = by[i]
+		for k in ids.size():
+			var p := base + Vector2((k - (ids.size() - 1) * 0.5) * 24.0, 0)
+			_glow(p, 16.0, Color(DS.GOLD, 0.18 + 0.12 * pulse))
+			draw_circle(p, 10.5, Color(0.08, 0.06, 0.02, 0.9), true, -1.0, true)
+			draw_arc(p, 10.5, 0.0, TAU, 24, Color(DS.GOLD, 0.95), 1.6, true)
+			var key := "won_" + str(ids[k])
+			var tex: Texture2D = _icons.get(key)
+			if tex == null:
+				tex = DS.icon(str(Wonders.ALL[ids[k]].icon))
+				_icons[key] = tex
+			if tex:
+				draw_texture_rect(tex, Rect2(p - Vector2(6.5, 6.5), Vector2(13, 13)), false, Color(DS.GOLD.lightened(0.35), 1.0))
 
 
 # ---------------------------------------------------------------- beacons ----
