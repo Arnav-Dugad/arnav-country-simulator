@@ -30,7 +30,7 @@ func _build() -> void:
 		["stadium", "trophy", DS.GOLD, "Sport", "World Cup, the Games, medals", func() -> void: page_requested.emit("sports")],
 		["summit", "landmark", DS.ACCENT, "United Nations", "Security Council, resolutions", func() -> void: _scroll_to(_un)],
 	], self)
-	add_child(jump_bar(["Your rival", "World markets", "At war", "Your empire", "Security", "Nuclear weapons", "Intelligence", "Climate", "United Nations", "Treaties & blocs"]))
+	add_child(jump_bar(["Your rival", "World markets", "At war", "Your empire", "Security", "Nuclear weapons", "Intelligence", "Climate", "Water", "United Nations", "Treaties & blocs"]))
 	_rival = section("Your rival")
 	_markets = section("World markets")
 	_war = section("At war")
@@ -41,6 +41,7 @@ func _build() -> void:
 	_intel = section("Intelligence")
 	_climate = section("Climate")
 	_adapt = section("Climate adaptation")
+	_water = section("Water")
 	_un = section("United Nations")
 	_treaties = section("Treaties & blocs")
 	_summary = note("")
@@ -63,6 +64,7 @@ var _climate: VBoxContainer
 var _adapt: VBoxContainer
 var _security: VBoxContainer
 var _nuke: VBoxContainer
+var _water: VBoxContainer
 var _empire: VBoxContainer
 var _intel: VBoxContainer
 var _war: VBoxContainer
@@ -80,6 +82,7 @@ func refresh() -> void:
 	_fill_markets()
 	_fill_climate()
 	_fill_adapt()
+	_fill_water()
 	_fill_empire()
 	_fill_security()
 	_fill_nuke()
@@ -871,3 +874,98 @@ func _give_up_nukes() -> void:
 		m.dismiss()
 		refresh())
 	m.choice("Keep them", "", &"GhostButton", m.dismiss)
+
+
+# --------------------------------------------------------------------- water ---
+func _fill_water() -> void:
+	for ch in _water.get_children():
+		ch.queue_free()
+	var s := Water.st()
+	var c := Game.me()
+	var sv := Water.stress()
+	var d := sv - float(s.s0)
+	_stat_line(_water, "droplets", Water.color(sv), "%s water stress" % Water.label(sv),
+		"%s of 5%s" % [String.num(sv, 1), ("  ·  %+.1f since you took office" % d) if absf(d) >= 0.05 else ""])
+	_water.add_child(meter(sv / 5.0, 0.0, Water.color(sv), 6.0))
+	var tg := Water.target()
+	note("How much of its renewable water the country uses each year. Growing cities and a warming climate push it up; shortages hurt harvests and patience.%s" % (
+		("  Heading to %s." % String.num(tg, 1)) if absf(tg - sv) >= 0.1 else ""), _water)
+	# Desalination.
+	var dsub := "%d built" % int(s.desal)
+	if int(s.desal_build) >= 0:
+		dsub += "  ·  next opens in %d months" % (Economy.WAT_DESAL_MONTHS - (Game.months_played - int(s.desal_build)))
+	elif World.landlocked(Game.player):
+		dsub = "Needs a coastline"
+	elif int(s.desal) >= Economy.WAT_DESAL_MAX:
+		dsub += "  ·  as many as you need"
+	else:
+		dsub += "  ·  tap to build one: %s a year for 3 years" % DS.money(c.gdp * Economy.WAT_DESAL_COST / 100.0)
+	var drow := ListRow.new().setup("Desalination plants", dsub, "›" if Water.can_desal() else "")
+	drow.subtitle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	drow.subtitle_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	drow.set_leading(ListRow.icon_tile("droplets", DS.ACCENT))
+	drow.tapped.connect(func() -> void:
+		if Water.build_desal():
+			Simulation.update_finances(Game.me())
+			Haptics.success()
+			refresh())
+	_water.add_child(drow)
+	var dt := AppToggle.new().setup("Drip irrigation for farms  ·  %s a year" % DS.money(c.gdp * Economy.WAT_DRIP_COST / 100.0), bool(s.drip), "sprout")
+	dt.toggled.connect(func(on: bool) -> void:
+		Water.set_drip(on)
+		Simulation.update_finances(Game.me())
+		Haptics.select())
+	_water.add_child(dt)
+	var rt := AppToggle.new().setup("Recycle city water  ·  %s a year" % DS.money(c.gdp * Economy.WAT_RECYCLE_COST / 100.0), bool(s.recycle), "recycle")
+	rt.toggled.connect(func(on: bool) -> void:
+		Water.set_recycle(on)
+		Simulation.update_finances(Game.me())
+		Haptics.select())
+	_water.add_child(rt)
+	# Shared rivers.
+	for rv in Water.my_rivers():
+		var id := str(rv.id)
+		var others := ", ".join(Water._names(rv.others))
+		var dams: Dictionary = s.dams
+		var sub := ""
+		var trail := ""
+		if Water.old_dam(id):
+			sub = ("Your big dams already hold back the water  ·  downstream: %s" if bool(rv.up) else "Upstream: %s  ·  already dammed") % others
+		elif bool(rv.up):
+			if dams.has(id):
+				sub = "Your mega-dam is running  ·  downstream: %s" % others
+			elif not (s.my_dam as Dictionary).is_empty() and str(s.my_dam.river) == id:
+				sub = "Mega-dam %d%% built  ·  %s are angry" % [roundi(float(Game.months_played - int(s.my_dam.start)) / float(Economy.WAT_DAM_MONTHS) * 100.0), others]
+			else:
+				sub = "You are upstream of %s. A mega-dam brings power and water, and angers them" % others
+				trail = "›"
+		else:
+			sub = "Upstream: %s" % others
+			if dams.has(id):
+				sub += "  ·  they have dammed it" + ("; a treaty shares the water" if (s.treaty as Dictionary).has(id) else "")
+		var row := ListRow.new().setup(str(rv.title).left(1).to_upper() + str(rv.title).substr(1), sub, trail)
+		row.subtitle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		row.subtitle_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+		row.set_leading(ListRow.icon_tile("waves", DS.TEAL))
+		if trail != "":
+			row.tapped.connect(func() -> void: _dam_modal(id))
+		_water.add_child(row)
+
+
+func _dam_modal(id: String) -> void:
+	var r: Dictionary = Water.RIVERS[id]
+	var m := ModalCard.new()
+	get_tree().current_scene.add_child(m)
+	m.header("waves", DS.TEAL, "Shared river", "Dam %s?" % str(r.title))
+	m.body("Seven years of work and %s a year. You get clean hydropower and secure water; %s get less, and relations with them fall sharply." % [
+		DS.money(Game.me().gdp * Economy.WAT_DAM_COST / 100.0), ", ".join(Water._names(r.down))])
+	var ch := m.choice("Build the dam", "%d political capital" % int(Economy.WAT_DAM_CAPITAL), &"PrimaryButton", func() -> void:
+		if Water.start_dam(id):
+			Simulation.update_finances(Game.me())
+			Haptics.success()
+		m.dismiss()
+		refresh())
+	if not Water.can_dam(id) or not Capital.can(Economy.WAT_DAM_CAPITAL):
+		for bb in ch.find_children("*", "Button", true, false):
+			(bb as Button).disabled = true
+	m.choice("Not now", "", &"GhostButton", m.dismiss)

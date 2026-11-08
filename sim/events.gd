@@ -1108,6 +1108,8 @@ static func apply_effects(fx: Dictionary, other: int, ev_id: String = "") -> voi
 				Regions.apply(str(v))
 			"nuke":
 				Nuclear.apply(str(v))
+			"water":
+				Water.apply(str(v))
 			"health":
 				if str(v) == "train":
 					Health.set_train("more" if str(Health.st().train) == "current" else "double")

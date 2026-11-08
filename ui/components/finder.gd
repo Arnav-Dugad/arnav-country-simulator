@@ -30,6 +30,7 @@ const INDEX := [
 	["Space race", "build", "", "rocket", "space moon mars rockets satellites"],
 	["Space colonies", "build", "Space colonies", "moon", "moon base mars colony asteroid mining orbital space outposts"],
 	["National projects", "build", "", "construction", "projects programmes national"],
+	["Water", "diplomacy", "Water", "droplets", "water drought rivers dams desalination irrigation shortage nile indus mekong"],
 	["Nuclear weapons", "diplomacy", "Nuclear weapons", "atom", "nuclear weapons bomb warheads deterrence treaty npt doomsday clock disarmament arms control"],
 	["Health system", "population", "Health system", "stethoscope", "health hospitals doctors waiting times coverage medicine drug prices nurses"],
 	["Schools & universities", "population", "Schools & universities", "graduation-cap", "education schools universities teachers learning test brain drain students"],

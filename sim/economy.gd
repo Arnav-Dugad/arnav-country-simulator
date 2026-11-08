@@ -548,6 +548,28 @@ const TOUR_BID_MONTHS := 12        # from bid to vote
 const TOUR_SOFT_RELATIONS := 0.01  # relations a month with everyone per soft power point gained
 
 
+# --------------------------------------------------------------------- water ---
+# See sim/water.gd. Stress points are on the WRI 0-5 scale.
+const WAT_WARMING := 0.08           # stress multiplier per degree of warming since you took office
+const WAT_DESAL_RELIEF := 0.25      # per desalination plant
+const WAT_DESAL_MAX := 4
+const WAT_DESAL_MONTHS := 36
+const WAT_DESAL_COST := 0.15        # % of GDP a year while one is being built
+const WAT_DESAL_UPKEEP := 0.02      # % of GDP a year per plant (energy)
+const WAT_DRIP_RELIEF := 0.35       # scaled by how big farming is
+const WAT_DRIP_COST := 0.05
+const WAT_RECYCLE_RELIEF := 0.2
+const WAT_RECYCLE_COST := 0.04
+const WAT_DAM_MONTHS := 84
+const WAT_DAM_COST := 0.25          # % of GDP a year while building
+const WAT_DAM_CAPITAL := 15.0
+const WAT_DAM_RELIEF := 0.3         # your stress relief from your own dam
+const WAT_DAM_ANGER := 25.0         # relations lost with each downstream country
+const WAT_DAM_DOWNSTREAM := 0.5     # stress added downstream by a dam upstream
+const WAT_AI_DAM := 0.003           # monthly chance an upstream power dams your river
+const WAT_GROWTH := 0.15            # growth points lost per stress point
+
+
 # ------------------------------------------------------------- health system ---
 # See sim/health.gd. Effects count only the change since you took office.
 const HLTH_UHC_PER_SHARE := 1.5     # coverage points per +1 pt of health budget share

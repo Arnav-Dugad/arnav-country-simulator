@@ -2,6 +2,17 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.82.0] - 2026-11-09
+
+- **Water & shared rivers** (World › Water):
+  - Water stress starts from real WRI Aqueduct data, from Qatar and Israel (extremely high) to Canada and Norway (low)
+  - Stress rises with population and a warming climate; shortages hurt happiness and harvests
+  - Build desalination plants, pay for drip irrigation on farms, recycle city water
+  - Real shared rivers: the Nile, Indus, Brahmaputra, Mekong, Tigris and Euphrates, Ganges, Amu Darya, Syr Darya, Colorado, Jordan and Niger, with the big dams that already exist
+  - Upstream, you can build a mega-dam for power and water, at the cost of furious neighbours
+  - Downstream, a new dam upstream becomes a decision: negotiate a water treaty, go to the UN, or warn them off
+- New achievement: Water wise
+
 ## [0.81.0] - 2026-11-09
 
 - **New map layers:** Schools (learning scores around the world) and Nuclear (who has the bomb, and how many)
