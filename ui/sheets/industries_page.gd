@@ -45,6 +45,7 @@ func refresh() -> void:
 	for id in ids:
 		box.add_child(_sector_row(c, str(id)))
 	note("Tap a sector to see what drives it and to subsidise it. Competitive sectors grow and hire; struggling ones shrink. Skills, research, infrastructure and clean government help every sector.", box)
+	_food()
 	_automation()
 	# Partners.
 	var pb := section("Biggest trading partners", _box)
@@ -179,3 +180,85 @@ func _automation() -> void:
 		box.add_child(d)
 	if not Laws.is_active(c, "basic_income"):
 		note("A basic income (Laws page) also cushions people who lose their jobs to machines.", box)
+
+
+# ------------------------------------------------------------- food security ---
+func _food() -> void:
+	var fb := section("Food security", _box)
+	var s := Food.st()
+	var c := Game.me()
+	var ss := Food.self_sufficiency()
+	var g := grid(fb, 2)
+	g.add_child(_food_tile("wheat", DS.GREEN if ss >= 90.0 else (DS.ORANGE if ss >= 40.0 else DS.RED), "Grown at home", "%d%%" % roundi(ss), Food.label(ss)))
+	var rv := Food.reserve()
+	g.add_child(_food_tile("warehouse", DS.GREEN if rv >= 4.0 else (DS.ORANGE if rv >= 1.5 else DS.RED), "Grain reserve", "%s mo" % String.num(rv, 1), "of food in store"))
+	var fg := Game.markets.food_gap()
+	note("World food prices are %s.%s A full reserve is released automatically when prices spike." % [
+		("%d%% above normal" % roundi(fg * 100.0)) if fg > 0.05 else (("%d%% below normal" % roundi(-fg * 100.0)) if fg < -0.05 else "normal"),
+		"  You import much of your food, so spikes hit hard." if ss < 60.0 else ""], fb)
+	var sl := PackedStringArray()
+	for k in Food.SUPPORT:
+		sl.append(str(Food.SUPPORT_INFO[k].title))
+	var seg := SegmentedControl.new().setup(sl, [], Food.SUPPORT.find(str(s.support)))
+	seg.fill = true
+	seg.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	seg.changed.connect(func(k: int) -> void:
+		Food.set_support(str(Food.SUPPORT[k]))
+		Simulation.update_finances(Game.me())
+		Haptics.select()
+		refresh())
+	fb.add_child(seg)
+	var si: Dictionary = Food.SUPPORT_INFO[str(s.support)]
+	note("Farm support%s. Subsidies raise harvests over the years and please rural voters, but cost money and some efficiency." % (
+		"  ·  %s a year" % DS.money(c.gdp * float(si.cost) / 100.0) if float(si.cost) > 0.0 else ""), fb)
+	var ft := AppToggle.new().setup("Fill the grain reserve  ·  %s a year" % DS.money(c.gdp * Economy.FOOD_SEC_FILL_COST / 100.0), bool(s.fill), "warehouse")
+	ft.toggled.connect(func(on: bool) -> void:
+		Food.set_fill(on)
+		Simulation.update_finances(Game.me())
+		Haptics.select())
+	fb.add_child(ft)
+	if Food.can_ban() and Food.spike():
+		var bt := AppToggle.new().setup("Ban food exports until prices calm", bool(s.ban), "ban")
+		bt.toggled.connect(func(on: bool) -> void:
+			Food.set_ban(on)
+			Haptics.select()
+			refresh())
+		fb.add_child(bt)
+		note("Keeps food cheap at home, but countries that buy your food will resent it.", fb)
+	elif Food.can_ban():
+		note("As a food exporter you can ban exports during a world price spike.", fb)
+
+
+func _food_tile(icon: String, color: Color, head: String, value: String, sub: String) -> Control:
+	var p := PanelContainer.new()
+	p.theme_type_variation = &"TilePanel"
+	p.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	p.mouse_filter = Control.MOUSE_FILTER_PASS
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override(&"separation", 2)
+	p.add_child(v)
+	var top := HBoxContainer.new()
+	top.add_theme_constant_override(&"separation", 6)
+	v.add_child(top)
+	var ic := TextureRect.new()
+	ic.texture = DS.icon(icon)
+	ic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	ic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	ic.custom_minimum_size = Vector2(14, 14)
+	ic.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	ic.modulate = color
+	top.add_child(ic)
+	var t := Label.new()
+	t.theme_type_variation = &"Caption"
+	t.text = head.to_upper()
+	top.add_child(t)
+	var val := Label.new()
+	val.theme_type_variation = &"StatSmall"
+	val.text = value
+	v.add_child(val)
+	var sl := Label.new()
+	sl.theme_type_variation = &"Caption"
+	sl.text = sub
+	sl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	v.add_child(sl)
+	return p

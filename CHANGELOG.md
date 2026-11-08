@@ -2,6 +2,17 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.83.0] - 2026-11-09
+
+- **Food security** (Industries), starting from real FAO data, from Argentina and Australia (big exporters) to Japan, Saudi Arabia and Singapore (nearly everything imported):
+  - Fill a strategic grain reserve. It is released automatically when world food prices spike, softening the blow
+  - Farm support raises harvests over the years and pleases rural voters, at a cost
+  - Exporters can ban food exports during a spike: cheaper food at home, angry customers abroad
+  - Water shortages and a warming climate slowly cut harvests
+- **The Advisor knows the new systems.** It warns when a region drifts away, hospital waits grow, water runs short or graduates leave, and "Show me" jumps to the right section
+- **New headlines:** a university entering the world top 100 or top 10, test scores passing 500, the Doomsday Clock moving, the country drifting apart, hospital waits falling
+- New achievement: Full granary
+
 ## [0.82.0] - 2026-11-09
 
 - **Water & shared rivers** (World › Water):

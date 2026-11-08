@@ -548,6 +548,19 @@ const TOUR_BID_MONTHS := 12        # from bid to vote
 const TOUR_SOFT_RELATIONS := 0.01  # relations a month with everyone per soft power point gained
 
 
+# ------------------------------------------------------------- food security ---
+# See sim/food.gd.
+const FOOD_SEC_RESERVE_START := 2.0  # months of food in store at the start
+const FOOD_SEC_RESERVE_MAX := 9.0
+const FOOD_SEC_FILL_RATE := 0.15     # months added per month while filling
+const FOOD_SEC_FILL_COST := 0.06     # % of GDP a year while filling
+const FOOD_SEC_RESERVE_COST := 0.01  # % of GDP a year per extra month in store
+const FOOD_SEC_RELEASE := 0.4        # months released per month during a price spike
+const FOOD_SEC_SPIKE := 0.2          # world food price this far above normal counts as a spike
+const FOOD_SEC_WATER := 0.06         # harvest lost per point of extra water stress
+const FOOD_SEC_WARMING := 0.05       # harvest lost per degree of warming since you took office
+
+
 # --------------------------------------------------------------------- water ---
 # See sim/water.gd. Stress points are on the WRI 0-5 scale.
 const WAT_WARMING := 0.08           # stress multiplier per degree of warming since you took office

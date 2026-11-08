@@ -173,6 +173,7 @@ func new_game(country_index: int, seed_value: int = -1, level: String = "") -> v
 	Nuclear.st()                    # arsenal, treaty, Doomsday Clock
 	Health.st()                     # doctors, waiting times, coverage
 	Water.st()                      # water stress, shared rivers
+	Food.st()                       # self-sufficiency, grain reserve
 	headlines_seen = {}
 	last_rating = ""
 	news = []
@@ -339,6 +340,7 @@ func advance_month() -> void:
 	Culture.monthly()
 	Regions.monthly()
 	Health.monthly()
+	Food.monthly()
 	for h in Water.monthly():
 		add_feed(str(h.text), str(h.icon), "gold" if bool(h.good) else "orange")
 		intel_news.emit(h)

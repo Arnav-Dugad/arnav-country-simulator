@@ -110,7 +110,8 @@ static func oil_exposure(i: int) -> float:
 static func food_exposure(i: int) -> float:
 	var poor := 1.0 - Economy.income_level(maxf(World.stat(i, "gdp", 1e9) / maxf(World.stat(i, "population", 1e6), 1.0), 100.0))
 	var importer := 1.0 if Profiles.food_importer(i) else 0.4
-	return importer * (0.4 + 0.6 * poor) * Profiles.mult(i, "food_exposure")
+	var shield := Food.shield() if Game.has_game() and i == Game.player else 1.0
+	return importer * (0.4 + 0.6 * poor) * Profiles.mult(i, "food_exposure") * shield
 
 
 ## Target offsets for one country from world markets and contagion (named terms,

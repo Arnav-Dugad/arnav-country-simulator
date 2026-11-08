@@ -47,6 +47,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 	var nkx: Dictionary = Nuclear.modifiers() if c.idx == Game.player and Game.has_game() else {}
 	var hlx: Dictionary = Health.modifiers() if c.idx == Game.player and Game.has_game() else {}
 	var wtx: Dictionary = Water.modifiers() if c.idx == Game.player and Game.has_game() else {}
+	var fdx: Dictionary = Food.modifiers() if c.idx == Game.player and Game.has_game() else {}
 	var anx: Dictionary = Annexation.unrest() if c.idx == Game.player and Game.has_game() and Game.dip.has("integration") else {}
 	var wx: Dictionary = War.effects() if c.idx == Game.player and Game.has_game() and War.at_war() else {}
 	var mx := Game.markets.effects(c)
@@ -101,6 +102,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Regions", float(rgx.get("growth", 0.0))],
 		["Schools & universities", float(edx.get("growth", 0.0))],
 		["Water", float(wtx.get("growth", 0.0))],
+		["Farm support", float(fdx.get("growth", 0.0))],
 		["Doomsday Clock", float(nkx.get("growth", 0.0))],
 		["Industries", float(idx_m.get("growth", 0.0))],
 		["Tourism", float(tox.get("growth", 0.0))],
@@ -275,6 +277,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Constitution", float(csx.get("approval", 0.0))],
 		["Power brokers", float(fcx.get("approval", 0.0))],
 		["Health system", float(hlx.get("approval", 0.0))],
+		["Farm support", float(fdx.get("approval", 0.0))],
 		["Your ministers", float(cx.get("approval", 0.0))],
 		["Media", float(mdx.get("approval", 0.0))],
 	]
@@ -393,6 +396,7 @@ static func update_finances(c: CountryState) -> void:
 		+ (Nuclear.spending_pct() if c.idx == Game.player else 0.0)
 		+ (Health.spending_pct() if c.idx == Game.player else 0.0)
 		+ (Water.spending_pct() if c.idx == Game.player else 0.0)
+		+ (Food.spending_pct() if c.idx == Game.player else 0.0)
 		+ (float(War.effects().cost) if c.idx == Game.player and Game.has_game() and War.at_war() else 0.0)) / 100.0
 	# Inflation above the floor erodes local-currency debt, so only the real
 	# part of the rate is a burden in dollar terms.
