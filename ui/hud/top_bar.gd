@@ -18,13 +18,15 @@ var _inbox: AppButton
 var _inbox_badge: Panel
 var _progress: Control
 var _left: Control
+var _approval: Control
+var _appr_value := 50.0
 
 
 func _ready() -> void:
 	theme_type_variation = &"GlassBar"
 	super._ready()
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override(&"separation", DS.S2)
+	row.add_theme_constant_override(&"separation", DS.S1)
 	add_child(row)
 
 	# Flag (opens your country) + date block (tap to pause).
@@ -70,6 +72,18 @@ func _ready() -> void:
 	_caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_left.add_child(_caption)
 
+	# Approval (or support): a ring with the number inside. Tap: what's moving it.
+	_approval = Control.new()
+	_approval.custom_minimum_size = Vector2(38, 38)
+	_approval.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_approval.mouse_filter = Control.MOUSE_FILTER_STOP
+	_approval.draw.connect(_draw_approval)
+	_approval.gui_input.connect(func(e: InputEvent) -> void:
+		if e is InputEventMouseButton and e.button_index == MOUSE_BUTTON_LEFT and not e.pressed:
+			Haptics.tap()
+			Explainer.open(get_tree().current_scene, "approval"))
+	row.add_child(_approval)
+
 	var right := VBoxContainer.new()
 	right.add_theme_constant_override(&"separation", 0)
 	right.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -88,7 +102,7 @@ func _ready() -> void:
 	_treasury = AnimatedNumber.new()
 	_treasury.theme_type_variation = &"StatSmall"
 	_treasury.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_treasury.custom_minimum_size = Vector2(64, 0)
+	_treasury.custom_minimum_size = Vector2(58, 0)
 	_treasury.formatter = func(v: float) -> String: return DS.money(v)
 	right.add_child(_treasury)
 
@@ -153,7 +167,27 @@ func refresh() -> void:
 	_caption.text = "Paused · tap to resume" if paused else Game.politics.milestone_text()
 	_caption.add_theme_color_override(&"font_color", DS.ORANGE if paused else DS.TEXT_2)
 	_treasury.value = c.treasury
+	_appr_value = c.approval
+	_approval.queue_redraw()
 	refresh_badge()
+
+
+func _draw_approval() -> void:
+	var cx := _approval.size * 0.5
+	var r := minf(_approval.size.x, _approval.size.y) * 0.5 - 2.5
+	var v := clampf(_appr_value / 100.0, 0.0, 1.0)
+	var col := DS.GREEN if _appr_value >= 50.0 else (DS.ORANGE if _appr_value >= 40.0 else DS.RED)
+	_approval.draw_arc(cx, r, 0.0, TAU, 40, Color(1, 1, 1, 0.12), 3.0, true)
+	_approval.draw_arc(cx, r, -PI * 0.5, -PI * 0.5 + TAU * v, 40, col, 3.0, true)
+	var f := get_theme_font(&"font", &"StatSmall")
+	var txt := "%d" % roundi(_appr_value)
+	var fs := 13
+	var w := f.get_string_size(txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+	_approval.draw_string(f, cx + Vector2(-w * 0.5, 2.0), txt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color.WHITE)
+	var f2 := get_theme_font(&"font", &"Caption")
+	var cap := "%" 
+	var w2 := f2.get_string_size(cap, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x
+	_approval.draw_string(f2, cx + Vector2(-w2 * 0.5, 11.0), cap, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Color(1, 1, 1, 0.6))
 
 
 func refresh_badge() -> void:
