@@ -19,6 +19,7 @@ var _cabinet: VBoxContainer
 var _clean: VBoxContainer
 var _media: VBoxContainer
 var _crime: VBoxContainer
+var _black: VBoxContainer
 var _capital: Control
 var _cap_value: Label
 var _cap_note: Label
@@ -121,6 +122,7 @@ func _build() -> void:
 	_clean = section("Clean government")
 	_media = section("Media & propaganda")
 	_crime = section("Crime & justice")
+	_black = section("Black market & smuggling")
 	_summary = note("")
 	_filter = SegmentedControl.new().setup(["All", "In force", "Not yet"], [], 0)
 	_filter.plain = true
@@ -145,6 +147,7 @@ func refresh() -> void:
 	_fill_clean()
 	_fill_media()
 	_fill_crime()
+	_fill_black()
 	var active := 0
 	var passing := 0
 	for l in Laws.ALL:
@@ -653,3 +656,86 @@ func _fill_crime() -> void:
 					Haptics.success()
 				refresh())
 		_crime.add_child(row)
+
+
+# ------------------------------------------------------------ black market ---
+func _fill_black() -> void:
+	for ch in _black.get_children():
+		ch.queue_free()
+	var c := Game.me()
+	var s := Smuggling.st()
+	var v := Smuggling.value()
+	var d := Smuggling.change()
+	var col := DS.GREEN if v < 20.0 else (DS.ORANGE if v < 40.0 else DS.RED)
+	var r := HBoxContainer.new()
+	r.add_theme_constant_override(&"separation", DS.S3)
+	_black.add_child(r)
+	r.add_child(ListRow.icon_tile("package", col))
+	var cc := VBoxContainer.new()
+	cc.add_theme_constant_override(&"separation", 0)
+	cc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	r.add_child(cc)
+	var t := Label.new()
+	t.theme_type_variation = &"Headline"
+	t.text = "Shadow economy"
+	cc.add_child(t)
+	var cap := Label.new()
+	cap.theme_type_variation = &"Caption"
+	cap.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	cap.custom_minimum_size = Vector2(40, 0)
+	var lost := maxf(Smuggling.change(), 0.0) * Economy.BLACK_REVENUE
+	cap.text = ("%+d since you took office" % roundi(d) if absf(d) >= 0.5 else "Where you started") + ("  ·  %s a year in lost taxes" % DS.money(c.gdp * lost / 100.0) if lost > 0.001 else "")
+	cc.add_child(cap)
+	var val := Label.new()
+	val.theme_type_variation = &"StatSmall"
+	val.text = str(roundi(v))
+	val.add_theme_color_override(&"font_color", col)
+	r.add_child(val)
+	_black.add_child(meter(v / 100.0, 0.0, col, 4.0))
+	var parts: PackedStringArray = []
+	for term in Smuggling.terms(c):
+		if absf(float(term[1])) >= 0.5:
+			parts.append("%s %+d" % [str(term[0]).to_lower(), roundi(float(term[1]))])
+	if not parts.is_empty():
+		note("Pushing it: " + ", ".join(parts) + ".", _black)
+	var oh := Label.new()
+	oh.theme_type_variation = &"Overline"
+	oh.text = "CUSTOMS AGENCY"
+	_black.add_child(oh)
+	var seg := SegmentedControl.new().setup(PackedStringArray(Smuggling.CUSTOMS), [], int(s.customs))
+	seg.fill = true
+	seg.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	seg.changed.connect(func(k: int) -> void:
+		Smuggling.set_customs(k)
+		Simulation.update_finances(Game.me())
+		Haptics.select()
+		refresh())
+	_black.add_child(seg)
+	note("Customs costs %s a year." % DS.money(c.gdp * float(Smuggling.CUSTOMS_COST[int(s.customs)]) / 100.0), _black)
+	var wait := Smuggling.crackdown_wait()
+	var b := AppButton.make("Crack down on smugglers  ·  %d" % int(Economy.BLACK_CRACKDOWN_CAPITAL), &"", "siren")
+	b.disabled = wait > 0 or not Capital.can(Economy.BLACK_CRACKDOWN_CAPITAL)
+	b.pressed.connect(func() -> void:
+		if Smuggling.crackdown():
+			Haptics.success()
+		refresh())
+	_black.add_child(b)
+	if wait > 0:
+		note("Next crackdown possible in %d months." % wait, _black)
+	for id in Smuggling.GOODS:
+		var g: Dictionary = Smuggling.GOODS[id]
+		var legal := (s.legal as Dictionary).has(id)
+		var row := ListRow.new().setup(("%s: legal" if legal else "Legalise %s") % str(g.title).to_lower().capitalize() if legal else "Legalise %s" % str(g.title).to_lower(),
+			("Taxed in the open  ·  %s a year" % DS.money(c.gdp * float(g.tax) / 100.0)) if legal else str(g.desc), "" if legal else "›")
+		row.subtitle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		row.subtitle_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+		row.trailing_label.add_theme_color_override(&"font_color", DS.TEXT_3)
+		row.set_leading(ListRow.icon_tile(str(g.icon), DS.GREEN if legal else DS.ACCENT))
+		if not legal:
+			var gid := str(id)
+			row.tapped.connect(func() -> void:
+				Smuggling.legalise(gid)
+				Simulation.update_finances(Game.me())
+				Haptics.success()
+				refresh())
+		_black.add_child(row)

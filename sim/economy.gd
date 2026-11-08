@@ -548,6 +548,21 @@ const TOUR_BID_MONTHS := 12        # from bid to vote
 const TOUR_SOFT_RELATIONS := 0.01  # relations a month with everyone per soft power point gained
 
 
+# ------------------------------------------------------------ black market ---
+# See sim/smuggling.gd. Shadow economy points (0..100).
+const BLACK_SIN := 1.2             # per point of tobacco & alcohol tax above the start
+const BLACK_FUEL := 0.8            # per point of fuel tax
+const BLACK_TARIFF := 0.6          # per point of tariffs
+const BLACK_TRADEWAR := 1.5        # per tariff war or sanction
+const BLACK_CUSTOMS := 6.0         # per customs level above standard
+const BLACK_CRACKDOWN := 10.0      # at the start of a crackdown, fading over two years
+const BLACK_CRACKDOWN_CAPITAL := 10.0
+const BLACK_ADJUST := 1.0 / 18.0
+const BLACK_REVENUE := 0.04        # revenue lost (% of GDP) per point of black market above the start
+const BLACK_STAB := 0.08
+const BLACK_GROWTH := 0.01
+
+
 # ------------------------------------------------------------------- sport ---
 # See sim/sports.gd. Strength points (most nations 30..80).
 const SPORT_FOCUS := 10.0          # an academy focus on one sport, at full ramp (4 years)
