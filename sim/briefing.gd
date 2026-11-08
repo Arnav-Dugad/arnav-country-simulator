@@ -73,6 +73,26 @@ static func headline() -> Dictionary:
 		if Climate.warming() >= deg and Climate.start_warming() < deg:
 			cands.append(_h("warm_%d" % int(deg * 100.0), "The world passes %s °C of warming" % String.num(deg, 2 if deg == 1.75 else 1),
 				"thermometer-sun", false))
+	# The newer systems: universities, schools, the clock, unity, hospital waits.
+	if Game.dip.has("edu"):
+		var rk := int(Education.ranks()[0])
+		var rk0 := int(Education.ranks(true)[0])
+		for top in [100, 10, 1]:
+			if rk <= top and rk0 > top:
+				cands.append(_h("uni_top%d" % top, ("%s is now the world's best university" if top == 1 else "%s enters the world top " + str(top)) % Education.UNIS[0], "graduation-cap", true))
+		for lvl in [450, 500, 550]:
+			if Education.score() >= lvl and float(Education.st().score0) < lvl:
+				cands.append(_h("learn_%d" % lvl, "Pupils' test scores pass %d" % lvl, "school", true))
+	if Game.dip.has("nuke"):
+		for sec in [60, 120]:
+			if Nuclear.clock() < sec and Economy.NUC_CLOCK_START >= sec:
+				cands.append(_h("clock_%d" % sec, "The Doomsday Clock moves to %d seconds to midnight" % roundi(Nuclear.clock()), "clock", false))
+			if Nuclear.clock() >= sec and Economy.NUC_CLOCK_START < sec:
+				cands.append(_h("clock_up_%d" % sec, "The Doomsday Clock moves back past %d seconds" % sec, "clock", true))
+	if Game.dip.has("reg") and Regions.unity() < 55.0:
+		cands.append(_h("unity_low_%d" % Game.year, "Polls show the country drifting apart", "map-pin", false))
+	if Game.dip.has("hlth") and Health.wait() <= float(Health.st().wait0) * 0.6:
+		cands.append(_h("waits_cut", "Hospital waits fall to %d weeks" % roundi(Health.wait()), "hourglass", true))
 	if Government.has_elections(Game.player) and Game.months_to_election == 6:
 		cands.append(_h("elect6_%d" % Game.year, "Six months until the election", "vote", true))
 	for cand in cands:
