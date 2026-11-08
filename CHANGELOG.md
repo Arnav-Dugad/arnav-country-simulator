@@ -2,8 +2,10 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
-## [0.44.1] - 2026-11-08
+## [0.45.0] - 2026-11-08
 
+- **TV debates.** Two months before every free election you face the opposition leader live on TV. They go after your weakest record: defend a good record, go on the attack, or promise a tax cut (popular, but it really cuts your revenue)
+- Country pages and the country picker show term limits ("2-term limit", "one term only")
 - The What's new card closes with a tap anywhere outside it
 
 ## [0.44.0] - 2026-11-08

@@ -334,6 +334,9 @@ func _after_month(my_crisis: bool) -> void:
 		"term_limit":
 			director.add(GameEvents.term_limit_event(), true)
 			return
+		"debate":
+			director.add(GameEvents.debate_event(), true)
+			return
 	director.monthly(my_crisis)
 
 

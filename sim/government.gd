@@ -240,7 +240,9 @@ static func describe(i: int) -> String:
 	var k := kind(i)
 	match elections(i):
 		"free":
-			return "%s · elections every %d years" % [system_name(i), term_years(i)]
+			var lim := term_limit(i)
+			return "%s · elections every %d years%s" % [system_name(i), term_years(i),
+				"" if lim == 0 else (" · one term only" if lim == 1 else " · %d-term limit" % lim)]
 		"managed":
 			return "%s · elections every %d years, tilted to the ruling party" % [system_name(i), term_years(i)]
 	if review_years(i) > 0:

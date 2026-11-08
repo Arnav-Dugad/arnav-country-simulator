@@ -247,9 +247,11 @@ func _dev_open() -> void:
 				dev_ev = Climate.cop_event(Game.rng)
 			"term_limit":
 				dev_ev = GameEvents.term_limit_event()
+			"debate":
+				dev_ev = GameEvents.debate_event()
 			_:
 				dev_ev = GameEvents.instance(GameEvents.by_id(str(ev_id)), World.index_of("CHN"))
-		Game.trigger_event(dev_ev, str(ev_id) == "term_limit")
+		Game.trigger_event(dev_ev, str(ev_id) in ["term_limit", "debate"])
 		_show_event(Game.director.first())
 	var page: Variant = DevTools.arg("open")
 	if page == null or not PAGES.has(str(page)):
@@ -740,7 +742,8 @@ func _show_event(ev: Dictionary) -> void:
 		var stack := Control.new()
 		stack.custom_minimum_size = Vector2(0, 150)
 		stack.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		var sc := Photo.scene("aid", 110.0)
+		var bg := str(Illustration.EVENT_SCENE.get(str(ev.id), "aid"))
+		var sc := Photo.scene(bg if Photo.has_scene(bg) else "aid", 110.0)
 		sc.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
 		sc.offset_bottom = 110.0
 		stack.add_child(sc)

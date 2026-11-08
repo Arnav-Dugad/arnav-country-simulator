@@ -548,6 +548,28 @@ static func aid_request(i: int, kind: String) -> Dictionary:
 	return instance(e, i)
 
 
+## The TV debate two months before a free election. The opposition leader goes
+## after your weakest record; defending a good record works, defending a bad one
+## backfires, attacking costs credibility, and a big promise costs real money.
+static func debate_event() -> Dictionary:
+	var opp := Opposition.leader()
+	var weak := Opposition.weakness(Game.me())
+	var attack: String = (Opposition.ATTACKS[weak] as Array)[0] if weak != "" else str(opp.pitch) + "."
+	var who := "your candidate" if Game.politics.successor else "you"
+	var e := {"id": "debate", "title": "TV debate with %s" % str(opp.name), "icon": "mic", "tint": "gold", "weight": 0.0,
+		"face": str(opp.portrait), "scene_hint": "election",
+		"body": "Two months before the vote, %s face %s of the %s live on TV. Their opening line: “%s”" % [
+			who, str(opp.name), str(opp.party), attack],
+		"choices": [
+			{"label": "Defend your record", "detail": "Works when the numbers are on your side",
+				"effects": {"approval": 2.5 if weak == "" else -1.0}},
+			{"label": "Go on the attack", "detail": "Rallies your base · looks combative",
+				"effects": {"approval": 1.5, "press_cred": -3.0}},
+			{"label": "Promise a tax cut for families", "detail": "Popular · costs real money",
+				"effects": {"approval": 3.0, "income_tax": -1.0}}]}
+	return instance(e)
+
+
 ## The constitution's term limit: this is your last term. (Politics.term_choice)
 static func term_limit_event() -> Dictionary:
 	var p := Game.politics

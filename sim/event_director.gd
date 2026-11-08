@@ -169,6 +169,8 @@ static func score(fx: Dictionary) -> float:
 			s -= v * (3.0 if tight else 1.6)
 		elif k == "debt_gdp":
 			s -= v * 0.6
+		elif k == "income_tax" or k == "corp_tax":
+			s -= absf(v) * 0.6     # tax moves cost revenue or goodwill beyond the headline
 		elif k == "sanction_me":
 			s -= 3.0
 		elif k == "press_cred":

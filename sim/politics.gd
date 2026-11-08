@@ -174,6 +174,9 @@ func monthly() -> String:
 		return "term_limit"
 	if campaign_open and months_to_election <= 1:
 		return "campaign_auto"
+	# Two months out: a live TV debate with the opposition leader (free elections).
+	if months_to_election == 2 and Government.elections(i) == "free" and not retiring:
+		return "debate"
 	var election_at := Game.months_played + months_to_election
 	if Government.has_elections(i) and months_to_election == Campaign.MONTHS_BEFORE and campaign_year != election_at:
 		campaign_year = election_at
