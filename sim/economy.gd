@@ -548,6 +548,14 @@ const TOUR_BID_MONTHS := 12        # from bid to vote
 const TOUR_SOFT_RELATIONS := 0.01  # relations a month with everyone per soft power point gained
 
 
+# --------------------------------------------------------- head of state ---
+# See sim/head_of_state.gd.
+const HOS_EVENT_GAP := 14          # months between family events at least
+const HOS_EVENT_CHANCE := 0.12     # monthly chance once the gap has passed
+const HOS_APPROVAL := 0.04         # approval per point of family popularity above 60
+const HOS_STAB := 0.04
+
+
 # --------------------------------------------------------- united nations ---
 # See sim/united_nations.gd.
 const UN_SEAT_CAPITAL := 15.0

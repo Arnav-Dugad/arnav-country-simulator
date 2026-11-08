@@ -1038,6 +1038,8 @@ static func apply_effects(fx: Dictionary, other: int, ev_id: String = "") -> voi
 			"peace":
 				if other >= 0 and War.is_at_war_with(other):
 					War.make_peace(other, str(v))
+			"hos", "hos_pop":
+				HeadOfState.apply(str(k), v)
 			"refugees":
 				c.population *= 1.0 + float(v)
 				c.shocks.unemployment = float(c.shocks.unemployment) + float(v) * 150.0
@@ -1120,6 +1122,10 @@ static func effect_chips(fx: Dictionary) -> Array:
 				out.append(["Cleaner government +%d" % roundi(float(v)), true, float(v)])
 			"capital":
 				out.append(["Political capital −%d" % roundi(float(v)), false, 8.0])
+			"hos_pop":
+				out.append(["%s %+d" % ["Royal popularity" if HeadOfState.is_monarchy() else "Family popularity", roundi(float(v))], float(v) > 0.0, 6.0])
+			"hos":
+				pass
 			"refugees":
 				out.append(["%s people arrive" % DS.compact(Game.me().population * float(v)), true, 7.0])
 			"peace":

@@ -20,6 +20,7 @@ var _clean: VBoxContainer
 var _media: VBoxContainer
 var _crime: VBoxContainer
 var _black: VBoxContainer
+var _hos: VBoxContainer
 var _capital: Control
 var _cap_value: Label
 var _cap_note: Label
@@ -119,6 +120,7 @@ func _build() -> void:
 	_capital = _capital_bar()
 	add_child(_capital)
 	_cabinet = section("Your cabinet")
+	_hos = section("Royal family")
 	_clean = section("Clean government")
 	_media = section("Media & propaganda")
 	_crime = section("Crime & justice")
@@ -148,6 +150,7 @@ func refresh() -> void:
 	_fill_media()
 	_fill_crime()
 	_fill_black()
+	_fill_hos()
 	var active := 0
 	var passing := 0
 	for l in Laws.ALL:
@@ -739,3 +742,37 @@ func _fill_black() -> void:
 				Haptics.success()
 				refresh())
 		_black.add_child(row)
+
+
+# ---------------------------------------------------------- head of state ---
+func _fill_hos() -> void:
+	for ch in _hos.get_children():
+		ch.queue_free()
+	var s := HeadOfState.st()
+	var royal := bool(s.royal)
+	_hos.get_parent().get_parent().get_child(0).set(&"text", ("ROYAL FAMILY" if royal else "FIRST FAMILY"))
+	var m: Dictionary = s.monarch
+	var pop := HeadOfState.pop()
+	var col := DS.GREEN if pop >= 60.0 else (DS.ORANGE if pop >= 40.0 else DS.RED)
+	if royal:
+		var r := ListRow.new().setup("%s %s" % [HeadOfState.title(m), str(m.name)], "Age %d  ·  popularity %d%%" % [HeadOfState.age(m), roundi(pop)])
+		r.set_leading(Photo.portrait(_face(m), 40.0, DS.GOLD))
+		_hos.add_child(r)
+		var heir: Dictionary = s.heir
+		if not heir.is_empty():
+			var r2 := ListRow.new().setup(str(heir.name), "Heir to the throne  ·  age %d%s" % [HeadOfState.age(heir), "  ·  married" if bool(s.wed) else ""])
+			r2.set_leading(Photo.portrait(_face(heir), 40.0))
+			_hos.add_child(r2)
+	else:
+		var sp: Dictionary = s.spouse
+		var r3 := ListRow.new().setup(str(sp.name), "Your spouse  ·  champions %s" % str(s.cause))
+		r3.set_leading(Photo.portrait(_face(sp), 40.0))
+		_hos.add_child(r3)
+	_hos.add_child(meter(pop / 100.0, 0.0, col, 4.0))
+	note(("The royal family's popularity steadies the country. Weddings, births and jubilees lift it; scandals sink it. A deeply unpopular monarchy may face calls for a republic." if royal
+		else "Your family is in the public eye too. Their causes and scandals reflect on you."), _hos)
+
+
+static func _face(p: Dictionary) -> String:
+	var key := Leaders.portrait_key(Leaders.group_of(Game.player), bool(p.get("female", false)), Leaders.variant_for(str(p.get("name", ""))))
+	return Leaders.aged(key) if HeadOfState.age(p) >= 60 else key

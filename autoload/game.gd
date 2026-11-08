@@ -162,6 +162,7 @@ func new_game(country_index: int, seed_value: int = -1, level: String = "") -> v
 	Population.st()                 # births, cities, housing
 	Smuggling.st()                  # the shadow economy
 	UnitedNations.st()              # standing at the UN
+	HeadOfState.st()                # the royal or first family
 	headlines_seen = {}
 	last_rating = ""
 	news = []
@@ -320,6 +321,8 @@ func advance_month() -> void:
 		me().treasury = me().spending
 	for note in War.monthly():
 		war_battle.emit(note)
+	for ev in HeadOfState.monthly():
+		director.add(ev, false)
 	for h in UnitedNations.monthly():
 		add_feed(str(h.text), str(h.icon), "green" if bool(h.good) else "orange")
 	for h in Smuggling.monthly():
