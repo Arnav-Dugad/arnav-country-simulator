@@ -1,6 +1,6 @@
 class_name Learn
 extends RefCounted
-## First-game checklist: five small steps that teach the basics, one at a time
+## First-game checklist: six small steps that teach the basics, one at a time
 ## in the "next" pill. Progress is saved per player (Settings), not per game.
 
 const STEPS := [
@@ -9,6 +9,7 @@ const STEPS := [
 	{"id": "build", "title": "Start a project", "sub": "Roads, power, hospitals…", "icon": "hammer", "page": "build"},
 	{"id": "law", "title": "Pass a law", "sub": "Pick a reform in Laws", "icon": "gavel", "page": "laws"},
 	{"id": "deal", "title": "Sign a trade deal", "sub": "Tap a friendly country", "icon": "handshake", "page": "diplomacy"},
+	{"id": "dashboard", "title": "See the whole nation", "sub": "Economy › State of the nation", "icon": "layout-dashboard", "page": "dashboard"},
 ]
 
 

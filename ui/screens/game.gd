@@ -474,6 +474,8 @@ func open_page(page: String) -> void:
 		top_bar.refresh_badge()
 	if page == "economy":
 		learned("economy")
+	if page == "dashboard":
+		learned("dashboard")
 	Haptics.tap()
 	_maybe_coach(page)
 
