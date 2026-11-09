@@ -29,15 +29,23 @@ inflation, debt and stability all start from World Bank and IMF figures. Then it
   Each takes months to pass and has clear tradeoffs.
 - **A living world.** Trade deals, alliances, aid and sanctions with every country; a credit rating
   from AAA to C; and your world rank.
-- **36 events.** Floods, hurricanes and droughts where they really happen, oil booms and busts for
-  oil states, and story chains that play out over months.
+- **A deep society.** Home regions with their own loyalty and separatists; hospitals, schools and
+  world university ranks; air quality, water and shared rivers; food security and fisheries; critical
+  minerals; a digital nation; diaspora and remittances. All seeded from real data (WHO, PISA, WRI, FAO,
+  USGS, World Bank, SIPRI).
+- **Power and peril.** Nuclear weapons and the Doomsday Clock, sea-lane blockades, world wonders
+  raced by the great powers, culture exports, a world-power league table and global treaties.
+- **A cabinet that helps.** Ministers bring one-tap proposals twice a year; an advisor and "what people
+  are saying" point at what matters; every page opens with at-a-glance tiles.
+- **Dozens of events.** Floods, hurricanes and droughts where they really happen, oil booms and busts,
+  strikes, smog crises, ransomware, leadership challenges and story chains that play out over months.
 - **Elections.** Plan a campaign on your record, then watch election night unfold.
   At the end you get a legacy grade from A+ to F.
 - **Made with care.** Glass interface, original sound and music, haptics, a guided first game,
   text-size, colour-blind and reduced-transparency options, cloud saves and offline play.
 
 The world map is real (Natural Earth, Equal Earth projection), with pinch-zoom, soft springy edges,
-capital cities, real flags and five map views.
+capital cities, real flags and sixteen map layers.
 
 ## Screenshots
 
