@@ -59,6 +59,11 @@ func _run() -> void:
 	Regions._secede(2, 60.0)
 	_check(absf(Game.me().population / p0 - (1.0 - sh)) < 0.005, "two secessions remove the right population")
 
+	# Every key the game saves through Settings must be a declared setting (else it is silently dropped).
+	Settings.set_value("sections_open", {"Test/x": true})
+	_check(bool((Settings.get_value("sections_open", {}) as Dictionary).get("Test/x", false)), "folded-section choices are remembered")
+	Settings.set_value("sections_open", {})
+
 	# Long, cheat-heavy saves: values come back into range on load and stay there.
 	Game.new_game(World.index_of("IND"), 7)
 	var dd: Dictionary = JSON.parse_string(JSON.stringify(Game.to_dict()))

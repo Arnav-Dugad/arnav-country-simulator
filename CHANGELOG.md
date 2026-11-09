@@ -2,6 +2,10 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.110.1] - 2026-11-09
+
+- **Fix:** tapping a folded section now opens it with its content (it opened empty), and the app remembers which sections you keep open
+
 ## [0.110.0] - 2026-11-09
 
 - **Regions on the map, refined:** region dots appear once your country is big enough on screen, and their names only when you zoom in, so country names stay readable. "The Coast" now sits on a real coastline
