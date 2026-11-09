@@ -43,7 +43,8 @@ static func launch_id() -> bool:
 
 static func set_egov(on: bool) -> void:
 	var s := st()
-	if on and not bool(s.egov):
+	if on and not bool(s.egov) and not bool(s.get("egov_boosted", false)):
+		s["egov_boosted"] = true
 		Corruption.boost(E.DGT_EGOV_CLEAN)
 	s.egov = on
 

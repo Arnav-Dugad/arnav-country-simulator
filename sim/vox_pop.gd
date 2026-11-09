@@ -76,6 +76,8 @@ static func _candidates() -> Array:
 		out.append([0.35, "Half my classmates are planning to work abroad after graduation.", false])
 	if c.stability >= 60.0:
 		out.append([0.2, "It's a safe, calm place to raise children.", true])
+	out.append([0.1, "Work, family, football on Sunday. Life goes on.", true])
+	out.append([0.05, "I just want the buses to run on time.", false])
 	return out
 
 

@@ -35,6 +35,14 @@ static func st() -> Dictionary:
 	return Game.dip.reg
 
 
+## A region's share of today's population (shares are of the original country).
+static func now_share(g: Dictionary) -> float:
+	var sh := 0.0
+	for x in active():
+		sh += float(x.share)
+	return float(g.share) / maxf(sh, 0.0001)
+
+
 ## A region's name mid-sentence: "the North", "the capital region".
 static func in_text(g: Dictionary) -> String:
 	var n := str(g.name)
@@ -245,7 +253,7 @@ static func demand_event(k: int) -> Dictionary:
 	return {"id": "secession", "title": "%s wants to leave" % str(g.name), "icon": "flag", "tint": "red", "other": -1,
 		"next": {}, "face": "", "scene_hint": "",
 		"body": "Separatists have won the regional election in %s and demand an independence referendum. %d%% of the country's people live there." % [
-			in_text(g), roundi(float(g.share) * 100.0)],
+			in_text(g), roundi(now_share(g) * 100.0)],
 		"choices": choices}
 
 
@@ -312,7 +320,7 @@ static func apply(v: String) -> void:
 					"icon": "flag", "good": true, "big": true})
 		"fund":
 			var gg: Dictionary = list()[k]
-			if not fund_active(gg):
+			if can_fund(gg):
 				gg.fund = Game.months_played
 				Game.add_feed("A development fund for %s begins" % in_text(gg), "hand-coins", "accent")
 		"talk":
@@ -348,17 +356,18 @@ static func apply(v: String) -> void:
 static func _secede(k: int, yes: float) -> void:
 	var g: Dictionary = list()[k]
 	var c := Game.me()
+	var left := now_share(g)
+	var gdp_share := clampf(left * float(g.wealth), 0.0, 0.95)
 	g.lost = true
 	st().seceded = int(st().seceded) + 1
-	var gdp_share := float(g.share) * float(g.wealth)
-	c.population *= 1.0 - float(g.share)
+	c.population *= 1.0 - left
 	c.gdp *= 1.0 - gdp_share
 	c.shocks.approval = float(c.shocks.approval) - 10.0
 	c.shocks.stability = float(c.shocks.stability) - 5.0
 	_normalise(list())
 	var text := "%s leaves after %s" % [str(g.name), ("a %d%% yes vote" % roundi(yes)) if yes > 0.0 else "declaring independence"]
 	Game.add_milestone(text, "flag", "red")
-	Game.intel_news.emit({"text": "%s: you lose %d%% of your people and %d%% of the economy" % [text, roundi(float(g.share) * 100.0), roundi(gdp_share * 100.0)],
+	Game.intel_news.emit({"text": "%s: you lose %d%% of your people and %d%% of the economy" % [text, roundi(left * 100.0), roundi(gdp_share * 100.0)],
 		"icon": "flag", "good": false, "big": true})
 
 

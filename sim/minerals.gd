@@ -103,17 +103,27 @@ static func expand(m: String) -> bool:
 
 static func set_deal(m: String, camp: String) -> void:
 	var d: Dictionary = st().deal
+	var prev := str(d.get(m, ""))
+	if prev == camp:
+		return
+	if prev != "":
+		_deal_relations(prev, -1.0)      # the old partner feels jilted
 	if camp == "":
 		d.erase(m)
+		Game.relations_changed.emit()
 		return
 	d[m] = camp
-	var other := "east" if camp == "west" else "west"
-	for i in Treaties.camp(camp):
-		Game.relations[i] = clampf(Game.relations[i] + E.MIN_DEAL_FRIEND, -100.0, 100.0)
-	for i in Treaties.camp(other):
-		Game.relations[i] = clampf(Game.relations[i] - E.MIN_DEAL_RIVAL, -100.0, 100.0)
+	_deal_relations(camp, 1.0)
 	Game.relations_changed.emit()
 	Game.add_feed("%s supply deal signed with %s" % [str(ALL[m].title), "the West" if camp == "west" else "China and its partners"], "handshake", "accent")
+
+
+static func _deal_relations(camp: String, sign: float) -> void:
+	var other := "east" if camp == "west" else "west"
+	for i in Treaties.camp(camp):
+		Game.relations[i] = clampf(Game.relations[i] + sign * E.MIN_DEAL_FRIEND, -100.0, 100.0)
+	for i in Treaties.camp(other):
+		Game.relations[i] = clampf(Game.relations[i] - sign * E.MIN_DEAL_RIVAL, -100.0, 100.0)
 
 
 static func ban(m: String) -> void:

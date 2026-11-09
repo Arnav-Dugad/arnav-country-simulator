@@ -25,6 +25,8 @@ static var _cache_seed := -1
 
 static func table() -> Array:
 	if _cache_m == Game.months_played and _cache_seed == Game.rng.seed and not _cache.is_empty():
+		if int(Game.dip.get("power_start", 0)) == 0:
+			Game.dip["power_start"] = rank_in(_cache)
 		return _cache
 	var t: Array = []
 	for i in World.playable:

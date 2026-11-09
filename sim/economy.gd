@@ -636,7 +636,7 @@ const SEA_ESCORT_COST := 0.05       # % of GDP a year per mission
 
 # ------------------------------------------------------------- digital money ---
 # See sim/digital_money.gd. Crypto price: monthly log-normal steps.
-const DIG_DRIFT := 0.01             # average monthly rise
+const DIG_DRIFT := 0.002            # average monthly rise (a gamble: roughly break-even after crashes)
 const DIG_VOL := 0.11               # monthly volatility
 const DIG_CRASH := 0.012            # monthly chance of a crash
 const DIG_BOOM := 0.01              # monthly chance of a mania

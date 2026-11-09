@@ -205,6 +205,8 @@ static func score(v: String) -> float:
 
 static func apply(v: String) -> void:
 	var s := st()
+	if v in ["abandon", "press"] and not building():
+		return          # the programme already ended (abandoned or finished)
 	match v:
 		"abandon":
 			abandon()

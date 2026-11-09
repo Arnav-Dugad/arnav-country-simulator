@@ -2,6 +2,18 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.100.0] - 2026-11-09
+
+The hundredth version: a careful review of everything added over the last day.
+
+- **Fix:** answering a "secret programme found" decision after the programme had already ended could restart it as a broken ghost and crash the game
+- **Fix:** when a second region leaves, the country now shrinks by the right amount (it took too little), and referendum percentages are of today's population
+- **Fix:** switching clean-air policies or online services off and on no longer gives free approval or a cleaner-government score each time
+- **Fix:** flipping a mineral supply deal between the West and China no longer farms goodwill; switching sides now upsets the old partner
+- **Fix:** a regional protest decision can no longer start a third development fund beyond the limit of two
+- **Balance:** a crypto reserve is now a real gamble rather than a reliable money-maker
+- What people are saying always shows three voices
+
 ## [0.99.0] - 2026-11-09
 
 - **Coming up** also shows laws about to pass, treaties you're joining, and regions close to demanding a referendum

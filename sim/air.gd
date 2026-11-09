@@ -87,8 +87,12 @@ static func toggle(id: String) -> void:
 		pol.erase(id)
 	else:
 		pol[id] = Game.months_played
-		var c := Game.me()
-		c.shocks.approval = float(c.shocks.approval) + float(POLICIES[id].approval)
+		var given: Dictionary = st().get("given", {})
+		if not given.has(id):
+			given[id] = true
+			st()["given"] = given
+			var c := Game.me()
+			c.shocks.approval = float(c.shocks.approval) + float(POLICIES[id].approval)
 		Game.add_feed("Clean air: %s" % str(POLICIES[id].title).to_lower(), str(POLICIES[id].icon), "accent")
 
 
