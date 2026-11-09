@@ -61,6 +61,21 @@ static func _candidates() -> Array:
 		out.append([-dh * 0.5, "Everyone I know is tired and angry. Something has to change.", false])
 	if c.growth > c.trend + 1.5:
 		out.append([c.growth - c.trend, "Business is booming. I've hired two more people this year.", true])
+	# Everyday voices on the general mood (low weight: only fill the gaps).
+	if c.approval >= 55.0:
+		out.append([0.5, "I didn't vote for this government, but I'll admit they're doing all right.", true])
+	elif c.approval < 40.0:
+		out.append([0.5, "Politicians promise everything and deliver nothing. Same as always.", false])
+	if c.growth >= 2.0:
+		out.append([0.4, "My shop had its best year since I opened it.", true])
+	elif c.growth < 0.5:
+		out.append([0.4, "Customers are counting every coin. It's a slow year.", false])
+	if c.inflation < 3.0:
+		out.append([0.3, "At least the price of bread hasn't moved.", true])
+	if Game.dip.has("edu") and Education.drain() > 10.0:
+		out.append([0.35, "Half my classmates are planning to work abroad after graduation.", false])
+	if c.stability >= 60.0:
+		out.append([0.2, "It's a safe, calm place to raise children.", true])
 	return out
 
 
