@@ -2,6 +2,11 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.106.0] - 2026-11-09
+
+- **Search finds every law:** type "rent", "sugar" or "four-day" and jump straight to it on the Laws page
+- Smarter search ranking: whole-word matches come first, and a page section shows before its map layer
+
 ## [0.105.0] - 2026-11-09
 
 - **What's new after a long break:** if you skipped several updates, the card now lists the headline features of all of them at a glance, the biggest first, instead of only the newest few lines

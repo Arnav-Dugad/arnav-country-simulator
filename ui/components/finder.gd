@@ -99,14 +99,26 @@ static func search(q: String) -> Array:
 		return INDEX.filter(func(e: Array) -> bool: return str(e[0]) in POPULAR)
 	var words := q.split(" ", false)
 	var out: Array = []
-	for e in INDEX:
+	var all: Array = INDEX.duplicate()
+	for l in Laws.ALL:      # every law, straight to its group on the Laws page
+		if str(l.get("gov", "")) == "closed":
+			continue
+		all.append(["Law: " + str(l.title), "laws", str(l.group), str(l.icon), "law " + str(l.desc)])
+	for e in all:
 		var hay := (str(e[0]) + " " + str(e[4])).to_lower()
 		var score := 0
+		var title := str(e[0]).to_lower()
 		for w in words:
 			if hay.contains(w):
-				score += 2 if str(e[0]).to_lower().contains(w) else 1
+				score += 2 if title.contains(w) else 1
+				for tw in title.replace(":", " ").split(" ", false):
+					if tw.begins_with(w):
+						score += 2          # a whole word starts with it: "rent" → Rent control, not parental
+						break
 			else:
 				score = -999
+		if score > 0 and title.begins_with("map:"):
+			score -= 1                      # the page section first, the map layer next
 		if score > 0:
 			out.append([score, e])
 	out.sort_custom(func(a: Array, b: Array) -> bool: return int(a[0]) > int(b[0]))
