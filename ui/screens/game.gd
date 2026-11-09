@@ -633,7 +633,7 @@ func _refresh_next() -> void:
 	elif not _review.is_empty() and Game.months_played <= _review_until:
 		item = {"kind": "review", "key": "review%d" % int(_review.year), "title": "%d in review" % int(_review.year),
 			"icon": "calendar", "tint": DS.GOLD, "sub": str(_review.title)}
-	elif Meeting.available():
+	elif Meeting.available() and not Meeting.proposals().is_empty():
 		var n := Meeting.proposals().size()
 		item = {"kind": "meeting", "key": "meeting%d" % int(Meeting.st().open), "title": "Cabinet", "icon": "users", "tint": DS.ACCENT,
 			"sub": "Meeting · %d proposal%s" % [n, "" if n == 1 else "s"]}
@@ -1232,15 +1232,24 @@ func _election_groups(r: Dictionary) -> void:
 		col.add_child(nl)
 
 
+var _meeting_resume := true
+
+
 ## The cabinet meeting: one card per proposal, approve or skip.
 func _show_meeting(list: Array, k: int, yes: int) -> void:
 	if k == 0:
-		if is_instance_valid(_modal) or list.is_empty():
+		if is_instance_valid(_modal):
 			return
+		if list.is_empty():
+			Meeting.done()
+			_refresh_next()
+			return
+		_meeting_resume = Game.speed != 0
 		Game.pause_for_modal()
 	if k >= list.size():
 		Meeting.done()
-		Game.resume_after_modal()
+		if _meeting_resume:
+			Game.resume_after_modal()
 		if yes > 0:
 			Game.add_feed("Cabinet meeting: %d of %d proposals approved" % [yes, list.size()], "users", "accent")
 		_refresh_next()
@@ -1272,15 +1281,24 @@ func _show_meeting(list: Array, k: int, yes: int) -> void:
 	_modal.header(str(Cabinet.POST_ICONS.get(post, "users")), DS.ACCENT, "Cabinet meeting  ·  %d of %d" % [k + 1, list.size()], str(p.title))
 	_modal.body(str(p.why))
 	if k == 0 and Meeting.tight():
-		var tl := _modal.body("The finance ministry warns that the budget is stretched (deficit %s of GDP), so only ideas that cost no money are on the table." % DS.pct(-Game.me().balance_pct(), 1))
+		var def := -Game.me().balance_pct()
+		var why := ("deficit %s of GDP" % DS.pct(def, 1)) if def > 5.0 else ("debt %s of GDP" % DS.pct(Game.me().debt_pct(), 0))
+		var tl := _modal.body("The finance ministry warns that the budget is stretched (%s), so only ideas that cost no money are on the table." % why)
 		tl.add_theme_color_override(&"font_color", DS.ORANGE)
 	var m := _modal
+	var used := {"v": false}
 	m.choice("Approve", str(p.cost), &"PrimaryButton", func() -> void:
+		if used.v:
+			return
+		used.v = true
 		Meeting.approve(str(p.id))
 		Haptics.success()
 		m.dismiss()
 		_show_meeting(list, k + 1, yes + 1))
 	m.choice("Not now", "", &"GhostButton", func() -> void:
+		if used.v:
+			return
+		used.v = true
 		Haptics.select()
 		m.dismiss()
 		_show_meeting(list, k + 1, yes))

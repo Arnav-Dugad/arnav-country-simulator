@@ -457,7 +457,7 @@ func _compare(i: int) -> void:
 		["Test scores", Education.score_of(Game.player), Education.score_of(i), true, func(v: float) -> String: return str(roundi(v))],
 		["Top university", float(Education.rank_of(Game.player)), float(Education.rank_of(i)), false, func(v: float) -> String: return "#%d" % roundi(v) if v < 1000.0 else "1000+"],
 		["Water stress", Water.stress_of(Game.player), Water.stress_of(i), false, func(v: float) -> String: return String.num(v, 1)],
-		["Air (PM2.5)", Air.pm(), float(Air.PM.get(World.iso(i), 20.0)), false, func(v: float) -> String: return "%d µg" % roundi(v)],
+		["Air (PM2.5)", Air.pm_of(Game.player), Air.pm_of(i), false, func(v: float) -> String: return "%d µg" % roundi(v)],
 	]
 	var head := HBoxContainer.new()
 	m.content.add_child(head)

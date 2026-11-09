@@ -393,7 +393,7 @@ func _fill_glance() -> void:
 		["droplets", Water.color(ws), "Water", String.num(ws, 1), "Water"],
 		["ship", DS.RED if shut > 0 else DS.TEAL, "Sea lanes", ("%d shut" % shut) if shut > 0 else "Open", "Sea lanes"],
 		["shield", [DS.GREEN, DS.ORANGE, DS.RED][lv], "Security", str(Security.LEVEL_TEXT[lv]), "Security"],
-		["swords", DS.RED if War.at_war() else DS.GREEN, "War", "At war" if War.at_war() else "At peace", "At war"],
+		["swords", DS.RED if War.at_war() else DS.GREEN, "War", "At war" if War.at_war() else "At peace", "At war" if War.at_war() else "Security"],
 		["leaf", DS.GREEN if cc < -0.02 else (DS.RED if cc > 0.02 else DS.TEXT_2), "CO₂", ("%+d%%" % roundi(cc * 100.0)) if absf(cc) >= 0.005 else "Same", "Climate"],
 	], _glance_box)
 

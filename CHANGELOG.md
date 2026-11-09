@@ -2,6 +2,16 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.101.0] - 2026-11-09
+
+- **Fix:** a cabinet meeting no longer un-pauses a game you had paused
+- **Fix:** the Cabinet pill no longer gets stuck on "0 proposals"; a double tap on the last card no longer approves twice
+- **Fix:** the finance ministry's warning names the right problem (deficit or debt)
+- **Fix:** the War tile on the World page jumps to Security when you are at peace
+- **Fix:** Coming up shows the first cabinet meeting at the right time
+- **Fix:** Compare uses the same air-pollution figures as the map and rankings
+- A new automated test guards the newest systems: real-data starting values, saves and the exploit fixes
+
 ## [0.100.0] - 2026-11-09
 
 The hundredth version: a careful review of everything added over the last day.

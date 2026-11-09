@@ -313,7 +313,10 @@ func _minerals() -> void:
 		var found := Minerals.survey()
 		if found != "":
 			Simulation.update_finances(Game.me())
-			Haptics.success() if found != "-" else Haptics.select()
+			if found != "-":
+				Haptics.success()
+			else:
+				Haptics.select()
 		refresh())
 	box.add_child(sb)
 

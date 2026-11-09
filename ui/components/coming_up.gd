@@ -34,7 +34,7 @@ static func items() -> Array:
 		var ml := Game.politics.months_left()
 		out.append([ml, "Election %d" % Game.politics.next_year(), "vote", DS.GOLD, "economy"])
 	if Game.dip.has("meet"):
-		var mm := maxi(Meeting.EVERY - (Game.months_played - int(Meeting.st().last)), 0)
+		var mm := maxi(maxi(Meeting.EVERY - (Game.months_played - int(Meeting.st().last)), 12 - Game.months_played), 0)
 		out.append([mm, "Cabinet meeting", "users", DS.ACCENT, "laws"])
 	for id in c.projects:
 		if Projects.is_building(c, str(id)):
