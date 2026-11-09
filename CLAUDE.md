@@ -19,6 +19,10 @@ sim/           Simulation. ALL formulas + tweakable constants live in sim/econom
                government.gd (system per country), projects.gd (Build), difficulty.gd, laws.gd, events.gd,
                world_markets.gd (oil/food, contagion), treaties.gd (blocs, UN camps), cabinet.gd,
                profiles.gd (data/country_profiles.json: researched depth; multipliers, never baseline shifts)
+               Society/resources/power modules (state in Game.dip, own seeded RNG, effects = change since
+               you took office): regions, education, health, air, water, food, fisheries, minerals, digital,
+               digital_money, diaspora, sea_lanes, nuclear, bases, wonders, culture_exports, power_index.
+               meeting.gd = cabinet proposals; vox_pop.gd = citizen quotes. Guarded by tools/systems_test.
 map/           World map rendering, camera/gestures (globe morph: shaders/globe.gdshaderinc), map modes,
                labels, overlays (trade arcs, weather, project pins)
 ui/theme/      tokens.gd (DS class: colors, radii, spacing, type, motion) + generated main_theme.tres
