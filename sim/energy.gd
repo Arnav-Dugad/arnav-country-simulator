@@ -81,7 +81,7 @@ static func rent(id: String) -> float:
 	if id == "minerals":
 		price = 1.0 + E.EN_MINERAL_BOOM * clampf(Game.months_played / 240.0, 0.0, 1.0)    # the battery age
 	# Rents are a share of the economy you had: they don't grow with the rest of it.
-	var scale := float(st().gdp0) / maxf(Game.me().gdp, 1.0)
+	var scale := 1.0 / maxf(real_growth(), 0.01)
 	return rent0(id) * _pace(str(r.policy)) * price * scale
 
 
@@ -124,9 +124,20 @@ static func explore() -> String:
 # ------------------------------------------------------------------- power ---
 ## Electricity demand index (1 = at the start): grows with the economy, less
 ## each year as appliances and factories get more efficient.
+## Real economy now against the start (dollar inflation doesn't use more power
+## or make a mine bigger).
+static func real_growth() -> float:
+	var c := Game.me()
+	return c.gdp / maxf(c.price_index, 0.01) / maxf(float(st().gdp0), 1.0)
+
+
 static func demand() -> float:
-	var g := Game.me().gdp / maxf(float(st().gdp0), 1.0)
-	return pow(maxf(g, 0.1), E.EN_DEMAND_ELASTICITY) * pow(1.0 - E.EN_EFFICIENCY, Game.months_played / 12.0)
+	var g := real_growth()
+	# Rich economies use far less electricity per dollar (services, efficiency).
+	var e := pow(minf(maxf(g, 0.1), E.RICH_SATURATION), E.EN_DEMAND_ELASTICITY)
+	if g > E.RICH_SATURATION:
+		e *= pow(g / E.RICH_SATURATION, E.EN_DEMAND_ELASTICITY * E.RICH_TAIL)
+	return e * pow(1.0 - E.EN_EFFICIENCY, Game.months_played / 12.0)
 
 
 ## Supply index: the grid you started with, private investment, and what you build.
@@ -134,7 +145,9 @@ static func demand() -> float:
 ## "coverage" of hospitals or schools does (a booming economy can always build more).
 static func supply() -> float:
 	var c := Game.me()
-	var s := 1.0 + E.EN_PRIVATE_GROWTH * Game.months_played / 12.0 + float(st().get("bonus", 0.0))
+	# Private investors build some plants on their own, more when demand booms.
+	var priv := maxf(E.EN_PRIVATE_GROWTH * Game.months_played / 12.0, E.EN_PRIVATE_SHARE * (demand() - 1.0))
+	var s := 1.0 + priv + float(st().get("bonus", 0.0))
 	if not c.builds.is_empty():
 		var cond := Builds.condition()
 		for id in Builds.ids_in("Energy"):
@@ -197,7 +210,7 @@ static func modifiers() -> Dictionary:
 	if not Game.has_game() or not Game.dip.has("energy") or Game.me() == null:
 		return {}
 	var out := {"revenue": 0.0, "growth": 0.0, "co2": 0.0, "happiness": 0.0, "unemployment": 0.0}
-	var scale := float(st().gdp0) / maxf(Game.me().gdp, 1.0)
+	var scale := 1.0 / maxf(real_growth(), 0.01)
 	for id in st().res:
 		var d := rent(str(id)) - rent0(str(id)) * scale
 		out.revenue += E.EN_GOV_TAKE * d

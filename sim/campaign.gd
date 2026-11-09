@@ -22,7 +22,7 @@ static func record(c: CountryState, id: String) -> float:
 	var b: Dictionary = c.base
 	match id:
 		"economy":
-			return clampf((c.growth - c.trend) / 2.0 + 0.2, -1.0, 1.0)
+			return clampf((c.growth - c.trend_now()) / 2.0 + 0.2, -1.0, 1.0)
 		"jobs":
 			return clampf((float(b.unemployment) - c.unemployment) / 2.0 + 0.1, -1.0, 1.0)
 		"health":

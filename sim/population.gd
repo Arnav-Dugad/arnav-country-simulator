@@ -83,7 +83,7 @@ static func structure(c: CountryState) -> Array:
 static func housing_balance(c: CountryState) -> float:
 	var s := st()
 	var demand := E.POPC_URBAN_PRESSURE * float(s.get("urban_rate", 0.3)) \
-		+ E.POPC_POP_PRESSURE * (c.pop_growth + Migration.pop_effect(Migration.delta(c)))
+		+ E.POPC_POP_PRESSURE * (c.pop_growth_now() + Migration.pop_effect(Migration.delta(c)))
 	var supply := E.POPC_PRIVATE_SUPPLY * (E.POPC_ZONING_MULT if bool(s.zoning) else 1.0)
 	if Laws.is_active(c, "rent_control") and not c.laws_start.has("rent_control"):
 		supply *= 0.75          # landlords and builders hold back

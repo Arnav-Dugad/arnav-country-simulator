@@ -42,7 +42,7 @@ static func advice(c: CountryState) -> Array:
 		out.append(_item(1, "People are unhappier than when you started",
 			"More healthcare, welfare or education spending usually helps.", "budget", "heart"))
 	# Sluggish means slow in absolute terms too (not just below a boom's own trend).
-	if c.growth < minf(c.trend - 1.5, 2.0) and c.inflation < 4.0:
+	if c.growth < minf(c.trend_now() - 1.5, 2.0) and c.inflation < 4.0:
 		out.append(_item(1, "The economy is sluggish (%s growth)" % DS.pct(c.growth),
 			"Invest in infrastructure and research, or build something: projects put people to work." if auto_cb else
 			"Cut the interest rate, or invest in infrastructure and research.", "build" if auto_cb else "economy", "trending-down"))

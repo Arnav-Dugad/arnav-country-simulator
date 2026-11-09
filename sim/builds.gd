@@ -480,6 +480,10 @@ static func modifiers(c: CountryState) -> Dictionary:
 	var oh := overheat(c)
 	if oh > 0.0:
 		out["boom"] = oh
+	for k in E.BUILD_FX_CAPS:
+		if out.has(k):
+			var cap := float(E.BUILD_FX_CAPS[k])
+			out[k] = cap * tanh(float(out[k]) / cap)
 	c.set_meta(&"bx_key", key)
 	c.set_meta(&"bx", out)
 	return out

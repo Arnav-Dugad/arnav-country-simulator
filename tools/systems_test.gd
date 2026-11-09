@@ -69,6 +69,35 @@ func _run() -> void:
 	var s3 := Energy.supply()
 	_check(s3 - s2 > (s2 - s1) * 0.9, "every power plant keeps adding supply (no saturation)")
 
+	# Long-game limits (QA pass): catch-up slows as you get richer, boosts stop stacking.
+	Game.new_game(World.index_of("IND"), 7)
+	var me0 := Game.me()
+	var t0 := me0.trend_now()
+	me0.gdp *= 8.0
+	_check(me0.trend_now() < t0 - 1.5, "an economy 8x richer than at the start grows slower (convergence)")
+	_check(me0.pop_growth_now() < me0.pop_growth, "richer families have fewer children")
+	me0.gdp /= 8.0
+	_check(Economy.convergence(1000.0, 500.0) == 0.0, "getting poorer never slows the trend")
+	# A debt crisis can't strike again within three years.
+	me0.debt = me0.gdp * 2.4
+	var crises := 0
+	var rng_t := RandomNumberGenerator.new()
+	for k in 30:
+		if Simulation.tick(me0, rng_t, false):
+			crises += 1
+		Game.months_played += 1
+	_check(crises <= 1, "bond-market panics are spaced out (%d in 30 months)" % crises)
+	# Seize then sell: the second sale fetches far less.
+	Game.new_game(World.index_of("SAU"), 7)
+	for id in Enterprise.FIRMS:
+		if Enterprise.st().firms.has(id) and not Enterprise.owned(str(id)):
+			var fair := Enterprise.sale_price(str(id))
+			Enterprise.nationalise(str(id), true)
+			_check(Enterprise.sale_price(str(id)) < fair * 0.5, "a seized firm can't be flipped for full price")
+			break
+	# Unemployment can't be driven to the hard floor.
+	_check(Economy.UNEMP_MIN_SOFT > Economy.UNEMP_MIN, "unemployment approaches a frictional floor")
+
 	# Every key the game saves through Settings must be a declared setting (else it is silently dropped).
 	Settings.set_value("sections_open", {"Test/x": true})
 	_check(bool((Settings.get_value("sections_open", {}) as Dictionary).get("Test/x", false)), "folded-section choices are remembered")

@@ -59,8 +59,8 @@ static func _candidates() -> Array:
 		out.append([dh * 0.5, "Honestly? Life's good right now. Better than when I was young.", true])
 	elif dh < -4.0:
 		out.append([-dh * 0.5, "Everyone I know is tired and angry. Something has to change.", false])
-	if c.growth > c.trend + 1.5:
-		out.append([c.growth - c.trend, "Business is booming. I've hired two more people this year.", true])
+	if c.growth > c.trend_now() + 1.5:
+		out.append([c.growth - c.trend_now(), "Business is booming. I've hired two more people this year.", true])
 	# Everyday voices on the general mood (low weight: only fill the gaps).
 	if c.approval >= 55.0:
 		out.append([0.5, "I didn't vote for this government, but I'll admit they're doing all right.", true])

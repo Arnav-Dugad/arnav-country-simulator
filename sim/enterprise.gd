@@ -116,6 +116,9 @@ static func privatised_pct() -> float:
 static func sale_price(id: String) -> float:
 	var mood := sqrt(clampf(float(st().index) / 100.0, 0.3, 3.0))
 	var trust := 0.7 + 0.3 * Corruption.value(Game.me()) / 100.0
+	var f: Dictionary = st().firms.get(id, {})
+	if f.has("seized") and Game.months_played - int(f.seized) < int(E.ENT_SEIZED_YEARS * 12.0):
+		trust = E.ENT_SEIZED_TRUST
 	return value(id) * mood * trust
 
 
@@ -152,6 +155,8 @@ static func nationalise(id: String, seize: bool) -> void:
 		Game.relations_changed.emit()
 		st().index = float(st().index) * (1.0 - E.ENT_SEIZE_CRASH)
 	st().firms[id].own = true
+	if seize:
+		st().firms[id]["seized"] = Game.months_played
 	st().firms[id].eff = minf(float(st().firms[id].eff), E.ENT_EFF_BASE + 0.15)
 	c.shocks.approval = float(c.shocks.approval) + E.ENT_TAKE_APPROVAL
 	Game.add_feed(("Seized: the state takes over the %s without compensation" if seize else "Nationalised: the state buys the %s")
@@ -225,7 +230,10 @@ static func monthly() -> Array:
 	var f := fund()
 	if float(f.value) > 0.0:
 		var stocks := float(f.stocks)
-		var r := stocks * (exp(wr) - 1.0) + (1.0 - stocks) * E.ENT_BOND_RETURN / 12.0
+		# A fund that dwarfs the economy can't beat the market by as much (it moves prices itself).
+		var size := float(f.value) / maxf(c.gdp, 1.0)
+		var bond := E.ENT_BOND_RETURN / 12.0
+		var r := bond + stocks * ((exp(wr) - 1.0) - bond) / (1.0 + size)
 		var gain := float(f.value) * r
 		f.value = maxf(float(f.value) + gain, 0.0)
 		f.ret_year = float(f.ret_year) * (11.0 / 12.0) + gain

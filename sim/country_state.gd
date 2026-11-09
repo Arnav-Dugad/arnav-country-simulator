@@ -177,6 +177,22 @@ func rating() -> String:
 	return Economy.rating_grade(rating_score())
 
 
+## Trend growth today: the starting trend, slowed as real income rises above
+## where the country started (income convergence).
+func trend_now() -> float:
+	var pc0 := World.stat(idx, "gdp", 0.0) / maxf(World.stat(idx, "population", 1.0), 1.0)
+	return trend + Economy.convergence(pc0, real_gdp_per_capita())
+
+
+## Natural population growth today: richer families have fewer children.
+func pop_growth_now() -> float:
+	var pc0 := World.stat(idx, "gdp", 0.0) / maxf(World.stat(idx, "population", 1.0), 1.0)
+	var pc := real_gdp_per_capita()
+	if pc <= pc0 or pc0 <= 0.0:
+		return pop_growth
+	return pop_growth + Economy.population_growth(pc) - Economy.population_growth(pc0)
+
+
 func real_gdp_per_capita() -> float:
 	return gdp_per_capita() / maxf(price_index, 0.01)
 

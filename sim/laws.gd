@@ -171,6 +171,10 @@ static func modifiers(c: CountryState) -> Dictionary:
 			continue
 		for k in l.fx:
 			out[k] = float(out.get(k, 0.0)) + float(l.fx[k]) * d
+	for k in Economy.LAW_FX_CAPS:
+		if out.has(k):
+			var cap := float(Economy.LAW_FX_CAPS[k])
+			out[k] = cap * tanh(float(out[k]) / cap)
 	c.lx_cache = out
 	c.lx_ver = c.laws_ver
 	return out

@@ -64,6 +64,12 @@ jobs:
             ! grep -E "SCRIPT ERROR" play.log
           done
 
+      - name: Long-game QA fuzz (every play style, no broken or runaway numbers)
+        run: |
+          ~/godot/godot --headless --path . res://tools/qa_fuzz.tscn -- --runs=7 --years=25 --seed=3 2>&1 | tee qa.log
+          grep -q "QA DONE" qa.log
+          ! grep -E "SCRIPT ERROR|^ISSUE (nan:|range:|runaway|income >|unfixable|debt >)" qa.log
+
       - name: Every panel fits a 390 pt phone (100% and 130% text)
         run: |
           ~/godot/godot --headless --path . res://tools/layout_test.tscn 2>&1 | tee layout.log

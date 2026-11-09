@@ -77,7 +77,19 @@ func monthly(rng: RandomNumberGenerator) -> String:
 	return news
 
 
+## Boom or bust: growth against the country's own recent average. Slow
+## structural drags (ageing, debt) lower that average instead of counting as a
+## recession forever, so the world cycle always returns to calm.
+static func cycle_gap(c: CountryState) -> float:
+	return clampf(c.growth - float(c.base.get("g_ema", c.growth_anchor)), -8.0, 8.0)
+
+
 func _measure() -> void:
+	for c0 in Game.countries:
+		if c0 != null:
+			var cs := c0 as CountryState
+			var ema := float(cs.base.get("g_ema", cs.growth_anchor))
+			cs.base["g_ema"] = ema + (cs.growth - ema) * E.CYCLE_EMA
 	var tot := 0.0
 	var w := 0.0
 	var reg := {}
@@ -90,7 +102,7 @@ func _measure() -> void:
 		var c: CountryState = Game.countries[i]
 		if c == null:
 			continue
-		var gap := clampf(c.growth - c.growth_anchor, -8.0, 8.0)
+		var gap := cycle_gap(c)
 		var wt := minf(c.gdp, cap)
 		tot += gap * wt
 		w += wt
@@ -141,7 +153,7 @@ func effects(c: CountryState) -> Dictionary:
 		for k in Game.dip.get("deals", {}):
 			var p: CountryState = Game.state(int(k))
 			if p:
-				partners += clampf(p.growth - p.growth_anchor, -8.0, 8.0)
+				partners += cycle_gap(p)
 				n += 1
 		if n > 0:
 			world += E.CONTAGION_PARTNERS * partners / n

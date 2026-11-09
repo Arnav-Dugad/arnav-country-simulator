@@ -68,7 +68,7 @@ static func make_event() -> Dictionary:
 	elif c.debt_pct() > maxf(100.0, float(b.debt_pct) + 10.0):
 		topic = "debt"
 		stat = DS.pct(c.debt_pct(), 0)
-	elif c.growth < c.trend - 1.0:
+	elif c.growth < c.trend_now() - 1.0:
 		topic = "growth"
 		stat = DS.pct(c.growth)
 	elif c.approval < 40.0:

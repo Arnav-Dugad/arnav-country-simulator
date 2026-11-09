@@ -68,7 +68,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 	var autocracy := not Government.has_elections(c.idx)
 
 	# --- Growth ---------------------------------------------------------------
-	c.growth_anchor += (c.trend - c.growth_anchor) * E.TREND_PULL
+	c.growth_anchor += (c.trend_now() - c.growth_anchor) * E.TREND_PULL
 	var g_terms := [
 		["Underlying growth", c.growth_anchor],
 		["Income tax", -E.INCOME_TAX_DRAG * d_inc],
@@ -79,7 +79,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Research", E.RESEARCH_GROWTH * Profiles.mult(i, "research_growth") * c.share_delta("research") / 10.0],
 		["Education", E.EDUCATION_GROWTH * Profiles.mult(i, "education_growth") * c.share_delta("education") / 10.0],
 		["Trade openness", E.TRADE_GROWTH * Profiles.mult(i, "trade_growth") * d_trade * 2.0 * 0.5],
-		["Trade deals", E.TRADE_DEAL_GROWTH * Profiles.mult(i, "deal_growth") * c.trade_deals],
+		["Trade deals", E.TRADE_DEALS_CAP * tanh(E.TRADE_DEAL_GROWTH * Profiles.mult(i, "deal_growth") * c.trade_deals / E.TRADE_DEALS_CAP)],
 		["Migration", Migration.growth_effect(c, mig)],
 		["Ageing workforce", Ageing.growth_drag(c)],
 		["Clean government", Corruption.growth_effect(c)],
@@ -91,7 +91,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Your ministers", float(cx.get("growth", 0.0))],
 		["World economy", float(mx.world)],
 		["Sanctions on you", -E.SANCTION_GROWTH * c.sanctioned_by],
-		["Debt burden", -E.DEBT_GROWTH_DRAG * maxf(0.0, debt_pct - maxf(E.DEBT_SAFE, float(b.debt_pct)))],
+		["Debt burden", -E.DEBT_DRAG_CAP * tanh(E.DEBT_GROWTH_DRAG * maxf(0.0, debt_pct - maxf(E.DEBT_SAFE, float(b.debt_pct))) / E.DEBT_DRAG_CAP)],
 		["Instability", -E.STABILITY_GROWTH_DRAG * Profiles.mult(i, "instability_drag")
 			* maxf(0.0, minf(float(b.stability), E.STABILITY_FLOOR) - c.stability)],
 		["Recent events", float(c.shocks.growth)],
@@ -127,6 +127,25 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Integrating new lands", float(anx.get("growth", 0.0))],
 		["Construction work", float(px.get("build_growth", 0.0)) + float(bx.get("build_growth", 0.0))],
 	]
+	# Diminishing returns: lasting boosts from policies and systems stop adding up past a point.
+	var boost := 0.0
+	for t in g_terms:
+		if float(t[1]) > 0.0 and not str(t[0]) in _CYCLE_TERMS:
+			boost += float(t[1])
+	# Poor economies can catch up fast by copying what works; rich ones are already near the frontier.
+	var half := lerpf(E.POLICY_GROWTH_CAP, E.POLICY_GROWTH_CAP_RICH, E.income_level(c.real_gdp_per_capita())) * 0.5
+	if boost > half:
+		g_terms.append(["Diminishing returns", half + half * tanh((boost - half) / half) - boost])
+	# Limits to growth: racing ahead, or far richer than everyone else, is hard to keep up.
+	var raw := _sum(g_terms)
+	if raw > E.FAST_GROWTH_AT:
+		g_terms.append(["Limits to fast growth", -(raw - E.FAST_GROWTH_AT) * (1.0 - E.FAST_GROWTH_KEEP)])
+	if c.idx == Game.player and Game.has_game():
+		var fr := frontier_income(c.idx)
+		if fr > 0.0 and c.gdp_per_capita() > fr:
+			# Far ahead of everyone, an economy stalls (it doesn't collapse): the pull stops near zero growth.
+			var pull := E.FRONTIER_DRAG * log(c.gdp_per_capita() / fr) / log(2.0)
+			g_terms.append(["Already the richest", -minf(pull, maxf(_sum(g_terms), 0.0) + E.FRONTIER_FLOOR)])
 	var g := clampf(_sum(g_terms), -25.0, 20.0)
 	c.growth += (g - c.growth) * E.GROWTH_ADJUST
 	# Fiscal stimulus fades: the economy gets used to the new spending level.
@@ -166,9 +185,14 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 	c.inflation += (pi - c.inflation) * E.INFLATION_ADJUST
 
 	# --- Jobs -----------------------------------------------------------------
+	# Better schools slowly lower the natural rate; lasting gains stick (hysteresis),
+	# but never below a floor, and a rate pushed up by a slump slowly heals.
+	var u0 := clampf(World.stat(c.idx, "unemployment", 6.0), 1.0, 40.0)
 	c.u_natural -= E.EDUCATION_UNEMP * c.share_delta("education") / 10.0 / 12.0
 	c.u_natural += (c.unemployment - c.u_natural) * E.UNEMP_HYSTERESIS
-	c.u_natural = clampf(c.u_natural, E.UNEMP_MIN, E.UNEMP_MAX)
+	if c.u_natural > u0:
+		c.u_natural += (u0 - c.u_natural) * E.UNEMP_REVERT
+	c.u_natural = clampf(c.u_natural, maxf(E.UNEMP_MIN, u0 * E.UNEMP_FLOOR_SHARE), E.UNEMP_MAX)
 	var u_terms := [
 		["Normal level for your country", c.u_natural],
 		["Economic momentum", -E.OKUN * (c.growth - c.growth_anchor)],
@@ -191,7 +215,11 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["War mobilization", float(wx.get("unemployment", 0.0))],
 		["Construction work", float(px.get("build_jobs", 0.0)) + float(bx.get("build_jobs", 0.0))],
 	]
-	var u := clampf(_sum(u_terms), E.UNEMP_MIN, E.UNEMP_MAX)
+	var u := _sum(u_terms)
+	# Some people are always between jobs: below a few per cent it gets ever harder to go lower.
+	if u < E.UNEMP_FRICTION:
+		u = E.UNEMP_MIN_SOFT + (E.UNEMP_FRICTION - E.UNEMP_MIN_SOFT) * exp((u - E.UNEMP_FRICTION) / (E.UNEMP_FRICTION - E.UNEMP_MIN_SOFT))
+	u = clampf(u, E.UNEMP_MIN, E.UNEMP_MAX)
 	c.unemployment += (u - c.unemployment) * E.UNEMP_ADJUST
 
 	# --- Output & people ------------------------------------------------------
@@ -200,7 +228,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 	var usd_inflation := clampf(c.inflation, -2.0, 3.0)
 	c.gdp = maxf(c.gdp * pow(1.0 + (c.growth + usd_inflation) / 100.0, M), 1e6)
 	c.price_index *= pow(1.0 + usd_inflation / 100.0, M)
-	c.population *= pow(1.0 + (c.pop_growth + Migration.pop_effect(mig)) / 100.0, M)
+	c.population *= pow(1.0 + (c.pop_growth_now() + Migration.pop_effect(mig)) / 100.0, M)
 
 	# --- Public finances ------------------------------------------------------
 	# Markets judge debt against what they already trust this country with: the
@@ -286,7 +314,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Income tax", -E.APPROVAL_INCOME_TAX * d_inc],
 		["Business tax", -E.APPROVAL_CORP_TAX * d_corp],
 		["Prices", -E.APPROVAL_INFLATION * clampf(c.inflation - float(b.inflation), -10.0, 40.0)],
-		["Diplomacy", c.alliances * 0.6 + c.trade_deals * 0.3 - c.sanctioned_by * 1.0],
+		["Diplomacy", E.DIPLOMACY_APPROVAL_CAP * tanh((c.alliances * 0.6 + c.trade_deals * 0.3) / E.DIPLOMACY_APPROVAL_CAP) - c.sanctioned_by * 1.0],
 		["Recent events", float(c.shocks.approval)],
 		["Laws & reforms", float(lx.get("approval", 0.0))],
 		["Projects you built", float(px.get("approval", 0.0))],
@@ -370,7 +398,36 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		c.debt_rate += 2.0
 		return true
 	var over := debt_pct - maxf(E.DEBT_CRISIS_START, float(b.debt_pct) + 15.0)
-	return over > 0.0 and rng.randf() < over * E.DEBT_CRISIS_PROB
+	var months := Game.months_played if Game.has_game() else 0
+	if months - int(b.get("crisis_m", -999)) < E.DEBT_CRISIS_GAP:
+		return false
+	if over > 0.0 and rng.randf() < over * E.DEBT_CRISIS_PROB:
+		b["crisis_m"] = months
+		return true
+	return false
+
+
+## Growth terms that are the business cycle or short-lived, not lasting boosts.
+const _CYCLE_TERMS := ["Underlying growth", "Income tax", "Business tax", "Interest rates", "Government spending",
+	"World oil prices", "World economy", "Recent events", "Construction work"]
+
+
+## Highest income per person among the other countries (cached once a month).
+static var _fr_m := -1
+static var _fr := 0.0
+
+
+static func frontier_income(me: int) -> float:
+	if _fr_m != Game.months_played:
+		_fr = 0.0
+		for i in World.playable:
+			if i == me:
+				continue
+			var o: CountryState = Game.state(i)
+			if o != null and o.population > 1e6:
+				_fr = maxf(_fr, o.gdp_per_capita())
+		_fr_m = Game.months_played
+	return _fr
 
 
 static func _sum(terms: Array) -> float:

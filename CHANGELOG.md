@@ -2,6 +2,19 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.112.0] - 2026-11-09
+
+A big balance pass for long games. We played hundreds of 40-year games in every style (doing nothing, building everything, maxing every system, random choices, austerity, big spending, and repeating known exploits) and fixed what broke.
+
+- **Growth stays believable over decades.** Poor countries still catch up fast with good policy, but growth slows as people get richer, as it really does. Boosts from buildings, laws, deals, tourism, robots and other systems now have diminishing returns when stacked, and rich economies can be pushed less far above their natural pace. A country far richer than everyone else now stalls instead of racing ahead or collapsing
+- **The world no longer slides into a permanent slump.** Computer-run governments used to cut spending forever once debt rose, which dragged the whole world economy down year after year. They now cut only while debt is still climbing, never during a recession, and rebuild once debt is falling. The "World economy" effect now measures real booms and busts and fades back to calm
+- **Bond-market panics are spaced out:** after a debt crisis, markets stay calm for three years instead of striking again every few months
+- **Power demand follows the real economy,** not dollar inflation, and private investors build some plants on their own as demand grows. Blackouts in a growing economy no longer pile up just from inflation
+- **Unemployment:** better schools still lower it over time, but it can't be driven to an unrealistic 1%. A jobs rate pushed up by a long slump slowly heals. Diplomacy's boost to approval levels off
+- **Ageing slows as it nears its peak,** so pension costs in old societies rise more gently in later decades. Population growth slows as families get richer
+- **Exploits closed:** seizing a company and selling it again no longer pays (investors pay little for a firm the state just seized), a wealth fund much bigger than the economy earns less above bonds, and tariffs on many tiny economies no longer add up to free revenue
+- Very high debt still slows growth, but the drag levels off as in Japan instead of growing without limit
+
 ## [0.111.0] - 2026-11-09
 
 - **Fix: building power plants now ends blackouts in a fast-growing economy.** Power used to count like hospitals or schools, as "coverage" that tops out near 90%, so in a booming economy every extra plant added almost nothing while demand kept climbing. Now each plant adds its own output

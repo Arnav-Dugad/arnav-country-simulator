@@ -93,7 +93,7 @@ static func modifiers() -> Dictionary:
 	if not Game.has_game() or not Game.dip.has("auto") or Game.me() == null:
 		return {}
 	var s := st()
-	var out := {"growth": E.AUTO_GROWTH * change() / 10.0, "unemployment": float(s.displaced),
+	var out := {"growth": E.AUTO_GROWTH_CAP * tanh(E.AUTO_GROWTH * change() / 10.0 / E.AUTO_GROWTH_CAP), "unemployment": float(s.displaced),
 		"gini": E.AUTO_GINI * float(s.displaced), "happiness": 0.0, "revenue": 0.0}
 	if bool(s.robot_tax):
 		out.revenue = E.AUTO_ROBOT_TAX_REV * level() / 50.0

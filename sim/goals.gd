@@ -68,7 +68,7 @@ static func candidates() -> Array:
 	if Economy.income_level(c.gdp_per_capita()) < 0.6:
 		out.append([6.5, "income", c.real_gdp_per_capita() * 1.25])
 	if c.growth < 2.5:
-		out.append([4.0, "growth", c.trend + 1.0])
+		out.append([4.0, "growth", c.trend_now() + 1.0])
 	if c.rating_score() < 80.0:
 		out.append([3.0, "rating", _next_grade_score(c.rating_score())])
 	if c.gini >= 40.0:

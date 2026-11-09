@@ -72,7 +72,10 @@ static func co2_pc(c: CountryState) -> float:
 	var start := World.stat(c.idx, "co2_pc", 4.0)
 	# Starting income from the data (c.base.gdp_pc adapts over time, see Simulation).
 	var g0 := World.stat(c.idx, "gdp", c.gdp) / maxf(World.stat(c.idx, "population", c.population), 1000.0)
-	var income := pow(maxf(c.real_gdp_per_capita(), 1.0) / maxf(g0, 1.0), Economy.CO2_INCOME_ELASTICITY)
+	var ratio := maxf(c.real_gdp_per_capita(), 1.0) / maxf(g0, 1.0)
+	var income := pow(minf(ratio, Economy.RICH_SATURATION), Economy.CO2_INCOME_ELASTICITY)
+	if ratio > Economy.RICH_SATURATION:      # rich economies decouple emissions from income
+		income *= pow(ratio / Economy.RICH_SATURATION, Economy.CO2_INCOME_ELASTICITY * Economy.RICH_TAIL)
 	var tech := pow(1.0 - Economy.CO2_DECARB_PER_YEAR, Game.months_played / 12.0)
 	var cut := 1.0
 	for id in extras(c):

@@ -30,7 +30,10 @@ static func share(c: CountryState) -> float:
 	if c.has_meta(&"age_m") and int(c.get_meta(&"age_m")) == Game.months_played:
 		return float(c.get_meta(&"age_v"))
 	var r := rate(c.idx) - E.AGEING_MIGRANT_RELIEF * Migration.delta(c)
-	var v := clampf(start(c.idx) + maxf(r, 0.0) * years, 1.0, 45.0)
+	# The share rises at the real early pace, then slows as it nears a ceiling.
+	var s0 := start(c.idx)
+	var room := maxf(E.AGEING_CEIL - s0, 1.0)
+	var v := clampf(s0 + room * (1.0 - exp(-maxf(r, 0.0) * years / room)), 1.0, 45.0)
 	c.set_meta(&"age_m", Game.months_played)
 	c.set_meta(&"age_v", v)
 	return v

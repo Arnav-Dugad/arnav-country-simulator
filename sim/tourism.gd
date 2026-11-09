@@ -344,7 +344,7 @@ static func modifiers() -> Dictionary:
 	var d := share() - float(st().share0)
 	var out := {}
 	if absf(d) >= 0.01:
-		out = {"growth": E.TOUR_GROWTH * d, "unemployment": -E.TOUR_JOBS * d}
+		out = {"growth": E.TOUR_GROWTH_CAP * tanh(E.TOUR_GROWTH * d / E.TOUR_GROWTH_CAP), "unemployment": -E.TOUR_JOBS * d}
 	var cp := crowd_penalty()
 	if cp > 0.0:
 		out["happiness"] = -cp

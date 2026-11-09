@@ -44,7 +44,7 @@ static func weight(i: int) -> float:
 	var them: CountryState = Game.state(i)
 	if them == null:
 		return 0.0
-	return clampf(them.gdp / maxf(Game.me().gdp, 1.0), 0.05, 1.5) * clampf(Game.me().trade_openness * 1.6, 0.3, 1.4)
+	return clampf(them.gdp / maxf(Game.me().gdp, 1.0), 0.0, 1.5) * clampf(Game.me().trade_openness * 1.6, 0.3, 1.4)
 
 
 ## Chance they hit back (0..1).

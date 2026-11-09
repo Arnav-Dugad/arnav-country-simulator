@@ -29,6 +29,8 @@ const TREND_RICH := 1.5          # %/yr at ~$60k per capita
 const TREND_POOR := 6.0          # %/yr at ~$1k per capita
 ## Starting growth is pulled toward trend over the years (business cycles fade).
 const TREND_PULL := 0.01         # per month (~5-year half-life)
+const CONV_RICH_PC := 60000.0    # past this real income, growth keeps slowing ...
+const CONV_PAST_RICH := 0.5      # ... by this many points per doubling
 ## Starting underlying growth is clamped to trend -3 … +4 pts (booms/busts fade).
 const ANCHOR_BELOW_TREND := 3.0
 const ANCHOR_ABOVE_TREND := 4.0
@@ -51,6 +53,7 @@ const SANCTION_GROWTH := 0.35    # per country sanctioning you
 ## Debt above this % of GDP drags growth and raises borrowing costs.
 const DEBT_SAFE := 90.0
 const DEBT_GROWTH_DRAG := 0.02   # per pt above DEBT_SAFE
+const DEBT_DRAG_CAP := 3.0       # the drag levels off (Japan grows at 250 % debt)
 ## Instability drag: below this stability, growth suffers.
 const STABILITY_FLOOR := 35.0
 const STABILITY_GROWTH_DRAG := 0.05
@@ -81,11 +84,15 @@ const RATE_MAX := 40.0
 const UNEMP_ADJUST := 0.08
 const OKUN := 0.45               # pts of unemployment per pt growth gap
 const RATE_UNEMP := 0.12         # per pt rate above neutral (capped)
-const EDUCATION_UNEMP := 1.5     # per +10 pts education share: natural rate falls this many pts/yr
+const EDUCATION_UNEMP := 1.5     # per +10 pts education share: natural rate falls this many pts/yr (down to a floor)
 ## Hysteresis: the "normal" unemployment rate slowly follows actual unemployment
 ## (long spells of high or low joblessness become structural).
 const UNEMP_HYSTERESIS := 0.012  # per month
+const UNEMP_REVERT := 0.006      # per month: a natural rate pushed above the country's own level slowly heals
+const UNEMP_FLOOR_SHARE := 0.35  # the natural rate can't fall below this share of the starting rate
 const UNEMP_MIN := 1.0
+const UNEMP_FRICTION := 3.0      # below this, job gains come ever harder ...
+const UNEMP_MIN_SOFT := 1.5      # ... and unemployment approaches this, never lower
 const UNEMP_MAX := 45.0
 
 # ------------------------------------------------------------ PUBLIC FINANCE --
@@ -107,6 +114,9 @@ const TREASURY_BUFFER_MONTHS := 1.0
 ## Debt crisis: monthly probability once debt is above DEBT_CRISIS_START.
 const DEBT_CRISIS_START := 100.0
 const DEBT_CRISIS_PROB := 0.0005  # per pt above start, per month
+const DEBT_CRISIS_GAP := 36       # months: markets calm down for a while after a crisis
+const AI_SPEND_FLOOR := 0.6       # computer-run governments never cut below this share of their starting spending
+const AI_TAX_RAISE_MAX := 8.0     # ... nor raise income tax more than this many points above the start
 const RISK_PREMIUM_CAP := 6.0
 ## Sovereign default: above this debt % of GDP debts are restructured.
 const DEFAULT_THRESHOLD := 250.0
@@ -120,6 +130,26 @@ const APPROVAL_ADJUST := 0.10
 const STABILITY_ADJUST := 0.05
 const ANCHOR_MAX := 15.0          # highest underlying growth any economy can be expected to keep up
 const TREND_MAX := 12.0
+## Limits to growth (QA: builds and laws stacked without limit gave 15-20 % growth for decades).
+## Each source's total effect saturates smoothly at these sizes (soft cap = cap * tanh(x / cap)).
+const BUILD_FX_CAPS := {"growth": 2.0, "unemployment": 2.5, "inflation": 1.5, "happiness": 10.0, "approval": 6.0,
+	"stability": 12.0, "life": 6.0, "lit": 15.0, "gini": 6.0, "build_growth": 1.5, "build_jobs": 2.0}
+const LAW_FX_CAPS := {"growth": 1.5, "happiness": 12.0, "approval": 6.0, "stability": 8.0, "unemployment": 1.5}
+const TRADE_DEALS_CAP := 2.0
+const POLICY_GROWTH_CAP := 5.0    # all lasting policy/system boosts together: diminishing returns past this (poorest) ...
+const POLICY_GROWTH_CAP_RICH := 2.5  # ... and for the richest
+const DIPLOMACY_APPROVAL_CAP := 6.0
+const AUTO_GROWTH_CAP := 1.0
+const TOUR_GROWTH_CAP := 1.0
+const ENT_SEIZED_TRUST := 0.3     # investors pay little for a firm the state seized in the last 10 years
+const ENT_SEIZED_YEARS := 10.0
+const AGEING_CEIL := 35.0         # % aged 65+ the share approaches (rises slow as it gets closer)      # growth from trade deals saturates around this many points
+const RICH_SATURATION := 10.0     # beyond 10x your starting income, energy use and emissions per person grow far slower
+const RICH_TAIL := 0.25           # ... at this share of their normal response
+const FRONTIER_DRAG := 2.0
+const FRONTIER_FLOOR := 0.5       # the richest economy's pull bottoms out at about this much below zero growth        # growth points lost per doubling of income above the richest other country
+const FAST_GROWTH_AT := 8.0       # growth above this is progressively harder to sustain ...
+const FAST_GROWTH_KEEP := 0.4     # ... only this share of the excess survives
 const WORLD_CYCLE_WEIGHT_CAP := 0.35  # no single economy counts for more than this share of the world cycle (only runaway economies hit it)
 const EDU_INCOME_SCORE := 105.0   # learning-score points as a country goes from poorest to richest
 const EDU_INCOME_Q := 30.0        # university quality, same
@@ -214,6 +244,7 @@ const FOOD_HAPPY := 4.0
 const CONTAGION_WORLD := 0.25     # x trade openness
 const CONTAGION_REGION := 0.2
 const CONTAGION_PARTNERS := 0.15
+const CYCLE_EMA := 0.03            # per month: "normal" growth for the cycle = recent average (~3 years)
 
 # ------------------------------------------------------------ SOCIETY DETAIL ---
 ## Welfare matters more where incomes are unequal (Gini): x(1 + (gini-35)/GINI_SCALE).
@@ -274,6 +305,19 @@ static func demography_trend(age65_pct: float) -> float:
 
 static func trend_growth(pc: float) -> float:
 	return lerpf(TREND_POOR, TREND_RICH, income_level(pc))
+
+
+## Catch-up slows as a country gets richer (beta convergence): the change in
+## trend growth between the starting income and today's real income, plus a
+## gentle further slowdown past the rich-country level. Never positive.
+static func convergence(pc0: float, pc: float) -> float:
+	if pc <= pc0 or pc0 <= 0.0:
+		return 0.0
+	var d := trend_growth(pc) - trend_growth(pc0)
+	var top := maxf(pc0, CONV_RICH_PC)
+	if pc > top:
+		d -= CONV_PAST_RICH * log(pc / top) / log(2.0)
+	return d
 
 
 static func neutral_rate(core_inflation: float) -> float:
@@ -957,7 +1001,8 @@ const EN_RENT_JOBS := 0.05          # unemployment points removed per point of G
 ## Power: demand index = (GDP / GDP at start)^ELASTICITY x (1 - EFFICIENCY)^years.
 const EN_DEMAND_ELASTICITY := 0.6
 const EN_EFFICIENCY := 0.01
-const EN_PRIVATE_GROWTH := 0.02    # supply added each year without you (private investment)
+const EN_PRIVATE_GROWTH := 0.02    # supply added each year without you (private investment) ...
+const EN_PRIVATE_SHARE := 0.5      # ... or this share of any rise in demand, whichever is more
 const EN_BUILD_SUPPLY := 0.6        # supply per unit of extra coverage of an energy build type
 const EN_MARGIN := 0.08             # spare capacity before blackouts begin
 const EN_BLACKOUT_GROWTH := 1.0     # growth lost at a 10 % shortfall
