@@ -55,6 +55,19 @@ static func items() -> Array:
 			out.append([Economy.MIN_EXPAND_MONTHS - (Game.months_played - int(Minerals.st().build[m])), "New %s mines open" % str(Minerals.ALL[m].title).to_lower(), "pickaxe", DS.GOLD, "industries"])
 	if Game.dip.has("nuke") and Nuclear.building():
 		out.append([roundi((1.0 - Nuclear.progress()) * float(Nuclear.st().prog.months)), "Nuclear programme complete", "atom", DS.RED, "diplomacy"])
+	for t in Treaties.ALL:
+		var pm := Treaties.pending_months(str(t.id))
+		if pm > 0:
+			out.append([pm, "Join the %s" % str(t.title), str(t.icon), DS.ACCENT, "diplomacy"])
+	if Game.dip.has("reg"):
+		for g in Regions.active():
+			if int(g.tension) > 0 and str(g.econ) != "capital":
+				out.append([maxi(Economy.REG_TENSION_MONTHS - int(g.tension), 0), "%s may demand a referendum" % str(g.name), "flag", DS.RED, "population"])
+	for id in c.laws:
+		var lw: Dictionary = c.laws[id]
+		if str(lw.get("state", "")) == "passing":
+			var info := Laws.law(str(id))
+			out.append([Laws.pending_months(c, str(id)), "%s becomes law" % (Laws.title_of(c, info) if not info.is_empty() else str(id)), "gavel", DS.GREEN, "laws"])
 	# The world's calendar.
 	var cop_year := Game.year if Game.year % 2 == 1 and Game.month <= 11 else (Game.year + (1 if Game.year % 2 == 0 else 2))
 	out.append([(cop_year - Game.year) * 12 + (11 - Game.month), "UN climate summit (COP)", "leaf", DS.GREEN, "diplomacy"])
