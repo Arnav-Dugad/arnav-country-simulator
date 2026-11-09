@@ -35,6 +35,14 @@ static func st() -> Dictionary:
 	return Game.dip.reg
 
 
+## A region's name mid-sentence: "the North", "the capital region".
+static func in_text(g: Dictionary) -> String:
+	var n := str(g.name)
+	if n.begins_with("The "):
+		return "the " + n.substr(4)
+	return "the " + n.to_lower()
+
+
 static func list() -> Array:
 	return st().list
 
@@ -186,7 +194,7 @@ static func fund(k: int) -> bool:
 	if not can_fund(g):
 		return false
 	g.fund = Game.months_played
-	Game.add_feed("A development fund for %s begins" % str(g.name).to_lower().trim_prefix("the "), "hand-coins", "accent")
+	Game.add_feed("A development fund for %s begins" % in_text(g), "hand-coins", "accent")
 	return true
 
 
@@ -216,7 +224,7 @@ static func crack(k: int) -> bool:
 	g.loyalty = maxf(float(g.loyalty) - 6.0, 0.0)
 	c.shocks.approval = float(c.shocks.approval) - 2.0
 	Press.apply_cred(-2.0)
-	Game.add_feed("Police move against separatists in %s" % str(g.name).to_lower().trim_prefix("the "), "shield-alert", "orange")
+	Game.add_feed("Police move against separatists in %s" % in_text(g), "shield-alert", "orange")
 	return true
 
 
@@ -237,7 +245,7 @@ static func demand_event(k: int) -> Dictionary:
 	return {"id": "secession", "title": "%s wants to leave" % str(g.name), "icon": "flag", "tint": "red", "other": -1,
 		"next": {}, "face": "", "scene_hint": "",
 		"body": "Separatists have won the regional election in %s and demand an independence referendum. %d%% of the country's people live there." % [
-			str(g.name).to_lower().trim_prefix("the ") if str(g.name).begins_with("The ") else str(g.name), roundi(float(g.share) * 100.0)],
+			in_text(g), roundi(float(g.share) * 100.0)],
 		"choices": choices}
 
 
@@ -306,7 +314,7 @@ static func apply(v: String) -> void:
 			var gg: Dictionary = list()[k]
 			if not fund_active(gg):
 				gg.fund = Game.months_played
-				Game.add_feed("A development fund for %s begins" % str(gg.name).to_lower().trim_prefix("the "), "hand-coins", "accent")
+				Game.add_feed("A development fund for %s begins" % in_text(gg), "hand-coins", "accent")
 		"talk":
 			g.loyalty = minf(float(g.loyalty) + 6.0, 100.0)
 			g.tension = 0

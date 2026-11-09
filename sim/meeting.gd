@@ -40,7 +40,7 @@ static func proposals() -> Array:
 	var w := Regions.weakest() if Game.dip.has("reg") else -1
 	if w >= 0 and float(Regions.list()[w].loyalty) < 52.0 and Regions.can_fund(Regions.list()[w]):
 		var g: Dictionary = Regions.list()[w]
-		out.append({"id": "fund:%d" % w, "post": "interior", "title": "A development fund for %s" % (("the " + str(g.name).substr(4)) if str(g.name).begins_with("The ") else ("the " + str(g.name).to_lower())),
+		out.append({"id": "fund:%d" % w, "post": "interior", "title": "A development fund for %s" % Regions.in_text(g),
 			"why": "%s feels left behind (loyalty %d, incomes %d%% of average). Three years of investment help it catch up." % [str(g.name), roundi(float(g.loyalty)), roundi(float(g.wealth) * 100.0)],
 			"cost": "%s a year for 3 years" % DS.money(gdp * Economy.REG_FUND_COST / 100.0)})
 	elif Game.dip.has("food") and not bool(Food.st().fill) and Food.self_sufficiency() < 80.0 and Food.reserve() < 4.0:

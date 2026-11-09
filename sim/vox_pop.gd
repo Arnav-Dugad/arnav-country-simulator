@@ -44,7 +44,7 @@ static func _candidates() -> Array:
 	if Game.dip.has("reg"):
 		var wk := Regions.weakest()
 		if wk >= 0 and float(Regions.list()[wk].loyalty) < 40.0:
-			out.append([(45.0 - float(Regions.list()[wk].loyalty)) / 2.0, "Nobody in the capital cares about %s. Maybe we'd be better off on our own." % str(Regions.list()[wk].name).to_lower().trim_prefix("the "), false])
+			out.append([(45.0 - float(Regions.list()[wk].loyalty)) / 2.0, "Nobody in the capital cares about %s. Maybe we'd be better off on our own." % Regions.in_text(Regions.list()[wk]), false])
 	if Game.dip.has("cx") and not CultureExports.recent(6).is_empty():
 		var h: Dictionary = CultureExports.recent(6)[-1]
 		out.append([5.0, "Everyone abroad is talking about “%s”. I've never been prouder." % str(h.title), true])
