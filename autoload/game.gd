@@ -613,6 +613,7 @@ func summary(reason: String = "") -> Dictionary:
 		"seceded": int(Regions.st().seceded) if dip.has("reg") else 0,
 		"disarmed": int(Nuclear.st().gave) > 0 and int(Nuclear.st().w) == 0 if dip.has("nuke") else false,
 		"learn_delta": Education.score() - float(Education.st().score0) if dip.has("edu") else 0.0,
+		"power_from": int(dip.get("power_start", 0)), "power_to": PowerIndex.rank() if not countries.is_empty() else 0,
 		"laws": c.laws.keys().filter(func(k: String) -> bool:
 			return Laws.is_active(c, k) and not c.laws_start.has(k)).size()}
 

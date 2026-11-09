@@ -2,6 +2,12 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.99.0] - 2026-11-09
+
+- **Coming up** also shows laws about to pass, treaties you're joining, and regions close to demanding a referendum
+- **The end of your term** shows how far you climbed in the world power ranking, and the wonders you built
+- **First-game checklist:** a sixth step that introduces the State of the nation dashboard
+
 ## [0.98.0] - 2026-11-09
 
 - **Search finds map layers:** type "air", "water", "online", "power", "schools" or "nuclear" to switch the map straight to that layer

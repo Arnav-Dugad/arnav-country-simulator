@@ -168,6 +168,10 @@ Weakest: %s" % str(worst[0]).to_lower()]
 	_stat(g, "Real growth / yr", DS.pct(float(data.avg_growth), 1))
 	_stat(g, "Debt / GDP", "%s → %s" % [DS.pct(float(data.debt_start), 0), DS.pct(float(data.debt_end), 0)])
 	_stat(g, "Final approval", DS.pct(float(data.approval), 0))
+	if int(data.get("power_from", 0)) > 0:
+		_stat(g, "World power rank", "#%d → #%d" % [int(data.power_from), int(data.power_to)])
+	if int(data.get("wonders", 0)) > 0:
+		_stat(g, "World wonders", str(int(data.wonders)))
 
 	var share := AppButton.make("Share my legacy", &"", "arrow-up-right")
 	share.custom_minimum_size = Vector2(0, 48)
