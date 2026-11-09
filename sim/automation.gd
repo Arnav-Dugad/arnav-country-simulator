@@ -44,6 +44,8 @@ static func pace() -> float:
 			p += E.AUTO_TECH_PACE
 	if bool(s.robot_tax):
 		p *= 1.0 - E.AUTO_ROBOT_TAX_SLOW
+	if Laws.is_active(c, "ai_safety"):
+		p *= 0.85
 	return p * clampf(1.0 - level() / 100.0, 0.05, 1.0)          # slows as the economy fills up
 
 

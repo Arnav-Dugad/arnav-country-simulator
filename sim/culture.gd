@@ -36,6 +36,9 @@ const LAW_LEAN := {
 	"police_reform": {"progress": 0.5},
 	"pension_age": {"progress": 0.2},
 	"universal_health": {"progress": 0.3},
+	"four_day_week": {"progress": 0.6},
+	"rent_control": {"progress": 0.3},
+	"plastic_ban": {"progress": 0.4, "openness": 0.1},
 }
 
 

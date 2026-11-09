@@ -2,6 +2,15 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.103.0] - 2026-11-09
+
+- **Five new laws** people argue about today, each with voter groups who love or hate it:
+  - A four-day work week: happier, a little less output; workers cheer, business objects
+  - A sugar tax
+  - Rent control: tenants and young voters love it, but builders put up fewer homes, so housing gets scarcer
+  - A single-use plastic ban
+  - AI safety rules: safer, but robots and AI spread a little slower
+
 ## [0.102.0] - 2026-11-09
 
 - **Foreign bases** (World › Security): lease land to a great power (the US, China, Russia, France, the UK, India or Türkiye)

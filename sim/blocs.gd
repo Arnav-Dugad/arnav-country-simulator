@@ -35,6 +35,11 @@ const LAW_FX := {
 	"border_control": {"retirees": 4.0, "rural": 3.0, "youth": -3.0},
 	"police_reform": {"youth": 4.0, "retirees": -1.0},
 	"free_elections": {"youth": 6.0, "workers": 2.0},
+	"four_day_week": {"workers": 6.0, "youth": 4.0, "business": -6.0},
+	"sugar_tax": {"retirees": 1.0, "workers": -2.0, "business": -2.0},
+	"rent_control": {"youth": 6.0, "workers": 3.0, "business": -5.0, "retirees": -1.0},
+	"plastic_ban": {"youth": 4.0, "business": -2.0},
+	"ai_safety": {"retirees": 2.0, "workers": 3.0, "business": -3.0},
 }
 
 

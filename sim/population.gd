@@ -85,6 +85,8 @@ static func housing_balance(c: CountryState) -> float:
 	var demand := E.POPC_URBAN_PRESSURE * float(s.get("urban_rate", 0.3)) \
 		+ E.POPC_POP_PRESSURE * (c.pop_growth + Migration.pop_effect(Migration.delta(c)))
 	var supply := E.POPC_PRIVATE_SUPPLY * (E.POPC_ZONING_MULT if bool(s.zoning) else 1.0)
+	if Laws.is_active(c, "rent_control") and not c.laws_start.has("rent_control"):
+		supply *= 0.75          # landlords and builders hold back
 	if not c.builds.is_empty():
 		supply += E.POPC_BUILD_SUPPLY * Builds.gain(c, "housing")
 	# Only changes count: every country's builders already keep up with its normal pace.
