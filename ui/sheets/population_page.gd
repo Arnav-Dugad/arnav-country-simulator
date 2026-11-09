@@ -23,7 +23,8 @@ func refresh() -> void:
 	for ch in _box.get_children():
 		ch.queue_free()
 	var s := Population.st()
-	var dp := c.population / maxf(float(s.pop0), 1.0) - 1.0
+	var p_start := World.stat(Game.player, "population", float(s.pop0))
+	var dp := c.population / maxf(p_start, 1.0) - 1.0
 	_box.add_child(photo_header("city", "%s people" % DS.compact(c.population), "%s since you took office  ·  %d%% live in cities" % [
 		("+" if dp >= 0.0 else "−") + "%s%%" % String.num(absf(dp) * 100.0, 1), roundi(Population.urban())], 140.0))
 	# At a glance: tap a tile to jump to its section.

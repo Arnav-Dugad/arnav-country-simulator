@@ -344,7 +344,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Your ministers", float(cx.get("stability", 0.0))],
 	]
 	var st := clampf(_sum(st_terms), 0.0, 100.0)
-	c.stability += (st - c.stability) * E.STABILITY_ADJUST
+	c.stability = clampf(c.stability + (st - c.stability) * E.STABILITY_ADJUST, 0.0, 100.0)
 
 	var mil := E.military_index(c.spending * c.budget.get("military", 0.0))
 	mil = clampf(mil + float(bx.get("mil", 0.0)) + float(tm.get("mil", 0.0)), 1.0, 100.0)    # forces built, technology

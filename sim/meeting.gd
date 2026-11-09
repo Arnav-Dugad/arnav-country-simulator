@@ -108,6 +108,8 @@ static func proposals() -> Array:
 ## The deficit or the debt is too high for new spending.
 static func tight() -> bool:
 	var c := Game.me()
+	if c.treasury > c.spending:
+		return false
 	return -c.balance_pct() > 5.0 or c.debt_pct() > maxf(100.0, float(Game.start_snapshot.get("debt_pct", 0.0)) + 15.0)
 
 

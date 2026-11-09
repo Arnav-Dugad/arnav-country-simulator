@@ -81,17 +81,23 @@ func _measure() -> void:
 	var tot := 0.0
 	var w := 0.0
 	var reg := {}
+	var world := 0.0
+	for c0 in Game.countries:
+		if c0 != null:
+			world += (c0 as CountryState).gdp
+	var cap := maxf(world * E.WORLD_CYCLE_WEIGHT_CAP, 1.0)
 	for i in Game.countries.size():
 		var c: CountryState = Game.countries[i]
 		if c == null:
 			continue
 		var gap := clampf(c.growth - c.growth_anchor, -8.0, 8.0)
-		tot += gap * c.gdp
-		w += c.gdp
+		var wt := minf(c.gdp, cap)
+		tot += gap * wt
+		w += wt
 		var sub: String = World.map.subregions[i]
 		var r: Array = reg.get(sub, [0.0, 0.0])
-		r[0] += gap * c.gdp
-		r[1] += c.gdp
+		r[0] += gap * wt
+		r[1] += wt
 		reg[sub] = r
 	world_cycle = tot / maxf(w, 1.0)
 	region_cycle = {}

@@ -105,9 +105,16 @@ static func spending_pct() -> float:
 	return p
 
 
+## How much richer the country is than its real 2026 income (0..1 scale).
+static func income_gain() -> float:
+	var pc := World.stat(Game.player, "gdp", 1e11) / maxf(World.stat(Game.player, "population", 1e7), 1.0)
+	return maxf(Economy.income_level(Game.me().gdp_per_capita()) - Economy.income_level(pc), 0.0)
+
+
 static func target() -> float:
 	var s := st()
 	var t := float(s.pm0) * pow(maxf(1.0 + Climate.change(Game.me()), 0.2), E.AIR_EMISSION_LINK)
+	t *= 1.0 - E.AIR_INCOME * income_gain()      # rich countries clean their air
 	for id in s.pol:
 		t *= 1.0 - float(POLICIES[id].cut)
 	return clampf(t, 2.0, 150.0)

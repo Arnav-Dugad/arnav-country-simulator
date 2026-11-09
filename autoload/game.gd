@@ -777,6 +777,16 @@ func to_dict() -> Dictionary:
 	}
 
 
+## Old saves (and heavy cheat use before the limits) can hold values the
+## simulation no longer allows: bring them back into range on load.
+func _repair(c: CountryState) -> void:
+	c.growth_anchor = clampf(c.growth_anchor, -5.0, Economy.ANCHOR_MAX)
+	c.trend = clampf(c.trend, -5.0, Economy.TREND_MAX)
+	c.stability = clampf(c.stability, 0.0, 100.0)
+	c.approval = clampf(c.approval, 0.0, 100.0)
+	c.happiness = clampf(c.happiness, 0.0, 100.0)
+
+
 func load_dict(d: Dictionary) -> bool:
 	var ver := int(d.get("version", 0))
 	if ver < 1 or ver > SAVE_VERSION:
@@ -792,6 +802,7 @@ func load_dict(d: Dictionary) -> bool:
 		if i >= 0:
 			countries[i] = CountryState.from_dict(cs[code])
 			countries[i].idx = i
+			_repair(countries[i])
 	player = p
 	calendar.reset()
 	calendar.year = int(d.year)

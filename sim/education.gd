@@ -74,7 +74,7 @@ static func _fresh() -> Dictionary:
 	var q := clampf(5.0 + 40.0 * lvl + 8.0 * size, 2.0, 95.0)
 	if UNI_RANK.has(iso):
 		q = -RANK_K * log(float(UNI_RANK[iso]) / 1000.0)
-	var e := {"score0": score, "score": score, "q0": q, "q": q, "fund": "current", "reforms": {}, "prize": -99}
+	var e := {"score0": score, "score": score, "q0": q, "q": q, "fund": "current", "reforms": {}, "prize": -99, "lvl0": lvl}
 	e["drain0"] = _drain_target(e, lvl)
 	e["drain"] = e.drain0
 	return e
@@ -181,9 +181,19 @@ static func cancel(id: String) -> void:
 	(st().reforms as Dictionary).erase(id)
 
 
+## How much richer the country is than when this system began (income level, 0..1 scale).
+static func income_gain() -> float:
+	var e := st()
+	if not e.has("lvl0"):
+		# Older saves: measure from the country's real 2026 income.
+		var pc := World.stat(Game.player, "gdp", 1e11) / maxf(World.stat(Game.player, "population", 1e7), 1.0)
+		e["lvl0"] = Economy.income_level(pc)
+	return maxf(Economy.income_level(Game.me().gdp_per_capita()) - float(e.lvl0), 0.0)
+
+
 static func score_target() -> float:
 	var e := st()
-	var t := float(e.score0) + E.EDU_SCORE_PER_SHARE * Game.me().share_delta("education")
+	var t := float(e.score0) + E.EDU_SCORE_PER_SHARE * Game.me().share_delta("education") + E.EDU_INCOME_SCORE * income_gain()
 	for id in e.reforms:
 		t += float(REFORMS[id].get("score", 0.0))
 	return clampf(t, 280.0, 590.0)
@@ -192,7 +202,7 @@ static func score_target() -> float:
 static func q_target() -> float:
 	var e := st()
 	var c := Game.me()
-	var t := float(e.q0) + float(FUNDING_INFO[str(e.fund)].q) + E.EDU_Q_PER_RESEARCH * c.share_delta("research")
+	var t := float(e.q0) + float(FUNDING_INFO[str(e.fund)].q) + E.EDU_Q_PER_RESEARCH * c.share_delta("research") + E.EDU_INCOME_Q * income_gain()
 	if not c.builds.is_empty():
 		t += 8.0 * Builds.coverage_of(c, "university", float(Builds.count(c, "university")))
 	if Projects.is_done(c, "universities"):

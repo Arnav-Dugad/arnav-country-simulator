@@ -118,6 +118,14 @@ const DEBT_EROSION_FLOOR := 3.0
 const HAPPY_ADJUST := 0.06
 const APPROVAL_ADJUST := 0.10
 const STABILITY_ADJUST := 0.05
+const ANCHOR_MAX := 15.0          # highest underlying growth any economy can be expected to keep up
+const TREND_MAX := 12.0
+const WORLD_CYCLE_WEIGHT_CAP := 0.35  # no single economy counts for more than this share of the world cycle (only runaway economies hit it)
+const EDU_INCOME_SCORE := 105.0   # learning-score points as a country goes from poorest to richest
+const EDU_INCOME_Q := 30.0        # university quality, same
+const HLTH_INCOME_UHC := 25.0     # health coverage points, same
+const HLTH_INCOME_DOCS := 3.0     # doctors per 1,000, same
+const AIR_INCOME := 0.6           # share of fine dust a country sheds going from poorest to richest (cleaner tech, rules)
 ## Happiness inputs (relative to start).
 ## Service effects compare policy effort (spending % of GDP x budget share) with the start.
 const HEALTH_HAPPY := 9.0        # per doubling of health effort

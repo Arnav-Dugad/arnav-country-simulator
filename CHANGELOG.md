@@ -2,6 +2,18 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.108.0] - 2026-11-09
+
+Fixes from playtesting a real 49-year save (India, 2026–2075):
+
+- **Fix:** an economy far bigger than the rest of the world no longer drags everyone's numbers around. Your own boom used to count as the "world economy", so approval and jobs suffered from a phantom world slump
+- **Fix:** stability, happiness and approval can no longer go above 100
+- **Fix:** the Economic miracle cheat stops at a believable limit instead of stacking forever; older saves are brought back into range when loaded
+- **Fix:** the world power ranking now weighs your share of the world economy, so a country 30 times richer than the US ranks first
+- **Fix:** the finance ministry no longer calls the budget "stretched" when the treasury could pay a whole year of spending
+- **Fix:** People & society compares your population with when you took office, not with when the page first appeared
+- **Richer countries now get cleaner air, better schools and universities, and more doctors over time**, as real countries do
+
 ## [0.107.0] - 2026-11-09
 
 - **First-visit tips** for People & society, Industries, State of the nation, Wealth & firms and Tourism: a short pointer to what each page is for and where to tap first

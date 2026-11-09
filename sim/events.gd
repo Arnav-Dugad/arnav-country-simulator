@@ -1112,6 +1112,8 @@ static func apply_effects(fx: Dictionary, other: int, ev_id: String = "") -> voi
 				if (x > 0.0) == bool(_BAD_UP[k]):    # harmful part scales with difficulty
 					x *= sev * soften
 				c.set(k, float(c.get(k)) + x * 0.5)
+				if k in ["happiness", "approval", "stability"]:
+					c.set(k, clampf(float(c.get(k)), 0.0, 100.0))
 				c.shocks[k] = float(c.shocks[k]) + x
 			"cost":
 				c.treasury -= c.gdp * float(v) / 100.0 * (sev if float(v) > 0.0 else 1.0)

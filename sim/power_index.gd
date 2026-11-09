@@ -4,12 +4,28 @@ extends RefCounted
 ## economy, its military, its soft power, nuclear weapons and its people's
 ## skills. A league table to climb; your starting rank is remembered.
 
+static var _wg := 0.0
+static var _wg_m := -1
+
+
+static func _world_gdp() -> float:
+	if _wg_m != Game.months_played or _wg <= 0.0:
+		_wg = 0.0
+		for c in Game.countries:
+			if c != null:
+				_wg += (c as CountryState).gdp
+		_wg_m = Game.months_played
+	return _wg
+
+
 ## Score for country i.
 static func score(i: int) -> float:
 	var c: CountryState = Game.state(i)
 	if c == null or World.is_absorbed(i):
 		return 0.0
-	var econ := clampf((log(maxf(c.gdp, 1e9)) / log(10.0) - 9.0) / 4.5, 0.0, 1.0)     # $1B .. $30T
+	var size := clampf((log(maxf(c.gdp, 1e9)) / log(10.0) - 9.0) / 4.5, 0.0, 1.0)     # $1B .. $30T
+	var share := clampf(sqrt(c.gdp / maxf(_world_gdp(), 1.0) / 0.25), 0.0, 1.0)       # a quarter of the world = full marks
+	var econ := 0.5 * size + 0.5 * share
 	var mil := clampf(c.military / 100.0, 0.0, 1.0)
 	var soft := clampf((Tourism.soft_power(i, i == Game.player) if Game.dip.has("tour") else 30.0) / 100.0, 0.0, 1.0)
 	var nuke := clampf(log(float(Nuclear.warheads(i)) + 1.0) / log(6000.0), 0.0, 1.0)

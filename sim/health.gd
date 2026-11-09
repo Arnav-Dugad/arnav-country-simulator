@@ -56,7 +56,7 @@ static func _fresh() -> Dictionary:
 	var uhc := float(UHC.get(iso, clampf(32.0 + 56.0 * lvl, 25.0, 90.0)))
 	var docs := float(DOCS.get(iso, clampf(0.15 + 3.6 * pow(lvl, 1.3), 0.1, 5.5)))
 	var wait := clampf(18.0 - 10.0 * lvl, 6.0, 20.0)
-	return {"uhc0": uhc, "uhc": uhc, "docs0": docs, "docs": docs, "wait0": wait, "wait": wait,
+	return {"uhc0": uhc, "uhc": uhc, "docs0": docs, "docs": docs, "wait0": wait, "wait": wait, "lvl0": lvl,
 		"old0": Ageing.share(c) if c != null else 10.0, "train": "current", "abroad": false, "drugs": "market", "pipe": []}
 
 
@@ -102,10 +102,19 @@ static func in_training() -> float:
 	return n
 
 
+## How much richer the country is than when this system began.
+static func income_gain() -> float:
+	var s := st()
+	if not s.has("lvl0"):
+		var pc := World.stat(Game.player, "gdp", 1e11) / maxf(World.stat(Game.player, "population", 1e7), 1.0)
+		s["lvl0"] = Economy.income_level(pc)
+	return maxf(Economy.income_level(Game.me().gdp_per_capita()) - float(s.lvl0), 0.0)
+
+
 static func uhc_target() -> float:
 	var s := st()
 	var c := Game.me()
-	var t := float(s.uhc0) + E.HLTH_UHC_PER_SHARE * c.share_delta("health")
+	var t := float(s.uhc0) + E.HLTH_UHC_PER_SHARE * c.share_delta("health") + E.HLTH_INCOME_UHC * income_gain()
 	if Laws.is_active(c, "universal_health") and not c.laws_start.has("universal_health"):
 		t += 10.0
 	t += 6.0 * (docs() / maxf(float(s.docs0), 0.05) - 1.0)
@@ -140,6 +149,10 @@ static func monthly() -> void:
 	s.pipe = keep
 	if bool(s.abroad):
 		s.docs = float(s.docs) + float(s.docs0) * E.HLTH_ABROAD_RATE / 12.0
+	# A richer country trains and pays more doctors, slowly.
+	var rich_docs := float(s.docs0) + E.HLTH_INCOME_DOCS * income_gain()
+	if float(s.docs) < rich_docs:
+		s.docs = float(s.docs) + (rich_docs - float(s.docs)) * 0.01
 	# Retirements slowly thin out a larger workforce back towards what the budget can pay for.
 	s.docs = float(s.docs) - (float(s.docs) - float(s.docs0)) * 0.002
 	s.uhc = float(s.uhc) + (uhc_target() - float(s.uhc)) * 0.03

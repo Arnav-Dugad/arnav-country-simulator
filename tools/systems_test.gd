@@ -59,6 +59,21 @@ func _run() -> void:
 	Regions._secede(2, 60.0)
 	_check(absf(Game.me().population / p0 - (1.0 - sh)) < 0.005, "two secessions remove the right population")
 
+	# Long, cheat-heavy saves: values come back into range on load and stay there.
+	Game.new_game(World.index_of("IND"), 7)
+	var dd: Dictionary = JSON.parse_string(JSON.stringify(Game.to_dict()))
+	var me: Dictionary = dd.countries.IND
+	me.growth_anchor = 53.0
+	me.trend = 46.0
+	me.stability = 104.0
+	Game.load_dict(dd)
+	_check(Game.me().growth_anchor <= Economy.ANCHOR_MAX and Game.me().trend <= Economy.TREND_MAX, "runaway growth paths are capped on load")
+	_check(Game.me().stability <= 100.0, "stability is capped on load")
+	for k in 3:
+		GameEvents.apply_effects({"stability": 30.0, "happiness": 30.0}, -1)
+		Game.advance_month()
+	_check(Game.me().stability <= 100.0 and Game.me().happiness <= 100.0, "events can't push stability or happiness past 100")
+
 	# Save / load round trip, then keep playing.
 	Game.new_game(World.index_of("EGY"), 7)
 	Capital.add(80.0)

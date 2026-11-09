@@ -345,8 +345,8 @@ static var CATEGORIES := [
 	["Economy", [
 		["Economic miracle", "trending-up", "Growth +3 points for years", DS.GREEN, func() -> void:
 			var m := Game.me()
-			m.growth_anchor += 3.0
-			m.trend += 1.0],
+			m.growth_anchor = minf(m.growth_anchor + 3.0, Economy.ANCHOR_MAX)
+			m.trend = minf(m.trend + 1.0, Economy.TREND_MAX)],
 		["Stable prices", "flame", "Inflation back to 2%", DS.ORANGE, func() -> void:
 			var m := Game.me()
 			m.inflation = 2.0
