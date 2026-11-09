@@ -81,6 +81,12 @@ jobs:
           ~/godot/godot --headless --path . res://tools/challenge_test.tscn 2>&1 | tee chall.log
           grep -q "CHALLENGE TEST OK" chall.log
 
+      - name: Society, resource and power systems (data seeds, saves, exploit guards)
+        run: |
+          ~/godot/godot --headless --path . res://tools/systems_test.tscn 2>&1 | tee systems.log
+          grep -q "SYSTEMS TEST OK" systems.log
+          ! grep -E "SCRIPT ERROR" systems.log
+
       - name: Swipes reach scroll views (GUI test in a virtual display)
         run: |
           sudo apt-get install -y -qq xvfb libgl1-mesa-dri > /dev/null
