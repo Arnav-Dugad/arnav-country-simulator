@@ -185,6 +185,8 @@ func _tile(icon: String, color: Color, head: String, value: String, sub: String)
 # ------------------------------------------------------------------- regions ---
 func _regions() -> void:
 	var rb := section("Regions", _box)
+	if not is_open("Regions"):
+		return
 	var regs := Regions.list()
 	var u := Regions.unity()
 	note("Each region has its own wealth and loyalty. The capital pulls ahead unless you invest elsewhere; poor or neglected regions, and regions with their own identity, drift away. Tap a region to act.", rb)
@@ -297,6 +299,8 @@ func _region_actions(k: int) -> void:
 # ---------------------------------------------------- schools & universities ---
 func _education() -> void:
 	var eb := section("Schools & universities", _box)
+	if not is_open("Schools & universities"):
+		return
 	var e := Education.st()
 	var c := Game.me()
 	var g := grid(eb, 2)
@@ -373,6 +377,8 @@ func _education() -> void:
 # ------------------------------------------------------------- health system ---
 func _health() -> void:
 	var hb := section("Health system", _box)
+	if not is_open("Health system"):
+		return
 	var s := Health.st()
 	var c := Game.me()
 	var g := grid(hb, 3 if Settings.text_scale < 1.0 else 2)
@@ -429,6 +435,8 @@ func _health() -> void:
 # ---------------------------------------------------- diaspora & remittances ---
 func _diaspora() -> void:
 	var db := section("Diaspora & remittances", _box)
+	if not is_open("Diaspora & remittances"):
+		return
 	var s := Diaspora.st()
 	var c := Game.me()
 	var r := Diaspora.rate()
@@ -486,6 +494,8 @@ func _diaspora() -> void:
 # --------------------------------------------------------------- air quality ---
 func _air() -> void:
 	var ab := section("Air quality", _box)
+	if not is_open("Air quality"):
+		return
 	var s := Air.st()
 	var v := Air.pm()
 	var d := v - float(s.pm0)

@@ -180,15 +180,15 @@ func refresh() -> void:
 		return
 	_fill_capital()
 	_fill_glance()
-	_fill_cabinet()
-	_fill_clean()
-	_fill_media()
-	_fill_crime()
-	_fill_black()
+	fill_if_open("Your cabinet", _fill_cabinet)
+	fill_if_open("Clean government", _fill_clean)
+	fill_if_open("Media & propaganda", _fill_media)
+	fill_if_open("Crime & justice", _fill_crime)
+	fill_if_open("Black market & smuggling", _fill_black)
 	_fill_hos()
-	_fill_const()
-	_fill_fac()
-	_fill_cult()
+	fill_if_open("Constitution", _fill_const)
+	fill_if_open("Power brokers", _fill_fac)
+	fill_if_open("Culture & values", _fill_cult)
 	var active := 0
 	var passing := 0
 	for l in Laws.ALL:

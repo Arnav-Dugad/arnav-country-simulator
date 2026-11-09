@@ -55,6 +55,12 @@ func is_open(header: String) -> bool:
 	return bool(saved[k]) if saved.has(k) else header in open_sections
 
 
+## Builds a folded section's content only while it is open (saves work on every refresh).
+func fill_if_open(header: String, fill: Callable) -> void:
+	if not collapsible or is_open(header):
+		fill.call()
+
+
 func set_open(header: String, on: bool) -> void:
 	var saved: Dictionary = (Settings.get_value("sections_open", {}) as Dictionary).duplicate()
 	saved[_fold_key(header)] = on
@@ -66,6 +72,8 @@ func set_open(header: String, on: bool) -> void:
 		var chev := wrap.get_child(0).get_child(1) as TextureRect if wrap.get_child(0).get_child_count() > 1 else null
 		if chev:
 			chev.texture = DS.icon("chevron-down" if on else "chevron-right")
+	if on:
+		refresh()      # fill what was skipped while folded
 
 
 func section(header: String, parent: Control = self) -> VBoxContainer:

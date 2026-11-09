@@ -2,6 +2,16 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.109.0] - 2026-11-09
+
+- **Shorter, calmer pages:** on Laws, World, People & society and Industries, sections fold to a single title until you tap them
+  - The essentials start open, and the app remembers what you open
+  - Jump chips, search and the tiles at the top open a section for you
+  - Laws went from 14 screens to under 10, World from 11 to 7, People and Industries from 5 to under 3
+- **Your regions on the map:** zoom in on your country to see each home region's marker in its loyalty colour, with a pulse on regions that want to leave
+- **Sandbox games are marked:** once cheats are used, the top bar, your save slots and the final screen say so, and explain that the game doesn't count toward achievements, career or leaderboards
+- **Faster:** World and Laws refresh about a third faster, and People & society and Industries nearly twice as fast, because folded sections aren't built until opened
+
 ## [0.108.0] - 2026-11-09
 
 Fixes from playtesting a real 49-year save (India, 2026–2075):

@@ -158,6 +158,8 @@ func _automation() -> void:
 	var s := Automation.st()
 	var c := Game.me()
 	var box := section("Robots & AI", _box)
+	if not is_open("Robots & AI"):
+		return
 	var lv := Automation.level()
 	var disp := float(s.displaced)
 	var r := HBoxContainer.new()
@@ -204,6 +206,8 @@ func _automation() -> void:
 # ------------------------------------------------------------- food security ---
 func _food() -> void:
 	var fb := section("Food security", _box)
+	if not is_open("Food security"):
+		return
 	var s := Food.st()
 	var c := Game.me()
 	var ss := Food.self_sufficiency()
@@ -286,6 +290,8 @@ func _food_tile(icon: String, color: Color, head: String, value: String, sub: St
 # ---------------------------------------------------------- critical minerals ---
 func _minerals() -> void:
 	var box := section("Critical minerals", _box)
+	if not is_open("Critical minerals"):
+		return
 	var mine := Minerals.mine_list()
 	note("Batteries, wind turbines and chips need a handful of minerals, and a few countries mine most of them. Demand climbs as the world electrifies." +
 		("" if not mine.is_empty() else "  You produce none yet: a survey may find some."), box)
@@ -377,6 +383,8 @@ func _fisheries() -> void:
 	if not Fisheries.coastal():
 		return
 	var box := section("Fisheries & oceans", _box)
+	if not is_open("Fisheries & oceans"):
+		return
 	var s := Fisheries.st()
 	var v := Fisheries.stock()
 	var d := v - float(s.stock0)
@@ -417,6 +425,8 @@ func _fisheries() -> void:
 # ------------------------------------------------------------ digital nation ---
 func _digital_nation() -> void:
 	var box := section("Digital nation", _box)
+	if not is_open("Digital nation"):
+		return
 	var s := Digital.st()
 	var c := Game.me()
 	var net := Digital.online()
