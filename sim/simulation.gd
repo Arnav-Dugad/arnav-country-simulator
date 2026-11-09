@@ -55,6 +55,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 	var mnx: Dictionary = Minerals.modifiers() if c.idx == Game.player and Game.has_game() else {}
 	var fsx: Dictionary = Fisheries.modifiers() if c.idx == Game.player and Game.has_game() else {}
 	var dnx: Dictionary = Digital.modifiers() if c.idx == Game.player and Game.has_game() else {}
+	var bsx: Dictionary = Bases.modifiers() if c.idx == Game.player and Game.has_game() else {}
 	var anx: Dictionary = Annexation.unrest() if c.idx == Game.player and Game.has_game() and Game.dip.has("integration") else {}
 	var wx: Dictionary = War.effects() if c.idx == Game.player and Game.has_game() and War.at_war() else {}
 	var mx := Game.markets.effects(c)
@@ -304,6 +305,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["Remittances", float(dsx.get("approval", 0.0))],
 		["Digital money", float(dgx.get("approval", 0.0))],
 		["Fisheries", float(fsx.get("approval", 0.0))],
+		["Foreign base", float(bsx.get("approval", 0.0))],
 		["Your ministers", float(cx.get("approval", 0.0))],
 		["Media", float(mdx.get("approval", 0.0))],
 	]
@@ -330,6 +332,7 @@ static func tick(c: CountryState, rng: RandomNumberGenerator, record: bool = fal
 		["World wonders", float(wnx.get("stability", 0.0))],
 		["Regions", float(rgx.get("stability", 0.0))],
 		["Sea lanes", float(slx.get("stability", 0.0))],
+		["Foreign base", float(bsx.get("stability", 0.0))],
 		["Media", float(mdx.get("stability", 0.0))],
 		["War", float(wx.get("stability", 0.0))],
 		["Integrating new lands", float(anx.get("stability", 0.0))],
@@ -414,6 +417,8 @@ static func update_finances(c: CountryState) -> void:
 		market_rev += Digital.revenue_pct()
 	if c.idx == Game.player and Game.has_game() and Game.dip.has("tour"):
 		market_rev += Tourism.tax_revenue_pct()
+	if c.idx == Game.player and Game.has_game() and Game.dip.has("bases"):
+		market_rev += Bases.revenue_pct()
 	var extra_tax := Taxes.total_pct(c) if not c.taxes.is_empty() else 0.0
 	c.revenue = c.gdp * (rate + (c.other_rev_pct + extra_tax + float(lx.get("revenue", 0.0)) + market_rev) / 100.0) * cycle
 	c.spending = c.gdp * (c.spending_pct + float(lx.get("cost", 0.0)) + Projects.spending_pct(c) + Ageing.pension_cost(c)

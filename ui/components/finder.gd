@@ -43,6 +43,7 @@ const INDEX := [
 	["Critical minerals", "industries", "Critical minerals", "battery-charging", "minerals lithium cobalt rare earths nickel copper mines mining survey refine export ban"],
 	["Fisheries & oceans", "industries", "Fisheries & oceans", "fish", "fish fishing fisheries ocean sea quota marine protected areas stocks"],
 	["Food security", "industries", "Food security", "wheat", "food farming farms grain reserve harvest subsidies export ban hunger"],
+	["Foreign bases", "diplomacy", "Security", "shield", "military base foreign troops lease rent guantanamo djibouti"],
 	["World powers", "diplomacy", "World powers", "crown", "power ranking superpower league table strongest countries"],
 	["Sea lanes", "diplomacy", "Sea lanes", "ship", "sea lanes shipping suez panama hormuz malacca canal strait navy escort tolls"],
 	["Water", "diplomacy", "Water", "droplets", "water drought rivers dams desalination irrigation shortage nile indus mekong"],

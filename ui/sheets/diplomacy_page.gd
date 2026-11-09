@@ -407,6 +407,57 @@ func _fill_security() -> void:
 	_stat_line(_security, "shield", col, Security.LEVEL_TEXT[lv],
 		"Threat %d  ·  your deterrence %d" % [roundi(float(s.threat)), roundi(float(s.deterrence))])
 	note(Security.describe(), _security)
+	_fill_bases()
+
+
+func _fill_bases() -> void:
+	var t := Bases.tenant()
+	if t != "":
+		var i := World.index_of(t)
+		var row := ListRow.new().setup("%s base" % World.map.names[i], "Rent %s a year  ·  guards you  ·  some people resent it" % DS.money(Game.me().gdp * Bases.rent_pct() / 100.0), "›")
+		row.subtitle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		row.subtitle_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+		row.set_leading(Flag.new().show_country(i, 22.0))
+		row.tapped.connect(func() -> void:
+			var m := ModalCard.new()
+			get_tree().current_scene.add_child(m)
+			m.header("shield", DS.ORANGE, "Foreign base", "Send %s's soldiers home?" % World.map.names[i])
+			m.body("You lose the rent and the protection, and %s will be furious." % World.the_name(i))
+			m.choice("End the lease", "", &"DestructiveButton", func() -> void:
+				Bases.evict()
+				Simulation.update_finances(Game.me())
+				Haptics.warning()
+				m.dismiss()
+				refresh())
+			m.choice("Keep it", "", &"GhostButton", m.dismiss))
+		_security.add_child(row)
+		return
+	var why := Bases.blocked()
+	var b := AppButton.make("Host a foreign base  ·  %s a year" % DS.money(Game.me().gdp * Bases.rent_pct() / 100.0), &"", "shield")
+	b.disabled = why != ""
+	b.pressed.connect(_base_offers)
+	_security.add_child(b)
+	note(why + "." if why != "" else "A great power pays rent and guards you; its rivals cool on you, and some of your people resent foreign soldiers.", _security)
+
+
+func _base_offers() -> void:
+	var m := ModalCard.new()
+	get_tree().current_scene.add_child(m)
+	m.header("shield", DS.ACCENT, "Foreign base", "Who should build it?")
+	m.body("Rent: about %s a year. %d political capital." % [DS.money(Game.me().gdp * Bases.rent_pct() / 100.0), int(Economy.BASE_CAPITAL)])
+	for i in Bases.offers():
+		var ii: int = i
+		var camp := Treaties.base_camp(ii)
+		var c := m.choice(World.map.names[ii], ("The %s camp will cool on you" % ("Russia–China" if camp == "west" else "Western")) if camp != "south" else "Few will mind", &"GhostButton", func() -> void:
+			if Bases.lease(ii):
+				Simulation.update_finances(Game.me())
+				Haptics.success()
+			m.dismiss()
+			refresh())
+		if not Capital.can(Economy.BASE_CAPITAL):
+			for bb in c.find_children("*", "Button", true, false):
+				(bb as Button).disabled = true
+	m.choice("Not now", "", &"GhostButton", m.dismiss)
 
 
 func _fill_climate() -> void:

@@ -2,6 +2,13 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.102.0] - 2026-11-09
+
+- **Foreign bases** (World › Security): lease land to a great power (the US, China, Russia, France, the UK, India or Türkiye)
+  - The tenant pays rent, which is worth far more to a small, strategic country like Djibouti, and guards you: your deterrence rises with its army
+  - Its rival camp cools on you, and some of your own people resent foreign soldiers
+  - End the lease any time, but the tenant will be furious
+
 ## [0.101.0] - 2026-11-09
 
 - **Fix:** a cabinet meeting no longer un-pauses a game you had paused

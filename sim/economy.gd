@@ -559,6 +559,17 @@ const TOUR_BID_MONTHS := 12        # from bid to vote
 const TOUR_SOFT_RELATIONS := 0.01  # relations a month with everyone per soft power point gained
 
 
+# ------------------------------------------------------------- foreign bases ---
+# See sim/bases.gd.
+const BASE_RENT := 0.25             # % of GDP rent for a $100B economy (more for smaller, strategic ones)
+const BASE_MIN_RELATION := 15.0     # a power only asks a friend
+const BASE_CAPITAL := 15.0
+const BASE_FRIEND := 15.0           # relations with the tenant
+const BASE_RIVAL := 6.0             # relations lost with the tenant's rival camp
+const BASE_EVICT := 25.0            # relations lost with the tenant when you end the lease
+const BASE_DETER := 0.4             # share of the tenant's military that counts toward your deterrence
+
+
 # ---------------------------------------------------------- cultural exports ---
 # See sim/culture_exports.gd.
 const CX_LASTS := 36                # months a hit keeps lifting soft power
