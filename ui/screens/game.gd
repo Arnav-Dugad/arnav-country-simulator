@@ -254,6 +254,11 @@ const COACH := {
 	"build": ["Build anything, by the number", "Start with Best value now, or open a category and tap anything to choose how many to build. Keep your builders under capacity, and rush the batches you need sooner."],
 	"laws": ["Political capital", "The goodwill you spend on reforms, reshuffles and crackdowns. It grows every month with public support. Below: your cabinet, then every law with its cost and who will cheer or boo."],
 	"diplomacy": ["Where you stand in the world", "Your world rank in a few key numbers. Scroll for your rival, markets, climate and every country's attitude to you."],
+	"population": ["Your people at a glance", "Regions, hospital waits, air, schools, births and homes. Tap a tile to jump to it; the chips below go to every section."],
+	"industries": ["What your economy makes", "Minerals, food, fish, robots and how many people are online. Tap a tile to jump there."],
+	"dashboard": ["Everything in one place", "Every important number with its trend. Tap a tile to act on it; at the bottom, explore the full history of any of them."],
+	"firms": ["Money and markets", "The stock market, your wealth fund, digital money and the companies the state owns."],
+	"tourism": ["How the world sees you", "Soft power and tourism. Below: worldwide hits from your country, world events to host and heritage sites to nominate."],
 }
 
 
@@ -275,6 +280,13 @@ func _maybe_coach(page: String) -> void:
 		if ch is Control and (ch as Control).visible and not (ch is Photo or ch is Illustration):
 			target = ch
 			break
+	# A page built inside one big box: point at its first real card instead.
+	if target is VBoxContainer and target.size.y > 400.0:
+		for ch in target.get_children():
+			if ch is Control and (ch as Control).visible and not (ch is Photo or ch is Illustration or ch.get_class() == "Control"):
+				if (ch as Control).size.y > 40.0:
+					target = ch
+					break
 	var prev := Game.speed
 	Game.set_speed(0)
 	var g := Guide.new()

@@ -2,6 +2,10 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.107.0] - 2026-11-09
+
+- **First-visit tips** for People & society, Industries, State of the nation, Wealth & firms and Tourism: a short pointer to what each page is for and where to tap first
+
 ## [0.106.0] - 2026-11-09
 
 - **Search finds every law:** type "rent", "sugar" or "four-day" and jump straight to it on the Laws page
