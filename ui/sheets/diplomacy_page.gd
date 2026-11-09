@@ -15,6 +15,8 @@ var _mode := 0
 func _init() -> void:
 	super._init()
 	title = "World"
+	collapsible = true
+	open_sections = ["World powers", "Your rival", "At war", "Wars around the world", "Treaties & blocs"]
 
 
 func _build() -> void:

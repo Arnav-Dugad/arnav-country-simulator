@@ -8,6 +8,8 @@ var _box: VBoxContainer
 func _init() -> void:
 	super._init()
 	title = "People & society"
+	collapsible = true
+	open_sections = ["Regions", "Health system"]
 
 
 func _build() -> void:

@@ -11,6 +11,8 @@ var _mode := 0   # 0 all, 1 in force, 2 not yet
 func _init() -> void:
 	super._init()
 	title = "Laws"
+	collapsible = true
+	open_sections = ["Your cabinet", "Health & society", "Economy", "Environment", "Security & governance"]
 
 
 var _cabinet: VBoxContainer
@@ -789,7 +791,8 @@ func _fill_hos() -> void:
 		ch.queue_free()
 	var s := HeadOfState.st()
 	var royal := bool(s.royal)
-	_hos.get_parent().get_parent().get_child(0).set(&"text", ("ROYAL FAMILY" if royal else "FIRST FAMILY"))
+	var hh: Node = _hos.get_parent().get_parent().get_child(0)
+	(hh.get_child(0) if hh is HBoxContainer else hh).set(&"text", ("ROYAL FAMILY" if royal else "FIRST FAMILY"))
 	var m: Dictionary = s.monarch
 	var pop := HeadOfState.pop()
 	var col := DS.GREEN if pop >= 60.0 else (DS.ORANGE if pop >= 40.0 else DS.RED)

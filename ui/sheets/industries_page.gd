@@ -9,6 +9,8 @@ var _box: VBoxContainer
 func _init() -> void:
 	super._init()
 	title = "Industries"
+	collapsible = true
+	open_sections = ["Your economy, sector by sector", "Digital nation"]
 
 
 func _build() -> void:

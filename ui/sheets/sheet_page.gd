@@ -35,19 +35,91 @@ func on_open() -> void:
 var _sections := {}      # header -> wrapper (for "Find anything" and the jump bar)
 
 
+## Long pages fold their sections: only the title shows until tapped. Headers in
+## `open_sections` start open; the player's choices are remembered.
+var collapsible := false
+var open_sections: Array = []
+## Tests: show every section's content.
+static var unfold_all := false
+
+
+func _fold_key(header: String) -> String:
+	return "%s/%s" % [title, header]
+
+
+func is_open(header: String) -> bool:
+	if unfold_all:
+		return true
+	var saved: Dictionary = Settings.get_value("sections_open", {})
+	var k := _fold_key(header)
+	return bool(saved[k]) if saved.has(k) else header in open_sections
+
+
+func set_open(header: String, on: bool) -> void:
+	var saved: Dictionary = (Settings.get_value("sections_open", {}) as Dictionary).duplicate()
+	saved[_fold_key(header)] = on
+	Settings.set_value("sections_open", saved)
+	var wrap: Control = _sections.get(header)
+	if wrap != null and is_instance_valid(wrap) and wrap.get_child_count() >= 2:
+		var card := wrap.get_child(wrap.get_child_count() - 1) as Control
+		card.visible = on
+		var chev := wrap.get_child(0).get_child(1) as TextureRect if wrap.get_child(0).get_child_count() > 1 else null
+		if chev:
+			chev.texture = DS.icon("chevron-down" if on else "chevron-right")
+
+
 func section(header: String, parent: Control = self) -> VBoxContainer:
 	var wrap := VBoxContainer.new()
 	wrap.add_theme_constant_override(&"separation", DS.S2)
 	parent.add_child(wrap)
 	if header != "":
 		_sections[header] = wrap
-	if header != "":
+	var folds := collapsible and header != ""
+	if folds:
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override(&"separation", DS.S2)
+		row.mouse_filter = Control.MOUSE_FILTER_PASS
+		row.custom_minimum_size = Vector2(0, 34)
+		var h := Label.new()
+		h.theme_type_variation = &"Overline"
+		h.text = header.to_upper()
+		h.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		h.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		h.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.add_child(h)
+		var chev := TextureRect.new()
+		chev.texture = DS.icon("chevron-down" if is_open(header) else "chevron-right")
+		chev.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		chev.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		chev.custom_minimum_size = Vector2(16, 16)
+		chev.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		chev.modulate = DS.TEXT_3
+		chev.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.add_child(chev)
+		var st := {"p": Vector2.ZERO, "down": false}
+		var hh := header
+		row.gui_input.connect(func(e: InputEvent) -> void:
+			if e is InputEventMouseButton and e.button_index == MOUSE_BUTTON_LEFT:
+				if e.pressed:
+					st.p = e.global_position
+					st.down = true
+				elif st.down:
+					st.down = false
+					if e.global_position.distance_to(st.p) < 10.0:
+						Haptics.tap()
+						set_open(hh, not is_open(hh))
+			elif e is InputEventMouseMotion and st.down and e.global_position.distance_to(st.p) >= 10.0:
+				st.down = false)
+		wrap.add_child(row)
+	elif header != "":
 		var h := Label.new()
 		h.theme_type_variation = &"Overline"
 		h.text = header.to_upper()
 		wrap.add_child(h)
 	var card := PanelContainer.new()
 	card.theme_type_variation = &"GroupPanel"
+	if folds:
+		card.visible = is_open(header)
 	wrap.add_child(card)
 	var inner := VBoxContainer.new()
 	inner.add_theme_constant_override(&"separation", DS.S3)
@@ -245,6 +317,9 @@ func scroll_to_section(header: String) -> void:
 	var gs := get_tree().current_scene
 	if wrap == null or not is_instance_valid(wrap) or gs == null or not ("_scroll" in gs):
 		return
+	if collapsible and not is_open(header):
+		set_open(header, true)
+		await get_tree().process_frame
 	if not wrap.is_visible_in_tree():
 		return
 	var sc: ScrollContainer = gs._scroll

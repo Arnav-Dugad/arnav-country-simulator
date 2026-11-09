@@ -9,6 +9,7 @@ const VIEW_W := 390.0
 
 func _ready() -> void:
 	get_window().size = Vector2i(390, 866)
+	SheetPage.unfold_all = true
 	Game.new_game(World.index_of("USA"), 1)
 	var game: Node = load("res://ui/screens/game.tscn").instantiate()
 	add_child(game)
