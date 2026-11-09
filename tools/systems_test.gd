@@ -59,6 +59,16 @@ func _run() -> void:
 	Regions._secede(2, 60.0)
 	_check(absf(Game.me().population / p0 - (1.0 - sh)) < 0.005, "two secessions remove the right population")
 
+	# Power adds up: building far beyond the old "coverage" still adds supply.
+	Game.new_game(World.index_of("IND"), 7)
+	var sb: Dictionary = Game.me().builds.solar_farm
+	var s1 := Energy.supply()
+	sb.n = float(sb.n0) + Builds.need_at_start(Game.me(), "solar_farm") * 4.0
+	var s2 := Energy.supply()
+	sb.n = float(sb.n0) + Builds.need_at_start(Game.me(), "solar_farm") * 8.0
+	var s3 := Energy.supply()
+	_check(s3 - s2 > (s2 - s1) * 0.9, "every power plant keeps adding supply (no saturation)")
+
 	# Every key the game saves through Settings must be a declared setting (else it is silently dropped).
 	Settings.set_value("sections_open", {"Test/x": true})
 	_check(bool((Settings.get_value("sections_open", {}) as Dictionary).get("Test/x", false)), "folded-section choices are remembered")

@@ -2,6 +2,12 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.111.0] - 2026-11-09
+
+- **Fix: building power plants now ends blackouts in a fast-growing economy.** Power used to count like hospitals or schools, as "coverage" that tops out near 90%, so in a booming economy every extra plant added almost nothing while demand kept climbing. Now each plant adds its own output
+- You can build as many power plants as a bigger economy needs (the old limit was tied to population, not electricity demand)
+- During blackouts the Build page shows a warning that opens Energy, Best value suggests power plants first, each suggestion says how much of the blackout it ends, and the Power grid card estimates how many more you need
+
 ## [0.110.1] - 2026-11-09
 
 - **Fix:** tapping a folded section now opens it with its content (it opened empty), and the app remembers which sections you keep open

@@ -130,13 +130,36 @@ static func demand() -> float:
 
 
 ## Supply index: the grid you started with, private investment, and what you build.
+## Every plant adds its own output: power adds up, it doesn't saturate the way
+## "coverage" of hospitals or schools does (a booming economy can always build more).
 static func supply() -> float:
 	var c := Game.me()
 	var s := 1.0 + E.EN_PRIVATE_GROWTH * Game.months_played / 12.0 + float(st().get("bonus", 0.0))
 	if not c.builds.is_empty():
+		var cond := Builds.condition()
 		for id in Builds.ids_in("Energy"):
-			s += E.EN_BUILD_SUPPLY * maxf(Builds.gain(c, str(id)), -0.5) * float(Builds.spec(str(id)).get("power", 1.0))
-	return s
+			var b: Dictionary = c.builds.get(id, {})
+			if b.is_empty():
+				continue
+			var power := float(Builds.spec(str(id)).get("power", 1.0))
+			# New plants add their output (worn down by poor maintenance)...
+			s += maxf(float(b.n) - float(b.n0), 0.0) * cond * unit_supply(str(id))
+			# ...and neglect wears the grid you started with, gently, as before.
+			s += E.EN_BUILD_SUPPLY * power * (Builds.coverage_of(c, str(id), minf(float(b.n), float(b.n0)) * cond) - Builds.coverage_of(c, str(id), float(b.n0)))
+	return maxf(s, 0.2)
+
+
+## Supply one more unit of an energy build adds.
+static func unit_supply(id: String) -> float:
+	return E.EN_BUILD_SUPPLY * float(Builds.spec(id).get("power", 1.0)) / Builds.need_at_start(Game.me(), id)
+
+
+## About how many more of a build would end the shortfall (0 = none needed).
+static func units_to_fix(id: String) -> int:
+	var gap := demand() - supply() - E.EN_MARGIN
+	if gap <= 0.0:
+		return 0
+	return int(ceil(gap / maxf(unit_supply(id), 1e-9)))
 
 
 ## Shortfall share (0 = enough power).

@@ -167,6 +167,15 @@ static func need(c: CountryState, id: String) -> float:
 	return maxf(n, 0.3)
 
 
+## Need measured against the population when you took office (a fixed yardstick).
+static func need_at_start(c: CountryState, id: String) -> float:
+	var s := spec(id)
+	var n := float(s.pm) * World.stat(c.idx, "population", c.population) / 1e6
+	if bool(s.get("big", false)):
+		n = maxf(n, 0.6)
+	return maxf(n, 0.3)
+
+
 static func coverage_of(c: CountryState, id: String, n: float) -> float:
 	return 1.0 - exp(-n / need(c, id))
 
@@ -227,7 +236,11 @@ static func months(c: CountryState, id: String) -> int:
 
 ## Most units you could start now: limited by twice the need (no endless spam).
 static func max_more(c: CountryState, id: String) -> int:
-	return maxi(0, int(ceil(need(c, id) * 2.5)) - count(c, id) - building(c, id))
+	var cap := need(c, id) * 2.5
+	# Power plants: a bigger economy uses more electricity, so it can use more of them.
+	if str(spec(id).group) == "Energy" and c.idx == Game.player and Game.has_game() and Game.dip.has("energy"):
+		cap = maxf(cap, need_at_start(c, id) * 2.5 * Energy.demand())
+	return maxi(0, int(ceil(cap)) - count(c, id) - building(c, id))
 
 
 ## Most construction work the builders can take on, % of GDP a year.
@@ -309,6 +322,13 @@ static func value_of(c: CountryState, id: String) -> float:
 	var have := float(count(c, id) + building(c, id))
 	var d := coverage_of(c, id, have + q) - coverage_of(c, id, have)
 	var pts := 0.0
+	# During blackouts a power plant is worth the blackout it ends.
+	if str(s.group) == "Energy" and c.idx == Game.player and Game.has_game() and Game.dip.has("energy"):
+		var sh := Energy.shortage()
+		if sh > 0.0:
+			var add := q * Energy.unit_supply(id)
+			# Credit for the share of the gap it closes (the blackout's full cost is growth and happiness).
+			pts += (E.EN_BLACKOUT_GROWTH * 1.5 + 0.5 * E.EN_BLACKOUT_HAPPY) * minf(add / sh, 1.0) * 3.0
 	for k in s.fx:
 		if not Laws.FX_GOOD_UP.has(k):
 			continue

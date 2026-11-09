@@ -348,6 +348,15 @@ func _fill_overview(c: CountryState) -> void:
 	_units.add_child(photo_header("construction", "Build your nation",
 		("Building now: %s a year" % DS.money(c.gdp * spend / 100.0)) if spend > 0.0 else "Choose how many of anything to build", 150.0))
 	_dashboard(c)
+	# Blackouts: say so on the front page, one tap to the power plants.
+	if Game.dip.has("energy") and Energy.shortage() > 0.0:
+		var warn := ListRow.new().setup("Rolling blackouts", "Electricity demand has outgrown your grid. Tap to build power plants.", "›")
+		warn.subtitle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		warn.subtitle_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+		warn.set_leading(ListRow.icon_tile("zap-off", DS.RED))
+		warn.theme_type_variation = &"GroupPanel"
+		warn.tapped.connect(func() -> void: _go_group("Energy"))
+		_units.add_child(warn)
 	# Best value now.
 	var best := Builds.best_value(c, 3)
 	if not best.is_empty():
@@ -436,7 +445,11 @@ func _suggestion_row(c: CountryState, id: String) -> Control:
 			var val := float(s.fx[k]) * d * Economy.BUILD_FX_SCALE
 			if absf(val) >= 0.01:
 				parts.append("%s %+.2f" % [str(Laws.FX_LABELS[k]).to_lower(), val])
-	var row := ListRow.new().setup(str(s.title), "%s for %s  ·  %s" % [_n(q), DS.money(Builds.unit_price(c, id) * q), ", ".join(parts)], "›")
+	if str(s.group) == "Energy" and Game.dip.has("energy"):
+		var sh := Energy.shortage()
+		var add := q * Energy.unit_supply(id)
+		parts.insert(0, ("ends %d%% of the blackouts" % roundi(minf(add / sh, 1.0) * 100.0)) if sh > 0.0 else "power +%s%%" % String.num(add * 100.0, 1))
+	var row := ListRow.new().setup(str(s.title), "%s for %s%s" % [_n(q), DS.money(Builds.unit_price(c, id) * q), ("  ·  " + ", ".join(parts)) if not parts.is_empty() else ""], "›")
 	row.subtitle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	row.subtitle_label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	row.trailing_label.add_theme_color_override(&"font_color", DS.TEXT_3)
@@ -1001,8 +1014,17 @@ func _energy_card(c: CountryState) -> void:
 	v.add_theme_color_override(&"font_color", col)
 	r.add_child(v)
 	box.add_child(meter(minf(use, 1.0), 0.0, col, 4.0))
-	note("A growing economy needs more electricity. Build power plants, solar and wind farms, dams or grid lines below to stay ahead." if short <= 0.0
-		else "Factories and homes are losing power. Every energy build below adds supply.", box)
+	var fix := ""
+	if short > 0.0:
+		var best := ""
+		for id in ["solar_farm", "wind_farm", "gas_plant", "nuclear_reactor"]:
+			if c.builds.has(id) and Builds.available(c, id) == "":
+				best = id
+				break
+		if best != "":
+			fix = "  About %s more %s would end it." % [DS.compact(float(Energy.units_to_fix(best))), str(Builds.spec(best).get("unit", Builds.spec(best).title)).to_lower() + "s"]
+	note(("A growing economy needs more electricity. Build power plants, solar and wind farms, dams or grid lines below to stay ahead." if short <= 0.0
+		else "Factories and homes are losing power. Every energy build below adds supply." + fix), box)
 	# Natural resources.
 	var res: Dictionary = Energy.st().res
 	var rb := section("Natural resources", _units)
