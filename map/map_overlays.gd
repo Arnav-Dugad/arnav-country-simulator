@@ -67,6 +67,7 @@ func _draw() -> void:
 	_draw_trade()
 	_draw_tariffs()
 	_draw_projects()
+	_draw_regions()
 	_draw_wonders()
 	_draw_sea()
 	_draw_flight()
@@ -474,6 +475,122 @@ func _draw_projects() -> void:
 		if tex:
 			draw_texture_rect(tex, Rect2(p - Vector2(6.5, 6.5), Vector2(13, 13)), false,
 				Color(1, 1, 1, 0.95) if not building else Color(DS.ORANGE.lightened(0.3), 0.95))
+
+
+## Your home regions: a loyalty-coloured marker inside your country for each,
+## placed by compass direction (the capital region at the capital).
+var _reg_cache := {}
+var _reg_key := ""
+var _reg_font: Font
+
+
+func _region_anchors() -> Dictionary:
+	var key := "%d:%d" % [Game.player, Regions.list().size()]
+	if key == _reg_key:
+		return _reg_cache
+	_reg_key = key
+	_reg_cache = {}
+	var md := map.data
+	var rings: Array = map._by_country[Game.player] if Game.player < map._by_country.size() else []
+	var main := PackedVector2Array()
+	var best := 0.0
+	for r in rings:
+		var a := absf(Geo.signed_area(md.ring_points[r]))
+		if a > best:
+			best = a
+			main = md.ring_points[r]
+	if main.size() < 3:
+		return _reg_cache
+	var cen := Vector2.ZERO
+	for p in main:
+		cen += p
+	cen /= float(main.size())
+	if not Geometry2D.is_point_in_polygon(cen, main):
+		cen = _anchor(Game.player)
+	var north := (Geo.equal_earth(0.0, 10.0) - Geo.equal_earth(0.0, 0.0)).normalized()
+	var dirs := {"The North": north, "The South": -north, "The East": Vector2.RIGHT, "The West": Vector2.LEFT}
+	var used := {}
+	for g in Regions.list():
+		used[str(g.name)] = true
+	for d in ["The North", "The South", "The East", "The West"]:
+		if not used.has(d):
+			dirs["The Coast"] = dirs[d]
+			break
+	for g in Regions.list():
+		var n := str(g.name)
+		var pos := _anchor(Game.player)
+		if dirs.has(n):
+			var dv: Vector2 = dirs[n]
+			var lo := INF
+			var hi := -INF
+			for p in main:
+				lo = minf(lo, p.dot(dv))
+				hi = maxf(hi, p.dot(dv))
+			var sum := Vector2.ZERO
+			var k := 0
+			for p in main:
+				if p.dot(dv) >= hi - (hi - lo) * 0.3:
+					sum += p
+					k += 1
+			pos = (sum / maxf(k, 1)).lerp(cen, 0.4)
+			var cap := _anchor(Game.player)
+			var diag := (hi - lo)
+			if pos.distance_to(cap) < diag * 0.18:
+				pos = cap + dv * diag * 0.22      # keep clear of the capital marker
+			for step in 8:
+				if Geometry2D.is_point_in_polygon(pos, main):
+					break
+				pos = pos.lerp(cen, 0.3)
+		_reg_cache[n] = pos
+	return _reg_cache
+
+
+func _draw_regions() -> void:
+	if not Game.dip.has("reg") or map.zoom < map.min_zoom * 2.2:
+		return
+	var anchors := _region_anchors()
+	if anchors.is_empty():
+		return
+	if _reg_font == null:
+		_reg_font = get_theme_font(&"font", &"Caption")
+	var taken: Array[Rect2] = []
+	for g in Regions.list():      # every marker first, so no label covers one
+		if anchors.has(str(g.name)):
+			var mp := map.world_to_screen(anchors[str(g.name)])
+			taken.append(Rect2(mp - Vector2(8, 8), Vector2(16, 16)))
+	for g in Regions.list():
+		var n := str(g.name)
+		if not anchors.has(n):
+			continue
+		var p := map.world_to_screen(anchors[n])
+		if not get_viewport_rect().grow(40).has_point(p):
+			continue
+		var col: Color = DS.TEXT_3 if bool(g.lost) else Regions.mood_color(g)
+		if not bool(g.lost) and float(g.loyalty) < 35.0:
+			var u := fposmod(_t * 0.8, 1.0)
+			draw_arc(p, 6.0 + 14.0 * u, 0.0, TAU, 28, Color(col, 0.6 * (1.0 - u)), 1.6, true)
+		draw_circle(p, 6.5, Color(0.04, 0.06, 0.1, 0.85), true, -1.0, true)
+		draw_circle(p, 4.5, col, true, -1.0, true)
+		var label := ("%s %d" % [n.trim_prefix("The ").replace(" region", ""), roundi(float(g.loyalty))]) if not bool(g.lost) else "%s (left)" % n.trim_prefix("The ")
+		var tw := _reg_font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, 11).x
+		var tp := Vector2.ZERO
+		var placed := false
+		for dy in [19.0, -10.0]:         # below the marker, else above it
+			var cand := p + Vector2(-tw * 0.5, dy)
+			var r := Rect2(cand + Vector2(-2, -11), Vector2(tw + 4, 14))
+			var clash := false
+			for t in taken:
+				if t.intersects(r):
+					clash = true
+					break
+			if not clash:
+				tp = cand
+				taken.append(r)
+				placed = true
+				break
+		if placed:
+			draw_string_outline(_reg_font, tp, label, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, 4, Color(0, 0, 0, 0.7))
+			draw_string(_reg_font, tp, label, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(1, 1, 1, 0.92))
 
 
 ## Disrupted sea lanes: a pulsing red ring at the strait (teal while your navy escorts).
