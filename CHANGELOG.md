@@ -2,6 +2,12 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.98.0] - 2026-11-09
+
+- **Search finds map layers:** type "air", "water", "online", "power", "schools" or "nuclear" to switch the map straight to that layer
+- **What people are saying** always has three voices; everyday comments fill in when nothing dramatic is happening
+- **Polish:** region names read naturally in the news ("a development fund for the North")
+
 ## [0.97.0] - 2026-11-09
 
 - **World powers** (World): a league table combining economy, military, soft power, nuclear weapons and skills. See where you stand, how far you've climbed since taking office, and try to break into the top three
