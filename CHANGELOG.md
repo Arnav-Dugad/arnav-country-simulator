@@ -2,6 +2,10 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.105.0] - 2026-11-09
+
+- **What's new after a long break:** if you skipped several updates, the card now lists the headline features of all of them at a glance, the biggest first, instead of only the newest few lines
+
 ## [0.104.0] - 2026-11-09
 
 - **Three new challenges** built on the new systems:

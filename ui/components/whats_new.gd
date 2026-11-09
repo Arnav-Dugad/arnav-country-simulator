@@ -55,19 +55,64 @@ static func maybe_show(parent: Node) -> void:
 	show(parent, seen, now)
 
 
+## The bold headline of every top-level bullet in versions (after, upto], newest first.
+static func headlines(after: String, upto: String) -> Array:
+	var big: Array = []        # headlines with sub-points: the major features
+	var small: Array = []
+	var keep := false
+	var last := ""
+	for raw in _text().replace("\r", "").split("\n"):
+		var l := raw.strip_edges(false, true)
+		if l.begins_with("## ["):
+			var v := l.get_slice("[", 1).get_slice("]", 0)
+			keep = not Updater.is_newer(v, upto) and Updater.is_newer(v, after)
+			last = ""
+		elif keep and l.begins_with("- **"):
+			last = l.substr(4).get_slice("**", 0).trim_suffix(":").trim_suffix(".").strip_edges()
+			if last != "" and not last.begins_with("Fix") and not last in ["Balance", "Polish"] and not last in small and not last in big:
+				small.append(last)
+		elif keep and l.begins_with("  - ") and last in small:
+			small.erase(last)
+			big.append(last)
+	return big + small
+
+
 static func show(parent: Node, after: String, upto: String) -> void:
 	var secs := sections(after, upto)
 	var items: Array = []
-	for s in secs:
-		for b in s[1]:
-			if items.size() < MAX_ITEMS:
-				items.append(b)
+	var big := after != "" and secs.size() > 3
+	if big:
+		items = headlines(after, upto).slice(0, 26)
+	else:
+		for s in secs:
+			for b in s[1]:
+				if items.size() < MAX_ITEMS:
+					items.append(b)
 	if items.is_empty():
 		return
 	var m := ModalCard.new()
 	m.tap_outside_dismiss = true
 	parent.add_child(m)
-	m.header("sparkles", DS.ACCENT, "Version %s" % upto, "What's new")
+	m.header("sparkles", DS.ACCENT, "Version %s" % upto, "%d updates since you last played" % secs.size() if big else "What's new")
+	if big:
+		# Two fixed columns (a flow container fights the card's self-sizing).
+		var grid := GridContainer.new()
+		grid.columns = 2
+		grid.add_theme_constant_override(&"h_separation", DS.S3)
+		grid.add_theme_constant_override(&"v_separation", 4)
+		m.content.add_child(grid)
+		for t in items.slice(0, 22):
+			var lc := Label.new()
+			lc.theme_type_variation = &"Caption"
+			lc.text = "•  " + str(t)
+			lc.clip_text = true
+			lc.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+			lc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			lc.custom_minimum_size = Vector2(40, 0)
+			grid.add_child(lc)
+		m.body("The headlines. Search (the magnifier) finds any of them.")
+		m.choice("Let's go", "", &"PrimaryButton", m.dismiss)
+		return
 	var list := VBoxContainer.new()
 	list.add_theme_constant_override(&"separation", DS.S2)
 	m.content.add_child(list)
