@@ -184,4 +184,5 @@ static func summary_of(data: Dictionary) -> Dictionary:
 		"approval": snappedf(float(c.get("approval", 0.0)), 0.1),
 		"gdp": float(c.get("gdp", 0.0)),
 		"saved_at": int(data.get("saved_at", 0)),
+		"sandbox": bool(data.get("cheats_used", false)) or bool(data.get("sandbox", false)),
 	}

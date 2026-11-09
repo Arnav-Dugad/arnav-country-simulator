@@ -67,6 +67,13 @@ func _ready() -> void:
 		"retired": "You stepped down as the constitution requires and handed %s to the next leader." % World.the_name(Game.player),
 	}.get(reason, "You led %s for %.1f years." % [World.the_name(Game.player), float(data.years)])
 	col.add_child(sub)
+	if bool(data.get("cheats", false)):
+		var sb := Label.new()
+		sb.theme_type_variation = &"Footnote"
+		sb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		sb.add_theme_color_override(&"font_color", DS.PURPLE)
+		sb.text = "Sandbox game: cheats were used, so it doesn't count toward achievements, your career or the leaderboards."
+		col.add_child(sb)
 
 	# Legacy grade
 	var parts := Economy.legacy_parts(data)

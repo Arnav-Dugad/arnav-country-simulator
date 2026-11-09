@@ -109,8 +109,8 @@ func _build() -> void:
 		var o := SaveManager.summary(s)
 		if o.is_empty():
 			continue
-		var row := ListRow.new().setup(str(o.get("name", "")), "%s  ·  approval %s%%" % [o.get("date", ""),
-			String.num(float(o.get("approval", 0.0)), 0)], "Slot %d" % s)
+		var row := ListRow.new().setup(str(o.get("name", "")), "%s  ·  approval %s%%%s" % [o.get("date", ""),
+			String.num(clampf(float(o.get("approval", 0.0)), 0.0, 100.0), 0), "  ·  sandbox" if bool(o.get("sandbox", false)) else ""], "Slot %d" % s)
 		var idx := World.index_of(str(o.get("country", "")))
 		row.set_leading(Flag.new().show_country(idx, 22.0))
 		row.tapped.connect(_load.bind(s))
@@ -160,7 +160,7 @@ func _resume_card(slot: int, sm: Dictionary) -> Control:
 	top.add_child(tv)
 	var o := Label.new()
 	o.theme_type_variation = &"Overline"
-	o.text = "CONTINUE"
+	o.text = "CONTINUE  ·  SANDBOX" if bool(sm.get("sandbox", false)) else "CONTINUE"
 	tv.add_child(o)
 	var n := Label.new()
 	n.theme_type_variation = &"Title2"
@@ -299,6 +299,8 @@ func _manage_saves() -> void:
 			continue
 		var detail := "Slot %d  ·  %s  ·  approval %s%%" % [s, _pretty_date(str(o.get("date", ""))),
 			String.num(clampf(float(o.get("approval", 0.0)), 0.0, 100.0), 0)]
+		if bool(o.get("sandbox", false)):
+			detail += "  ·  sandbox"
 		if CloudSync.is_backed_up(s):
 			detail += "  ·  backed up"
 		m.choice("Delete %s" % str(o.get("name", "?")), detail, &"GhostButton", func() -> void:
