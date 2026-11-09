@@ -57,6 +57,28 @@ func _ready() -> void:
 							Laws.start(c, "skilled_visas")
 							Laws.start(c, "anti_corruption")
 							Laws.start(c, "export_zones")
+					"ind_air":
+						if m == 0:
+							Capital.add(50.0)
+							for aid in Air.POLICIES:
+								if Air.available(str(aid)) and not Air.has(str(aid)):
+									Air.toggle(str(aid))
+							for id in ["solar", "wind"]:
+								Projects.start(c, id)
+					"esp_unity":
+						if m % 12 == 0:
+							Capital.add(25.0)
+							var w := Regions.weakest()
+							if w >= 0:
+								if not bool(Regions.list()[w].autonomy):
+									Regions.grant_autonomy(w)
+								Regions.fund(w)
+					"egy_water":
+						if m == 0:
+							Water.set_drip(true)
+							Water.set_recycle(true)
+						if Water.can_desal():
+							Water.build_desal()
 				Game.advance_month()
 				if not Game.pending_event.is_empty():
 					Game.resolve_event(0)

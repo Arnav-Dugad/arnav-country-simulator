@@ -36,6 +36,15 @@ const ALL := [
 	{"id": "bih_stay", "country": "BIH", "icon": "plane-landing", "title": "Stop the exodus",
 		"desc": "Young Bosnians are leaving. Slow emigration to under 2.5 people per 1,000 a year within 8 years (from 5.2).",
 		"goal": {"metric": "migration", "op": ">", "value": -2.5}, "years": 8},
+	{"id": "ind_air", "country": "IND", "icon": "wind", "title": "Clear skies over India",
+		"desc": "Cut India's fine-dust pollution below 34 µg/m³ within 8 years (from 54).",
+		"goal": {"metric": "pm", "op": "<", "value": 34.0}, "years": 8},
+	{"id": "esp_unity", "country": "ESP", "icon": "map-pin", "title": "Keep Spain together",
+		"desc": "Win back Spain's restless region: national unity above 75 within 10 years.",
+		"goal": {"metric": "unity", "op": ">", "value": 75.0}, "years": 10},
+	{"id": "egy_water", "country": "EGY", "icon": "droplets", "title": "Water for Egypt",
+		"desc": "Bring Egypt's water stress below 2.4 of 5 within 10 years (from 3.2).",
+		"goal": {"metric": "water", "op": "<", "value": 2.4}, "years": 10},
 ]
 
 
@@ -59,6 +68,12 @@ static func current_value(ch: Dictionary) -> float:
 			return Climate.co2_pc(c)
 		"migration":
 			return Migration.rate(c)
+		"pm":
+			return Air.pm()
+		"unity":
+			return Regions.unity()
+		"water":
+			return Water.stress()
 	return float(c.get(str(ch.goal.metric)))
 
 
@@ -87,6 +102,12 @@ static func format_value(ch: Dictionary, v: float) -> String:
 			return "%s t" % String.num(v, 1)
 		"migration":
 			return "%s%s per 1,000" % ["+" if v >= 0.0 else "−", String.num(absf(v), 1)]
+		"pm":
+			return "%d µg/m³" % roundi(v)
+		"unity", "stability":
+			return String.num(v, 0)
+		"water":
+			return "%s of 5" % String.num(v, 1)
 	return DS.pct(v, 1)
 
 

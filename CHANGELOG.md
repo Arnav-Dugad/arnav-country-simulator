@@ -2,6 +2,14 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.104.0] - 2026-11-09
+
+- **Three new challenges** built on the new systems:
+  - Clear skies over India: cut fine dust below 34 µg/m³ in 8 years
+  - Keep Spain together: win back a restless region, with national unity above 75 in 10 years
+  - Water for Egypt: bring water stress below 2.4 in 10 years
+  - Each one is tested to be winnable, but not easily
+
 ## [0.103.0] - 2026-11-09
 
 - **Five new laws** people argue about today, each with voter groups who love or hate it:
