@@ -2,6 +2,10 @@
 
 The release workflow publishes the section that matches the tag as the GitHub Release notes.
 
+## [0.110.0] - 2026-11-09
+
+- **Regions on the map, refined:** region dots appear once your country is big enough on screen, and their names only when you zoom in, so country names stay readable. "The Coast" now sits on a real coastline
+
 ## [0.109.0] - 2026-11-09
 
 - **Shorter, calmer pages:** on Laws, World, People & society and Industries, sections fold to a single title until you tap them

@@ -512,13 +512,11 @@ func _region_anchors() -> Dictionary:
 	var used := {}
 	for g in Regions.list():
 		used[str(g.name)] = true
-	for d in ["The North", "The South", "The East", "The West"]:
-		if not used.has(d):
-			dirs["The Coast"] = dirs[d]
-			break
 	for g in Regions.list():
 		var n := str(g.name)
 		var pos := _anchor(Game.player)
+		if n == "The Coast":
+			continue          # placed last, on a real coastline
 		if dirs.has(n):
 			var dv: Vector2 = dirs[n]
 			var lo := INF
@@ -542,12 +540,55 @@ func _region_anchors() -> Dictionary:
 					break
 				pos = pos.lerp(cen, 0.3)
 		_reg_cache[n] = pos
+	if used.has("The Coast"):
+		_reg_cache["The Coast"] = _coast_anchor(main, cen)
 	return _reg_cache
 
 
+## A point near the sea: a border vertex with no neighbour just beyond it,
+## as far as possible from the other markers, pulled a little inland.
+func _coast_anchor(main: PackedVector2Array, cen: Vector2) -> Vector2:
+	var md := map.data
+	var others: Array = []
+	for i in md.neighbours[Game.player] if Game.player < md.neighbours.size() else []:
+		for r in map._by_country[i] if i < map._by_country.size() else []:
+			others.append(md.ring_points[r])
+	var step := maxi(1, main.size() / 160)
+	var best := cen
+	var best_d := -1.0
+	for k in range(0, main.size(), step):
+		var v := main[k]
+		var out := v + (v - cen) * 0.03
+		var shore := true
+		for poly in others:
+			if Geometry2D.is_point_in_polygon(out, poly):
+				shore = false
+				break
+		if not shore:
+			continue
+		var dmin := INF
+		dmin = minf(dmin, v.distance_to(_anchor(Game.player)))
+		for key in _reg_cache:
+			dmin = minf(dmin, v.distance_to(_reg_cache[key]))
+		if dmin > best_d:
+			best_d = dmin
+			best = v
+	var pos := best.lerp(cen, 0.18)
+	for i in 8:
+		if Geometry2D.is_point_in_polygon(pos, main):
+			break
+		pos = pos.lerp(cen, 0.3)
+	return pos
+
+
 func _draw_regions() -> void:
-	if not Game.dip.has("reg") or map.zoom < map.min_zoom * 2.2:
+	if not Game.dip.has("reg"):
 		return
+	# Size of your country on screen decides: dots once it's big enough, names when zoomed in.
+	var px := map.focus_rect(Game.player).size.x * map.zoom
+	if px < 120.0:
+		return
+	var show_names := px >= 420.0
 	var anchors := _region_anchors()
 	if anchors.is_empty():
 		return
@@ -572,6 +613,8 @@ func _draw_regions() -> void:
 		draw_circle(p, 6.5, Color(0.04, 0.06, 0.1, 0.85), true, -1.0, true)
 		draw_circle(p, 4.5, col, true, -1.0, true)
 		var label := ("%s %d" % [n.trim_prefix("The ").replace(" region", ""), roundi(float(g.loyalty))]) if not bool(g.lost) else "%s (left)" % n.trim_prefix("The ")
+		if not show_names:
+			continue          # dots only until you zoom in: country names stay readable
 		var tw := _reg_font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, 11).x
 		var tp := Vector2.ZERO
 		var placed := false
